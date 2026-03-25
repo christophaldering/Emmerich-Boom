@@ -41,7 +41,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   return (
     <div
       className="border-b"
-      style={{ borderColor: "hsl(220 12% 18%)" }}
+      style={{ borderColor: "hsl(268 28% 22%)" }}
     >
       <button
         className="w-full text-left py-5 flex items-center justify-between gap-4 transition-colors duration-200"
@@ -82,7 +82,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 export default function FAQ() {
   const ref = useReveal();
   return (
-    <section id="faq" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(220 18% 7%)" }}>
+    <section id="faq" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(268 45% 7%)" }}>
       <div className="max-w-3xl mx-auto px-5 md:px-8">
         <div className="reveal mb-10">
           <h2 className="font-serif text-3xl md:text-4xl font-bold" style={{ color: "hsl(40 25% 90%)" }}>

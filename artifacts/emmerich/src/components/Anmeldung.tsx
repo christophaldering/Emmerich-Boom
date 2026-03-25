@@ -28,8 +28,8 @@ export default function Anmeldung() {
   };
 
   const inputStyle = {
-    background: "hsl(220 15% 11%)",
-    border: "1px solid hsl(220 12% 22%)",
+    background: "hsl(268 35% 11%)",
+    border: "1px solid hsl(268 28% 24%)",
     borderRadius: "0.375rem",
     color: "hsl(40 25% 84%)",
     padding: "0.75rem 1rem",
@@ -50,7 +50,7 @@ export default function Anmeldung() {
   };
 
   return (
-    <section id="anmeldung" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(220 18% 7%)" }}>
+    <section id="anmeldung" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(268 45% 7%)" }}>
       <div className="max-w-2xl mx-auto px-5 md:px-8">
         <div className="reveal mb-8">
           <h2 className="font-serif text-3xl md:text-4xl font-bold" style={{ color: "hsl(40 25% 90%)" }}>
@@ -66,7 +66,7 @@ export default function Anmeldung() {
         {submitted ? (
           <div
             className="reveal rounded-lg border p-8 text-center"
-            style={{ background: "hsl(220 15% 11%)", borderColor: "hsl(38 88% 54% / 0.4)" }}
+            style={{ background: "hsl(268 35% 11%)", borderColor: "hsl(38 88% 54% / 0.4)" }}
           >
             <div className="text-3xl mb-4" style={{ color: "var(--gold)" }}>✦</div>
             <p className="text-lg font-semibold mb-2" style={{ color: "hsl(40 25% 86%)" }}>
@@ -90,7 +90,7 @@ export default function Anmeldung() {
                   onChange={handleChange}
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(220 12% 22%)")}
+                  onBlur={(e) => (e.target.style.borderColor = "hsl(268 28% 24%)")}
                 />
               </div>
               <div>
@@ -104,7 +104,7 @@ export default function Anmeldung() {
                   onChange={handleChange}
                   style={inputStyle}
                   onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                  onBlur={(e) => (e.target.style.borderColor = "hsl(220 12% 22%)")}
+                  onBlur={(e) => (e.target.style.borderColor = "hsl(268 28% 24%)")}
                 />
               </div>
             </div>
@@ -120,7 +120,7 @@ export default function Anmeldung() {
                 onChange={handleChange}
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(220 12% 22%)")}
+                onBlur={(e) => (e.target.style.borderColor = "hsl(268 28% 24%)")}
               />
             </div>
 
@@ -134,7 +134,7 @@ export default function Anmeldung() {
                 onChange={handleChange}
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(220 12% 22%)")}
+                onBlur={(e) => (e.target.style.borderColor = "hsl(268 28% 24%)")}
               />
             </div>
 
@@ -147,10 +147,10 @@ export default function Anmeldung() {
                 onChange={handleChange}
                 style={inputStyle}
                 onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(220 12% 22%)")}
+                onBlur={(e) => (e.target.style.borderColor = "hsl(268 28% 24%)")}
               >
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n} style={{ background: "hsl(220 15% 11%)" }}>{n}</option>
+                  <option key={n} value={n} style={{ background: "hsl(268 35% 11%)" }}>{n}</option>
                 ))}
               </select>
             </div>
@@ -165,7 +165,7 @@ export default function Anmeldung() {
                 onChange={handleChange}
                 style={{ ...inputStyle, resize: "vertical" }}
                 onFocus={(e) => (e.target.style.borderColor = "var(--gold)")}
-                onBlur={(e) => (e.target.style.borderColor = "hsl(220 12% 22%)")}
+                onBlur={(e) => (e.target.style.borderColor = "hsl(268 28% 24%)")}
               />
             </div>
 
@@ -188,7 +188,7 @@ export default function Anmeldung() {
             <button
               type="submit"
               className="w-full py-3 rounded text-sm font-semibold transition-all duration-200"
-              style={{ background: "var(--gold)", color: "hsl(220 18% 7%)" }}
+              style={{ background: "var(--gold)", color: "hsl(268 45% 7%)" }}
               onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "hsl(38 88% 62%)")}
               onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--gold)")}
             >

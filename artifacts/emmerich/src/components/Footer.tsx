@@ -13,8 +13,8 @@ export default function Footer() {
     <footer
       className="py-14 border-t"
       style={{
-        background: "hsl(220 18% 6%)",
-        borderColor: "hsl(220 12% 14%)",
+        background: "hsl(268 45% 6%)",
+        borderColor: "hsl(268 28% 17%)",
       }}
     >
       <div className="max-w-5xl mx-auto px-5 md:px-8 text-center">

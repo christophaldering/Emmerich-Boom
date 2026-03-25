@@ -10,7 +10,7 @@ const partner = [
 export default function Sponsoren() {
   const ref = useReveal();
   return (
-    <section id="partner" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(220 16% 9%)" }}>
+    <section id="partner" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(268 40% 9%)" }}>
       <div className="max-w-5xl mx-auto px-5 md:px-8">
         <div className="reveal mb-8">
           <h2 className="font-serif text-3xl md:text-4xl font-bold" style={{ color: "hsl(40 25% 90%)" }}>
@@ -29,15 +29,15 @@ export default function Sponsoren() {
               key={label}
               className={`reveal reveal-delay-${Math.min(i + 1, 5)} rounded-lg border flex flex-col items-center justify-center text-center p-8 transition-all duration-200`}
               style={{
-                background: "hsl(220 15% 11%)",
-                borderColor: "hsl(220 12% 18%)",
+                background: "hsl(268 35% 11%)",
+                borderColor: "hsl(268 28% 22%)",
                 minHeight: "130px",
               }}
               onMouseEnter={(e) =>
                 ((e.currentTarget as HTMLElement).style.borderColor = "hsl(38 88% 54% / 0.35)")
               }
               onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.borderColor = "hsl(220 12% 18%)")
+                ((e.currentTarget as HTMLElement).style.borderColor = "hsl(268 28% 22%)")
               }
             >
               <div className="w-10 h-10 rounded-full mb-4 flex items-center justify-center" style={{ background: "hsl(38 88% 54% / 0.1)" }}>

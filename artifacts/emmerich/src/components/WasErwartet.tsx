@@ -11,7 +11,7 @@ const kacheln = [
 export default function WasErwartet() {
   const ref = useReveal();
   return (
-    <section id="was-erwartet" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(220 18% 7%)" }}>
+    <section id="was-erwartet" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(268 45% 7%)" }}>
       <div className="max-w-5xl mx-auto px-5 md:px-8">
         <div className="reveal mb-12">
           <h2 className="font-serif text-3xl md:text-4xl font-bold" style={{ color: "hsl(40 25% 90%)" }}>
@@ -24,15 +24,15 @@ export default function WasErwartet() {
             <div
               key={i}
               className={`reveal reveal-delay-${Math.min(i + 1, 5)} rounded-lg p-6 border flex items-start gap-3 transition-all duration-200`}
-              style={{ background: "hsl(220 15% 10%)", borderColor: "hsl(220 12% 18%)" }}
+              style={{ background: "hsl(268 35% 11%)", borderColor: "hsl(268 28% 22%)" }}
               onMouseEnter={(e) =>
                 ((e.currentTarget as HTMLElement).style.borderColor = "hsl(38 88% 54% / 0.35)")
               }
               onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.borderColor = "hsl(220 12% 18%)")
+                ((e.currentTarget as HTMLElement).style.borderColor = "hsl(268 28% 22%)")
               }
             >
-              <span className="mt-0.5 text-base shrink-0" style={{ color: "var(--gold)" }}>✦</span>
+              <span className="mt-0.5 text-base shrink-0" style={{ color: "var(--magenta)" }}>✦</span>
               <p className="text-sm md:text-base leading-snug" style={{ color: "hsl(40 20% 74%)" }}>
                 {text}
               </p>

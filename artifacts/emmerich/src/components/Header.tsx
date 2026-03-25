@@ -28,10 +28,10 @@ export default function Header() {
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
         background: scrolled
-          ? "rgba(10, 11, 14, 0.92)"
-          : "rgba(10, 11, 14, 0.72)",
+          ? "rgba(14, 8, 22, 0.92)"
+          : "rgba(14, 8, 22, 0.72)",
         backdropFilter: "blur(16px)",
-        borderBottom: scrolled ? "1px solid hsl(220 12% 18%)" : "1px solid transparent",
+        borderBottom: scrolled ? "1px solid hsl(268 28% 22%)" : "1px solid transparent",
       }}
     >
       <div className="max-w-7xl mx-auto px-5 md:px-8">
@@ -70,7 +70,7 @@ export default function Header() {
               className="hidden sm:inline-flex items-center px-4 py-2 rounded text-sm font-semibold transition-all duration-200"
               style={{
                 background: "var(--gold)",
-                color: "hsl(220 18% 7%)",
+                color: "hsl(268 45% 7%)",
               }}
               onMouseEnter={(e) =>
                 ((e.currentTarget as HTMLElement).style.background =
@@ -120,8 +120,8 @@ export default function Header() {
         className="lg:hidden overflow-hidden transition-all duration-300"
         style={{
           maxHeight: open ? "400px" : "0",
-          background: "rgba(10, 11, 14, 0.97)",
-          borderBottom: open ? "1px solid hsl(220 12% 18%)" : "none",
+          background: "rgba(14, 8, 22, 0.97)",
+          borderBottom: open ? "1px solid hsl(268 28% 22%)" : "none",
         }}
       >
         <nav className="flex flex-col px-5 py-4 gap-1">
@@ -133,7 +133,7 @@ export default function Header() {
               className="py-3 text-base font-medium border-b"
               style={{
                 color: "hsl(40 25% 78%)",
-                borderColor: "hsl(220 12% 15%)",
+                borderColor: "hsl(268 28% 18%)",
               }}
             >
               {link.label}
@@ -143,7 +143,7 @@ export default function Header() {
             href="#anmeldung"
             onClick={handleNavClick}
             className="mt-3 text-center py-3 rounded text-sm font-semibold"
-            style={{ background: "var(--gold)", color: "hsl(220 18% 7%)" }}
+            style={{ background: "var(--gold)", color: "hsl(268 45% 7%)" }}
           >
             Jetzt anmelden
           </a>

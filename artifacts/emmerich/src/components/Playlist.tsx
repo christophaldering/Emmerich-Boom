@@ -5,7 +5,7 @@ const tags = ["Disco & Dancefloor", "80er / 90er", "Rock & Klassiker", "Mitsinge
 export default function Playlist() {
   const ref = useReveal();
   return (
-    <section id="playlist" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(220 16% 9%)" }}>
+    <section id="playlist" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(268 40% 9%)" }}>
       <div className="max-w-5xl mx-auto px-5 md:px-8">
         <div className="reveal mb-8">
           <h2 className="font-serif text-3xl md:text-4xl font-bold" style={{ color: "hsl(40 25% 90%)" }}>
@@ -24,9 +24,9 @@ export default function Playlist() {
               key={tag}
               className="px-4 py-2 rounded-full text-sm font-medium border"
               style={{
-                background: "hsl(220 15% 12%)",
-                borderColor: "hsl(38 88% 54% / 0.3)",
-                color: "hsl(38 80% 68%)",
+                background: "hsl(268 38% 13%)",
+                borderColor: "hsl(282 60% 55% / 0.4)",
+                color: "hsl(318 60% 75%)",
               }}
             >
               {tag}
@@ -38,8 +38,8 @@ export default function Playlist() {
         <div
           className="reveal reveal-delay-3 rounded-lg border flex items-center justify-center"
           style={{
-            background: "hsl(220 15% 11%)",
-            borderColor: "hsl(220 12% 18%)",
+            background: "hsl(268 35% 11%)",
+            borderColor: "hsl(268 28% 22%)",
             minHeight: "120px",
           }}
         >

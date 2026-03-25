@@ -3,7 +3,7 @@ import { useReveal } from "@/hooks/useReveal";
 export default function Ueber() {
   const ref = useReveal();
   return (
-    <section id="ueber" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(220 18% 7%)" }}>
+    <section id="ueber" ref={ref} className="py-20 md:py-28" style={{ background: "hsl(268 45% 7%)" }}>
       <div className="max-w-5xl mx-auto px-5 md:px-8">
         <div className="reveal max-w-2xl">
           <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6" style={{ color: "hsl(40 25% 90%)" }}>
@@ -29,8 +29,8 @@ export default function Ueber() {
               key={item.label}
               className={`reveal ${item.delay} rounded-lg p-8 text-center border`}
               style={{
-                background: "hsl(220 15% 10%)",
-                borderColor: "hsl(220 12% 18%)",
+                background: "hsl(268 35% 11%)",
+                borderColor: "hsl(268 28% 22%)",
               }}
             >
               <div className="text-3xl mb-4" style={{ color: "var(--gold)" }}>
