@@ -1,0 +1,25 @@
+packages:
+  "framer-motion": "For high-energy page transitions, scroll reveals, and dynamic text animations"
+  "clsx": "For conditional class merging"
+  "tailwind-merge": "For merging tailwind classes safely"
+
+images:
+  - path: "artifacts/emmerich/public/images/hero-bg.png"
+    description: "Abstract high-energy vibrant gradient mesh in electric neon green and deep charcoal black, modern tech aesthetic, dynamic motion"
+    aspect_ratio: "16:9"
+  - path: "artifacts/emmerich/public/images/avatar.png"
+    description: "Stylized abstract silhouette portrait of a modern professional, electric green edge lighting, dark background, highly energetic and confident vibe"
+    aspect_ratio: "1:1"
+  - path: "artifacts/emmerich/public/images/project-1.png"
+    description: "Abstract geometric 3D shapes in high contrast neon green and dark grey, brutalist and modern"
+    aspect_ratio: "16:9"
+  - path: "artifacts/emmerich/public/images/project-2.png"
+    description: "Dynamic light streaks and motion blur in neon colors against a pitch black background, conveying extreme speed and growth"
+    aspect_ratio: "16:9"
+  - path: "artifacts/emmerich/public/images/project-3.png"
+    description: "Minimalist brutalist web interface abstract concept with sharp typography and vibrant acid green accents"
+    aspect_ratio: "16:9"
+
+notes:
+  - This is a frontend-only portfolio application.
+  - The design aesthetic is "Dark Mode" by default to make the neon "acid green" primary color pop, fitting the "boomt" (booming/energetic) theme.
