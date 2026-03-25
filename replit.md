@@ -16,6 +16,20 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Artifacts
+
+### `artifacts/emmerich` (`@workspace/emmerich`)
+
+React+Vite one-page website for the event "EMMERICH BOOMT!".
+- Frontend-only (no backend needed)
+- 12 sections: Header, Hero, Ueber, DasEvent, WasErwartet, Playlist, Galerie, Countdown, FAQ, Sponsoren, Anmeldung, Footer
+- Fonts: Playfair Display (headlines) + Inter (body) via Google Fonts in index.html
+- Design: dark anthracite + warm gold/amber palette, retro-party with class
+- Real countdown targeting 18.07.2026
+- FAQ accordion with useState
+- Registration form with frontend-only success feedback
+- Scroll reveal animations via IntersectionObserver (useReveal hook)
+
 ## Structure
 
 ```text

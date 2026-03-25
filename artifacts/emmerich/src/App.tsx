@@ -1,31 +1,34 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
-
-const queryClient = new QueryClient();
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+import Header from "@/components/Header";
+import Hero from "@/components/Hero";
+import Ueber from "@/components/Ueber";
+import DasEvent from "@/components/DasEvent";
+import WasErwartet from "@/components/WasErwartet";
+import Playlist from "@/components/Playlist";
+import Galerie from "@/components/Galerie";
+import Countdown from "@/components/Countdown";
+import FAQ from "@/components/FAQ";
+import Sponsoren from "@/components/Sponsoren";
+import Anmeldung from "@/components/Anmeldung";
+import Footer from "@/components/Footer";
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      <main>
+        <Hero />
+        <Ueber />
+        <DasEvent />
+        <WasErwartet />
+        <Playlist />
+        <Galerie />
+        <Countdown />
+        <FAQ />
+        <Sponsoren />
+        <Anmeldung />
+      </main>
+      <Footer />
+    </div>
   );
 }
 

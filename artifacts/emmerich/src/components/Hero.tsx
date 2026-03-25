@@ -1,105 +1,76 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Button } from "./ui/button";
-
-export function Hero() {
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 1000], [0, 200]);
-  const opacity = useTransform(scrollY, [0, 500], [1, 0]);
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-    },
-  };
-
-  const item = {
-    hidden: { y: 100, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { type: "spring", bounce: 0.4, duration: 0.8 } },
-  };
-
+export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Image & Overlay */}
-      <motion.div 
-        style={{ y: y1, opacity }} 
-        className="absolute inset-0 z-0"
-      >
-        <div className="absolute inset-0 bg-background/80 mix-blend-multiply z-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background z-10" />
-        <img 
-          src={`${import.meta.env.BASE_URL}images/hero-bg.png`}
-          alt="Hero abstract background"
-          className="w-full h-full object-cover opacity-60"
-        />
-      </motion.div>
-
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6">
-        <motion.div 
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="flex flex-col items-start"
-        >
-          <motion.div variants={item} className="inline-block mb-4 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm">
-            <span className="text-primary text-sm font-bold uppercase tracking-widest flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Available for new projects
-            </span>
-          </motion.div>
-
-          <motion.h1 
-            variants={item}
-            className="text-7xl md:text-[9rem] lg:text-[12rem] font-display font-extrabold leading-[0.85] tracking-tighter text-foreground mb-2"
+    <section
+      id="start"
+      className="hero-grain relative min-h-screen flex flex-col justify-center overflow-hidden"
+      style={{
+        background:
+          "radial-gradient(ellipse 80% 60% at 50% 0%, hsl(38 60% 18% / 0.35) 0%, hsl(220 18% 7%) 65%), hsl(220 18% 7%)",
+      }}
+    >
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[300px] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, hsl(38 88% 54% / 0.12) 0%, transparent 70%)",
+        }}
+      />
+      <div className="relative z-10 max-w-5xl mx-auto px-5 md:px-8 pt-28 pb-20 md:pt-36 md:pb-28">
+        <div className="max-w-3xl">
+          <h1
+            className="font-serif font-bold leading-none tracking-tight gold-glow"
+            style={{ fontSize: "clamp(3.2rem, 10vw, 8rem)", color: "hsl(40 25% 92%)" }}
           >
             EMMERICH
-          </motion.h1>
-
-          <motion.div variants={item} className="flex flex-wrap items-center gap-4 md:gap-8 mb-8">
-            <span className="text-5xl md:text-8xl font-display font-bold italic text-primary text-glow">
-              boomt.
-            </span>
-            <div className="h-1 w-20 md:w-32 bg-primary mt-4 md:mt-8 rounded-full" />
-          </motion.div>
-
-          <motion.p 
-            variants={item}
-            className="max-w-2xl text-xl md:text-3xl text-muted-foreground font-light mb-12"
-          >
-            I build. I grow. <span className="text-foreground font-medium">I make things boom.</span> 
-            <br className="hidden md:block" /> Bringing extreme velocity to digital products.
-          </motion.p>
-
-          <motion.div variants={item} className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" onClick={() => document.getElementById("work")?.scrollIntoView({ behavior: "smooth" })}>
-              View My Work <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button variant="outline" size="lg" onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}>
-              Let's Connect
-            </Button>
-          </motion.div>
-        </motion.div>
-      </div>
-
-      {/* Scroll indicator */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
-      >
-        <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Scroll</span>
-        <div className="w-[1px] h-12 bg-border overflow-hidden">
-          <motion.div 
-            animate={{ y: [0, 48] }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-            className="w-full h-1/2 bg-primary"
-          />
+            <br />
+            <span style={{ color: "var(--gold)" }}>BOOMT!</span>
+          </h1>
+          <p className="mt-5 text-xl md:text-2xl font-medium" style={{ color: "hsl(38 80% 68%)" }}>
+            Die Boomer-Party des Sommers.
+          </p>
+          <p className="mt-4 text-sm md:text-base" style={{ color: "hsl(40 15% 58%)" }}>
+            18. Juli 2026 · Kapaunenberg / Am Bölt · geschlossene Gesellschaft
+          </p>
+          <p className="mt-8 text-base md:text-lg leading-relaxed max-w-2xl" style={{ color: "hsl(40 20% 72%)" }}>
+            Was als Schnapsidee begann, wird jetzt eine richtige Sommerparty:
+            ein Abend mit Musik, Wiedersehen, Tanz, Gesprächen, guter Stimmung
+            und genau der richtigen Portion Nostalgie.
+          </p>
+          <div className="mt-10 flex flex-wrap gap-4">
+            <a
+              href="#anmeldung"
+              className="inline-flex items-center px-6 py-3 rounded text-sm font-semibold transition-all duration-200"
+              style={{ background: "var(--gold)", color: "hsl(220 18% 7%)" }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "hsl(38 88% 62%)")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--gold)")}
+            >
+              Jetzt anmelden
+            </a>
+            <a
+              href="#event"
+              className="inline-flex items-center px-6 py-3 rounded text-sm font-semibold border transition-all duration-200"
+              style={{ borderColor: "hsl(38 88% 54% / 0.4)", color: "hsl(40 25% 80%)" }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "var(--gold)";
+                (e.currentTarget as HTMLElement).style.color = "var(--gold)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = "hsl(38 88% 54% / 0.4)";
+                (e.currentTarget as HTMLElement).style.color = "hsl(40 25% 80%)";
+              }}
+            >
+              Mehr erfahren
+            </a>
+          </div>
+          <p className="mt-12 text-sm md:text-base italic" style={{ color: "hsl(40 15% 50%)" }}>
+            Nicht geschniegelt. Nicht überinszeniert. Einfach ein verdammt geiler Abend.
+          </p>
         </div>
-      </motion.div>
+      </div>
+      <div
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+        style={{ background: "linear-gradient(to bottom, transparent, hsl(220 18% 7%))" }}
+      />
     </section>
   );
 }

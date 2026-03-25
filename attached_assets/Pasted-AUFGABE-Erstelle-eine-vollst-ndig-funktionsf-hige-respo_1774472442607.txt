@@ -1,0 +1,470 @@
+AUFGABE
+Erstelle eine vollständig funktionsfähige, responsive One-Page-Website für die Veranstaltung:
+
+EMMERICH BOOMT!
+
+WICHTIG:
+- Keine eigene Interpretation.
+- Keine zusätzlichen Ideen.
+- Keine Umformulierungen der Inhalte.
+- Keine Änderung des Tons.
+- Keine neuen Features außer den ausdrücklich genannten.
+- Keine Platzhaltertexte wie „Lorem ipsum“.
+- Keine Stock-Party-Klischees.
+- Kein billiger 80er-Karnevalslook.
+- Nicht „modern clean startup“, sondern gezielt: RETRO-PARTY MIT KLASSE.
+- Exakt die unten beschriebene Struktur, Inhalte, Farben, Tonalität und Reihenfolge umsetzen.
+
+ZIELBILD
+Die Website soll wirken wie:
+Kapaunenberg-Charme + Sommernacht + geschlossene Gesellschaft + Boomer-Nostalgie + leichte Ironie + stilvolle Retro-Anmutung.
+
+Die Seite soll emotional, lokal, warm, hochwertig und leicht augenzwinkernd wirken.
+Nicht peinlich-jugendlich.
+Nicht altbacken.
+Nicht Vereinsmeier.
+Nicht Kirmesplakat.
+Nicht Partytrash.
+Die Seite soll sagen:
+„Einfach ein verdammt geiler Abend.“
+
+TECHNISCHE VORGABEN
+1. Nutze den bereits vorhandenen Projekt-Stack.
+2. NICHT den Stack wechseln.
+3. KEINE neuen Frameworks einführen.
+4. Falls das Projekt React/Vite nutzt: als React-Seite umsetzen.
+5. Falls kein Framework vorhanden ist: als saubere HTML/CSS/JS-Onepager umsetzen.
+6. Mobil zuerst denken, danach Desktop sauber ausarbeiten.
+7. Sehr gute Lesbarkeit auf iPhone-Breite.
+8. Saubere Section-Navigation per Anchor-Links.
+9. Sticky Header.
+10. Sanfte Scroll-Animationen, aber dezent.
+11. Countdown muss real funktionieren.
+12. Alle Buttons und Navigationselemente müssen klickbar sein.
+13. Playlist, Galerie, FAQ, Countdown, Sponsoren/Partner müssen bereits als echte Sektionen angelegt sein.
+14. Anmeldung als sichtbare Sektion mit Formular anlegen.
+15. Formular ohne Backend, aber optisch vollständig und sauber.
+16. Keine Fake-Datenbank.
+17. Kein Login.
+18. Kein CMS.
+19. Keine externen schwergewichtigen Libraries nur für Deko.
+20. Kein Overengineering.
+
+DATEI- / IMPLEMENTATIONSREGELN
+- Bestehende Struktur respektieren.
+- Nur die für diese Umsetzung nötigen Dateien anlegen oder anpassen.
+- Bestehende Funktionalität nicht beschädigen.
+- Keine toten Dateien hinterlassen.
+- Keine Debug-Ausgaben sichtbar im Frontend.
+- Saubere Benennung.
+- Verständliche Komponentenstruktur, falls React genutzt wird.
+- Keine halbfertigen Baustellen.
+
+DESIGNRICHTUNG – VERBINDLICH
+Stil:
+- Retro-Party mit Klasse
+- warme Sommernacht
+- goldene Lichtstimmung
+- dunkler edler Hintergrund
+- subtile Neon-Anmutung
+- hochwertige Typografie
+- starke Hero-Wirkung
+- emotional, aber nicht kitschig
+
+Farbwelt:
+- Hintergrund: sehr dunkles Anthrazit bis fast Schwarz
+- Primärakzent: warmes Gold / Amber
+- Sekundär: Bernstein / Orange
+- Text hell: Creme / Off-White
+- Optional sehr sparsam: Magenta oder Neon-Rot als Mini-Akzent
+- KEINE knallbunten Discofarben
+- KEINE Regenbogenpalette
+
+VISUELLE DETAILS
+- Hero mit starker Atmosphäre
+- Hintergrund darf Verlauf, Glow, Lichtstimmung und dezente Körnung haben
+- Subtile Neon-Linie oder Glow bei Headline erlaubt
+- Sections als klar getrennte Scroll-Stationen
+- Karten/Infoboxen mit leichtem Glas-/Glow-/Retro-Charakter, aber zurückhaltend
+- Buttons hochwertig, nicht verspielt
+- Icons nur sehr sparsam und nur wenn sie der Klarheit dienen
+- Keine Cliparts
+- Keine Comic-Elemente
+- Keine Schallplatten- oder Kassetten-Übertreibung
+- Maximal ganz subtile Referenzen
+
+TYPOGRAFIE
+- Headline mit leichter Retro-Eleganz
+- Fließtext modern, klar, gut lesbar
+- Gute Hierarchie
+- Viel Weißraum
+- Starke mobile Lesbarkeit
+- Kein verschnörkeltes Design
+
+SEITENAUFBAU – EXAKT DIESE REIHENFOLGE
+1. Header / Navigation
+2. Hero
+3. Worum geht’s?
+4. Das Event / Alle Infos auf einen Blick
+5. Was euch erwartet
+6. Playlist
+7. Bildergalerie
+8. Countdown
+9. FAQ
+10. Sponsoren / Partner
+11. Anmeldung
+12. Footer
+
+HEADER / NAVIGATION – EXAKT SO
+Navigationseinträge:
+- Start
+- Event
+- Playlist
+- Galerie
+- FAQ
+- Countdown
+- Partner
+- Anmeldung
+
+Rechts im Header ein deutlich sichtbarer Button:
+- Jetzt anmelden
+
+Header:
+- sticky
+- halbtransparenter dunkler Hintergrund
+- sauberer Hover-State
+- mobil als gutes Menü lösbar, aber schlicht
+
+HERO – EXAKT SO
+Inhalt:
+Headline:
+EMMERICH BOOMT!
+
+Subline:
+Die Boomer-Party des Sommers.
+
+Infozeile:
+18. Juli 2026 · Kapaunenberg / Am Bölt · geschlossene Gesellschaft
+
+Text:
+Was als Schnapsidee begann, wird jetzt eine richtige Sommerparty:
+ein Abend mit Musik, Wiedersehen, Tanz, Gesprächen, guter Stimmung und genau der richtigen Portion Nostalgie.
+
+Buttons:
+- Jetzt anmelden
+- Mehr erfahren
+
+Zusätzlicher Claim, gut sichtbar:
+Nicht geschniegelt. Nicht überinszeniert. Einfach ein verdammt geiler Abend.
+
+WICHTIG:
+- Hero muss sofort emotional wirken.
+- Das Wort „geiler“ ausdrücklich so verwenden.
+- Keine Abschwächung.
+- Keine Umformulierung.
+
+SECTION 1 – WORUM GEHT’S?
+Überschrift:
+Aus einer Idee wird ein Sommerabend
+
+Text:
+Die Boomer-Gruppe in Emmerich ist aus einer spontanen Idee entstanden — und daraus wurde schnell mehr: lockere Treffen, bekannte Gesichter, neue Begegnungen und jedes Mal die gleiche Erkenntnis:
+Das funktioniert. Und es macht Spaß.
+
+Mit „Emmerich boomt!“ wird daraus nun ein größeres Format:
+eine Boomer-Party als geschlossene Veranstaltung — mit Anmeldung, Musik, Fingerfood und allem, was einen richtig guten Sommerabend ausmacht.
+
+Darunter 3 visuelle Kacheln:
+- Wiedersehen
+- Musik
+- Sommernacht
+
+SECTION 2 – DAS EVENT
+Überschrift:
+Alles auf einen Blick
+
+Darstellung als hochwertige Infokarten mit exakt diesen Inhalten:
+- Datum: Samstag, 18. Juli 2026
+- Ort: Kapaunenberg / Am Bölt, Emmerich
+- Format: Geschlossene Gesellschaft
+- Eintritt: 10 Euro pro Person
+- Anmeldung: Verbindlich vorab
+- Inklusive: Musik & Fingerfood
+
+Zusatztext darunter:
+Der Abend ist als interne, geschlossene Veranstaltung geplant.
+Das schafft einen klaren Rahmen, macht die Organisation einfacher und sorgt dafür, dass wir uns auf das konzentrieren können, worum es eigentlich geht: einen guten Abend miteinander zu haben.
+
+SECTION 3 – WAS EUCH ERWARTET
+Überschrift:
+Kein großes Gedöns. Aber alles, was man braucht.
+
+Fünf Kacheln:
+- Musik, die man kennt — und hören will
+- Sommerliche Abendatmosphäre
+- Fingerfood statt Förmlichkeit
+- Bekannte Gesichter und neue Gespräche
+- Tanzen, reden, trinken, lachen
+
+Text darunter:
+Kein starres Programm.
+Kein überladenes Event-Konzept.
+Sondern genau die richtige Mischung aus Lockerheit, Musik, Begegnung und Sommerabendgefühl.
+
+SECTION 4 – PLAYLIST
+Überschrift:
+Der Sound des Abends
+
+Text:
+Zwischen Tanzfläche, Mitsingmoment und lässigem Sommerbeat.
+Die Playlist für Emmerich boomt! wird Stück für Stück wachsen — irgendwo zwischen Klassikern, Kultsongs und genau den Titeln, bei denen man sofort wieder da ist.
+
+Darunter 4 kleine Tag-/Chip-Elemente:
+- Disco & Dancefloor
+- 80er/90er
+- Rock & Klassiker
+- Mitsingen garantiert
+
+Zusätzlicher Teaser:
+Von damals bis heute — Hauptsache, es funktioniert.
+
+WICHTIG:
+- Bereits optisch so bauen, dass später ein Spotify-Embed oder Playlistelement leicht ergänzt werden kann.
+- Aber aktuell keine Fake-Playlist mit erfundenen Songs einbauen.
+
+SECTION 5 – BILDERGALERIE
+Überschrift:
+Boomer-Momente
+
+Text:
+Aus einer losen Idee ist längst mehr geworden.
+Hier entstehen nach und nach die Bilder dazu: Eindrücke vergangener Treffen, Vorfreude auf den Abend und später natürlich die schönsten Momente von Emmerich boomt!
+
+Darunter ein sauberes Galerie-Raster mit 6 bis 8 stilvollen Bild-Platzhaltern / visuellen Kacheln.
+WICHTIG:
+- Keine generischen Stockfotos einbauen.
+- Keine falschen Partybilder erfinden.
+- Stattdessen hochwertige visuelle Placeholder-Flächen mit stimmiger Licht-/Retro-Optik und Labels wie:
+  - Frühere Treffen
+  - Vorbereitungen
+  - Partyabend 2026
+- Klickverhalten optional als Lightbox-Vorbereitung anlegen, aber ohne Pflicht.
+
+SECTION 6 – COUNTDOWN
+Überschrift:
+Es wird Zeit
+
+Große Zählanzeige:
+- Tage
+- Stunden
+- Minuten
+- Sekunden
+
+Zusatztext:
+Bis Emmerich boomt.
+
+Darunter:
+18. Juli 2026 · Kapaunenberg
+
+WICHTIG:
+- Countdown muss technisch echt laufen.
+- Zielzeit: 18.07.2026, lokale Zeit.
+- Optisch stark inszenieren.
+- Große Zahlen.
+- Warmer Glow.
+- Kein billiger Digitaluhr-Look.
+
+SECTION 7 – FAQ
+Überschrift:
+Noch Fragen?
+
+FAQ-Einträge exakt mit diesen Fragen und Antworten:
+
+1.
+Frage: Wer kann kommen?
+Antwort: Alle, die sich mit der Boomer-Idee und der Gruppe verbunden fühlen — im Rahmen der geschlossenen Veranstaltung und der Anmeldung.
+
+2.
+Frage: Muss ich mich anmelden?
+Antwort: Ja. Die Teilnahme soll verbindlich über eine Voranmeldung laufen.
+
+3.
+Frage: Gibt es eine Abendkasse?
+Antwort: Das ist aktuell nicht vorgesehen.
+
+4.
+Frage: Was kostet der Eintritt?
+Antwort: 10 Euro pro Person.
+
+5.
+Frage: Was ist im Preis enthalten?
+Antwort: Musik, Fingerfood und der gemeinsame Rahmen der Veranstaltung.
+
+6.
+Frage: Kann ich jemanden mitbringen?
+Antwort: Das sollte an die jeweilige Anmeldelogik gekoppelt werden und kann dort klar geregelt werden.
+
+7.
+Frage: Findet die Veranstaltung bei jedem Wetter statt?
+Antwort: Das wird hier später konkret ergänzt.
+
+8.
+Frage: Gibt es feste Sitzplätze?
+Antwort: Aktuell eher nicht als klassisches Sitzplatzformat gedacht, sondern als lockere Veranstaltung.
+
+WICHTIG:
+- FAQ als hochwertiges Accordion umsetzen.
+- Standardmäßig eingeklappt.
+- Klare Animation, aber dezent.
+
+SECTION 8 – SPONSOREN / PARTNER
+Überschrift:
+Mit Unterstützung von
+
+Text:
+Damit aus einer guten Idee ein richtig guter Abend wird, braucht es Menschen, die mitziehen.
+Hier werden nach und nach die Partner und Unterstützer sichtbar, die Emmerich boomt! möglich machen.
+
+Darunter 4 bis 6 elegante Logo-/Partner-Platzhalter als Karten mit exakt diesen Labels:
+- Location / Gastgeber
+- Unterstützer
+- Partner
+- Technik / Musik
+
+WICHTIG:
+- Keine erfundenen Logos.
+- Keine Fake-Marken.
+- Nur stilvolle Placeholder-Karten.
+- Optik hochwertig und zurückhaltend.
+
+SECTION 9 – ANMELDUNG
+Überschrift:
+Dabei sein
+
+Text:
+Die Veranstaltung ist als geschlossene Gesellschaft geplant.
+Deshalb bitten wir um eine verbindliche Anmeldung.
+
+Formularfelder:
+- Vorname, Nachname
+- E-Mail
+- Telefonnummer (optional)
+- Anzahl Personen
+- Nachricht (optional)
+- Checkbox: Ich habe die Hinweise zur Anmeldung zur Kenntnis genommen.
+- Button: Verbindlich anmelden
+
+Unter dem Formular sichtbar:
+Teilnahmebeitrag: 10 Euro
+
+WICHTIG:
+- Formular komplett gestalten.
+- Klare Fokus-States.
+- Gute Mobilnutzung.
+- Kein Backend nötig.
+- Bei Absenden nur sauberes Frontend-Verhalten, z. B. visuelles Success-Feedback oder browserseitiges Handling, aber nichts vortäuschen.
+
+FOOTER
+Footer-Inhalte:
+- Impressum
+- Datenschutz
+- Kontakt
+- FAQ
+- Partner
+- Playlist
+- Galerie
+
+Abschlusszeile:
+Emmerich boomt!
+Sommer 2026. Musik, Menschen, Momente.
+
+MIKROCOPY / TONALITÄT – VERBINDLICH
+Der Ton muss sein:
+- locker
+- lokal
+- charmant
+- leicht ironisch
+- warm
+- hochwertig
+- sympathisch
+- boomerhaft, aber stilvoll
+
+Erlaubte Zuspitzung:
+- „Einfach ein verdammt geiler Abend.“
+
+Nicht verwenden:
+- ultimatives Mega-Event
+- legendär eskalieren
+- Partynacht deluxe
+- crazy
+- angesagte Vibes
+- Clubbing
+- Festival
+- Szenetreff
+- Event des Jahres
+
+ERLAUBTE AUGENZWINKER-SÄTZE
+Baue maximal 3 davon dezent auf der Seite ein, nicht mehr:
+- Früher hat man sich angerufen. Heute meldet man sich hier an.
+- Die Musik kennen wir noch. Die Texte meistens auch.
+- Wiedersehen statt Timeline.
+- Ein Abend ohne Filter. Aber mit Licht.
+- Boomer können schon feiern.
+
+WICHTIG:
+- Höchstens 3 verwenden.
+- Dosiert einsetzen.
+- Nicht alle auf einmal.
+- Nicht im Hero überladen.
+
+ANIMATION / UX
+- Sanftes Scrollen
+- Subtile Reveal-Animationen pro Section
+- Dezent schwebender Glow im Hero erlaubt
+- Hover-Effekte auf Karten und Buttons
+- Accordion-Animation im FAQ
+- Keine wilden Parallax-Spielereien
+- Kein übertriebenes Motion Design
+
+BARRIEREARMUT / QUALITÄT
+- Ausreichende Kontraste
+- Saubere semantische Struktur
+- Responsiv
+- Lesbar
+- Buttons gut klickbar
+- Formulare sauber beschriftet
+- Keine Textwüsten
+- Gute mobile Abstände
+
+WAS NICHT GEMACHT WERDEN DARF
+- Keine zusätzlichen Sektionen
+- Keine geänderte Reihenfolge
+- Keine anderen Überschriften
+- Keine anderen Texte
+- Keine erfundenen Fakten
+- Keine Fantasie-Partner
+- Keine Fantasie-Galeriefotos
+- Keine Fantasie-Playlisttitel
+- Keine generischen Partyphrasen
+- Keine Design-Experimente außerhalb der Vorgaben
+- Kein Stilbruch Richtung Tech-Startup oder Karnevalsparty
+- Keine Vereinfachung der Aufgabe
+- Keine Kürzung von Inhalten
+
+ABSCHLUSSAUFGABE – VERPFLICHTEND
+Nach der Umsetzung:
+1. Prüfe, ob alle 12 Bereiche vorhanden sind.
+2. Prüfe, ob Navigation und Anchor-Links korrekt funktionieren.
+3. Prüfe mobil und desktop.
+4. Prüfe, ob Countdown korrekt läuft.
+5. Prüfe, ob Formular vollständig ist.
+6. Prüfe, ob exakt die vorgegebenen Texte verwendet wurden.
+7. Prüfe, ob nirgendwo erfundene Inhalte eingefügt wurden.
+8. Prüfe, ob der Ton stimmt: hochwertig, warm, retro, lokal, stilvoll.
+9. Entferne eventuelle Platzhalter-Reste, Debug-Inhalte oder irrelevante Standardtexte.
+10. Gib zum Schluss eine kurze Umsetzungsnotiz aus mit:
+   - welche Dateien geändert wurden
+   - ob alles vollständig umgesetzt wurde
+   - ob irgendwo bewusst nur vorbereitet statt final befüllt wurde (z. B. Galerie/Partner/Playlist ohne echte Inhalte)
+
+SETZE JETZT EXAKT DIES UM.
