@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
 import { interessenten } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, sql } from "drizzle-orm";
 
 const router = Router();
 
@@ -19,6 +19,21 @@ router.post("/interesse", async (req, res) => {
     res.status(400).json({ error: "Ungültige Eingabe" });
     return;
   }
+
+  const existing = await db
+    .select({ id: interessenten.id })
+    .from(interessenten)
+    .where(sql`lower(trim(${interessenten.name})) = lower(trim(${parsed.data.name}))`)
+    .limit(1);
+
+  if (existing.length > 0) {
+    res.json({
+      duplicate: true,
+      message: `Ein „${parsed.data.name}" steht schon auf der Liste. Falls das jemand anderes ist, meld dich einfach mit einem Zusatz — z.B. „${parsed.data.name} aus Kleve" oder „${parsed.data.name} (Jahrgang 65)".`,
+    });
+    return;
+  }
+
   await db.insert(interessenten).values(parsed.data);
   res.json({ success: true });
 });

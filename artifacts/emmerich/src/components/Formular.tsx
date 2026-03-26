@@ -1,16 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useReveal } from "@/hooks/useReveal";
+
+const STORAGE_KEY = "emmerich_boomt_submitted";
+
+function AlreadySubmitted() {
+  return (
+    <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
+      <div style={{ fontSize: "2rem", marginBottom: "1rem", color: "var(--amber)" }}>✦</div>
+      <h3
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          fontStyle: "italic",
+          fontSize: "1.4rem",
+          color: "var(--warm)",
+          marginBottom: "0.75rem",
+        }}
+      >
+        Klasse. Daumen hoch angekommen.
+      </h3>
+      <p style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", color: "rgba(245,232,200,0.58)", lineHeight: 1.7 }}>
+        Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
+      </p>
+    </div>
+  );
+}
 
 export default function Formular() {
   const ref = useReveal();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     personen: "Nur ich",
     statement: "",
     song: "",
   });
+
+  useEffect(() => {
+    if (localStorage.getItem(STORAGE_KEY)) {
+      setSubmitted(true);
+    }
+  }, []);
 
   const inputStyle: React.CSSProperties = {
     background: "rgba(245,232,200,0.04)",
@@ -31,6 +62,7 @@ export default function Formular() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
     try {
       const res = await fetch("/api/interesse", {
         method: "POST",
@@ -39,12 +71,17 @@ export default function Formular() {
       });
       const data = await res.json();
       if (data.success) {
+        localStorage.setItem(STORAGE_KEY, "1");
         setSubmitted(true);
+      } else if (data.duplicate) {
+        setError(data.message);
       } else {
         setError(data.error || "Ein Fehler ist aufgetreten.");
       }
     } catch {
       setError("Verbindungsfehler. Bitte nochmal versuchen.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +94,8 @@ export default function Formular() {
       <style>{`
         .formular-input::placeholder { color: rgba(245,232,200,0.45); }
         .formular-input:focus { border-color: rgba(232,153,26,0.55) !important; }
-        .submit-btn:hover { background: var(--amber) !important; color: var(--black) !important; }
+        .submit-btn:hover:not(:disabled) { background: var(--amber) !important; color: var(--black) !important; }
+        .submit-btn:disabled { opacity: 0.5; cursor: default; }
       `}</style>
 
       <h2
@@ -87,22 +125,8 @@ export default function Formular() {
       </p>
 
       {submitted ? (
-        <div className="reveal" style={{ textAlign: "center", padding: "3rem 1rem" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "1rem", color: "var(--amber)" }}>✦</div>
-          <h3
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontStyle: "italic",
-              fontSize: "1.4rem",
-              color: "var(--warm)",
-              marginBottom: "0.75rem",
-            }}
-          >
-            Klasse. Daumen hoch angekommen.
-          </h3>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", color: "rgba(245,232,200,0.58)", lineHeight: 1.7 }}>
-            Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
-          </p>
+        <div className="reveal">
+          <AlreadySubmitted />
         </div>
       ) : (
         <form className="reveal d2" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
@@ -189,6 +213,7 @@ export default function Formular() {
 
           <button
             type="submit"
+            disabled={loading}
             className="submit-btn"
             style={{
               width: "100%",
@@ -204,13 +229,25 @@ export default function Formular() {
               transition: "background 0.2s, color 0.2s",
             }}
           >
-            Daumen hoch — ich bin dabei! 👍
+            {loading ? "Wird gespeichert …" : "Daumen hoch — ich bin dabei! 👍"}
           </button>
 
           {error && (
-            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: "var(--amber)", fontSize: "0.88rem" }}>
+            <div
+              style={{
+                background: "rgba(232,153,26,0.06)",
+                border: "1px solid rgba(232,153,26,0.25)",
+                borderRadius: "4px",
+                padding: "0.9rem 1.1rem",
+                fontFamily: "'Lora', serif",
+                fontStyle: "italic",
+                color: "var(--amber)",
+                fontSize: "0.88rem",
+                lineHeight: 1.7,
+              }}
+            >
               {error}
-            </p>
+            </div>
           )}
         </form>
       )}
