@@ -120,6 +120,7 @@ export default function Countdown() {
         >
           Bis Ende April schauen wir, wie viele wir werden — dann entscheidet sich, was daraus wird.
           Die Party selbst steigt am <span style={{ color: "rgba(245,232,200,0.6)" }}>18. Juli 2026</span>.
+          Wer sich jetzt schon angesprochen fühlt: nicht warten — einfach sofort ein Lebenszeichen hinterlassen.
         </p>
       )}
     </section>
