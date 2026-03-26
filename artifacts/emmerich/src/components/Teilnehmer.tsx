@@ -54,90 +54,143 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   return (
     <section
       ref={ref}
-      style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem 5rem" }}
+      style={{
+        background: "linear-gradient(180deg, rgba(10,7,4,0) 0%, rgba(20,13,6,0.95) 8%, rgba(20,13,6,0.95) 92%, rgba(10,7,4,0) 100%)",
+        padding: "4rem 1.5rem 4.5rem",
+      }}
     >
       <style>{`
-        .teilnehmer-item {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 0.5rem 1rem;
+        .promo-hero {
+          text-align: center;
+          margin-bottom: 3rem;
+        }
+        .promo-label {
+          display: inline-block;
+          font-family: 'Lora', serif;
+          font-style: italic;
+          font-size: 0.72rem;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          color: var(--amber);
+          margin-bottom: 1rem;
+          opacity: 0.85;
+        }
+        .promo-count-row {
+          display: flex;
           align-items: baseline;
-          padding: 0.85rem 0;
-          border-bottom: 1px solid rgba(245,232,200,0.06);
+          justify-content: center;
+          gap: 0.6rem;
+          flex-wrap: wrap;
+        }
+        .promo-count {
+          font-family: 'Playfair Display', serif;
+          font-weight: 800;
+          font-size: clamp(4rem, 14vw, 7rem);
+          color: var(--amber);
+          line-height: 1;
+          text-shadow: 0 0 40px rgba(205,155,65,0.25);
+        }
+        .promo-count-label {
+          font-family: 'Lora', serif;
+          font-style: italic;
+          font-size: clamp(1rem, 3vw, 1.4rem);
+          color: rgba(245,232,200,0.65);
+          line-height: 1.3;
+          max-width: 14ch;
+          text-align: left;
+        }
+        .promo-count-label strong {
+          color: var(--warm);
+          font-style: normal;
+          font-weight: 700;
+        }
+        .promo-divider {
+          width: 60px;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, var(--amber), transparent);
+          margin: 2rem auto;
+          opacity: 0.4;
+        }
+        .teilnehmer-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 0.75rem;
+          max-width: 880px;
+          margin: 0 auto;
+        }
+        .teilnehmer-card {
+          background: rgba(245,232,200,0.04);
+          border: 1px solid rgba(245,232,200,0.07);
+          border-radius: 4px;
+          padding: 0.9rem 1.1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.35rem;
+          transition: border-color 0.2s;
+        }
+        .teilnehmer-card:hover {
+          border-color: rgba(205,155,65,0.2);
+        }
+        .teilnehmer-card-top {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 0.5rem;
         }
         .teilnehmer-name {
           font-family: 'Playfair Display', serif;
           font-weight: 700;
           font-size: 1rem;
           color: var(--warm);
+          line-height: 1.2;
         }
         .teilnehmer-personen {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.78rem;
-          color: rgba(245,232,200,0.35);
+          font-size: 0.72rem;
+          color: rgba(245,232,200,0.3);
           white-space: nowrap;
+          flex-shrink: 0;
         }
         .teilnehmer-song {
-          grid-column: 1 / -1;
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.85rem;
+          font-size: 0.82rem;
           color: var(--amber);
-          padding-left: 0.2rem;
+          opacity: 0.8;
         }
       `}</style>
 
-      <div className="reveal" style={{ marginBottom: "1.8rem" }}>
-        <p
-          style={{
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.75rem",
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: "var(--amber)",
-            marginBottom: "0.6rem",
-          }}
-        >
-          Wer ist schon dabei
-        </p>
-
-        <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
-          <span
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontWeight: 800,
-              fontSize: "clamp(2.5rem,7vw,4rem)",
-              color: "var(--amber)",
-              lineHeight: 1,
-            }}
-          >
-            {entries.length}
-          </span>
-          <span
-            style={{
-              fontFamily: "'Lora', serif",
-              fontStyle: "italic",
-              fontSize: "0.95rem",
-              color: "rgba(245,232,200,0.55)",
-            }}
-          >
-            {entries.length === 1 ? "Person hat" : "Personen haben"} Daumen hoch gegeben
-            {totalPersonen > entries.length && (
-              <> — das sind mindestens <strong style={{ color: "var(--warm)", fontStyle: "normal" }}>{totalPersonen}</strong> Leute</>
+      <div className="reveal promo-hero">
+        <span className="promo-label">Schon dabei</span>
+        <div className="promo-count-row">
+          <span className="promo-count">{entries.length}</span>
+          <span className="promo-count-label">
+            {entries.length === 1 ? "Person" : "Personen"} dabei
+            {totalPersonen >= 1 && (
+              <> — mindestens{" "}
+                <strong>{totalPersonen}</strong>{" "}
+                {totalPersonen === 1 ? "Mensch" : "Leute"} kommen!
+              </>
             )}
           </span>
         </div>
       </div>
 
-      <div className="reveal d1">
+      <div className="promo-divider" />
+
+      <div className="reveal d1 teilnehmer-grid">
         {entries.map((e) => (
-          <div key={e.id} className="teilnehmer-item">
-            <span className="teilnehmer-name">{e.name}</span>
-            <span className="teilnehmer-personen">
-              {PERSONEN_LABEL[e.personen] ?? "1"} {(PERSONEN_LABEL[e.personen] ?? "1") === "1" ? "Person" : "Personen"}
-            </span>
+          <div key={e.id} className="teilnehmer-card">
+            <div className="teilnehmer-card-top">
+              <span className="teilnehmer-name">{e.name}</span>
+              <span className="teilnehmer-personen">
+                {PERSONEN_LABEL[e.personen] ?? "1"}{" "}
+                {(PERSONEN_LABEL[e.personen] ?? "1") === "1"
+                  ? "Person"
+                  : "Personen"}
+              </span>
+            </div>
             {e.song && (
               <span className="teilnehmer-song">♪ {e.song}</span>
             )}

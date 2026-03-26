@@ -20,10 +20,10 @@ export default function BoomerPartyPage() {
     <main style={{ background: "var(--black)", minHeight: "100svh" }}>
       <Poster />
       <Letter />
+      <Teilnehmer refreshKey={refreshCounter} />
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
-      <Teilnehmer refreshKey={refreshCounter} />
       <PressNote />
       <Legal />
       <SiteFooter />

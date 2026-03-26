@@ -9,16 +9,28 @@ export default function Poster() {
   }, []);
 
   return (
-    <section style={{ position: "relative", height: "100svh", overflow: "hidden" }}>
+    <section
+      style={{
+        position: "relative",
+        background: "#0a0704",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100svh",
+        maxHeight: "100svh",
+        overflow: "hidden",
+      }}
+    >
       <img
         src="/images/boomerpartyposter.jpeg"
         alt="Boomer Party Poster"
         style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center center",
           display: "block",
+          maxWidth: "100%",
+          maxHeight: "100svh",
+          width: "auto",
+          height: "auto",
+          objectFit: "contain",
         }}
       />
       <div
@@ -27,8 +39,10 @@ export default function Poster() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: "45%",
-          background: "linear-gradient(to bottom, transparent 0%, rgba(10,7,4,0.6) 60%, rgba(10,7,4,0.97) 100%)",
+          height: "30%",
+          background:
+            "linear-gradient(to bottom, transparent 0%, rgba(10,7,4,0.5) 60%, rgba(10,7,4,0.95) 100%)",
+          pointerEvents: "none",
         }}
       />
       <div
