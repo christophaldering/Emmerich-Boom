@@ -5,6 +5,7 @@ import Fakten from "@/components/Fakten";
 import Countdown from "@/components/Countdown";
 import Formular from "@/components/Formular";
 import Teilnehmer from "@/components/Teilnehmer";
+import KiStimmung from "@/components/KiStimmung";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
@@ -21,6 +22,7 @@ export default function BoomerPartyPage() {
       <Poster />
       <Letter />
       <Teilnehmer refreshKey={refreshCounter} />
+      <KiStimmung />
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
