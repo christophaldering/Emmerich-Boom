@@ -17,16 +17,32 @@ const PERSONEN_LABEL: Record<string, string> = {
   "Fünf oder mehr": "5+",
 };
 
-export default function Teilnehmer() {
+interface TeilnehmerProps {
+  refreshKey?: number;
+}
+
+export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const ref = useReveal();
 
-  useEffect(() => {
+  const fetchEntries = () => {
     fetch("/api/interesse")
       .then((r) => r.json())
       .then((data) => setEntries(data))
       .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchEntries();
+    const interval = setInterval(fetchEntries, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (refreshKey > 0) {
+      fetchEntries();
+    }
+  }, [refreshKey]);
 
   const totalPersonen = entries.reduce((sum, e) => {
     const raw = PERSONEN_LABEL[e.personen] ?? "1";

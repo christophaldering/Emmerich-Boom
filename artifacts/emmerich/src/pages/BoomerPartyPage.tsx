@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Poster from "@/components/Poster";
 import Letter from "@/components/Letter";
 import Fakten from "@/components/Fakten";
@@ -9,14 +10,20 @@ import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
 
 export default function BoomerPartyPage() {
+  const [refreshCounter, setRefreshCounter] = useState(0);
+
+  const handleFormSuccess = () => {
+    setRefreshCounter((c) => c + 1);
+  };
+
   return (
     <main style={{ background: "var(--black)", minHeight: "100svh" }}>
       <Poster />
       <Letter />
       <Fakten />
       <Countdown />
-      <Formular />
-      <Teilnehmer />
+      <Formular onSuccess={handleFormSuccess} />
+      <Teilnehmer refreshKey={refreshCounter} />
       <PressNote />
       <Legal />
       <SiteFooter />

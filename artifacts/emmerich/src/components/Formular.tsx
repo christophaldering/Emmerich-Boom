@@ -25,7 +25,11 @@ function AlreadySubmitted() {
   );
 }
 
-export default function Formular() {
+interface FormularProps {
+  onSuccess?: () => void;
+}
+
+export default function Formular({ onSuccess }: FormularProps) {
   const ref = useReveal();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -73,6 +77,7 @@ export default function Formular() {
       if (data.success) {
         localStorage.setItem(STORAGE_KEY, "1");
         setSubmitted(true);
+        onSuccess?.();
       } else if (data.duplicate) {
         setError(data.message);
       } else {
