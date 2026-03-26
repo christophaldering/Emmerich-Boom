@@ -142,11 +142,15 @@ export default function Formular({ onSuccess }: FormularProps) {
               borderRadius: "4px",
               padding: "1rem 1.3rem",
               fontSize: "0.9rem",
-              lineHeight: 1.7,
+              lineHeight: 1.75,
               color: "rgba(245,232,200,0.8)",
             }}
           >
-            Noch kein Eintritt, noch keine Verpflichtung. Einfach Daumen hoch — der Rest kommt im Mai.
+            <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>
+              Abgabe bis Ende April.
+            </strong>{" "}
+            Danach wissen wir, wie viele wir werden — und ob und wie der Abend stattfindet.
+            Noch kein Eintritt, noch keine Verpflichtung.
           </div>
 
           <div>

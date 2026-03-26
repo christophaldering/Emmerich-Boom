@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useReveal } from "@/hooks/useReveal";
 
-const TARGET = new Date('2026-07-18T19:00:00');
+const PHASE1 = new Date('2026-04-30T23:59:59');
+const PHASE2 = new Date('2026-07-18T19:00:00');
 
-function getTimeLeft() {
-  const diff = TARGET.getTime() - new Date().getTime();
+function getTimeLeft(target: Date) {
+  const diff = target.getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   return {
     days: Math.floor(diff / 86400000),
@@ -43,20 +44,50 @@ function Unit({ value, label }: { value: number; label: string }) {
   );
 }
 
+const SEP = (
+  <span
+    style={{
+      fontFamily: "'Playfair Display', serif",
+      fontSize: "2rem",
+      color: "rgba(232,153,26,0.3)",
+      alignSelf: "center",
+    }}
+  >·</span>
+);
+
 export default function Countdown() {
-  const [time, setTime] = useState(getTimeLeft());
+  const isPhase1 = Date.now() < PHASE1.getTime();
+  const target = isPhase1 ? PHASE1 : PHASE2;
+  const [time, setTime] = useState(getTimeLeft(target));
   const ref = useReveal();
 
   useEffect(() => {
-    const id = setInterval(() => setTime(getTimeLeft()), 1000);
+    const id = setInterval(() => setTime(getTimeLeft(target)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [target]);
 
   return (
     <section
       ref={ref}
       style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 4rem" }}
     >
+      {isPhase1 && (
+        <p
+          className="reveal"
+          style={{
+            fontFamily: "'Lora', serif",
+            fontStyle: "italic",
+            fontSize: "0.78rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "var(--amber)",
+            marginBottom: "0.6rem",
+          }}
+        >
+          Interesse melden — noch
+        </p>
+      )}
+
       <div
         className="reveal"
         style={{
@@ -68,34 +99,29 @@ export default function Countdown() {
         }}
       >
         <Unit value={time.days} label="Tage" />
-        <span
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "2rem",
-            color: "rgba(232,153,26,0.3)",
-            alignSelf: "center",
-          }}
-        >·</span>
+        {SEP}
         <Unit value={time.hours} label="Stunden" />
-        <span
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "2rem",
-            color: "rgba(232,153,26,0.3)",
-            alignSelf: "center",
-          }}
-        >·</span>
+        {SEP}
         <Unit value={time.minutes} label="Minuten" />
-        <span
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "2rem",
-            color: "rgba(232,153,26,0.3)",
-            alignSelf: "center",
-          }}
-        >·</span>
+        {SEP}
         <Unit value={time.seconds} label="Sekunden" />
       </div>
+
+      {isPhase1 && (
+        <p
+          className="reveal"
+          style={{
+            fontFamily: "'Lora', serif",
+            fontSize: "0.85rem",
+            lineHeight: 1.7,
+            color: "rgba(245,232,200,0.38)",
+            marginTop: "1rem",
+          }}
+        >
+          Bis Ende April schauen wir, wie viele wir werden — dann entscheidet sich, was daraus wird.
+          Die Party selbst steigt am <span style={{ color: "rgba(245,232,200,0.6)" }}>18. Juli 2026</span>.
+        </p>
+      )}
     </section>
   );
 }
