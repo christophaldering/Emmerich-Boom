@@ -1,0 +1,673 @@
+# ⛔ ABSOLUTER HARDPROMPT — KEINE AUSNAHMEN — KEINE EIGENEN ENTSCHEIDUNGEN
+
+## DEINE EINZIGE AUFGABE
+
+Du setzt exakt das um, was in diesem Dokument steht.
+Du triffst **keine einzige eigene Entscheidung**.
+Du fragst nicht. Du interpretierst nicht. Du verbesserst nicht.
+Du folgst dieser Spezifikation **Zeichen für Zeichen**.
+
+Wenn du glaubst, etwas besser machen zu können: **tu es nicht**.
+Wenn du glaubst, etwas fehlt: **füge nichts hinzu**.
+Wenn du glaubst, ein Text klingt seltsam: **ändere ihn nicht**.
+
+**Jede Abweichung ist ein Fehler. Punkt.**
+
+---
+
+## ⛔ ABSOLUT VERBOTENE AKTIONEN — WENN DU EINE DAVON TUST, FANG NEU AN
+
+1. ❌ Eigene Farben wählen — es gibt NUR die definierten CSS-Variablen
+2. ❌ Lila, Violett, Magenta, Blau irgendwo verwenden — VERBOTEN
+3. ❌ Farbverläufe außer dem definierten Poster-Fade — VERBOTEN
+4. ❌ Andere Fonts als Playfair Display und Lora — VERBOTEN
+5. ❌ Texte umformulieren, kürzen, ergänzen oder übersetzen — VERBOTEN
+6. ❌ Sektionen hinzufügen, die nicht beschrieben sind — VERBOTEN
+7. ❌ Sektionen weglassen, die beschrieben sind — VERBOTEN
+8. ❌ Einen Header oder eine Navigation einbauen — VERBOTEN
+9. ❌ Ticker, Laufschriften, Marquee-Elemente — VERBOTEN
+10. ❌ FAQ-Block — VERBOTEN (kommt in späterer Version)
+11. ❌ Galerie-Block — VERBOTEN (kommt in späterer Version)
+12. ❌ Tailwind-Farbklassen (bg-purple, text-violet etc.) — VERBOTEN
+13. ❌ Placeholder-Farben dunkler als rgba(245,232,200,0.45) — VERBOTEN
+14. ❌ Irgendwas "optimieren", ohne dass es hier steht — VERBOTEN
+
+---
+
+## TECH STACK — EXAKT DIESE VERSIONEN
+
+```
+React 18
+Vite
+TypeScript
+Tailwind CSS (NUR für Layout-Utilities wie padding, margin, flex, grid — KEIN Tailwind-Farbsystem)
+Routing: wouter
+Datenbank: PostgreSQL (Replit) + Drizzle ORM
+Validierung: Zod
+Sprache: Deutsch — ALLES auf Deutsch
+```
+
+Fonts werden in `index.html` per `<link>`-Tag geladen — NICHT per CSS-Import:
+```html
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+```
+
+---
+
+## ROUTING — EXAKT
+
+```
+/               → LandingPage.tsx   (nur ein Link zu /boomer-party)
+/boomer-party   → BoomerPartyPage.tsx
+```
+
+---
+
+## DATEISTRUKTUR — EXAKT SO ANLEGEN
+
+```
+src/
+  main.tsx
+  App.tsx
+  index.css
+  pages/
+    LandingPage.tsx
+    BoomerPartyPage.tsx
+  components/
+    Poster.tsx
+    Letter.tsx
+    Fakten.tsx
+    Countdown.tsx
+    Formular.tsx
+    PressNote.tsx
+    Legal.tsx
+    SiteFooter.tsx
+  hooks/
+    useReveal.ts
+  lib/
+    db.ts
+    schema.ts
+  server/
+    routes.ts
+public/
+  images/
+    boomerpartyposter.jpeg
+    orgateamkickoff.jpeg
+```
+
+---
+
+## CSS-VARIABLEN — IN index.css — GENAU DIESE WERTE
+
+```css
+:root {
+  --black:  #0a0704;
+  --amber:  #e8991a;
+  --amber2: #c97d10;
+  --warm:   #f5e8c8;
+  --dim:    rgba(245,232,200,0.72);
+  --dimmer: rgba(245,232,200,0.55);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--warm);
+  font-family: 'Lora', Georgia, serif;
+  overflow-x: hidden;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+.reveal.d1 { transition-delay: 0.1s; }
+.reveal.d2 { transition-delay: 0.2s; }
+.reveal.d3 { transition-delay: 0.3s; }
+```
+
+---
+
+## HOOK: useReveal.ts — EXAKT SO
+
+```typescript
+import { useEffect, useRef } from "react";
+
+export function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) e.target.classList.add("visible");
+      }),
+      { threshold: 0.1 }
+    );
+    el.querySelectorAll(".reveal").forEach((t) => observer.observe(t));
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+```
+
+---
+
+## DATENBANK — EXAKT SO
+
+### src/lib/schema.ts
+```typescript
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+
+export const interessenten = pgTable('interessenten', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  personen: text('personen').notNull().default('1'),
+  statement: text('statement'),
+  song: text('song'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+### src/lib/db.ts
+```typescript
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
+```
+
+Migration: `npx drizzle-kit push`
+
+---
+
+## API-ROUTE — EXAKT SO
+
+### server/routes.ts — POST /api/interesse
+```typescript
+import { z } from 'zod';
+import { db } from '../lib/db';
+import { interessenten } from '../lib/schema';
+
+const interesSchema = z.object({
+  name: z.string().min(1).max(100),
+  personen: z.string(),
+  statement: z.string().max(500).optional(),
+  song: z.string().max(200).optional(),
+});
+
+// POST /api/interesse
+export async function handleInteresse(req: Request): Promise<Response> {
+  const body = await req.json();
+  const parsed = interesSchema.safeParse(body);
+  if (!parsed.success) {
+    return Response.json({ error: 'Ungültige Eingabe' }, { status: 400 });
+  }
+  await db.insert(interessenten).values(parsed.data);
+  return Response.json({ success: true });
+}
+```
+
+---
+
+## SEITENSTRUKTUR — BoomerPartyPage.tsx
+
+Reihenfolge der Komponenten — EXAKT SO, KEINE ANDERE REIHENFOLGE:
+
+```tsx
+<Poster />
+<Letter />
+<Fakten />
+<Countdown />
+<Formular />
+<PressNote />
+<Legal />
+<SiteFooter />
+```
+
+---
+
+## KOMPONENTE 1: Poster.tsx
+
+**Verhalten:**
+- Bild: `/images/boomerpartyposter.jpeg`
+- Höhe: `100svh`
+- `object-fit: cover`, `object-position: center top`
+- Kein Text über dem Bild
+- Kein Overlay außer dem Fade unten
+
+**Fade unten (exakte Werte):**
+```css
+position: absolute;
+bottom: 0; left: 0; right: 0;
+height: 45%;
+background: linear-gradient(to bottom,
+  transparent 0%,
+  rgba(10,7,4,0.6) 60%,
+  rgba(10,7,4,0.97) 100%
+);
+```
+
+**Scroll-Hint:**
+- Position: absolute, bottom 2.2rem, zentriert
+- Text: „weiterlesen" — Lora, kursiv, 0.75rem, rgba(245,232,200,0.45), letter-spacing 0.15em
+- Pfeil: 18x18px, border-right + border-bottom 1.5px rgba(245,232,200,0.3), rotate(45deg)
+- Pfeil-Animation: bounce up/down, 1.6s
+- Gesamt-Hint: opacity 0, fade-in nach 1.8s
+
+---
+
+## KOMPONENTE 2: Letter.tsx
+
+**Container:** max-width 640px, margin auto, padding 6rem 2rem 5rem
+
+**Element 1 — Datumsangabe oben:**
+- Text: `Emmerich, Frühjahr 2026`
+- Style: Playfair Display, kursiv, clamp(1.05rem,2.5vw,1.25rem), var(--amber)
+- Animation: fadeUp, 0.8s, delay 0.1s
+
+**Element 2 — Haupttitel:**
+```
+Emmerich
+boomt.
+```
+- Font: Playfair Display, weight 800, clamp(3.2rem,10vw,6.5rem), line-height 0.92
+- „Emmerich" + Zeilenumbruch: color var(--warm)
+- „boomt." — `<em>` — color var(--amber), font-style italic
+- Animation: fadeUp, 0.8s, delay 0.25s
+
+**Element 3 — Datumszeile:**
+- Text: `18. Juli 2026 · Bölt / Kapaunenberg · Emmerich am Rhein`
+- Font: Playfair Display, weight 700, clamp(1.05rem,3vw,1.35rem), color var(--amber)
+- letter-spacing: 0.04em
+- padding: 0.7rem 0
+- border-top: 1px solid rgba(232,153,26,0.25)
+- border-bottom: 1px solid rgba(232,153,26,0.25)
+- margin-bottom: 3rem
+- Animation: fadeUp, 0.8s, delay 0.4s
+
+**Element 4 — Fließtext-Block:**
+- Animation: fadeUp, 0.8s, delay 0.55s
+- Alle `<p>`: font-size clamp(1rem,2.2vw,1.12rem), line-height 1.9, color rgba(245,232,200,0.78), margin-bottom 1.2em
+- `<strong>`: color var(--warm), font-weight 600
+- `<em>`: color var(--amber), font-style italic
+
+**INHALT DES FLIESSTEXT-BLOCKS — WORT FÜR WORT — NICHT ÄNDERN:**
+
+```
+Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉
+
+Also. Es gibt eine Party. Am [strong]18. Juli 2026[/strong]. Auf dem Bölt. Ihr wisst schon — Kapaunenberg, Emmerich. Und die wird gut.
+
+[BULLET-LISTE]
+
+Der Bölt kann das — ob wir 30 werden oder 150. Da ist Platz.
+
+[CLOSED-NOTE-BOX]
+
+Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an [strong]Farzin und Revse vom Kapaunenberg[/strong] für ihre Unterstützung.
+
+Und jetzt das Wichtigste: [strong]Wir wollen erstmal wissen, wer dabei ist.[/strong] Keine Verpflichtung, kein Eintritt — einfach kurz melden bis [strong]Ende April[/strong]. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — inkl. der angekündigten [em]10 Euronen.[/em]
+```
+
+**BULLET-LISTE — exakt diese 6 Punkte, „—" als Marker in var(--amber):**
+```
+— Abrocken — zu Musik, bei der man den Text noch kann
+— 70er, 80er — laut, tanzbar, kein Wenn und Aber
+— Alte Freunde treffen — manche vielleicht nach Jahren
+— Gespräche an der Theke, die irgendwie immer die besten sind
+— Nostalgie — aber die gute Art, die einem warm ums Herz wird
+— Fingerfood, Getränke — kein Dresscode, kein Gedöns
+```
+
+Style der Bullet-Liste:
+```css
+list-style: none;
+margin: 1.4em 0;
+padding: 1.4rem 1.6rem;
+background: rgba(245,232,200,0.03);
+border-left: 2px solid rgba(232,153,26,0.3);
+border-radius: 0 4px 4px 0;
+display: flex;
+flex-direction: column;
+gap: 0.85rem;
+```
+Jedes `<li>`: font-size clamp(0.92rem,2vw,1rem), line-height 1.75, color rgba(245,232,200,0.72), padding-left 1.2rem, position relative
+`<li>::before`: content „—", position absolute, left 0, color var(--amber)
+
+**CLOSED-NOTE-BOX — exakt dieser Text:**
+```
+Kleiner Hinweis: das wird eine [em]geschlossene Gesellschaft[/em]. Kein offenes Stadtfest — ein Abend unter Leuten, die dazugehören. Das hält es gemütlich und die Organisation schlank.
+```
+Style:
+```css
+margin: 1.4rem 0;
+padding: 1.2rem 1.5rem;
+background: rgba(232,153,26,0.06);
+border: 1px solid rgba(232,153,26,0.22);
+border-radius: 4px;
+font-size: clamp(0.88rem,2vw,0.96rem);
+line-height: 1.75;
+color: rgba(245,232,200,0.72);
+```
+
+---
+
+## KOMPONENTE 3: Fakten.tsx
+
+Container: max-width 640px, margin auto, padding 4rem 2rem
+
+Label oben:
+- Text: „Das Wichtigste"
+- Style: Lora, kursiv, 0.75rem, letter-spacing 0.22em, text-transform uppercase, color var(--amber), margin-bottom 1.8rem
+
+Liste — EXAKT DIESE 4 EINTRÄGE:
+```
+Wann      →  Samstag, 18. Juli 2026
+Wo        →  Bölt / Kapaunenberg  +  [small] Emmerich am Rhein
+Eintritt  →  aktuell kostenlos  +  [small] verbindl. Anmeldung inkl. ~10 € kommt im Mai
+Zugang    →  Nur mit Anmeldung
+```
+
+Style pro Zeile:
+- Grid: `110px 1fr`, gap 1rem, padding 1rem 0, border-bottom rgba(245,232,200,0.07)
+- Key (links): Lora, kursiv, 0.82rem, rgba(245,232,200,0.55)
+- Value (rechts): Playfair Display, bold, 1rem, var(--warm)
+- `<small>`: Lora, kursiv, 0.85rem, rgba(245,232,200,0.65), margin-left 0.5rem
+
+---
+
+## KOMPONENTE 4: Countdown.tsx
+
+Zielzeit: `new Date('2026-07-18T19:00:00')` — DIESE ZEIT, KEINE ANDERE
+
+Anzeige: Tage · Stunden · Minuten · Sekunden
+
+Zahlen-Style:
+- Font: Playfair Display, weight 800, clamp(2.2rem,6vw,3.5rem)
+- Color: var(--amber)
+- Line-height: 1
+
+Label-Style (darunter):
+- Font: Lora, kursiv, 0.7rem
+- Color: var(--dimmer)
+- Margin-top: 0.2rem
+
+Trennzeichen `·`:
+- Font: Playfair Display, 2rem
+- Color: rgba(232,153,26,0.3)
+- Align-self: center
+
+Layout: flex, flex-direction row, gap 2rem, align-items baseline, flex-wrap wrap
+
+---
+
+## KOMPONENTE 5: Formular.tsx
+
+id="anmeldung" auf dem Container
+
+**H2:** „Kurz melden." — Playfair Display, kursiv, weight 700, clamp(1.6rem,4vw,2.2rem)
+
+**Untertext (exakt):**
+„Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung. Hilft uns aber enorm zu wissen, wie viele wir werden."
+Style: Lora, 0.92rem, line-height 1.7, rgba(245,232,200,0.58), margin-bottom 2.5rem
+
+**Hinweis-Box (exakt):**
+„Noch kein Eintritt, noch keine Verpflichtung. Einfach Daumen hoch — der Rest kommt im Mai."
+Style: background rgba(232,153,26,0.08), border 1px solid rgba(232,153,26,0.3), border-radius 4px, padding 1rem 1.3rem, font-size 0.9rem, line-height 1.7, color rgba(245,232,200,0.8), margin-bottom 1.8rem
+
+**FORMULARFELDER — EXAKT DIESE 4:**
+
+Feld 1:
+- Label: `Vor- oder Spitzname` + `(reicht völlig)` in kursiv/gedimmt
+- Input type="text", name="name", required
+- Placeholder: `z.B. Klaus, Uschi, Mausi ...`
+
+Feld 2:
+- Label: `Ungefähr wie viele seid ihr?`
+- Select name="personen"
+- Options EXAKT: `Nur ich` / `Wir zwei` / `Wir drei` / `Vier auf einen Streich` / `Fünf oder mehr`
+
+Feld 3:
+- Label: `Kurzes Statement` + `(optional, aber gerne)` in kursiv/gedimmt
+- Textarea name="statement", rows=3
+- Placeholder: `Warum du dabei bist, was du dir erhoffst, oder einfach: "Bin dabei!"`
+
+Feld 4:
+- Label: `Dein Lieblingssong — der auf jeden Fall gespielt werden muss 🎵`
+- Input type="text", name="song"
+- Placeholder: `z.B. ABBA – Dancing Queen, Nena – 99 Luftballons ...`
+
+**Input-Style (alle Felder):**
+```css
+background: rgba(245,232,200,0.04);
+border: 1px solid rgba(245,232,200,0.12);
+border-radius: 3px;
+color: var(--warm);
+padding: 0.75rem 0.9rem;
+font-size: 0.92rem;
+font-family: 'Lora', serif;
+width: 100%;
+```
+Focus: `border-color: rgba(232,153,26,0.55)`
+Placeholder: `color: rgba(245,232,200,0.45)` — NICHT DUNKLER
+
+**Submit-Button (exakt):**
+- Text: `Daumen hoch — ich bin dabei! 👍`
+- Style: width 100%, padding 1rem, background transparent, border 1px solid var(--amber), border-radius 3px, color var(--amber), font-family Playfair Display, font-style italic, font-size 1rem, cursor pointer
+- Hover: background var(--amber), color var(--black)
+
+**Nach Submit — Erfolgs-Box:**
+Formular ausblenden (`display: none`), Erfolgs-Box einblenden:
+```
+✦
+[H3] Klasse. Daumen hoch angekommen.
+[p] Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
+```
+Style: text-align center, padding 3rem 1rem
+
+**Datenspeicherung:**
+- `fetch('POST /api/interesse', { name, personen, statement, song })`
+- Bei success: true → Erfolgs-Box zeigen
+- Bei Fehler: Fehlermeldung unter dem Button (Lora, kursiv, amber, 0.88rem)
+
+---
+
+## KOMPONENTE 6: PressNote.tsx
+
+Container: max-width 640px, margin auto, padding 0 2rem 4rem
+
+**Exakter Text:**
+„**Für Redaktionen und Multiplikatoren:** „Emmerich boomt!" ist eine ehrenamtlich organisierte Bürgerveranstaltung. Ein kleines, unbezahltes Orga-Team aus Emmerich plant diesen Abend in seiner Freizeit — mit Herzblut, ohne Förderung, und mit der Überzeugung, dass solche Abende das leisten, was keine App der Welt kann: echte Begegnung. Wir freuen uns über jede Unterstützung."
+
+Style der Box:
+```css
+background: rgba(245,232,200,0.04);
+border: 1px solid rgba(245,232,200,0.14);
+border-radius: 4px;
+padding: 1.4rem 1.6rem;
+font-size: 0.88rem;
+line-height: 1.8;
+color: rgba(245,232,200,0.65);
+font-style: italic;
+```
+`strong` darin: color rgba(245,232,200,0.85), font-style normal
+
+---
+
+## KOMPONENTE 7: Legal.tsx
+
+Drei aufklappbare Sektionen. Standard: alle zugeklappt. Nur eine gleichzeitig offen.
+
+Button-Style pro Sektion:
+```css
+width: 100%;
+text-align: left;
+background: none;
+border: none;
+border-bottom: 1px solid rgba(245,232,200,0.08);
+padding: 0.9rem 0;
+display: flex;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+```
+Button-Text: Lora, kursiv, 0.78rem, uppercase, letter-spacing 0.12em, rgba(245,232,200,0.35)
+Plus-Icon: rgba(245,232,200,0.25), rotiert 45deg wenn offen
+Inhalt: max-height 0 → max-height 1200px bei open, transition 0.4s
+
+**IMPRESSUM — EXAKTER INHALT:**
+```
+Angaben gemäß § 5 TMG
+Christoph Aldering
+Jakob-Troost-Straße 8
+46446 Emmerich am Rhein
+
+Verantwortlich i.S.d.P.
+Christoph Aldering (Anschrift s.o.)
+
+Kontakt
+E-Mail: christoph.aldering@googlemail.com
+
+Hinweis
+Diese Website dient ausschließlich der Ankündigung und Organisation einer
+privaten, nicht-kommerziellen Veranstaltung des BoomerClub Emmerich.
+```
+
+**DATENSCHUTZ — EXAKTER INHALT:**
+```
+Verantwortlicher
+Christoph Aldering, Jakob-Troost-Straße 8, 46446 Emmerich am Rhein
+E-Mail: christoph.aldering@googlemail.com
+
+Welche Daten wir erheben
+In der ersten Phase (Interessensabfrage bis Ende April) werden folgende Angaben
+erfasst: Vor- oder Spitzname, ungefähre Personenanzahl, optionales Statement
+sowie ein optionaler Lieblingssong. E-Mail-Adressen oder Telefonnummern werden
+in dieser Phase nicht abgefragt.
+In der zweiten Phase (verbindliche Anmeldung ab Mai) werden zusätzlich Vor- und
+Nachname, E-Mail-Adresse sowie ggf. Telefonnummer erhoben.
+
+Zweck der Datenerhebung
+Die Angaben dienen ausschließlich der internen Planung und Organisation der
+Veranstaltung „Emmerich boomt!" und werden nicht an Dritte weitergegeben.
+
+Speicherung
+Die über das Formular übermittelten Daten werden in einer Datenbank auf den
+Servern von Replit Inc. (USA) gespeichert. Replit verarbeitet Daten gemäß
+seiner Datenschutzerklärung (replit.com/site/privacy). Die Übertragung in die
+USA erfolgt auf Basis von Standardvertragsklauseln gemäß Art. 46 DSGVO.
+Die Daten werden nur so lange gespeichert, wie es für die Veranstaltungs-
+organisation erforderlich ist, längstens bis drei Monate nach der Veranstaltung
+am 18. Juli 2026.
+
+Rechtsgrundlage
+Die Verarbeitung erfolgt auf Grundlage Ihrer freiwilligen Einwilligung gemäß
+Art. 6 Abs. 1 lit. a DSGVO durch Absenden des Formulars.
+
+Ihre Rechte
+Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16),
+Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) sowie Widerspruch
+(Art. 21). Anfragen bitte per E-Mail an die oben genannte Adresse. Sie haben
+zudem das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.
+
+Hosting
+Diese Website wird über Replit Inc., 548 Market St Suite 49773,
+San Francisco, CA 94104, USA gehostet.
+```
+
+**KONTAKT — EXAKTER INHALT:**
+```
+Fragen, Anregungen, Feedback — gerne direkt per E-Mail:
+christoph.aldering@googlemail.com
+
+Christoph Aldering
+Jakob-Troost-Straße 8
+46446 Emmerich am Rhein
+```
+
+---
+
+## KOMPONENTE 8: SiteFooter.tsx
+
+**EXAKTER TEXT — KEINE ÄNDERUNGEN:**
+```
+Emmerich boomt! · BoomerParty · 18. Juli 2026 · Bölt, Emmerich am Rhein
+
+Eine Veranstaltung des BoomerClub Emmerich · Entstanden an einer Theke · Wie immer.
+
+Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam
+```
+
+Style: text-align center, font-style italic, font-size 0.78rem, color rgba(245,232,200,0.38), padding 2rem, border-top 1px solid rgba(245,232,200,0.1)
+
+---
+
+## ✅ PFLICHT-CHECKLISTE — VOR ABSCHLUSS ZWINGEND DURCHGEHEN
+
+**Du darfst diese Aufgabe NICHT als erledigt markieren, bevor du jeden einzelnen Punkt mit ✅ bestätigt hast:**
+
+### Design
+- [ ] CSS-Variablen --black, --amber, --amber2, --warm, --dim, --dimmer exakt wie definiert
+- [ ] Kein Lila, kein Magenta, kein Violett, kein Blau irgendwo auf der Seite
+- [ ] Nur Playfair Display und Lora als Fonts
+- [ ] Fonts via `<link>` in index.html geladen, nicht via CSS-Import
+- [ ] Tailwind nur für Layout-Utilities (flex, padding, margin, grid) — keine Farbklassen
+- [ ] Placeholder-Farbe mindestens rgba(245,232,200,0.45)
+
+### Struktur
+- [ ] Reihenfolge: Poster → Letter → Fakten → Countdown → Formular → PressNote → Legal → SiteFooter
+- [ ] Kein Header, keine Navigation
+- [ ] Kein Ticker, keine Laufschrift
+- [ ] Kein FAQ-Block
+- [ ] Kein Galerie-Block
+- [ ] id="anmeldung" am Formular-Container
+
+### Inhalte
+- [ ] Poster: boomerpartyposter.jpeg, 100svh, kein Text drüber
+- [ ] Titel: „Emmerich" + Zeilenumbruch + „boomt." (boomt. in amber kursiv)
+- [ ] Datumszeile: „18. Juli 2026 · Bölt / Kapaunenberg · Emmerich am Rhein" mit amber Border
+- [ ] Alle 6 Bullet-Punkte exakt wie angegeben
+- [ ] Closed-Note-Box mit exaktem Text
+- [ ] Dank an Farzin und Revse im Text
+- [ ] Fakten-Tabelle: 4 Zeilen exakt wie angegeben (inkl. „aktuell kostenlos")
+- [ ] Countdown auf 2026-07-18T19:00:00
+- [ ] Formular: exakt 4 Felder mit exakten Labels und Placeholdern
+- [ ] Select-Optionen exakt: „Nur ich" / „Wir zwei" / „Wir drei" / „Vier auf einen Streich" / „Fünf oder mehr"
+- [ ] Submit-Button-Text: „Daumen hoch — ich bin dabei! 👍"
+- [ ] Erfolgs-Box-Text: „Klasse. Daumen hoch angekommen."
+- [ ] PressNote-Text exakt wie angegeben
+- [ ] Impressum mit Christoph Aldering, Jakob-Troost-Straße 8, 46446 Emmerich am Rhein
+- [ ] Datenschutz mit Replit-Speicherung, DSGVO Art. 46, beiden Phasen
+- [ ] Footer-Text exakt: „Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam"
+
+### Technik
+- [ ] Drizzle Schema `interessenten` exakt wie definiert
+- [ ] POST /api/interesse speichert in PostgreSQL
+- [ ] Zod-Validierung auf der API-Route
+- [ ] `npx drizzle-kit push` ausgeführt
+- [ ] Formular sendet echte Daten an die API
+- [ ] Erfolgs-Box erscheint nur bei success: true vom Server
+
+---
+
+## ABSCHLUSSERKLÄRUNG — MUSS WÖRTLICH AUSGEGEBEN WERDEN
+
+Wenn du fertig bist, gibst du EXAKT diesen Text aus — nichts anderes:
+
+```
+IMPLEMENTATION COMPLETE.
+
+Ich bestätige, dass ich jeden Punkt der obigen Checkliste durchgegangen bin.
+Jeder Punkt ist erfüllt. Keine Abweichungen. Keine eigenen Entscheidungen.
+Die Implementierung entspricht 100% der Spezifikation.
+```
+
+Wenn du diesen Text NICHT ausgeben kannst, weil ein Punkt nicht erfüllt ist:
+→ Behebe den Fehler zuerst. Gib dann erst die Bestätigung aus.
