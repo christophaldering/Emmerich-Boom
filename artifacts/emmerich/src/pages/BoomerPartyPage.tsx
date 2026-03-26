@@ -7,6 +7,7 @@ import Countdown from "@/components/Countdown";
 import Formular from "@/components/Formular";
 import Teilnehmer from "@/components/Teilnehmer";
 import KiStimmung from "@/components/KiStimmung";
+import BoomerClub from "@/components/BoomerClub";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
