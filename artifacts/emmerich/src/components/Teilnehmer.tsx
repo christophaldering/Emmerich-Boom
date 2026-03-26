@@ -5,6 +5,7 @@ type Entry = {
   name: string;
   personen: string;
   song: string | null;
+  statement: string | null;
   createdAt: string | null;
 };
 
@@ -69,7 +70,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         .promo-hero {
           text-align: center;
           margin-bottom: 3rem;
-          max-width: 640px;
+          max-width: 700px;
           margin-left: auto;
           margin-right: auto;
         }
@@ -77,8 +78,8 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           display: inline-block;
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.72rem;
-          letter-spacing: 0.28em;
+          font-size: 0.78rem;
+          letter-spacing: 0.22em;
           text-transform: uppercase;
           color: var(--amber);
           margin-bottom: 1rem;
@@ -88,7 +89,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           display: flex;
           align-items: baseline;
           justify-content: center;
-          gap: 0.6rem;
+          gap: 0.7rem;
           flex-wrap: wrap;
           margin-bottom: 0.5rem;
         }
@@ -106,7 +107,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           font-size: clamp(1rem, 3vw, 1.3rem);
           color: rgba(245,232,200,0.65);
           line-height: 1.4;
-          max-width: 14ch;
+          max-width: 16ch;
           text-align: left;
         }
         .promo-count-label strong {
@@ -123,19 +124,19 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         }
         .teilnehmer-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-          gap: 0.75rem;
-          max-width: 880px;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 0.85rem;
+          max-width: 900px;
           margin: 0 auto;
         }
         .teilnehmer-card {
           background: rgba(245,232,200,0.04);
-          border: 1px solid rgba(245,232,200,0.07);
+          border: 1px solid rgba(245,232,200,0.08);
           border-radius: 4px;
-          padding: 0.9rem 1.1rem;
+          padding: 1rem 1.2rem;
           display: flex;
           flex-direction: column;
-          gap: 0.35rem;
+          gap: 0.45rem;
           transition: border-color 0.2s;
         }
         .teilnehmer-card:hover {
@@ -150,17 +151,27 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         .teilnehmer-name {
           font-family: 'Playfair Display', serif;
           font-weight: 700;
-          font-size: 1rem;
+          font-size: 1.05rem;
           color: var(--warm);
           line-height: 1.2;
         }
         .teilnehmer-personen {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.75rem;
-          color: rgba(245,232,200,0.35);
+          font-size: 0.78rem;
+          color: rgba(245,232,200,0.32);
           white-space: nowrap;
           flex-shrink: 0;
+        }
+        .teilnehmer-statement {
+          font-family: 'Lora', serif;
+          font-style: italic;
+          font-size: 0.88rem;
+          color: rgba(245,232,200,0.65);
+          line-height: 1.6;
+          border-left: 2px solid rgba(232,153,26,0.2);
+          padding-left: 0.7rem;
+          margin-top: 0.1rem;
         }
         .teilnehmer-song {
           font-family: 'Lora', serif;
@@ -168,11 +179,12 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           font-size: 0.82rem;
           color: var(--amber);
           opacity: 0.85;
+          margin-top: 0.1rem;
         }
       `}</style>
 
       <div className="promo-hero">
-        <span className="promo-label">Schon dabei</span>
+        <span className="promo-label">haben den Termin eingetragen</span>
         <div className="promo-count-row">
           <span className="promo-count">{entries.length}</span>
           <span className="promo-count-label">
@@ -200,6 +212,9 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
                 {(PERSONEN_LABEL[e.personen] ?? "1") === "1" ? "Person" : "Personen"}
               </span>
             </div>
+            {e.statement && (
+              <p className="teilnehmer-statement">„{e.statement}"</p>
+            )}
             {e.song && (
               <span className="teilnehmer-song">♪ {e.song}</span>
             )}

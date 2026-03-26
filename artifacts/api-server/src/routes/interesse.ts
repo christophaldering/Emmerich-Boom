@@ -44,6 +44,7 @@ router.get("/interesse", async (_req, res) => {
       id: interessenten.id,
       name: interessenten.name,
       personen: interessenten.personen,
+      statement: interessenten.statement,
       song: interessenten.song,
       createdAt: interessenten.createdAt,
     })

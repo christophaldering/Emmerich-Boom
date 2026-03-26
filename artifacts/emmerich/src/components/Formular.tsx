@@ -150,9 +150,9 @@ export default function Formular({ onSuccess }: FormularProps) {
           </div>
 
           <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "rgba(245,232,200,0.55)", marginBottom: "0.4rem" }}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.8)", marginBottom: "0.5rem" }}>
               Vor- oder Spitzname{" "}
-              <em style={{ fontStyle: "italic", color: "rgba(245,232,200,0.38)" }}>(reicht völlig)</em>
+              <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "rgba(245,232,200,0.45)" }}>(reicht völlig)</em>
             </label>
             <input
               type="text"
@@ -167,7 +167,7 @@ export default function Formular({ onSuccess }: FormularProps) {
           </div>
 
           <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "rgba(245,232,200,0.55)", marginBottom: "0.4rem" }}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.8)", marginBottom: "0.5rem" }}>
               Ungefähr wie viele seid ihr?
             </label>
             <select
@@ -186,9 +186,9 @@ export default function Formular({ onSuccess }: FormularProps) {
           </div>
 
           <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "rgba(245,232,200,0.55)", marginBottom: "0.4rem" }}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.8)", marginBottom: "0.5rem" }}>
               Kurzes Statement{" "}
-              <em style={{ fontStyle: "italic", color: "rgba(245,232,200,0.38)" }}>(optional, aber gerne)</em>
+              <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "rgba(245,232,200,0.45)" }}>(optional, aber gerne)</em>
             </label>
             <textarea
               name="statement"
@@ -202,7 +202,7 @@ export default function Formular({ onSuccess }: FormularProps) {
           </div>
 
           <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "rgba(245,232,200,0.55)", marginBottom: "0.4rem" }}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.8)", marginBottom: "0.5rem" }}>
               Dein Lieblingssong — der auf jeden Fall gespielt werden muss 🎵
             </label>
             <input
