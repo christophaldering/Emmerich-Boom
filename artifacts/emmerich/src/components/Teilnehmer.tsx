@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useReveal } from "@/hooks/useReveal";
+import { useState, useEffect, useRef } from "react";
 
 type Entry = {
   id: number;
@@ -23,13 +22,17 @@ interface TeilnehmerProps {
 
 export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
-  const ref = useReveal();
+  const [loaded, setLoaded] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const fetchEntries = () => {
-    fetch("/api/interesse")
+    fetch("/api/interesse", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => setEntries(data))
-      .catch(() => {});
+      .then((data: Entry[]) => {
+        setEntries(data);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
   };
 
   useEffect(() => {
@@ -39,30 +42,36 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   }, []);
 
   useEffect(() => {
-    if (refreshKey > 0) {
-      fetchEntries();
-    }
+    if (refreshKey > 0) fetchEntries();
   }, [refreshKey]);
+
+  if (!loaded || entries.length === 0) return null;
 
   const totalPersonen = entries.reduce((sum, e) => {
     const raw = PERSONEN_LABEL[e.personen] ?? "1";
     return sum + (raw === "5+" ? 5 : parseInt(raw, 10));
   }, 0);
 
-  if (entries.length === 0) return null;
-
   return (
     <section
-      ref={ref}
+      ref={sectionRef}
       style={{
-        background: "linear-gradient(180deg, rgba(10,7,4,0) 0%, rgba(20,13,6,0.95) 8%, rgba(20,13,6,0.95) 92%, rgba(10,7,4,0) 100%)",
+        background: "rgba(20,13,6,0.95)",
         padding: "4rem 1.5rem 4.5rem",
+        animation: "fadeInUp 0.7s ease both",
       }}
     >
       <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: none; }
+        }
         .promo-hero {
           text-align: center;
           margin-bottom: 3rem;
+          max-width: 640px;
+          margin-left: auto;
+          margin-right: auto;
         }
         .promo-label {
           display: inline-block;
@@ -81,6 +90,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           justify-content: center;
           gap: 0.6rem;
           flex-wrap: wrap;
+          margin-bottom: 0.5rem;
         }
         .promo-count {
           font-family: 'Playfair Display', serif;
@@ -93,9 +103,9 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         .promo-count-label {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: clamp(1rem, 3vw, 1.4rem);
+          font-size: clamp(1rem, 3vw, 1.3rem);
           color: rgba(245,232,200,0.65);
-          line-height: 1.3;
+          line-height: 1.4;
           max-width: 14ch;
           text-align: left;
         }
@@ -113,7 +123,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         }
         .teilnehmer-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
           gap: 0.75rem;
           max-width: 880px;
           margin: 0 auto;
@@ -129,7 +139,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           transition: border-color 0.2s;
         }
         .teilnehmer-card:hover {
-          border-color: rgba(205,155,65,0.2);
+          border-color: rgba(232,153,26,0.25);
         }
         .teilnehmer-card-top {
           display: flex;
@@ -147,8 +157,8 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         .teilnehmer-personen {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.72rem;
-          color: rgba(245,232,200,0.3);
+          font-size: 0.75rem;
+          color: rgba(245,232,200,0.35);
           white-space: nowrap;
           flex-shrink: 0;
         }
@@ -157,18 +167,19 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           font-style: italic;
           font-size: 0.82rem;
           color: var(--amber);
-          opacity: 0.8;
+          opacity: 0.85;
         }
       `}</style>
 
-      <div className="reveal promo-hero">
+      <div className="promo-hero">
         <span className="promo-label">Schon dabei</span>
         <div className="promo-count-row">
           <span className="promo-count">{entries.length}</span>
           <span className="promo-count-label">
             {entries.length === 1 ? "Person" : "Personen"} dabei
-            {totalPersonen >= 1 && (
-              <> — mindestens{" "}
+            {totalPersonen > 0 && (
+              <>
+                {" "}— mindestens{" "}
                 <strong>{totalPersonen}</strong>{" "}
                 {totalPersonen === 1 ? "Mensch" : "Leute"} kommen!
               </>
@@ -179,16 +190,14 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
       <div className="promo-divider" />
 
-      <div className="reveal d1 teilnehmer-grid">
+      <div className="teilnehmer-grid">
         {entries.map((e) => (
           <div key={e.id} className="teilnehmer-card">
             <div className="teilnehmer-card-top">
               <span className="teilnehmer-name">{e.name}</span>
               <span className="teilnehmer-personen">
                 {PERSONEN_LABEL[e.personen] ?? "1"}{" "}
-                {(PERSONEN_LABEL[e.personen] ?? "1") === "1"
-                  ? "Person"
-                  : "Personen"}
+                {(PERSONEN_LABEL[e.personen] ?? "1") === "1" ? "Person" : "Personen"}
               </span>
             </div>
             {e.song && (
