@@ -22,10 +22,10 @@ export default function BoomerPartyPage() {
       <Poster />
       <Letter />
       <Teilnehmer refreshKey={refreshCounter} />
+      <KiStimmung />
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
-      <KiStimmung />
       <PressNote />
       <Legal />
       <SiteFooter />

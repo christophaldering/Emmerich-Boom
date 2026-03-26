@@ -18,29 +18,23 @@ function getIp(req: Parameters<Parameters<ReturnType<typeof Router>["get"]>[1]>[
 function buildPrompt(statements: string[], names: string[], songs: string[]): string {
   const stmtList = statements.length > 0
     ? statements.map((s, i) => `- ${names[i] ?? "Jemand"}: "${s}"`).join("\n")
-    : "(Noch keine Statements eingegangen)";
+    : "(keine Statements)";
 
   const songList = songs.length > 0
-    ? songs.map((s) => `- ${s}`).join("\n")
-    : "(Noch keine Songs)";
+    ? songs.slice(0, 8).map((s) => `- ${s}`).join("\n")
+    : "(keine Songs)";
 
-  return `Du bist ein witziger, warmherziger Partyanalyst mit einer Schwäche für nostalgische Boomer-Kultur.
+  return `Du bist ein trockener, warmherziger Partyprophet mit Sinn für Boomer-Humor.
 
-Es geht um eine Party in Emmerich am Rhein am 18. Juli 2026 — die "BoomerParty" auf dem Bölt (Kapaunenberg). Die Eingeladenen sind zwischen 50 und 70 Jahre alt, kennen sich aus der Stadt und freuen sich auf 70er/80er-Musik.
+BoomerParty, 18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein. Gäste 50–70 Jahre, kennen sich, freuen sich auf 70er/80er-Mucke.
 
-Hier sind ihre Statements, warum sie dabei sind:
+Statements:
 ${stmtList}
 
-Und das sind ihre Wunschsongs:
+Wunschsongs:
 ${songList}
 
-Schreibe jetzt eine kurze, amüsante "KI-Analyse" der Gruppe — ca. 4-6 Sätze. Darin:
-1. Eine witzige Charakterisierung der Gruppe anhand ihrer Statements
-2. Eine humorvolle Ableitung daraus, welche Art Abend das wohl wird
-3. Einen Kommentar zur Songliste — was sagt sie über die Gruppe aus?
-4. Einen flotten Abschluss-Satz mit Vorfreude-Garantie
-
-Schreib auf Deutsch. Locker, herzlich, mit einem Augenzwinkern. Kein Bullet-Format — fließender Text. Jede Analyse darf sich leicht von anderen unterscheiden — bring ruhig etwas Variation rein.`;
+Schreib eine Abend-Prognose: 2–3 Sätze, nicht mehr. Witzig, trocken, herzlich — so dass jemand, der noch zögert, sofort dabei sein will. Kein Titel, kein Intro, kein Bullet-Format. Direkt rein, direkt raus. Jede Prognose darf sich von vorherigen etwas unterscheiden.`;
 }
 
 router.get("/stimmung", async (req, res) => {
