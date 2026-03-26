@@ -97,8 +97,14 @@ export default function BoomerClub() {
         <h3 className="boomerclub-heading">Der Boomerclub Emmerich</h3>
 
         <p className="boomerclub-text">
-          Hinter der Party steht eine WhatsApp-Gruppe, in der sich Emmericher Boomer schon eine
-          Weile zusammenfinden. Wer mag, ist herzlich eingeladen — einfach auf den Button tippen und dazukommen.
+          2024 entstand der Boomerclub an der Theke der Sozialität — in bester Bierlaune, wie es sich gehört.
+          Seitdem sind rund <strong style={{ color: "var(--warm)" }}>130 Leute</strong> dabei.
+          Manche täglich aktiv, andere schauen ab und zu rein, wieder andere sind einfach froh, dabei zu sein.
+          Passt doch.
+        </p>
+
+        <p className="boomerclub-text" style={{ marginTop: "-0.4rem" }}>
+          Wer möchte, ist herzlich willkommen — einfach auf den Button tippen und dazukommen.
         </p>
 
         <a
