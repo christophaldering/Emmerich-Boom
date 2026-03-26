@@ -3,6 +3,7 @@ import Letter from "@/components/Letter";
 import Fakten from "@/components/Fakten";
 import Countdown from "@/components/Countdown";
 import Formular from "@/components/Formular";
+import Teilnehmer from "@/components/Teilnehmer";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
@@ -15,6 +16,7 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <Formular />
+      <Teilnehmer />
       <PressNote />
       <Legal />
       <SiteFooter />

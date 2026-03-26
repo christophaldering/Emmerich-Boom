@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
 import { interessenten } from "@workspace/db";
+import { desc } from "drizzle-orm";
 
 const router = Router();
 
@@ -20,6 +21,20 @@ router.post("/interesse", async (req, res) => {
   }
   await db.insert(interessenten).values(parsed.data);
   res.json({ success: true });
+});
+
+router.get("/interesse", async (_req, res) => {
+  const rows = await db
+    .select({
+      id: interessenten.id,
+      name: interessenten.name,
+      personen: interessenten.personen,
+      song: interessenten.song,
+      createdAt: interessenten.createdAt,
+    })
+    .from(interessenten)
+    .orderBy(desc(interessenten.createdAt));
+  res.json(rows);
 });
 
 export default router;
