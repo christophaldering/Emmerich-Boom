@@ -99,7 +99,7 @@ export default function BoomerClub() {
         <p className="boomerclub-text">
           2024 entstand der Boomerclub an der Theke der Sozialität — in bester Bierlaune, wie es sich gehört.
           Seitdem sind rund <strong style={{ color: "var(--warm)" }}>130 Leute</strong> dabei.
-          Manche täglich aktiv, andere schauen ab und zu rein, wieder andere sind einfach froh, dabei zu sein.
+          Manche melden sich regelmäßig, andere schauen ab und zu rein, wieder andere sind einfach froh, dabei zu sein.
           Passt doch.
         </p>
 
