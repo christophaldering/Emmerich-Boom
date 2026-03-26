@@ -1,0 +1,430 @@
+# HARDPROMPT: EMMERICH BOOMT! — Event-Website
+## Keine eigenen Designentscheidungen. Keine Abweichungen. Exakt so umsetzen wie beschrieben.
+
+---
+
+## 1. TECH STACK — EXAKT
+
+- React 18 + Vite + TypeScript
+- Tailwind CSS (nur für Layout-Utilities, kein Design-System von Tailwind verwenden)
+- Routing: `wouter`
+- Datenbank: PostgreSQL via Replit + Drizzle ORM
+- Fonts: Playfair Display + Lora — geladen via `<link>` in `index.html`, NICHT via CSS-Import
+- Kein Backend-Framework außer den Replit-Defaults
+- Sprache: Deutsch durchgehend
+
+---
+
+## 2. ROUTING
+
+```
+/               → LandingPage (Platzhalter, nur Link zu /boomer-party)
+/boomer-party   → BoomerPartyPage (die vollständige One-Pager-Seite)
+```
+
+---
+
+## 3. DATEISTRUKTUR
+
+```
+src/
+  main.tsx
+  App.tsx
+  index.css
+  pages/
+    LandingPage.tsx
+    BoomerPartyPage.tsx
+  components/
+    Poster.tsx
+    Letter.tsx
+    Fakten.tsx
+    Countdown.tsx
+    Formular.tsx
+    PressNote.tsx
+    Legal.tsx
+    Footer.tsx
+  hooks/
+    useReveal.ts
+  lib/
+    db.ts          ← Drizzle DB connection
+    schema.ts      ← Drizzle Schema
+public/
+  images/
+    boomerpartyposter.jpeg
+    orgateamkickoff.jpeg
+```
+
+---
+
+## 4. DESIGN-SYSTEM — EXAKT — KEINE ABWEICHUNGEN
+
+### CSS-Variablen (in index.css definieren):
+```css
+:root {
+  --black:  #0a0704;
+  --amber:  #e8991a;
+  --amber2: #c97d10;
+  --warm:   #f5e8c8;
+  --dim:    rgba(245,232,200,0.72);
+  --dimmer: rgba(245,232,200,0.55);
+}
+```
+
+### Hintergrund & Basis:
+- `background: var(--black)` — tiefschwarz mit leichtem Braunstich
+- `color: var(--warm)` — warmes Crème
+- `font-family: 'Lora', Georgia, serif` — Body
+- KEIN Lila, KEIN Magenta, KEIN Violett, KEINE blauen Töne
+
+### Typografie:
+- Headlines: `font-family: 'Playfair Display', serif` — fett, manchmal kursiv
+- Body: `font-family: 'Lora', serif` — lesbar, warm
+- Akzente: `color: var(--amber)` — warmes Gold
+- Fließtext: `color: rgba(245,232,200,0.78)` — leicht gedimmt, aber gut lesbar
+- Labels / Nebentexte: MINDESTENS `rgba(245,232,200,0.55)` — nie dunkler
+
+### Buttons:
+- Primary: `border: 1px solid var(--amber); color: var(--amber); background: transparent`
+- Hover: `background: var(--amber); color: var(--black)`
+- Font: Playfair Display, kursiv
+
+### Inputs / Textarea / Select:
+- `background: rgba(245,232,200,0.04)`
+- `border: 1px solid rgba(245,232,200,0.12)`
+- `color: var(--warm)`
+- Focus: `border-color: rgba(232,153,26,0.55)`
+- Placeholder: `color: rgba(245,232,200,0.45)` — gut lesbar
+
+### Scroll Reveal:
+- Hook `useReveal` mit IntersectionObserver
+- Klasse `.reveal` → opacity 0, translateY 16px → visible: opacity 1, translateY 0
+- Transition: 0.7s ease
+- Delay-Klassen: `.d1` (0.1s), `.d2` (0.2s), `.d3` (0.3s)
+
+---
+
+## 5. SEITENSTRUKTUR — EXAKT IN DIESER REIHENFOLGE
+
+### Komponente 1: `<Poster />`
+- Das Bild `/images/boomerpartyposter.jpeg` füllt `100svh` vollflächig
+- `object-fit: cover`, `object-position: center top`
+- Unten: sanfter Fade-Übergang zu `var(--black)` (gradient, height 45%)
+- Scroll-Hint unten mittig: Text „weiterlesen" + animierter Pfeil nach unten
+- Scroll-Hint: opacity 0, fade-in nach 1.8s
+- KEIN Text über dem Bild. KEIN Overlay. KEINE Navigation hier.
+
+---
+
+### Komponente 2: `<Letter />`
+- max-width: 640px, zentriert, padding: 6rem 2rem 5rem
+- Alle Elemente mit `fadeUp`-Animation (opacity 0 → 1, translateY 18px → 0)
+
+**Inhalt exakt so:**
+
+```
+[kursiv, amber] Emmerich, Frühjahr 2026
+
+[H1, Playfair Display, 800, clamp(3.2rem,10vw,6.5rem)]
+Emmerich
+boomt.   ← „boomt." in var(--amber), kursiv
+
+[Datumzeile, Playfair Display, 700, amber, mit Border oben+unten in amber/0.25]
+18. Juli 2026 · Bölt / Kapaunenberg · Emmerich am Rhein
+
+[Fließtext-Block:]
+
+Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉
+
+Also. Es gibt eine Party. Am [fett]18. Juli 2026[/fett]. Auf dem Bölt. Ihr wisst schon — Kapaunenberg, Emmerich. Und die wird gut.
+
+[Bullet-Liste mit „—" als Marker in amber:]
+— Abrocken — zu Musik, bei der man den Text noch kann
+— 70er, 80er — laut, tanzbar, kein Wenn und Aber
+— Alte Freunde treffen — manche vielleicht nach Jahren
+— Gespräche an der Theke, die irgendwie immer die besten sind
+— Nostalgie — aber die gute Art, die einem warm ums Herz wird
+— Fingerfood, Getränke — kein Dresscode, kein Gedöns
+
+Der Bölt kann das — ob wir 30 werden oder 150. Da ist Platz.
+
+[Hinweis-Box, amber-Border links + leichter amber-Hintergrund:]
+Kleiner Hinweis: das wird eine [kursiv, amber]geschlossene Gesellschaft[/kursiv]. Kein offenes Stadtfest — ein Abend unter Leuten, die dazugehören. Das hält es gemütlich und die Organisation schlank.
+
+Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an [fett]Farzin und Revse vom Kapaunenberg[/fett] für ihre Unterstützung.
+
+Und jetzt das Wichtigste: [fett]Wir wollen erstmal wissen, wer dabei ist.[/fett] Keine Verpflichtung, kein Eintritt — einfach kurz melden bis [fett]Ende April[/fett]. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — inkl. der angekündigten [kursiv, amber]10 Euronen.[/kursiv]
+```
+
+---
+
+### Komponente 3: `<Fakten />`
+- max-width: 640px, zentriert
+- Label oben: „Das Wichtigste" — kursiv, uppercase, amber, letter-spacing weit
+
+**Tabelle exakt:**
+```
+Wann     →  Samstag, 18. Juli 2026
+Wo       →  Bölt / Kapaunenberg  [klein: Emmerich am Rhein]
+Eintritt →  aktuell kostenlos  [klein: verbindl. Anmeldung inkl. ~10 € kommt im Mai]
+Zugang   →  Nur mit Anmeldung
+```
+- Keys: Lora kursiv, `rgba(245,232,200,0.55)`
+- Values: Playfair Display, fett, `var(--warm)`
+- Trennlinien: `rgba(245,232,200,0.07)`
+
+---
+
+### Komponente 4: `<Countdown />`
+- Countdown-Zielzeit: `new Date('2026-07-18T19:00:00')`
+- Anzeige: Tage · Stunden · Minuten · Sekunden
+- Zahlen: Playfair Display, 800, `clamp(2.2rem,6vw,3.5rem)`, `var(--amber)`
+- Labels darunter: Lora, kursiv, 0.7rem, `var(--dimmer)`
+- Trennzeichen: `·` in `rgba(232,153,26,0.3)`
+- Layout: flex, horizontal, linksbündig
+
+---
+
+### Komponente 5: `<Formular />`
+- id="anmeldung"
+
+**Überschrift:** „Kurz melden." — Playfair Display, kursiv
+
+**Untertext:**
+„Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung. Hilft uns aber enorm zu wissen, wie viele wir werden."
+
+**Hinweis-Box (amber-umrandet):**
+„Noch kein Eintritt, noch keine Verpflichtung. Einfach Daumen hoch — der Rest kommt im Mai."
+
+**Formularfelder exakt:**
+
+1. Label: `Vor- oder Spitzname (reicht völlig)`
+   Placeholder: `z.B. Klaus, Uschi, Mausi ...`
+   Typ: text, required
+
+2. Label: `Ungefähr wie viele seid ihr?`
+   Select: `Nur ich` / `Wir zwei` / `Wir drei` / `Vier auf einen Streich` / `Fünf oder mehr`
+
+3. Label: `Kurzes Statement (optional, aber gerne)`
+   Textarea, 3 Zeilen
+   Placeholder: `Warum du dabei bist, was du dir erhoffst, oder einfach: "Bin dabei!"`
+
+4. Label: `Dein Lieblingssong — der auf jeden Fall gespielt werden muss 🎵`
+   Placeholder: `z.B. ABBA – Dancing Queen, Nena – 99 Luftballons ...`
+   Typ: text
+
+**Submit-Button:**
+Text: `Daumen hoch — ich bin dabei! 👍`
+Style: outline amber, hover: amber ausgefüllt
+
+**Nach Submit:**
+Formular auswechseln gegen Erfolgs-Box:
+```
+✦
+Klasse. Daumen hoch angekommen.
+Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
+```
+
+**Datenspeicherung (Pflicht!):**
+Die Formulardaten werden in einer PostgreSQL-Datenbank (Replit) gespeichert.
+
+Drizzle Schema (`src/lib/schema.ts`):
+```typescript
+export const interessenten = pgTable('interessenten', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  personen: text('personen').notNull(),
+  statement: text('statement'),
+  song: text('song'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+API-Route: `POST /api/interesse`
+- Empfängt: `{ name, personen, statement, song }`
+- Validiert mit Zod
+- Speichert via Drizzle in `interessenten`-Tabelle
+- Gibt `{ success: true }` zurück
+
+---
+
+### Komponente 6: `<PressNote />`
+Box mit leichtem Border:
+
+„**Für Redaktionen und Multiplikatoren:** „Emmerich boomt!" ist eine ehrenamtlich organisierte Bürgerveranstaltung. Ein kleines, unbezahltes Orga-Team aus Emmerich plant diesen Abend in seiner Freizeit — mit Herzblut, ohne Förderung, und mit der Überzeugung, dass solche Abende das leisten, was keine App der Welt kann: echte Begegnung. Wir freuen uns über jede Unterstützung."
+
+- Kursiv, `rgba(245,232,200,0.65)`
+- „Für Redaktionen und Multiplikatoren:" fett, `rgba(245,232,200,0.85)`
+
+---
+
+### Komponente 7: `<Legal />`
+Drei aufklappbare Accordion-Einträge. Standard zugeklappt. Nur einer gleichzeitig offen.
+
+**Impressum:**
+```
+Angaben gemäß § 5 TMG
+Christoph Aldering
+Jakob-Troost-Straße 8
+46446 Emmerich am Rhein
+
+Verantwortlich i.S.d.P.
+Christoph Aldering (Anschrift s.o.)
+
+Kontakt
+E-Mail: christoph.aldering@googlemail.com
+
+Hinweis
+Diese Website dient ausschließlich der Ankündigung und Organisation
+einer privaten, nicht-kommerziellen Veranstaltung des BoomerClub Emmerich.
+```
+
+**Datenschutz:**
+```
+Verantwortlicher
+Christoph Aldering, Jakob-Troost-Straße 8, 46446 Emmerich am Rhein
+E-Mail: christoph.aldering@googlemail.com
+
+Welche Daten wir erheben
+In der ersten Phase (Interessensabfrage bis Ende April) werden folgende Angaben
+erfasst: Vor- oder Spitzname, ungefähre Personenanzahl, optionales Statement
+sowie ein optionaler Lieblingssong. E-Mail-Adressen oder Telefonnummern werden
+in dieser Phase nicht abgefragt.
+In der zweiten Phase (verbindliche Anmeldung ab Mai) werden zusätzlich Vor- und
+Nachname, E-Mail-Adresse sowie ggf. Telefonnummer erhoben.
+
+Zweck der Datenerhebung
+Die Angaben dienen ausschließlich der internen Planung und Organisation der
+Veranstaltung „Emmerich boomt!" und werden nicht an Dritte weitergegeben.
+
+Speicherung
+Die über das Formular übermittelten Daten werden in einer Datenbank auf den
+Servern von Replit Inc. (USA) gespeichert. Replit verarbeitet Daten gemäß
+seiner Datenschutzerklärung (replit.com/site/privacy). Die Übertragung in die
+USA erfolgt auf Basis von Standardvertragsklauseln gemäß Art. 46 DSGVO.
+Die Daten werden nur so lange gespeichert, wie es für die Veranstaltungs-
+organisation erforderlich ist, längstens bis drei Monate nach der Veranstaltung
+am 18. Juli 2026.
+
+Rechtsgrundlage
+Die Verarbeitung erfolgt auf Grundlage Ihrer freiwilligen Einwilligung gemäß
+Art. 6 Abs. 1 lit. a DSGVO durch Absenden des Formulars.
+
+Ihre Rechte
+Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16),
+Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) sowie Widerspruch
+(Art. 21). Anfragen bitte per E-Mail an die oben genannte Adresse. Sie haben
+zudem das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.
+
+Hosting
+Diese Website wird über Replit Inc., 548 Market St Suite 49773,
+San Francisco, CA 94104, USA gehostet.
+```
+
+**Kontakt:**
+```
+Fragen, Anregungen, Feedback — gerne direkt per E-Mail:
+christoph.aldering@googlemail.com
+
+Christoph Aldering
+Jakob-Troost-Straße 8
+46446 Emmerich am Rhein
+```
+
+---
+
+### Komponente 8: `<Footer />`
+```
+Emmerich boomt! · BoomerParty · 18. Juli 2026 · Bölt, Emmerich am Rhein
+
+Eine Veranstaltung des BoomerClub Emmerich · Entstanden an einer Theke · Wie immer.
+
+Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam
+```
+- Zentriert, kursiv, `rgba(245,232,200,0.38)`
+
+---
+
+## 6. BILDER
+
+- `/public/images/boomerpartyposter.jpeg` → Poster-Komponente (fullscreen hero)
+- `/public/images/orgateamkickoff.jpeg` → vorhanden, aktuell nicht eingebunden (für spätere Galerie-Erweiterung reservieren)
+
+---
+
+## 7. WAS NICHT GEMACHT WERDEN DARF
+
+- KEINE eigene Farbwahl — exakt die definierten Variablen verwenden
+- KEIN Lila, KEIN Magenta, KEIN Violett, KEINE Farbverläufe außer dem Poster-Fade
+- KEINE zusätzlichen Sektionen, die nicht beschrieben sind
+- KEINE Navigation / kein Header
+- KEIN Ticker / keine Laufschrift
+- KEIN FAQ-Block in dieser Version
+- KEIN Galerie-Block in dieser Version
+- KEINE Änderungen an den Texten — exakt so wie angegeben
+- KEINE Umformulierungen, KEINE Übersetzungen ins Englische
+- KEIN Tailwind-Design-System — nur Tailwind-Utilities für Spacing/Layout
+- KEINE anderen Fonts außer Playfair Display und Lora
+- Placeholder-Texte MINDESTENS `rgba(245,232,200,0.45)` — nie dunkler
+
+---
+
+## 8. DATENBANK-SETUP
+
+```typescript
+// src/lib/db.ts
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import * as schema from './schema';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const db = drizzle(pool, { schema });
+```
+
+```typescript
+// src/lib/schema.ts
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+
+export const interessenten = pgTable('interessenten', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  personen: text('personen').notNull().default('1'),
+  statement: text('statement'),
+  song: text('song'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+Migration ausführen mit: `drizzle-kit push`
+
+---
+
+## 9. API-ROUTE
+
+```typescript
+// POST /api/interesse
+// Request body: { name: string, personen: string, statement?: string, song?: string }
+// Response: { success: true } | { error: string }
+
+// Validierung mit Zod:
+const schema = z.object({
+  name: z.string().min(1).max(100),
+  personen: z.string(),
+  statement: z.string().max(500).optional(),
+  song: z.string().max(200).optional(),
+});
+```
+
+---
+
+## 10. REIHENFOLGE DER UMSETZUNG
+
+1. Projekt-Setup (Vite + React + TS + Tailwind + wouter)
+2. Fonts in index.html einbinden
+3. CSS-Variablen in index.css
+4. Drizzle Schema + DB-Verbindung
+5. API-Route POST /api/interesse
+6. Komponenten in dieser Reihenfolge: Poster → Letter → Fakten → Countdown → Formular → PressNote → Legal → Footer
+7. useReveal Hook
+8. BoomerPartyPage zusammensetzen
+9. LandingPage (Platzhalter mit Link)
+10. Bilder in /public/images/ ablegen
