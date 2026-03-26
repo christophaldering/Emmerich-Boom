@@ -58,7 +58,7 @@ export default function Letter() {
           .letter-body p {
             font-size: clamp(1rem,2.2vw,1.12rem);
             line-height: 1.9;
-            color: rgba(245,232,200,0.78);
+            color: rgba(245,232,200,0.90);
             margin-bottom: 1.2em;
           }
           .letter-body strong {
@@ -81,9 +81,9 @@ export default function Letter() {
             gap: 0.85rem;
           }
           .bullet-list li {
-            font-size: clamp(0.92rem,2vw,1rem);
-            line-height: 1.75;
-            color: rgba(245,232,200,0.72);
+            font-size: clamp(1rem,2vw,1.05rem);
+            line-height: 1.8;
+            color: rgba(245,232,200,0.88);
             padding-left: 1.2rem;
             position: relative;
           }
@@ -99,9 +99,9 @@ export default function Letter() {
             background: rgba(232,153,26,0.06);
             border: 1px solid rgba(232,153,26,0.22);
             border-radius: 4px;
-            font-size: clamp(0.88rem,2vw,0.96rem);
-            line-height: 1.75;
-            color: rgba(245,232,200,0.72);
+            font-size: clamp(1rem,2vw,1.05rem);
+            line-height: 1.8;
+            color: rgba(245,232,200,0.88);
           }
         `}</style>
         <div className="letter-body">
@@ -125,7 +125,7 @@ export default function Letter() {
 
           <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
 
-          <p>Und jetzt das Wichtigste: <strong>Wir wollen erstmal wissen, wer dabei ist.</strong> Keine Verpflichtung, kein Eintritt — einfach kurz melden bis <strong>Ende April</strong>. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — inkl. der angekündigten <em>10 Euronen.</em></p>
+          <p>Und jetzt das Wichtigste: <strong>Wir wollen erstmal wissen, wer dabei ist.</strong> Keine Verpflichtung, kein Eintritt — einfach kurz melden bis <strong>Ende April</strong>. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — <em>10 EUR für Musik und Fingerfood.</em></p>
         </div>
       </div>
     </section>

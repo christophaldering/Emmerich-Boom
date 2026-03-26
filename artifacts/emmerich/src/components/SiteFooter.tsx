@@ -6,15 +6,15 @@ export default function SiteFooter() {
         fontFamily: "'Lora', serif",
         fontStyle: "italic",
         fontSize: "1rem",
-        lineHeight: 1.9,
-        color: "rgba(245,232,200,0.75)",
+        lineHeight: 2.0,
+        color: "rgba(245,232,200,0.90)",
         padding: "2.5rem 2rem 3rem",
-        borderTop: "1px solid rgba(245,232,200,0.15)",
+        borderTop: "1px solid rgba(245,232,200,0.20)",
       }}
     >
       <p>Emmerich boomt! · BoomerParty · 18. Juli 2026 · Bölt, Emmerich am Rhein</p>
       <p>Eine Veranstaltung des BoomerClub Emmerich · Entstanden an einer Theke · Wie immer.</p>
-      <p>Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam</p>
+      <p style={{ color: "var(--amber)", opacity: 0.85 }}>Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam</p>
     </footer>
   );
 }

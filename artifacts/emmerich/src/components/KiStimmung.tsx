@@ -38,13 +38,13 @@ function HistoryItem({ entry, index }: { entry: HistoryEntry; index: number }) {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         width: "100%", padding: 0,
       }}>
-        <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.74rem", color: "rgba(245,232,200,0.28)" }}>
+        <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: "rgba(245,232,200,0.60)" }}>
           {index === 0 ? "Vorherige" : `Prognose ${index + 1}`} · {formatTime(entry.ts)}
         </span>
-        <span style={{ color: "rgba(232,153,26,0.3)", fontSize: "0.58rem", flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+        <span style={{ color: "rgba(232,153,26,0.55)", fontSize: "0.65rem", flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.87rem", lineHeight: 1.8, color: "rgba(245,232,200,0.5)", marginTop: "0.6rem", marginBottom: 0 }}>
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.85, color: "rgba(245,232,200,0.82)", marginTop: "0.6rem", marginBottom: 0 }}>
           {entry.inhalt}
         </p>
       )}
@@ -105,14 +105,23 @@ export default function KiStimmung() {
   return (
     <section style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem 3.5rem" }}>
       <style>{`
-        .ki-eyebrow {
+        .ki-intro-label {
+          display: inline-block;
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.78rem;
-          color: rgba(245,232,200,0.30);
-          letter-spacing: 0.03em;
-          margin-bottom: 0.9rem;
-          display: block;
+          font-size: 0.75rem;
+          letter-spacing: 0.20em;
+          text-transform: uppercase;
+          color: var(--amber);
+          opacity: 0.75;
+          margin-bottom: 0.6rem;
+        }
+        .ki-intro-text {
+          font-family: 'Lora', serif;
+          font-size: 1rem;
+          line-height: 1.75;
+          color: rgba(245,232,200,0.85);
+          margin-bottom: 1.2rem;
         }
         .ki-result-wrap {
           position: relative;
@@ -120,9 +129,9 @@ export default function KiStimmung() {
         }
         .ki-result-text {
           font-family: 'Lora', serif;
-          font-size: 0.95rem;
-          line-height: 1.85;
-          color: rgba(245,232,200,0.78);
+          font-size: 1rem;
+          line-height: 1.9;
+          color: rgba(245,232,200,0.90);
           margin: 0;
           overflow: hidden;
           transition: max-height 0.4s ease;
@@ -144,33 +153,34 @@ export default function KiStimmung() {
           background: none;
           border: none;
           cursor: pointer;
-          padding: 0.3rem 0 0;
+          padding: 0.4rem 0 0;
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.78rem;
-          color: rgba(232,153,26,0.45);
+          font-size: 0.95rem;
+          color: rgba(232,153,26,0.72);
           transition: color 0.2s;
           display: block;
         }
-        .ki-read-more:hover { color: rgba(232,153,26,0.75); }
+        .ki-read-more:hover { color: var(--amber); }
         .ki-ask-btn {
           display: inline-flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.55rem;
           background: transparent;
-          border: 1px solid rgba(232,153,26,0.22);
+          border: 1px solid rgba(232,153,26,0.45);
           border-radius: 3px;
-          padding: 0.55rem 1.15rem;
-          color: rgba(245,232,200,0.48);
+          padding: 0.7rem 1.4rem;
+          color: rgba(245,232,200,0.88);
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.85rem;
+          font-size: 1rem;
           cursor: pointer;
-          transition: border-color 0.2s, color 0.2s;
+          transition: border-color 0.2s, color 0.2s, background 0.2s;
         }
         .ki-ask-btn:hover:not(:disabled) {
-          border-color: rgba(232,153,26,0.48);
-          color: rgba(245,232,200,0.75);
+          border-color: rgba(232,153,26,0.75);
+          background: rgba(232,153,26,0.06);
+          color: var(--warm);
         }
         .ki-ask-btn:disabled { opacity: 0.4; cursor: default; }
         .ki-spinner {
@@ -185,10 +195,10 @@ export default function KiStimmung() {
         .ki-notice {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.76rem;
-          color: rgba(245,232,200,0.25);
-          margin-top: 0.6rem;
-          line-height: 1.5;
+          font-size: 0.95rem;
+          color: rgba(245,232,200,0.70);
+          margin-top: 0.7rem;
+          line-height: 1.6;
         }
         .ki-again {
           display: inline-block;
@@ -198,28 +208,30 @@ export default function KiStimmung() {
           cursor: pointer;
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.76rem;
-          color: rgba(232,153,26,0.30);
+          font-size: 0.9rem;
+          color: rgba(232,153,26,0.60);
           transition: color 0.2s;
           padding: 0;
         }
-        .ki-again:hover { color: rgba(232,153,26,0.6); }
+        .ki-again:hover { color: rgba(232,153,26,0.90); }
         .ki-history-btn {
           background: none; border: none; cursor: pointer;
           padding: 0.8rem 0 0.2rem;
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.73rem;
-          color: rgba(245,232,200,0.18);
+          font-size: 0.88rem;
+          color: rgba(245,232,200,0.50);
           transition: color 0.2s;
           display: block;
         }
-        .ki-history-btn:hover { color: rgba(245,232,200,0.36); }
+        .ki-history-btn:hover { color: rgba(245,232,200,0.75); }
       `}</style>
 
-      <span className="ki-eyebrow">
-        Und weil wir nicht in der Vergangenheit verhaftet sind —
-      </span>
+      <span className="ki-intro-label">Kurzer Exkurs</span>
+      <p className="ki-intro-text">
+        Wir sind ja nicht nur ewig gestrig — daher kurz der Rückgriff auf zeitgemäße Tools:
+        Was sagt eigentlich die KI zu dem, was bisher von euch reinkommt?
+      </p>
 
       {!inhalt && !loading && (
         <button className="ki-ask-btn" onClick={analyse}>

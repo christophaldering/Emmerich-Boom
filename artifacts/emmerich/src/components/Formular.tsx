@@ -79,7 +79,7 @@ export default function Formular({ onSuccess }: FormularProps) {
     borderRadius: "3px",
     color: "var(--warm)",
     padding: "0.75rem 0.9rem",
-    fontSize: "0.92rem",
+    fontSize: "1rem",
     fontFamily: "'Lora', serif",
     width: "100%",
     outline: "none",
@@ -146,14 +146,38 @@ export default function Formular({ onSuccess }: FormularProps) {
         className="reveal d1"
         style={{
           fontFamily: "'Lora', serif",
-          fontSize: "0.92rem",
-          lineHeight: 1.7,
-          color: "rgba(245,232,200,0.58)",
-          marginBottom: "2.5rem",
+          fontSize: "1rem",
+          lineHeight: 1.8,
+          color: "rgba(245,232,200,0.88)",
+          marginBottom: "1.5rem",
         }}
       >
-        Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung. Hilft uns aber enorm zu wissen, wie viele wir werden. Wer sich jetzt schon angesprochen fühlt, darf das gerne sofort tun.
+        Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung — hilft uns aber enorm zu wissen, wie viele wir werden.
       </p>
+
+      <div
+        className="reveal d1"
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "0.75rem",
+          background: "rgba(232,153,26,0.05)",
+          border: "1px solid rgba(232,153,26,0.20)",
+          borderRadius: "4px",
+          padding: "0.9rem 1.1rem",
+          marginBottom: "2rem",
+          fontFamily: "'Lora', serif",
+          fontSize: "0.95rem",
+          lineHeight: 1.7,
+          color: "rgba(245,232,200,0.85)",
+        }}
+      >
+        <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "0.05rem" }}>🔒</span>
+        <span>
+          <strong style={{ color: "var(--amber)", fontWeight: 600 }}>Kein richtiger Name nötig.</strong>{" "}
+          Ein Spitzname reicht völlig — keine E-Mail, keine Adresse, nichts Persönliches.
+        </span>
+      </div>
 
       {submitted ? (
         <div className="reveal">

@@ -105,9 +105,9 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           font-family: 'Lora', serif;
           font-style: italic;
           font-size: clamp(1rem, 3vw, 1.3rem);
-          color: rgba(245,232,200,0.65);
+          color: rgba(245,232,200,0.88);
           line-height: 1.4;
-          max-width: 16ch;
+          max-width: 18ch;
           text-align: left;
         }
         .promo-count-label strong {
@@ -158,17 +158,17 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         .teilnehmer-personen {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.78rem;
-          color: rgba(245,232,200,0.32);
+          font-size: 0.9rem;
+          color: rgba(245,232,200,0.65);
           white-space: nowrap;
           flex-shrink: 0;
         }
         .teilnehmer-statement {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.88rem;
-          color: rgba(245,232,200,0.65);
-          line-height: 1.6;
+          font-size: 0.95rem;
+          color: rgba(245,232,200,0.85);
+          line-height: 1.65;
           border-left: 2px solid rgba(232,153,26,0.2);
           padding-left: 0.7rem;
           margin-top: 0.1rem;
@@ -184,16 +184,16 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
       `}</style>
 
       <div className="promo-hero">
-        <span className="promo-label">haben den Termin eingetragen</span>
+        <span className="promo-label">bereits gemeldet</span>
         <div className="promo-count-row">
           <span className="promo-count">{entries.length}</span>
           <span className="promo-count-label">
-            {entries.length === 1 ? "Person" : "Personen"} dabei
+            {entries.length === 1 ? "mit Boomer-Feeling dabei" : "mit Boomer-Feeling dabei"}
             {totalPersonen > 0 && (
               <>
-                {" "}— mindestens{" "}
-                <strong>{totalPersonen}</strong>{" "}
-                {totalPersonen === 1 ? "Mensch" : "Leute"} kommen!
+                {" "}— macht{" "}
+                <strong>mindestens {totalPersonen}</strong>{" "}
+                {totalPersonen === 1 ? "Mensch" : "Leute"} von der richtigen Sorte.
               </>
             )}
           </span>
