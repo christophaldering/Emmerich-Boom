@@ -112,14 +112,14 @@ export default function Countdown() {
           className="reveal"
           style={{
             fontFamily: "'Lora', serif",
-            fontSize: "0.85rem",
-            lineHeight: 1.7,
-            color: "rgba(245,232,200,0.38)",
+            fontSize: "1rem",
+            lineHeight: 1.8,
+            color: "rgba(245,232,200,0.82)",
             marginTop: "1rem",
           }}
         >
           Bis Ende April schauen wir, wie viele wir werden — dann entscheidet sich, was daraus wird.
-          Die Party selbst steigt am <span style={{ color: "rgba(245,232,200,0.6)" }}>18. Juli 2026</span>.
+          Die Party selbst steigt am <span style={{ color: "var(--warm)" }}>18. Juli 2026</span>.
           Wer sich jetzt schon angesprochen fühlt: nicht warten — einfach sofort ein Lebenszeichen hinterlassen.
         </p>
       )}

@@ -5,8 +5,8 @@
   --amber:  #e8991a;
   --amber2: #c97d10;
   --warm:   #f5e8c8;
-  --dim:    rgba(245,232,200,0.72);
-  --dimmer: rgba(245,232,200,0.55);
+  --dim:    rgba(245,232,200,0.85);
+  --dimmer: rgba(245,232,200,0.72);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -19,20 +19,20 @@ export default function Fakten() {
         .fakten-key {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.82rem;
-          color: rgba(245,232,200,0.55);
+          font-size: 1rem;
+          color: rgba(245,232,200,0.78);
         }
         .fakten-val {
           font-family: 'Playfair Display', serif;
           font-weight: 700;
-          font-size: 1rem;
+          font-size: 1.05rem;
           color: var(--warm);
         }
         .fakten-val small {
           font-family: 'Lora', serif;
           font-style: italic;
-          font-size: 0.85rem;
-          color: rgba(245,232,200,0.65);
+          font-size: 0.95rem;
+          color: rgba(245,232,200,0.80);
           margin-left: 0.5rem;
         }
       `}</style>

@@ -15,9 +15,9 @@ export default function PressNote() {
           border: "1px solid rgba(245,232,200,0.14)",
           borderRadius: "4px",
           padding: "1.4rem 1.6rem",
-          fontSize: "0.88rem",
-          lineHeight: 1.8,
-          color: "rgba(245,232,200,0.65)",
+          fontSize: "1rem",
+          lineHeight: 1.85,
+          color: "rgba(245,232,200,0.82)",
           fontStyle: "italic",
         }}
       >
