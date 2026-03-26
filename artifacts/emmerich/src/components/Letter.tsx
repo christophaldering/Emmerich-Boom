@@ -1,0 +1,133 @@
+import { useReveal } from "@/hooks/useReveal";
+
+export default function Letter() {
+  const ref = useReveal();
+
+  return (
+    <section
+      ref={ref}
+      style={{ maxWidth: "640px", margin: "0 auto", padding: "6rem 2rem 5rem" }}
+    >
+      <p
+        className="reveal d1"
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          fontStyle: "italic",
+          fontSize: "clamp(1.05rem,2.5vw,1.25rem)",
+          color: "var(--amber)",
+          marginBottom: "1.5rem",
+        }}
+      >
+        Emmerich, Frühjahr 2026
+      </p>
+
+      <h1
+        className="reveal d2"
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          fontWeight: 800,
+          fontSize: "clamp(3.2rem,10vw,6.5rem)",
+          lineHeight: 0.92,
+          marginBottom: "1.5rem",
+        }}
+      >
+        <span style={{ color: "var(--warm)" }}>Emmerich</span>
+        <br />
+        <em style={{ color: "var(--amber)", fontStyle: "italic" }}>boomt.</em>
+      </h1>
+
+      <p
+        className="reveal d3"
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          fontWeight: 700,
+          fontSize: "clamp(1.05rem,3vw,1.35rem)",
+          color: "var(--amber)",
+          letterSpacing: "0.04em",
+          padding: "0.7rem 0",
+          borderTop: "1px solid rgba(232,153,26,0.25)",
+          borderBottom: "1px solid rgba(232,153,26,0.25)",
+          marginBottom: "3rem",
+        }}
+      >
+        18. Juli 2026 · Bölt / Kapaunenberg · Emmerich am Rhein
+      </p>
+
+      <div className="reveal" style={{ animationDelay: "0.55s" }}>
+        <style>{`
+          .letter-body p {
+            font-size: clamp(1rem,2.2vw,1.12rem);
+            line-height: 1.9;
+            color: rgba(245,232,200,0.78);
+            margin-bottom: 1.2em;
+          }
+          .letter-body strong {
+            color: var(--warm);
+            font-weight: 600;
+          }
+          .letter-body em {
+            color: var(--amber);
+            font-style: italic;
+          }
+          .bullet-list {
+            list-style: none;
+            margin: 1.4em 0;
+            padding: 1.4rem 1.6rem;
+            background: rgba(245,232,200,0.03);
+            border-left: 2px solid rgba(232,153,26,0.3);
+            border-radius: 0 4px 4px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+          }
+          .bullet-list li {
+            font-size: clamp(0.92rem,2vw,1rem);
+            line-height: 1.75;
+            color: rgba(245,232,200,0.72);
+            padding-left: 1.2rem;
+            position: relative;
+          }
+          .bullet-list li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: var(--amber);
+          }
+          .closed-note {
+            margin: 1.4rem 0;
+            padding: 1.2rem 1.5rem;
+            background: rgba(232,153,26,0.06);
+            border: 1px solid rgba(232,153,26,0.22);
+            border-radius: 4px;
+            font-size: clamp(0.88rem,2vw,0.96rem);
+            line-height: 1.75;
+            color: rgba(245,232,200,0.72);
+          }
+        `}</style>
+        <div className="letter-body">
+          <p>Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉</p>
+          <p>Also. Es gibt eine Party. Am <strong>18. Juli 2026</strong>. Auf dem Bölt. Ihr wisst schon — Kapaunenberg, Emmerich. Und die wird gut.</p>
+
+          <ul className="bullet-list">
+            <li>Abrocken — zu Musik, bei der man den Text noch kann</li>
+            <li>70er, 80er — laut, tanzbar, kein Wenn und Aber</li>
+            <li>Alte Freunde treffen — manche vielleicht nach Jahren</li>
+            <li>Gespräche an der Theke, die irgendwie immer die besten sind</li>
+            <li>Nostalgie — aber die gute Art, die einem warm ums Herz wird</li>
+            <li>Fingerfood, Getränke — kein Dresscode, kein Gedöns</li>
+          </ul>
+
+          <p>Der Bölt kann das — ob wir 30 werden oder 150. Da ist Platz.</p>
+
+          <div className="closed-note">
+            Kleiner Hinweis: das wird eine <em>geschlossene Gesellschaft</em>. Kein offenes Stadtfest — ein Abend unter Leuten, die dazugehören. Das hält es gemütlich und die Organisation schlank.
+          </div>
+
+          <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
+
+          <p>Und jetzt das Wichtigste: <strong>Wir wollen erstmal wissen, wer dabei ist.</strong> Keine Verpflichtung, kein Eintritt — einfach kurz melden bis <strong>Ende April</strong>. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — inkl. der angekündigten <em>10 Euronen.</em></p>
+        </div>
+      </div>
+    </section>
+  );
+}

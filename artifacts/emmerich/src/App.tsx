@@ -1,3 +1,5 @@
+import BoomerPartyPage from "@/pages/BoomerPartyPage";
+
 export default function App() {
-  return null;
+  return <BoomerPartyPage />;
 }

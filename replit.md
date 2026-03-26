@@ -20,15 +20,25 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ### `artifacts/emmerich` (`@workspace/emmerich`)
 
-React+Vite one-page website for the event "EMMERICH BOOMT!".
-- Frontend-only (no backend needed)
-- 12 sections: Header, Hero, Ueber, DasEvent, WasErwartet, Playlist, Galerie, Countdown, FAQ, Sponsoren, Anmeldung, Footer
-- Fonts: Playfair Display (headlines) + Inter (body) via Google Fonts in index.html
-- Design: dark anthracite + warm gold/amber palette, retro-party with class
-- Real countdown targeting 18.07.2026
-- FAQ accordion with useState
-- Registration form with frontend-only success feedback
-- Scroll reveal animations via IntersectionObserver (useReveal hook)
+React+Vite one-page website for the event "EMMERICH BOOMT!" (BoomerParty, 18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein).
+Built strictly to the ABSOLUTER HARDPROMPT spec.
+
+**Design**: Black (#0A0704) + Amber (#E8991A) + Warm (#F5E8C8). NO lila/magenta/blue.
+**Fonts**: Playfair Display (headlines) + Lora (body), loaded via `<link>` in index.html. No Inter.
+**Tailwind**: Layout utilities only — no Tailwind color classes.
+
+**Components (in order)**:
+1. `Poster` — fullscreen KI poster image (100svh, object-fit cover, fade gradient bottom)
+2. `Letter` — editorial intro letter with exact spec text
+3. `Fakten` — facts grid (date, location, entry, access)
+4. `Countdown` — live countdown to 2026-07-18T19:00:00
+5. `Formular` — 4-field form (name, personen, statement, song); POSTs to `/api/interesse`; success: "Klasse. Daumen hoch angekommen."
+6. `PressNote` — press note box
+7. `Legal` — 3 accordions: Impressum (Christoph Aldering), Datenschutz, Kontakt
+8. `SiteFooter`
+
+**Backend**: `POST /api/interesse` in `api-server`; inserts to `interessenten` table (Drizzle + PostgreSQL).
+**DB table**: `interessenten` — id, name, personen, statement, song, created_at
 
 ## Structure
 
