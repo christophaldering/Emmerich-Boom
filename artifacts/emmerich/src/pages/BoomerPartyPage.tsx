@@ -29,6 +29,7 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
+      <BoomerClub />
       <PressNote />
       <Legal />
       <SiteFooter />
