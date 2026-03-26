@@ -126,7 +126,7 @@ export default function Formular({ onSuccess }: FormularProps) {
           marginBottom: "2.5rem",
         }}
       >
-        Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung. Hilft uns aber enorm zu wissen, wie viele wir werden. Und wer sich jetzt schon sicher ist — warum warten?
+        Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung. Hilft uns aber enorm zu wissen, wie viele wir werden. Wer sich jetzt schon angesprochen fühlt, darf das gerne sofort tun.
       </p>
 
       {submitted ? (
