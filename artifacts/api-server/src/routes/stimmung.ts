@@ -15,9 +15,9 @@ function getIp(req: Parameters<Parameters<ReturnType<typeof Router>["get"]>[1]>[
   return req.ip ?? "unknown";
 }
 
-function buildPrompt(statements: string[], names: string[], songs: string[]): string {
+function buildPrompt(statements: string[], songs: string[]): string {
   const stmtList = statements.length > 0
-    ? statements.map((s, i) => `- ${names[i] ?? "Jemand"}: "${s}"`).join("\n")
+    ? statements.map((s) => `- "${s}"`).join("\n")
     : "(keine Statements)";
 
   const songList = songs.length > 0
@@ -28,13 +28,13 @@ function buildPrompt(statements: string[], names: string[], songs: string[]): st
 
 BoomerParty, 18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein. Gäste 50–70 Jahre, kennen sich, freuen sich auf 70er/80er-Mucke.
 
-Statements:
+Was die Gruppe bisher geschrieben hat:
 ${stmtList}
 
-Wunschsongs:
+Musikwünsche der Gruppe:
 ${songList}
 
-Schreib eine Abend-Prognose: 2–3 Sätze, nicht mehr. Witzig, trocken, herzlich — so dass jemand, der noch zögert, sofort dabei sein will. Kein Titel, kein Intro, kein Bullet-Format. Direkt rein, direkt raus. Jede Prognose darf sich von vorherigen etwas unterscheiden.`;
+Schreib eine Abend-Prognose über die GRUPPE als Ganzes — 2–3 Sätze, nicht mehr. Geh nicht auf Einzelpersonen ein, kommentiere keine individuellen Aussagen. Analysiere die kollektive Stimmung und was das über den Abend verrät. Witzig, trocken, herzlich. Kein Titel, kein Intro, kein Bullet-Format. Direkt rein, direkt raus. Jede Prognose darf sich von vorherigen etwas unterscheiden.`;
 }
 
 router.get("/stimmung", async (req, res) => {
@@ -93,13 +93,12 @@ router.get("/stimmung", async (req, res) => {
     }
 
     const statements = alleEintraege.filter((e) => e.statement).map((e) => e.statement as string);
-    const names = alleEintraege.filter((e) => e.statement).map((e) => e.name);
     const songs = alleEintraege.filter((e) => e.song).map((e) => e.song as string);
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 8192,
-      messages: [{ role: "user", content: buildPrompt(statements, names, songs) }],
+      messages: [{ role: "user", content: buildPrompt(statements, songs) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";
