@@ -18,9 +18,35 @@ function AlreadySubmitted() {
       >
         Klasse. Daumen hoch angekommen.
       </h3>
-      <p style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", color: "rgba(245,232,200,0.58)", lineHeight: 1.7 }}>
+      <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.75)", lineHeight: 1.7, marginBottom: "2rem" }}>
         Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
       </p>
+      <div
+        style={{
+          borderTop: "1px solid rgba(232,153,26,0.2)",
+          paddingTop: "2rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.15rem",
+        }}
+      >
+        {["Von uns.", "Für uns.", "Wird Zeit."].map((line, i) => (
+          <span
+            key={i}
+            style={{
+              display: "block",
+              fontFamily: "'Playfair Display', serif",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: "clamp(1.4rem, 4.5vw, 2rem)",
+              color: i === 1 ? "var(--amber)" : "var(--warm)",
+              lineHeight: 1.4,
+            }}
+          >
+            {line}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
