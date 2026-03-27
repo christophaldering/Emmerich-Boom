@@ -109,7 +109,7 @@ export default function Formular({ onSuccess }: FormularProps) {
         <form className="reveal d2" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
           <div style={{ background: "var(--amber-08)", border: "1px solid var(--amber-30)", borderRadius: "4px", padding: "1rem 1.3rem", fontSize: "0.9rem", lineHeight: 1.75, color: "var(--fg-80)" }}>
             <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Melden bis Ende April.</strong>{" "}
-            Dann wissen wir, wie viele wir werden — und es geht in die konkrete Planung. Die verbindliche Anmeldung folgt im Mai.
+            Dann wissen wir, wie viele wir werden — und es geht in die konkrete Planung.
           </div>
 
           <div>
