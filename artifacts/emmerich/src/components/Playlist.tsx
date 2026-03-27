@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 
+interface PlaylistProps {
+  refreshKey?: number;
+}
+
 type Entry = {
   id: number;
   name: string;
@@ -18,7 +22,7 @@ const CURATED: { decade: string; artist: string; title: string }[] = [
   { decade: "2020er", artist: "Harry Styles", title: "As It Was" },
 ];
 
-export default function Playlist() {
+export default function Playlist({ refreshKey = 0 }: PlaylistProps) {
   const [wishes, setWishes] = useState<Entry[]>([]);
 
   const fetchWishes = () => {
@@ -35,6 +39,8 @@ export default function Playlist() {
     const interval = setInterval(fetchWishes, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => { if (refreshKey > 0) fetchWishes(); }, [refreshKey]);
 
   return (
     <section style={{ background: "var(--bg-page)", padding: "4rem 1.5rem 5rem" }}>
@@ -59,8 +65,8 @@ export default function Playlist() {
         .pl-wishes { display: flex; flex-direction: column; gap: 0; margin-bottom: 0; }
         .pl-wish-row { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--fg-06); }
         .pl-wish-row:first-child { border-top: 1px solid var(--fg-06); }
-        .pl-wish-who { font-family: 'Lora', serif; font-style: italic; font-size: 0.82rem; color: var(--fg-55); min-width: 5rem; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 7rem; }
-        .pl-wish-song { font-family: 'Lora', serif; font-size: 0.98rem; color: var(--fg-88); line-height: 1.4; flex: 1; }
+        .pl-wish-who { font-family: 'Lora', serif; font-style: italic; font-size: 0.88rem; color: var(--fg-55); }
+        .pl-wish-song { font-family: 'Lora', serif; font-size: 0.98rem; color: var(--fg-88); line-height: 1.5; flex: 1; }
 
         .pl-cta { margin-top: 2.5rem; font-family: 'Lora', serif; font-style: italic; font-size: 0.95rem; color: var(--fg-55); line-height: 1.7; }
         .pl-cta a { color: var(--amber); text-underline-offset: 3px; }
@@ -94,8 +100,9 @@ export default function Playlist() {
               {wishes.map((e) => (
                 <div key={e.id} className="pl-wish-row">
                   <span className="pl-note">♪</span>
-                  <span className="pl-wish-song">{e.song}</span>
-                  <span className="pl-wish-who">{e.name} wünscht</span>
+                  <span className="pl-wish-song">
+                    <span className="pl-wish-who">{e.name} wünscht sich:</span>{" "}{e.song}
+                  </span>
                 </div>
               ))}
             </div>

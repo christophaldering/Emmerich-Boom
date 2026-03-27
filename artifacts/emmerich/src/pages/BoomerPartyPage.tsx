@@ -32,7 +32,7 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
-      <Playlist />
+      <Playlist refreshKey={refreshCounter} />
       <BoomerClub />
       <PressNote />
       <Legal />
