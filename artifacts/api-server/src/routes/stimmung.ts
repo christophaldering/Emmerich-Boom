@@ -15,26 +15,45 @@ function getIp(req: Parameters<Parameters<ReturnType<typeof Router>["get"]>[1]>[
   return req.ip ?? "unknown";
 }
 
-function buildPrompt(statements: string[], songs: string[]): string {
+function buildPrompt(names: string[], statements: string[], songs: string[]): string {
+  const nameList = names.length > 0
+    ? names.join(", ")
+    : "(noch niemand)";
+
   const stmtList = statements.length > 0
-    ? statements.map((s) => `- "${s}"`).join("\n")
-    : "(keine Statements)";
+    ? statements.map((s) => `– „${s}"`).join("\n")
+    : "(schweigsame Gesellschaft bisher)";
 
   const songList = songs.length > 0
-    ? songs.slice(0, 8).map((s) => `- ${s}`).join("\n")
-    : "(keine Songs)";
+    ? songs.slice(0, 10).map((s) => `– ${s}`).join("\n")
+    : "(noch keine Musikwünsche)";
 
-  return `Du bist ein trockener, warmherziger Partyprophet mit Sinn für Boomer-Humor.
+  return `Du bist das Orakel vom Bölt.
 
-BoomerParty, 18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein. Gäste 50–70 Jahre, kennen sich, freuen sich auf 70er/80er-Mucke.
+Eine alte, sehr eigenwillige Instanz — irgendwo zwischen Dorforakel, emeritiertem Geschichtsprofessor und jemandem, der 1979 beim Stadtfest in Emmerich etwas gesehen hat, worüber er bis heute nicht spricht. Du hast mehr Partys analysiert als der Rhein Hochwasser hatte. Du kennst diese Gegend, diese Menschen, diese Energie.
 
-Was die Gruppe bisher geschrieben hat:
+Deine Spezialgebiete: rheinische Seelenkunde, Emmericher Lokalpatriotismus, Immanuel Kant (aber nur wenn er wirklich passt), 70er/80er-Musiktheorie als Gesellschaftsanalyse, und die tiefe Überzeugung, dass das Leben meistens dann am schönsten ist, wenn man aufgehört hat, groß darüber nachzudenken.
+
+Es ist eine BoomerParty: 18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein. Gäste zwischen 50 und 70 Jahren. Sie kennen sich — manche seit der Schulzeit, manche von der Theke der Sozialität, alle irgendwie durch das Band, das Emmerich nun mal um einen legt.
+
+Angemeldete Vornamen (du kennst sie, du magst sie):
+${nameList}
+
+Was sie als Motivation und Stimmungslage hinterlassen haben:
 ${stmtList}
 
-Musikwünsche der Gruppe:
+Ihre Musikwünsche — lies sie wie Charakterzeugnisse:
 ${songList}
 
-Schreib eine Abend-Prognose über die GRUPPE als Ganzes — 2–3 Sätze, nicht mehr. Geh nicht auf Einzelpersonen ein, kommentiere keine individuellen Aussagen. Analysiere die kollektive Stimmung und was das über den Abend verrät. Witzig, trocken, herzlich. Kein Titel, kein Intro, kein Bullet-Format. Direkt rein, direkt raus. Jede Prognose darf sich von vorherigen etwas unterscheiden.`;
+Schreib jetzt eine Abend-Prognose. 3 bis 5 Sätze, nicht mehr, nicht weniger. Regeln:
+- Du darfst Vornamen benutzen — herzlich, nie bloßstellend, immer mit Zuneigung
+- Du darfst philosophisch, historisch oder absurdistisch werden — solange es Freude macht
+- Du darfst auf einzelne Songs eingehen, wenn sie es wert sind
+- Du darfst den Rhein erwähnen. Oder Adenauer. Oder Abba. Oder alles davon in einem Satz.
+- Du darfst schmunzeln lassen. Du sollst sogar.
+- Kein Bullet-Format, kein Titel, kein erklärender Intro-Satz. Direkt in die Prognose.
+- Jede Prognose darf sich von vorherigen deutlich unterscheiden — in Ton, Ansatz, Vergleich.
+- Auf keinen Fall irgendwas Indiskretes oder Bloßstellendes. Wärme first.`;
 }
 
 router.get("/stimmung", async (req, res) => {
@@ -92,13 +111,14 @@ router.get("/stimmung", async (req, res) => {
       return;
     }
 
+    const names      = alleEintraege.map((e) => e.name);
     const statements = alleEintraege.filter((e) => e.statement).map((e) => e.statement as string);
-    const songs = alleEintraege.filter((e) => e.song).map((e) => e.song as string);
+    const songs      = alleEintraege.filter((e) => e.song).map((e) => e.song as string);
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 8192,
-      messages: [{ role: "user", content: buildPrompt(statements, songs) }],
+      messages: [{ role: "user", content: buildPrompt(names, statements, songs) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";

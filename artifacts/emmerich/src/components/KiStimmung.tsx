@@ -227,21 +227,22 @@ export default function KiStimmung() {
         .ki-history-btn:hover { color: rgba(245,232,200,0.75); }
       `}</style>
 
-      <span className="ki-intro-label">Kurzer Exkurs</span>
+      <span className="ki-intro-label">Das Orakel vom Bölt</span>
       <p className="ki-intro-text">
-        Wir sind ja nicht nur ewig gestrig — daher kurz der Rückgriff auf zeitgemäße Tools:
-        Was sagt eigentlich die KI zu dem, was bisher von euch reinkommt?
+        Irgendwo zwischen Dorforakel und emeritiertem Geschichtsprofessor — das Orakel kennt
+        Emmerich, kennt den Rhein, und hat mehr Partys analysiert als andere Leute besucht haben.
+        Es liest eure Anmeldungen wie alte Feldpostbriefe: mit Respekt, Neugier und einem leichten Schmunzeln.
       </p>
 
       {!inhalt && !loading && (
         <button className="ki-ask-btn" onClick={analyse}>
-          ✦ KI-Prognose für den Abend
+          ✦ Orakel befragen
         </button>
       )}
 
       {loading && (
         <button className="ki-ask-btn" disabled>
-          <span className="ki-spinner" /> KI grübelt …
+          <span className="ki-spinner" /> Orakel grübelt …
         </button>
       )}
 
@@ -270,7 +271,7 @@ export default function KiStimmung() {
           {notice && <p className="ki-notice">{notice}</p>}
 
           <button className="ki-again" onClick={analyse} disabled={loading}>
-            ↺ nochmal fragen
+            ↺ Orakel erneut befragen
           </button>
 
           {historyWithoutCurrent.length > 0 && (
