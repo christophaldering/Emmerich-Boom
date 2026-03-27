@@ -88,12 +88,10 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
           100% { background: transparent; }
         }
         .pl-num { font-family: 'Lora', serif; font-size: 0.72rem; color: var(--fg-35); min-width: 1.6rem; flex-shrink: 0; text-align: right; }
-        .pl-decade { font-family: 'Lora', serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); opacity: 0.65; min-width: 3.6rem; flex-shrink: 0; line-height: 1.6; }
-        .pl-decade-wish { color: var(--amber); opacity: 0.5; font-size: 0.82rem; }
+        .pl-who { font-family: 'Lora', serif; font-size: 0.72rem; font-style: italic; color: var(--fg-45); min-width: 4.5rem; max-width: 6rem; flex-shrink: 0; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pl-note { font-size: 0.82rem; color: var(--amber); opacity: 0.5; flex-shrink: 0; }
         .pl-song-text { font-family: 'Lora', serif; font-size: 0.95rem; color: var(--fg-88); line-height: 1.5; flex: 1; }
         .pl-song-text strong { font-weight: 600; color: var(--warm); }
-        .pl-wish-by { display: inline; font-style: italic; font-size: 0.82rem; color: var(--fg-45); margin-left: 0.4rem; }
 
         .pl-download-wrap { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--fg-08); display: flex; flex-direction: column; gap: 0.55rem; align-items: flex-start; }
         .pl-download-info { font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; color: var(--fg-55); line-height: 1.6; }
@@ -141,16 +139,11 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
 
                 >
                   <span className="pl-num">{i + 1}</span>
-                  <span className="pl-decade">
-                    {t.label === "♥"
-                      ? <span className="pl-decade-wish">♥</span>
-                      : t.label}
-                  </span>
+                  <span className="pl-who">{t.wishBy ?? ""}</span>
                   <span className="pl-note">♪</span>
                   <span className="pl-song-text">
                     <strong>{t.artist}</strong>
                     {t.title && ` – ${t.title}`}
-                    {t.wishBy && <span className="pl-wish-by">— Wunsch von {t.wishBy}</span>}
                   </span>
                 </div>
               </div>

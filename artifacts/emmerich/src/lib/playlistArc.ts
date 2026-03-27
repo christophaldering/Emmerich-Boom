@@ -94,20 +94,26 @@ export function estimateEnergy(songText: string): number {
 
 export type WishEntry = { id: number; name: string; song: string | null };
 
+function parseSong(raw: string): { artist: string; title: string } {
+  const emDash = raw.indexOf(" – ");
+  if (emDash > 0) return { artist: raw.slice(0, emDash).trim(), title: raw.slice(emDash + 3).trim() };
+  const hyphen = raw.indexOf(" - ");
+  if (hyphen > 0) return { artist: raw.slice(0, hyphen).trim(), title: raw.slice(hyphen + 3).trim() };
+  return { artist: raw.trim(), title: "" };
+}
+
 export function buildSortedPlaylist(wishes: WishEntry[]): Track[] {
   const wishTracks: Track[] = wishes
     .filter((e) => e.song && e.song.trim() !== "")
     .map((e) => {
       const raw = e.song!.trim();
-      const dashIdx = raw.indexOf(" – ");
-      const artist = dashIdx > 0 ? raw.slice(0, dashIdx) : raw;
-      const title  = dashIdx > 0 ? raw.slice(dashIdx + 3) : "";
+      const { artist, title } = parseSong(raw);
       const energy = estimateEnergy(raw);
       return {
         key: `w${e.id}`,
         label: "♥",
         artist,
-        title: title || artist,
+        title,
         energy,
         wishBy: e.name,
       };
@@ -156,9 +162,8 @@ export function buildPlaylistText(tracks: Track[]): string {
       lines.push(`── ${PHASES[phaseIdx]?.name ?? ""} ${"─".repeat(35)}`);
     }
     const num = String(i + 1).padStart(2, " ");
-    const song = t.wishBy
-      ? `${t.artist} – ${t.title}  (Wunsch von ${t.wishBy})`
-      : `${t.artist} – ${t.title}`;
+    const songLabel = t.title ? `${t.artist} – ${t.title}` : t.artist;
+    const song = t.wishBy ? `${songLabel}  (Wunsch von ${t.wishBy})` : songLabel;
     lines.push(`${num}.  ${song}`);
   });
 
