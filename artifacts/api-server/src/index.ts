@@ -1,5 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import cron from "node-cron";
+import { buildAndSendDailyReport } from "./services/dailyReport.js";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +24,17 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  cron.schedule(
+    "0 8 * * *",
+    () => {
+      logger.info("[Cron] Starte täglichen Bericht ...");
+      buildAndSendDailyReport().catch(e =>
+        logger.error({ err: e }, "[Cron] Tagesbericht fehlgeschlagen"),
+      );
+    },
+    { timezone: "Europe/Berlin" },
+  );
+
+  logger.info("[Cron] Tagesbericht täglich 08:00 Uhr (Europe/Berlin) geplant");
 });
