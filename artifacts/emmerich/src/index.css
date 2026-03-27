@@ -64,8 +64,8 @@
 
 /* ─── Light theme ─── */
 [data-theme="light"] {
-  --bg-page:    #f5ead0;
-  --bg-section: rgba(230,213,175,0.55);
+  --bg-page:    #f8e8a0;
+  --bg-section: rgba(218,160,45,0.18);
 
   --warm:   #1a0e04;
   --dim:    rgba(26,14,4,0.85);
