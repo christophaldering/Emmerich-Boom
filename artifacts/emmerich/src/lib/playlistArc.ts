@@ -84,6 +84,10 @@ const ARTIST_ENERGY: [string, number][] = [
   ["bohemian rhapsody",95],["don't stop me now",85],["we will rock you",80],
 ];
 
+export function formatTrackLabel(t: Pick<Track, "artist" | "title">): string {
+  return t.title ? `${t.artist} – ${t.title}` : t.artist;
+}
+
 export function estimateEnergy(songText: string): number {
   const lower = songText.toLowerCase();
   for (const [keyword, energy] of ARTIST_ENERGY) {
@@ -162,7 +166,7 @@ export function buildPlaylistText(tracks: Track[]): string {
       lines.push(`── ${PHASES[phaseIdx]?.name ?? ""} ${"─".repeat(35)}`);
     }
     const num = String(i + 1).padStart(2, " ");
-    const songLabel = t.title ? `${t.artist} – ${t.title}` : t.artist;
+    const songLabel = formatTrackLabel(t);
     const song = t.wishBy ? `${songLabel}  (Wunsch von ${t.wishBy})` : songLabel;
     lines.push(`${num}.  ${song}`);
   });

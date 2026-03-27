@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { buildSortedPlaylist, getRevealInfo, WishEntry, RevealInfo } from "@/lib/playlistArc";
+import { buildSortedPlaylist, getRevealInfo, formatTrackLabel, WishEntry, RevealInfo } from "@/lib/playlistArc";
 
 interface RevealCardProps {
   reveal: RevealInfo;
@@ -59,7 +59,7 @@ function RevealCard({ reveal, submittedSong, onScrollToPlaylist }: RevealCardPro
               {reveal.prev && (
                 <div style={{ fontFamily: "'Lora', serif", fontSize: "0.83rem", color: "var(--fg-55)", lineHeight: 1.5 }}>
                   <span style={{ color: "var(--fg-35)", fontSize: "0.75rem", display: "block", marginBottom: "0.1rem" }}>Kurz davor</span>
-                  <span style={{ color: "var(--fg-75)" }}>{reveal.prev.artist} – {reveal.prev.title}</span>
+                  <span style={{ color: "var(--fg-75)" }}>{formatTrackLabel(reveal.prev)}</span>
                 </div>
               )}
               <div style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "var(--amber)", fontWeight: 600, lineHeight: 1.5, padding: "0.25rem 0.6rem", background: "var(--amber-10)", borderRadius: "3px", borderLeft: "2px solid var(--amber)" }}>
@@ -68,7 +68,7 @@ function RevealCard({ reveal, submittedSong, onScrollToPlaylist }: RevealCardPro
               {reveal.next && (
                 <div style={{ fontFamily: "'Lora', serif", fontSize: "0.83rem", color: "var(--fg-55)", lineHeight: 1.5 }}>
                   <span style={{ color: "var(--fg-35)", fontSize: "0.75rem", display: "block", marginBottom: "0.1rem" }}>Kurz danach</span>
-                  <span style={{ color: "var(--fg-75)" }}>{reveal.next.artist} – {reveal.next.title}</span>
+                  <span style={{ color: "var(--fg-75)" }}>{formatTrackLabel(reveal.next)}</span>
                 </div>
               )}
             </div>
