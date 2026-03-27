@@ -92,7 +92,7 @@ export default function Formular({ onSuccess }: FormularProps) {
       </h2>
 
       <p className="reveal d1" style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-88)", marginBottom: "1.5rem" }}>
-        Einfach kurz melden — damit wir wissen, wie viele wir werden. Die verbindliche Anmeldung kommt im Mai.
+        Einfach kurz sagen: ich werde dabei sein. Das hilft uns enorm zu wissen, wie viele wir werden.
       </p>
 
       <div className="reveal d1" style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
