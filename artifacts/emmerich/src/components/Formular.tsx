@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useReveal } from "@/hooks/useReveal";
 
 const STORAGE_KEY = "emmerich_boomt_submitted";
 
@@ -29,7 +28,6 @@ interface FormularProps {
 }
 
 export default function Formular({ onSuccess }: FormularProps) {
-  const ref = useReveal();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,7 +77,7 @@ export default function Formular({ onSuccess }: FormularProps) {
   };
 
   return (
-    <section id="anmeldung" ref={ref} style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 5rem" }}>
+    <section id="anmeldung" style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 5rem" }}>
       <style>{`
         .formular-input::placeholder { color: var(--fg-45); }
         .formular-input:focus { border-color: var(--amber-55) !important; }
@@ -87,15 +85,15 @@ export default function Formular({ onSuccess }: FormularProps) {
         .submit-btn:disabled { opacity: 0.5; cursor: default; }
       `}</style>
 
-      <h2 className="reveal" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.2rem)", marginBottom: "1rem" }}>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.2rem)", marginBottom: "1rem" }}>
         Kurz melden.
       </h2>
 
-      <p className="reveal d1" style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-88)", marginBottom: "1.5rem" }}>
+      <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-88)", marginBottom: "1.5rem" }}>
         Einfach kurz sagen: ich werde dabei sein. Das hilft uns enorm zu wissen, wie viele wir werden.
       </p>
 
-      <div className="reveal d1" style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
         <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "0.05rem" }}>🔒</span>
         <span>
           <strong style={{ color: "var(--amber)", fontWeight: 600 }}>Kein richtiger Name nötig.</strong>{" "}
@@ -106,7 +104,7 @@ export default function Formular({ onSuccess }: FormularProps) {
       {submitted ? (
         <AlreadySubmitted />
       ) : (
-        <form className="reveal d2" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
           <div style={{ background: "var(--amber-08)", border: "1px solid var(--amber-30)", borderRadius: "4px", padding: "1rem 1.3rem", fontSize: "0.9rem", lineHeight: 1.75, color: "var(--fg-80)" }}>
             <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Abgabe bis Ende April.</strong>{" "}
             Danach wissen wir, wie viele wir werden — und wie der Abend stattfindet.
