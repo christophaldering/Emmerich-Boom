@@ -113,7 +113,7 @@ export default function Letter() {
             <li>70er, 80er — laut, tanzbar, kein Wenn und Aber</li>
             <li>Alte Freunde treffen — manche vielleicht nach Jahren</li>
             <li>Gespräche an der Theke, die irgendwie immer die besten sind</li>
-            <li>Nostalgie — aber die gute Art, die einem warm ums Herz wird</li>
+            <li>Nostalgie — aber die gute Art, bei der einem warm ums Herz wird</li>
             <li>Fingerfood, Getränke — kein Dresscode, kein Gedöns</li>
           </ul>
 
