@@ -29,12 +29,28 @@ router.post("/beacon", async (req, res) => {
     const ref = (referrer ?? "").slice(0, 512);
 
     if (action === "init") {
+      const {
+        entryPath, lang, timezone,
+        screenWidth, screenHeight, viewportWidth, viewportHeight,
+        utmSource, utmMedium, utmCampaign,
+      } = req.body;
+
       await db.insert(pageViews).values({
         sessionId,
         visitorId: visitorId ?? null,
         ip,
         userAgent,
         referrer: ref || null,
+        entryPath: (entryPath ?? "").slice(0, 512) || null,
+        lang: (lang ?? "").slice(0, 16) || null,
+        timezone: (timezone ?? "").slice(0, 64) || null,
+        screenWidth:    screenWidth    ? Number(screenWidth)    : null,
+        screenHeight:   screenHeight   ? Number(screenHeight)   : null,
+        viewportWidth:  viewportWidth  ? Number(viewportWidth)  : null,
+        viewportHeight: viewportHeight ? Number(viewportHeight) : null,
+        utmSource:   (utmSource   ?? "").slice(0, 256) || null,
+        utmMedium:   (utmMedium   ?? "").slice(0, 128) || null,
+        utmCampaign: (utmCampaign ?? "").slice(0, 128) || null,
         pingCount: 1,
       });
     } else if (action === "ping") {
@@ -110,29 +126,54 @@ router.get("/admin-stats", async (req, res) => {
       return Object.values(visitorDays).filter(days => days.size > 1).length;
     })();
 
-    const recent = all.slice(0, 50).map(r => ({
-      id: r.id,
-      when: r.createdAt,
-      lastSeen: r.lastSeenAt,
-      duration: (r.pingCount ?? 1) * 30,
-      device: parseDevice(r.userAgent ?? ""),
-      referrer: r.referrer ? (() => { try { return new URL(r.referrer).hostname; } catch { return r.referrer; } })() : "Direkt",
-      visitorId: (r.visitorId ?? "").slice(0, 8),
+    const byField = (rows: typeof all, fn: (r: typeof all[0]) => string | null) => {
+      const map: Record<string, number> = {};
+      for (const r of rows) {
+        const key = fn(r) ?? "(unbekannt)";
+        map[key] = (map[key] ?? 0) + 1;
+      }
+      return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    };
+
+    const hostOf = (url: string | null) => {
+      if (!url) return "Direkt";
+      try { return new URL(url).hostname || "Direkt"; } catch { return url; }
+    };
+
+    const recent = all.slice(0, 100).map(r => ({
+      id:          r.id,
+      when:        r.createdAt,
+      lastSeen:    r.lastSeenAt,
+      duration:    (r.pingCount ?? 1) * 30,
+      device:      parseDevice(r.userAgent ?? ""),
+      referrer:    hostOf(r.referrer),
+      visitorId:   (r.visitorId ?? "").slice(0, 8),
+      lang:        r.lang ?? null,
+      timezone:    r.timezone ?? null,
+      screen:      r.screenWidth && r.screenHeight ? `${r.screenWidth}×${r.screenHeight}` : null,
+      viewport:    r.viewportWidth && r.viewportHeight ? `${r.viewportWidth}×${r.viewportHeight}` : null,
+      utmSource:   r.utmSource   ?? null,
+      utmMedium:   r.utmMedium   ?? null,
+      utmCampaign: r.utmCampaign ?? null,
+      entryPath:   r.entryPath   ?? null,
     }));
 
     res.json({
       summary: {
-        totalSessions: all.length,
-        todaySessions: today.length,
-        weekSessions: week.length,
-        uniqueVisitors: uniqueVisitors(all),
+        totalSessions:       all.length,
+        todaySessions:       today.length,
+        weekSessions:        week.length,
+        uniqueVisitors:      uniqueVisitors(all),
         returnVisitors,
-        avgDurationSec: avgDuration(all),
+        avgDurationSec:      avgDuration(all),
         todayAvgDurationSec: avgDuration(today),
       },
-      referrers: byReferrer(all),
-      devices: byDevice(all),
+      referrers:      byReferrer(all),
+      devices:        byDevice(all),
       todayReferrers: byReferrer(today),
+      utmSources:     byField(all.filter(r => r.utmSource), r => r.utmSource),
+      languages:      byField(all, r => r.lang),
+      screens:        byField(all.filter(r => r.screenWidth), r => r.screenWidth && r.screenHeight ? `${r.screenWidth}×${r.screenHeight}` : null),
       recent,
     });
   } catch (err) {

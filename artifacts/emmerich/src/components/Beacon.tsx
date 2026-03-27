@@ -11,6 +11,10 @@ function getId(key: string, store: Storage): string {
   return id;
 }
 
+function getUtm(param: string): string | null {
+  return new URLSearchParams(window.location.search).get(param) || null;
+}
+
 export default function Beacon() {
   const sent = useRef(false);
 
@@ -20,13 +24,28 @@ export default function Beacon() {
 
     const sessionId = getId("emmerich_session", sessionStorage);
     const visitorId = getId("emmerich_visitor", localStorage);
-    const referrer = document.referrer || "";
+
+    const payload = {
+      sessionId,
+      visitorId,
+      referrer:      document.referrer || null,
+      entryPath:     window.location.pathname + window.location.search,
+      lang:          navigator.language || null,
+      timezone:      Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+      screenWidth:   screen.width   || null,
+      screenHeight:  screen.height  || null,
+      viewportWidth:  window.innerWidth  || null,
+      viewportHeight: window.innerHeight || null,
+      utmSource:   getUtm("utm_source"),
+      utmMedium:   getUtm("utm_medium"),
+      utmCampaign: getUtm("utm_campaign"),
+    };
 
     const post = (action: string) =>
       fetch(`${BASE}/api/beacon`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, visitorId, referrer, action }),
+        body: JSON.stringify({ ...payload, action }),
         keepalive: true,
       }).catch(() => {});
 
