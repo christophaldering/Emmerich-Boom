@@ -7,6 +7,7 @@ import Countdown from "@/components/Countdown";
 import Formular from "@/components/Formular";
 import Teilnehmer from "@/components/Teilnehmer";
 import KiStimmung from "@/components/KiStimmung";
+import Playlist from "@/components/Playlist";
 import BoomerClub from "@/components/BoomerClub";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
@@ -31,6 +32,7 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
+      <Playlist />
       <BoomerClub />
       <PressNote />
       <Legal />
