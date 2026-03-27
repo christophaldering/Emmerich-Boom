@@ -20,3 +20,4 @@
 export * from "./interessenten";
 export * from "./ki_cache";
 export * from "./ki_requests";
+export * from "./page_views";
