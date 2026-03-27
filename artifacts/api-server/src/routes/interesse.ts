@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@workspace/db";
 import { interessenten } from "@workspace/db";
 import { desc, sql } from "drizzle-orm";
+import { generateKaiComment } from "./stimmung";
 
 const router = Router();
 
@@ -36,6 +37,8 @@ router.post("/interesse", async (req, res) => {
 
   const inserted = await db.insert(interessenten).values(parsed.data).returning({ id: interessenten.id });
   res.json({ success: true, id: inserted[0]?.id ?? null });
+
+  generateKaiComment().catch(() => {});
 });
 
 router.get("/interesse", async (_req, res) => {

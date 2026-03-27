@@ -6,7 +6,7 @@ import Fakten from "@/components/Fakten";
 import Countdown from "@/components/Countdown";
 import Formular from "@/components/Formular";
 import Teilnehmer from "@/components/Teilnehmer";
-import KiStimmung from "@/components/KiStimmung";
+import KaI from "@/components/KaI";
 import Playlist from "@/components/Playlist";
 import BoomerClub from "@/components/BoomerClub";
 import PressNote from "@/components/PressNote";
@@ -30,7 +30,7 @@ export default function BoomerPartyPage() {
       <Letter />
       <Motto />
       <Teilnehmer refreshKey={refreshCounter} />
-      <KiStimmung />
+      <KaI refreshSignal={refreshCounter} />
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />

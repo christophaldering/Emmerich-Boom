@@ -2,6 +2,23 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import cron from "node-cron";
 import { buildAndSendDailyReport } from "./services/dailyReport.js";
+import { db } from "@workspace/db";
+import { kiRequests } from "@workspace/db";
+import { count } from "drizzle-orm";
+
+async function seedKaiIfEmpty() {
+  try {
+    const [{ value }] = await db.select({ value: count() }).from(kiRequests);
+    if (value > 0) return;
+    await db.insert(kiRequests).values({
+      ip: "seed",
+      inhalt: `Ich habe bisher zwei Anmeldungen gelesen. Aldi kommt allein und hat das Programm bereits: alte Bekannte, neue Bekannte, geile Mucke, abrocken. Phil Collins \u2014 In the Air Tonight. KaI registriert: wer diesen Song w\u00e4hlt, wei\u00df genau, auf welchen Moment er wartet. Lucia hat es k\u00fcrzer gehalten: \u201eBin dabei\u201c und Gloria Gaynor \u2014 I Will Survive. KaI braucht keine weiteren Informationen.`,
+    });
+    logger.info("[KaI] Seed-Kommentar eingefügt");
+  } catch (err) {
+    logger.error({ err }, "[KaI] Seed fehlgeschlagen");
+  }
+}
 
 const rawPort = process.env["PORT"];
 
@@ -24,6 +41,8 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  seedKaiIfEmpty();
 
   cron.schedule(
     "0 8 * * *",

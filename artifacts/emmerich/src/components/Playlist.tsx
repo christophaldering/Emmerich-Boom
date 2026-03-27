@@ -73,10 +73,11 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
         .pl-count { font-family: 'Lora', serif; font-style: italic; font-size: 0.88rem; color: var(--fg-55); margin-bottom: 1.5rem; }
         .pl-count strong { color: var(--amber); font-style: normal; font-weight: 600; }
 
-        .pl-phase-divider { display: flex; align-items: center; gap: 0.8rem; margin: 1.6rem 0 0.4rem; }
+        .pl-phase-divider { display: flex; align-items: center; gap: 0.8rem; margin: 1.6rem 0 0; }
         .pl-phase-line { flex: 1; height: 1px; background: var(--fg-08); }
         .pl-phase-name { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); opacity: 0.6; white-space: nowrap; }
         .pl-phase-icon { font-size: 0.75rem; opacity: 0.4; }
+        .pl-phase-kai { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; color: var(--fg-35); margin: 0.18rem 0 0.4rem; text-align: center; }
 
         .pl-list { display: flex; flex-direction: column; }
         .pl-row { display: flex; align-items: baseline; gap: 0.9rem; padding: 0.6rem 0; border-bottom: 1px solid var(--fg-06); transition: background 0.3s; border-radius: 2px; }
@@ -128,11 +129,14 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
             return (
               <div key={t.key}>
                 {showDivider && (
-                  <div className="pl-phase-divider">
-                    <div className="pl-phase-line" />
-                    <span className="pl-phase-name">{phase?.name}</span>
-                    <div className="pl-phase-line" />
-                  </div>
+                  <>
+                    <div className="pl-phase-divider">
+                      <div className="pl-phase-line" />
+                      <span className="pl-phase-name">{phase?.name}</span>
+                      <div className="pl-phase-line" />
+                    </div>
+                    {phase?.kai && <p className="pl-phase-kai">{phase.kai}</p>}
+                  </>
                 )}
                 <div
                   className={`pl-row${isHighlight ? " pl-row--highlight" : ""}`}

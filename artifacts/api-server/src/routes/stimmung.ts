@@ -1,21 +1,14 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { interessenten, kiRequests } from "@workspace/db";
-import { desc, gte, and, eq, count } from "drizzle-orm";
+import { desc, gte, count } from "drizzle-orm";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router = Router();
 
-const RATE_LIMIT_MINUTES = 10;
 const DAILY_LIMIT = parseInt(process.env.KI_DAILY_LIMIT ?? "30");
 
-function getIp(req: Parameters<Parameters<ReturnType<typeof Router>["get"]>[1]>[0]): string {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string") return forwarded.split(",")[0].trim();
-  return req.ip ?? "unknown";
-}
-
-function buildPrompt(names: string[], statements: string[], songs: string[]): string {
+function buildKaiPrompt(names: string[], statements: string[], songs: string[]): string {
   const nameList = names.length > 0
     ? names.join(", ")
     : "(noch niemand)";
@@ -28,38 +21,32 @@ function buildPrompt(names: string[], statements: string[], songs: string[]): st
     ? songs.slice(0, 10).map((s) => `– ${s}`).join("\n")
     : "(noch keine Musikwünsche)";
 
-  return `Du bist das Orakel vom Bölt.
+  return `Du bist KaI — das KI-System des Entwicklerteams hinter emmerich-boomt.de.
 
-Eine alte, sehr eigenwillige Instanz — irgendwo zwischen Dorforakel, emeritiertem Geschichtsprofessor und jemandem, der 1979 beim Stadtfest in Emmerich etwas gesehen hat, worüber er bis heute nicht spricht. Du hast mehr Partys analysiert als der Rhein Hochwasser hatte. Du kennst diese Gegend, diese Menschen, diese Energie.
+Du liest die Anmeldungen für die BoomerParty (18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein) und kommentierst sie. Gäste zwischen 50 und 70 Jahren, die sich aus Emmerich und Umgebung kennen.
 
-Deine Spezialgebiete: rheinische Seelenkunde, Emmericher Lokalpatriotismus, Immanuel Kant (aber nur wenn er wirklich passt), 70er/80er-Musiktheorie als Gesellschaftsanalyse, und die tiefe Überzeugung, dass das Leben meistens dann am schönsten ist, wenn man aufgehört hat, groß darüber nachzudenken.
+Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und hast gelegentlich eine trocken-witzige Einschätzung bereit. Du darfst Vornamen, Statements und Songwünsche erwähnen. Kein mystischer Ton. Kein Bullet-Format. Direkt in den Kommentar. 3–4 Sätze.
 
-Es ist eine BoomerParty: 18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein. Gäste zwischen 50 und 70 Jahren. Sie kennen sich — manche seit der Schulzeit, manche von der Theke der Sozialität, alle irgendwie durch das Band, das Emmerich nun mal um einen legt.
-
-Angemeldete Vornamen (du kennst sie, du magst sie):
+Angemeldete Vornamen (du hast sie alle gelesen):
 ${nameList}
 
-Was sie als Motivation und Stimmungslage hinterlassen haben:
+Was sie als Motivation hinterlassen haben:
 ${stmtList}
 
-Ihre Musikwünsche — lies sie wie Charakterzeugnisse:
+Ihre Musikwünsche:
 ${songList}
 
-Schreib jetzt eine Abend-Prognose. 3 bis 5 Sätze, nicht mehr, nicht weniger. Regeln:
-- Du darfst Vornamen benutzen — herzlich, nie bloßstellend, immer mit Zuneigung
-- Du darfst philosophisch, historisch oder absurdistisch werden — solange es Freude macht
-- Du darfst auf einzelne Songs eingehen, wenn sie es wert sind
-- Du darfst den Rhein erwähnen. Oder Adenauer. Oder Abba. Oder alles davon in einem Satz.
-- Du darfst schmunzeln lassen. Du sollst sogar.
-- Kein Bullet-Format, kein Titel, kein erklärender Intro-Satz. Direkt in die Prognose.
-- Jede Prognose darf sich von vorherigen deutlich unterscheiden — in Ton, Ansatz, Vergleich.
-- Auf keinen Fall irgendwas Indiskretes oder Bloßstellendes. Wärme first.`;
+Schreib jetzt einen Kommentar. Regeln:
+- Ich-Form, genderneutral
+- Vornamen erlaubt — herzlich, nie bloßstellend
+- Darf auf einzelne Songs eingehen, wenn sie es wert sind
+- Warmherzig, leicht formell, dann doch witzig
+- Kein erklärender Intro-Satz — direkt beginnen
+- 3–4 Sätze, nicht mehr`;
 }
 
-router.get("/stimmung", async (req, res) => {
+export async function generateKaiComment(): Promise<void> {
   try {
-    const ip = getIp(req);
-
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -68,34 +55,7 @@ router.get("/stimmung", async (req, res) => {
       .from(kiRequests)
       .where(gte(kiRequests.createdAt, todayStart));
 
-    if (todayCount >= DAILY_LIMIT) {
-      res.json({
-        status: "daily_limit",
-        message: "Die KI hat ihr Tageskontingent erreicht. Morgen wieder!",
-        inhalt: null,
-      });
-      return;
-    }
-
-    const rateLimitSince = new Date(Date.now() - RATE_LIMIT_MINUTES * 60 * 1000);
-    const recentForIp = await db
-      .select()
-      .from(kiRequests)
-      .where(and(eq(kiRequests.ip, ip), gte(kiRequests.createdAt, rateLimitSince)))
-      .orderBy(desc(kiRequests.createdAt))
-      .limit(1);
-
-    if (recentForIp.length > 0) {
-      const last = recentForIp[0];
-      const msLeft = RATE_LIMIT_MINUTES * 60 * 1000 - (Date.now() - new Date(last.createdAt!).getTime());
-      const minLeft = Math.ceil(msLeft / 60000);
-      res.json({
-        status: "cached",
-        inhalt: last.inhalt,
-        retryInMinutes: minLeft,
-      });
-      return;
-    }
+    if (todayCount >= DAILY_LIMIT) return;
 
     const alleEintraege = await db
       .select({
@@ -106,10 +66,7 @@ router.get("/stimmung", async (req, res) => {
       .from(interessenten)
       .orderBy(desc(interessenten.createdAt));
 
-    if (alleEintraege.length === 0) {
-      res.json({ status: "empty", inhalt: null });
-      return;
-    }
+    if (alleEintraege.length === 0) return;
 
     const names      = alleEintraege.map((e) => e.name);
     const statements = alleEintraege.filter((e) => e.statement).map((e) => e.statement as string);
@@ -117,18 +74,35 @@ router.get("/stimmung", async (req, res) => {
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 8192,
-      messages: [{ role: "user", content: buildPrompt(names, statements, songs) }],
+      max_tokens: 512,
+      messages: [{ role: "user", content: buildKaiPrompt(names, statements, songs) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";
+    if (inhalt) {
+      await db.insert(kiRequests).values({ ip: "server-auto", inhalt });
+    }
+  } catch (err) {
+    console.error("KaI auto-generate error:", err);
+  }
+}
 
-    await db.insert(kiRequests).values({ ip, inhalt });
+router.get("/stimmung", async (_req, res) => {
+  try {
+    const latest = await db
+      .select({ inhalt: kiRequests.inhalt, createdAt: kiRequests.createdAt })
+      .from(kiRequests)
+      .orderBy(desc(kiRequests.createdAt))
+      .limit(1);
 
-    res.json({ status: "fresh", inhalt, remaining: DAILY_LIMIT - todayCount - 1 });
+    if (latest.length === 0) {
+      res.json({ inhalt: null, createdAt: null });
+      return;
+    }
+    res.json({ inhalt: latest[0].inhalt, createdAt: latest[0].createdAt });
   } catch (err) {
     console.error("Stimmung error:", err);
-    res.status(500).json({ error: "KI momentan nicht erreichbar" });
+    res.status(500).json({ error: "KaI momentan nicht erreichbar" });
   }
 });
 

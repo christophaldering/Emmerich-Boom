@@ -12,6 +12,7 @@ export type Phase = {
   description: string;
   min: number;
   max: number;
+  kai: string;
 };
 
 export type RevealInfo = {
@@ -23,11 +24,11 @@ export type RevealInfo = {
 };
 
 export const PHASES: Phase[] = [
-  { name: "Ankommen",      description: "Sanft reinkommen — der Abend beginnt",       min: 1,  max: 20  },
-  { name: "Aufwärmen",     description: "Die Stimmung baut sich auf",                  min: 21, max: 45  },
-  { name: "Tanzfläche",    description: "Jetzt geht die Post ab",                      min: 46, max: 70  },
-  { name: "Stimmungshoch", description: "Volle Energie — alle sind dabei",             min: 71, max: 88  },
-  { name: "Finale",        description: "Der große Abschluss — unvergesslich",         min: 89, max: 100 },
+  { name: "Ankommen",      description: "Sanft reinkommen — der Abend beginnt",       min: 1,  max: 20,  kai: "Noch ist es ruhig. KaI hat das schon öfter erlebt." },
+  { name: "Aufwärmen",     description: "Die Stimmung baut sich auf",                  min: 21, max: 45,  kai: "Die Beine merken es als Erstes." },
+  { name: "Tanzfläche",    description: "Jetzt geht die Post ab",                      min: 46, max: 70,  kai: "Ab hier gibt es kein Zurück mehr." },
+  { name: "Stimmungshoch", description: "Volle Energie — alle sind dabei",             min: 71, max: 88,  kai: "KaI hat Tränen gesehen. Freudige." },
+  { name: "Finale",        description: "Der große Abschluss — unvergesslich",         min: 89, max: 100, kai: "Wer jetzt noch sitzt, sitzt morgen noch da." },
 ];
 
 export function getPhase(energy: number): Phase {
