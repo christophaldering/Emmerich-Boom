@@ -2,6 +2,50 @@ import { useEffect, useState } from "react";
 
 const SECRET = "emmerich-orga-stats-2026";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const ADMIN_PW = "#Boomer2026";
+const PW_KEY = "emmerich_admin_auth";
+
+function PasswordGate({ onAuth }: { onAuth: () => void }) {
+  const [input, setInput] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input === ADMIN_PW) {
+      sessionStorage.setItem(PW_KEY, "1");
+      onAuth();
+    } else {
+      setError(true);
+      setInput("");
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100svh", background: "#0a0704", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "320px" }}>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.2rem", color: "#e8991a", textAlign: "center", marginBottom: "0.5rem" }}>
+          Orga-Bereich
+        </p>
+        <input
+          type="password"
+          value={input}
+          onChange={e => { setInput(e.target.value); setError(false); }}
+          placeholder="Passwort"
+          autoFocus
+          style={{ background: "rgba(245,232,200,0.05)", border: `1px solid ${error ? "#e8991a" : "rgba(245,232,200,0.15)"}`, borderRadius: "3px", color: "#f5e8c8", padding: "0.75rem 1rem", fontSize: "1rem", fontFamily: "'Lora', serif", outline: "none" }}
+        />
+        {error && (
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: "#e8991a", textAlign: "center", margin: 0 }}>
+            Falsches Passwort.
+          </p>
+        )}
+        <button type="submit" style={{ background: "transparent", border: "1px solid #e8991a", borderRadius: "3px", color: "#e8991a", padding: "0.75rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", cursor: "pointer" }}>
+          Einloggen
+        </button>
+      </form>
+    </div>
+  );
+}
 
 interface Visit {
   id: number;
@@ -84,6 +128,7 @@ function KVTable({ rows }: { rows: [string, number][] }) {
 }
 
 export default function AdminPage() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
 
@@ -93,7 +138,9 @@ export default function AdminPage() {
       .then(d => { if (d.error) setError(d.error); else setStats(d); })
       .catch(() => setError("Verbindungsfehler"));
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { if (authed) load(); }, [authed]);
+
+  if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
 
   if (error) return <div style={S.page}><p style={{ color: "#e8991a", marginTop: "4rem" }}>⚠ {error}</p></div>;
   if (!stats) return <div style={S.page}><p style={{ color: "rgba(245,232,200,0.4)", marginTop: "4rem" }}>Lädt …</p></div>;
