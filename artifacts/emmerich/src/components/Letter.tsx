@@ -120,7 +120,7 @@ export default function Letter() {
           <p>Egal ob 50, 100 oder 150 Boomer — auf dem Bölt ist Platz.</p>
 
           <div className="closed-note">
-            Kleiner Hinweis: das wird eine <em>geschlossene Gesellschaft</em> — kein offenes Stadtfest. Boomer ist, wer sich als Boomer fühlt — auch über Emmerich hinaus. Wer angesprochen ist, ist dabei. Und wer jemanden kennt, dem das gefallen könnte: <strong>gerne weitersagen.</strong>
+            Kleiner Hinweis: das wird eine <em>geschlossene Gesellschaft</em> — kein offenes Stadtfest. Boomer ist, wer sich als Boomer fühlt — auch über Emmerich hinaus. Wer sich angesprochen fühlt, ist dabei. Und wer jemanden kennt, dem das gefallen könnte: <strong>gerne weitersagen.</strong>
           </div>
 
           <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
