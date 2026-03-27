@@ -34,8 +34,8 @@ router.post("/interesse", async (req, res) => {
     return;
   }
 
-  await db.insert(interessenten).values(parsed.data);
-  res.json({ success: true });
+  const inserted = await db.insert(interessenten).values(parsed.data).returning({ id: interessenten.id });
+  res.json({ success: true, id: inserted[0]?.id ?? null });
 });
 
 router.get("/interesse", async (_req, res) => {

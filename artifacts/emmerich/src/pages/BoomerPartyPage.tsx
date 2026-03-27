@@ -16,9 +16,11 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 export default function BoomerPartyPage() {
   const [refreshCounter, setRefreshCounter] = useState(0);
+  const [highlightId, setHighlightId] = useState<number | null>(null);
 
-  const handleFormSuccess = () => {
+  const handleFormSuccess = (newId: number) => {
     setRefreshCounter((c) => c + 1);
+    if (newId > 0) setHighlightId(newId);
   };
 
   return (
@@ -32,7 +34,7 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
-      <Playlist refreshKey={refreshCounter} />
+      <Playlist refreshKey={refreshCounter} highlightId={highlightId} />
       <BoomerClub />
       <PressNote />
       <Legal />
