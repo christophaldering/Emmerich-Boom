@@ -51,7 +51,7 @@ function buildIntroText(liste: Teilnehmer[]): string {
     return `Das Orakel hat die erste Anmeldung gelesen. ${namen[0]} ist dabei — und das ist kein schlechter Anfang. Es hat kurz genickt, tief nachgedacht, und dann sehr leise gelächelt. ${songHint ? `Der Musikwunsch? ${songHint}— gute Wahl.` : "Eine Meinung hat es bereits. Natürlich."}`;
   }
   if (n <= 3) {
-    return `Das Orakel kennt ${nameStr}. Es hat ihre Worte gelesen, ihre Musik bewertet${songHint ? ` — ${songHint}hat es besonders beeindruckt` : ""} — und es hält den Abend für vielversprechend. Sehr vielversprechend, sogar. Aber mehr verrät es erst auf Nachfrage.`;
+    return `Das Orakel kennt euch. Es hat eure Worte gelesen, eure Musik bewertet${songHint ? ` — ${songHint}hat es besonders beeindruckt` : ""} — und es hält den Abend für vielversprechend. Sehr vielversprechend, sogar. Aber mehr verrät es erst auf Nachfrage.`;
   }
   if (n <= 8) {
     return `${n} Anmeldungen. Das Orakel kennt ${nameStr} — und hat jede Zeile gelesen. ${songHint ? `${songHint}ist dabei, was allein schon einiges verspricht. ` : ""}Es hat geschwiegen, dann genickt. Dann nochmal geschwiegen. Das ist bei ihm ein gutes Zeichen.`;
