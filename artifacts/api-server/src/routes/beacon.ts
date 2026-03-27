@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { pageViews } from "@workspace/db";
 import { eq, desc, gte, sql, count, countDistinct } from "drizzle-orm";
+import { buildAndSendDailyReport } from "../services/dailyReport.js";
 
 const router = Router();
 
@@ -179,6 +180,16 @@ router.get("/admin-stats", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Fehler" });
+  }
+});
+
+router.post("/send-report", async (req, res) => {
+  if (req.query.key !== ADMIN_SECRET) { res.status(403).json({ error: "Nope." }); return; }
+  try {
+    await buildAndSendDailyReport();
+    res.json({ ok: true, message: "Bericht versendet." });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err?.message ?? "Fehler" });
   }
 });
 
