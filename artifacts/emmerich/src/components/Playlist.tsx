@@ -10,33 +10,37 @@ type Entry = {
   song: string | null;
 };
 
-const CURATED: { decade: string; artist: string; title: string }[] = [
-  { decade: "70er", artist: "ABBA", title: "Dancing Queen" },
-  { decade: "70er", artist: "Earth, Wind & Fire", title: "September" },
-  { decade: "70er", artist: "Queen", title: "Bohemian Rhapsody" },
-  { decade: "70er", artist: "Boney M.", title: "Rivers of Babylon" },
-  { decade: "70er", artist: "Gloria Gaynor", title: "I Will Survive" },
-  { decade: "80er", artist: "Duran Duran", title: "Rio" },
-  { decade: "80er", artist: "Nena", title: "99 Luftballons" },
-  { decade: "80er", artist: "a-ha", title: "Take On Me" },
-  { decade: "80er", artist: "Toto", title: "Africa" },
-  { decade: "80er", artist: "Depeche Mode", title: "Personal Jesus" },
-  { decade: "80er", artist: "Cyndi Lauper", title: "Girls Just Want to Have Fun" },
-  { decade: "90er", artist: "Haddaway", title: "What Is Love" },
-  { decade: "90er", artist: "Snap!", title: "Rhythm Is a Dancer" },
-  { decade: "90er", artist: "Die Fantastischen Vier", title: "Die Da" },
-  { decade: "2000er", artist: "Amy Winehouse", title: "Rehab" },
-  { decade: "2010er", artist: "Mark Ronson ft. Bruno Mars", title: "Uptown Funk" },
-  { decade: "2010er", artist: "Pharrell Williams", title: "Happy" },
-  { decade: "2020er", artist: "Dua Lipa", title: "Levitating" },
-  { decade: "2020er", artist: "Harry Styles", title: "As It Was" },
+type Track = {
+  key: string;
+  label: string;
+  artist: string;
+  title: string;
+  wishBy?: string;
+};
+
+const CURATED: Track[] = [
+  { key: "c0",  label: "70er",   artist: "ABBA",                        title: "Dancing Queen" },
+  { key: "c1",  label: "70er",   artist: "Earth, Wind & Fire",           title: "September" },
+  { key: "c2",  label: "70er",   artist: "Queen",                        title: "Bohemian Rhapsody" },
+  { key: "c3",  label: "70er",   artist: "Boney M.",                     title: "Rivers of Babylon" },
+  { key: "c4",  label: "70er",   artist: "Gloria Gaynor",                title: "I Will Survive" },
+  { key: "c5",  label: "80er",   artist: "Duran Duran",                  title: "Rio" },
+  { key: "c6",  label: "80er",   artist: "Nena",                         title: "99 Luftballons" },
+  { key: "c7",  label: "80er",   artist: "a-ha",                         title: "Take On Me" },
+  { key: "c8",  label: "80er",   artist: "Toto",                         title: "Africa" },
+  { key: "c9",  label: "80er",   artist: "Depeche Mode",                 title: "Personal Jesus" },
+  { key: "c10", label: "80er",   artist: "Cyndi Lauper",                 title: "Girls Just Want to Have Fun" },
+  { key: "c11", label: "90er",   artist: "Haddaway",                     title: "What Is Love" },
+  { key: "c12", label: "90er",   artist: "Snap!",                        title: "Rhythm Is a Dancer" },
+  { key: "c13", label: "90er",   artist: "Die Fantastischen Vier",       title: "Die Da" },
+  { key: "c14", label: "2000er", artist: "Amy Winehouse",                title: "Rehab" },
+  { key: "c15", label: "2010er", artist: "Mark Ronson ft. Bruno Mars",   title: "Uptown Funk" },
+  { key: "c16", label: "2010er", artist: "Pharrell Williams",            title: "Happy" },
+  { key: "c17", label: "2020er", artist: "Dua Lipa",                     title: "Levitating" },
+  { key: "c18", label: "2020er", artist: "Harry Styles",                 title: "As It Was" },
 ];
 
-function pad(s: string, width: number) {
-  return s.length >= width ? s : s + " ".repeat(width - s.length);
-}
-
-function buildPlaylistText(wishes: Entry[]): string {
+function buildPlaylistText(tracks: Track[]): string {
   const now = new Date();
   const dateStr = now.toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" });
   const sep = "─".repeat(50);
@@ -47,26 +51,20 @@ function buildPlaylistText(wishes: Entry[]): string {
     `Stand: ${dateStr}`,
     sep,
     "",
-    "KURATORISCHE STARTLISTE",
-    "",
-    ...CURATED.map((s) => `${pad("[" + s.decade + "]", 9)}  ${s.artist} – ${s.title}`),
   ];
 
-  if (wishes.length > 0) {
-    lines.push("");
-    lines.push(sep);
-    lines.push("");
-    lines.push("EURE WÜNSCHE");
-    lines.push("");
-    wishes.forEach((e) => {
-      lines.push(`${e.name} wünscht sich: ${e.song}`);
-    });
-  }
+  tracks.forEach((t, i) => {
+    const num = String(i + 1).padStart(2, " ");
+    const label = `[${t.label}]`.padEnd(9);
+    const song = t.wishBy
+      ? `${t.artist} – ${t.title}  (Wunsch von ${t.wishBy})`
+      : `${t.artist} – ${t.title}`;
+    lines.push(`${num}.  ${label}  ${song}`);
+  });
 
-  const total = CURATED.length + wishes.length;
   lines.push("");
   lines.push(sep);
-  lines.push(`Insgesamt: ${total} Songs · emmerich-boomt.replit.app`);
+  lines.push(`Insgesamt: ${tracks.length} Songs · emmerich-boomt.replit.app`);
 
   return lines.join("\n");
 }
@@ -94,11 +92,28 @@ export default function Playlist({ refreshKey = 0 }: PlaylistProps) {
 
   useEffect(() => { if (refreshKey > 0) fetchWishes(); }, [refreshKey]);
 
+  const wishTracks: Track[] = wishes.map((e) => {
+    const raw = e.song!.trim();
+    const dashIdx = raw.indexOf(" – ");
+    const artist = dashIdx > 0 ? raw.slice(0, dashIdx) : raw;
+    const title  = dashIdx > 0 ? raw.slice(dashIdx + 3) : "";
+    return { key: `w${e.id}`, label: "♥", artist, title: title || artist, wishBy: e.name };
+  });
+
+  const allTracks = [...CURATED, ...wishTracks];
+
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const freshWishes = await fetchWishes();
-      const text = buildPlaylistText(freshWishes);
+      const fresh = await fetchWishes();
+      const freshWishTracks: Track[] = fresh.map((e) => {
+        const raw = e.song!.trim();
+        const dashIdx = raw.indexOf(" – ");
+        const artist = dashIdx > 0 ? raw.slice(0, dashIdx) : raw;
+        const title  = dashIdx > 0 ? raw.slice(dashIdx + 3) : "";
+        return { key: `w${e.id}`, label: "♥", artist, title: title || artist, wishBy: e.name };
+      });
+      const text = buildPlaylistText([...CURATED, ...freshWishTracks]);
       const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -113,42 +128,34 @@ export default function Playlist({ refreshKey = 0 }: PlaylistProps) {
     }
   };
 
-  const totalCount = CURATED.length + wishes.length;
-
   return (
     <section style={{ background: "var(--bg-page)", padding: "4rem 1.5rem 5rem" }}>
       <style>{`
         .pl-wrap { max-width: 760px; margin: 0 auto; }
         .pl-label { display: inline-block; font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber); opacity: 0.85; margin-bottom: 1rem; }
         .pl-heading { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 700; font-size: clamp(1.8rem, 5vw, 2.8rem); color: var(--warm); line-height: 1.15; margin-bottom: 1.2rem; }
-        .pl-intro { font-family: 'Lora', serif; font-size: 1rem; line-height: 1.8; color: var(--fg-80); margin-bottom: 3rem; max-width: 60ch; }
+        .pl-intro { font-family: 'Lora', serif; font-size: 1rem; line-height: 1.8; color: var(--fg-80); margin-bottom: 2.5rem; max-width: 60ch; }
         .pl-intro em { font-style: italic; color: var(--amber); }
-        .pl-divider { width: 60px; height: 1px; background: linear-gradient(90deg, transparent, var(--amber), transparent); margin: 2.5rem 0; opacity: 0.35; }
 
-        .pl-sub { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber-55); margin-bottom: 1.2rem; }
+        .pl-count { font-family: 'Lora', serif; font-style: italic; font-size: 0.88rem; color: var(--fg-55); margin-bottom: 1.5rem; }
+        .pl-count strong { color: var(--amber); font-style: normal; font-weight: 600; }
 
-        .pl-list { display: flex; flex-direction: column; gap: 0; margin-bottom: 0; }
-        .pl-row { display: flex; align-items: center; gap: 1rem; padding: 0.65rem 0; border-bottom: 1px solid var(--fg-06); }
+        .pl-list { display: flex; flex-direction: column; }
+        .pl-row { display: flex; align-items: baseline; gap: 0.9rem; padding: 0.6rem 0; border-bottom: 1px solid var(--fg-06); }
         .pl-row:first-child { border-top: 1px solid var(--fg-06); }
-        .pl-decade { font-family: 'Lora', serif; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); opacity: 0.7; min-width: 3.8rem; flex-shrink: 0; }
-        .pl-note { font-size: 0.85rem; color: var(--amber); opacity: 0.55; flex-shrink: 0; }
-        .pl-song-text { font-family: 'Lora', serif; font-size: 0.95rem; color: var(--fg-88); line-height: 1.4; flex: 1; }
+        .pl-decade { font-family: 'Lora', serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); opacity: 0.65; min-width: 3.6rem; flex-shrink: 0; line-height: 1.6; }
+        .pl-decade-wish { color: var(--amber); opacity: 0.5; font-size: 0.82rem; }
+        .pl-note { font-size: 0.82rem; color: var(--amber); opacity: 0.5; flex-shrink: 0; }
+        .pl-song-text { font-family: 'Lora', serif; font-size: 0.95rem; color: var(--fg-88); line-height: 1.5; flex: 1; }
         .pl-song-text strong { font-weight: 600; color: var(--warm); }
+        .pl-wish-by { display: inline; font-style: italic; font-size: 0.82rem; color: var(--fg-45); margin-left: 0.4rem; }
 
-        .pl-wishes { display: flex; flex-direction: column; gap: 0; margin-bottom: 0; }
-        .pl-wish-row { display: flex; align-items: center; gap: 1rem; padding: 0.65rem 0; border-bottom: 1px solid var(--fg-06); }
-        .pl-wish-row:first-child { border-top: 1px solid var(--fg-06); }
-        .pl-wish-who { font-family: 'Lora', serif; font-style: italic; font-size: 0.88rem; color: var(--fg-55); }
-        .pl-wish-song { font-family: 'Lora', serif; font-size: 0.95rem; color: var(--fg-88); line-height: 1.5; flex: 1; }
-
-        .pl-download-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--fg-08); display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; }
-        .pl-download-label { font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; color: var(--fg-55); line-height: 1.6; }
-        .pl-download-label strong { color: var(--amber); font-style: normal; font-weight: 600; }
+        .pl-download-wrap { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--fg-08); display: flex; flex-direction: column; gap: 0.55rem; align-items: flex-start; }
+        .pl-download-info { font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; color: var(--fg-55); line-height: 1.6; }
         .pl-dl-btn { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: var(--amber); background: transparent; border: 1px solid var(--amber); border-radius: 3px; padding: 0.75rem 1.4rem; cursor: pointer; transition: background 0.2s, color 0.2s; }
         .pl-dl-btn:hover:not(:disabled) { background: var(--amber); color: var(--black); }
         .pl-dl-btn:disabled { opacity: 0.5; cursor: default; }
-
-        .pl-cta { margin-top: 1.5rem; font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; color: var(--fg-45); line-height: 1.7; }
+        .pl-cta { font-family: 'Lora', serif; font-style: italic; font-size: 0.88rem; color: var(--fg-40); line-height: 1.7; margin-top: 0.25rem; }
         .pl-cta a { color: var(--amber); text-underline-offset: 3px; }
       `}</style>
 
@@ -161,49 +168,39 @@ export default function Playlist({ refreshKey = 0 }: PlaylistProps) {
           zusammengestellt von uns — und von euch.
         </p>
 
-        <p className="pl-sub">Startliste — kuratorisch</p>
+        <p className="pl-count">
+          Aktuell <strong>{allTracks.length} Songs</strong> — {wishTracks.length === 0
+            ? "noch keine Community-Wünsche eingegangen"
+            : `davon ${wishTracks.length} ${wishTracks.length === 1 ? "Wunsch" : "Wünsche"} von euch`}.
+        </p>
+
         <div className="pl-list">
-          {CURATED.map((s, i) => (
-            <div key={i} className="pl-row">
-              <span className="pl-decade">{s.decade}</span>
+          {allTracks.map((t) => (
+            <div key={t.key} className="pl-row">
+              <span className="pl-decade">
+                {t.label === "♥"
+                  ? <span className="pl-decade-wish">♥</span>
+                  : t.label}
+              </span>
               <span className="pl-note">♪</span>
-              <span className="pl-song-text"><strong>{s.artist}</strong> – {s.title}</span>
+              <span className="pl-song-text">
+                <strong>{t.artist}</strong>
+                {t.title && ` – ${t.title}`}
+                {t.wishBy && <span className="pl-wish-by">— Wunsch von {t.wishBy}</span>}
+              </span>
             </div>
           ))}
         </div>
 
-        {wishes.length > 0 && (
-          <>
-            <div className="pl-divider" />
-            <p className="pl-sub">Eure Wünsche — bereits eingegangen</p>
-            <div className="pl-wishes">
-              {wishes.map((e) => (
-                <div key={e.id} className="pl-wish-row">
-                  <span className="pl-note">♪</span>
-                  <span className="pl-wish-song">
-                    <span className="pl-wish-who">{e.name} wünscht sich:</span>{" "}{e.song}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-
         <div className="pl-download-wrap">
-          <p className="pl-download-label">
-            Aktuelle Playlist mit allen Einträgen als Textdatei —{" "}
-            <strong>immer auf dem neuesten Stand</strong>, inklusive aller Wünsche die bis zum Klick eingegangen sind.
+          <p className="pl-download-info">
+            Komplette Playlist als Textdatei — immer auf dem aktuellen Stand, inklusive aller Wünsche.
           </p>
-          <button
-            className="pl-dl-btn"
-            onClick={handleDownload}
-            disabled={downloading}
-          >
-            {downloading ? "Wird geladen …" : `↓ Playlist herunterladen (${totalCount} Songs)`}
+          <button className="pl-dl-btn" onClick={handleDownload} disabled={downloading}>
+            {downloading ? "Wird geladen …" : `↓ Playlist herunterladen (${allTracks.length} Songs)`}
           </button>
           <p className="pl-cta">
-            Dein Song fehlt noch? Einfach beim{" "}
-            <a href="#anmeldung">Anmelden</a> eintragen — dann direkt erneut herunterladen.
+            Dein Song fehlt? Beim <a href="#anmeldung">Anmelden</a> eintragen — dann direkt erneut herunterladen.
           </p>
         </div>
       </div>
