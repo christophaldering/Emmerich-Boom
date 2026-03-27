@@ -32,7 +32,8 @@ export default function Poster() {
           background: "linear-gradient(to bottom, transparent 0%, rgba(10,7,4,0.6) 60%, rgba(10,7,4,0.97) 100%)",
         }}
       />
-      <div
+      <button
+        onClick={() => window.scrollTo({ top: window.innerHeight, behavior: "smooth" })}
         style={{
           position: "absolute",
           bottom: "2.2rem",
@@ -44,7 +45,12 @@ export default function Poster() {
           gap: "0.5rem",
           opacity: visible ? 1 : 0,
           transition: "opacity 0.8s ease",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: "0.5rem 1rem",
         }}
+        aria-label="Nach unten scrollen"
       >
         <span
           style={{
@@ -68,7 +74,7 @@ export default function Poster() {
             animation: "bounce 1.6s ease-in-out infinite",
           }}
         />
-      </div>
+      </button>
       <style>{`
         @keyframes bounce {
           0%, 100% { transform: rotate(45deg) translateY(0); }
