@@ -63,9 +63,9 @@ export default function Countdown() {
 
       {isPhase1 && (
         <p className="reveal" style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-82)", marginTop: "1rem" }}>
-          Bis Ende April schauen wir, wie viele wir werden — dann entscheidet sich, was daraus wird.
-          Die Party selbst steigt am <span style={{ color: "var(--warm)" }}>18. Juli 2026</span>.
-          Wer sich jetzt schon angesprochen fühlt: nicht warten — einfach sofort ein Lebenszeichen hinterlassen.
+          Bis Ende April sammeln wir die Anmeldungen — dann geht's in die konkrete Planung.
+          Die Party steigt am <span style={{ color: "var(--warm)" }}>18. Juli 2026</span> — das steht.
+          Wer sich angesprochen fühlt: nicht warten, einfach sofort melden.
         </p>
       )}
     </section>

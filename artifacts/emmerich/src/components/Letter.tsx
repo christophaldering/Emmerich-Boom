@@ -117,15 +117,15 @@ export default function Letter() {
             <li>Fingerfood, Getränke — kein Dresscode, kein Gedöns</li>
           </ul>
 
-          <p>Der Bölt kann das — ob wir 30 werden oder 150. Da ist Platz.</p>
+          <p>Der Bölt kann das — egal ob 30, 50 oder 150. Da ist Platz.</p>
 
           <div className="closed-note">
-            Kleiner Hinweis: das wird eine <em>geschlossene Gesellschaft</em>. Kein offenes Stadtfest — ein Abend unter Leuten, die dazugehören. Das hält es gemütlich und die Organisation schlank.
+            Kleiner Hinweis: das wird eine <em>geschlossene Gesellschaft</em> — kein offenes Stadtfest. Boomer ist, wer sich als Boomer fühlt. Wer angesprochen ist, ist dabei. Und wer jemanden kennt, dem das gefallen könnte: <strong>gerne weitersagen.</strong>
           </div>
 
           <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
 
-          <p>Und jetzt das Wichtigste: <strong>Wir wollen erstmal wissen, wer dabei ist.</strong> Keine Verpflichtung, kein Eintritt — einfach kurz melden bis <strong>Ende April</strong>. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — <em>10 EUR für Musik und Fingerfood.</em></p>
+          <p>Und jetzt das Wichtigste: <strong>Einfach kurz melden bis Ende April.</strong> Wir sammeln die Anmeldungen — im Mai geht's dann in die konkrete Planung, und dann kommt auch die verbindliche Anmeldung mit Eintritt — <em>10 EUR für Musik und Fingerfood.</em></p>
         </div>
       </div>
     </section>

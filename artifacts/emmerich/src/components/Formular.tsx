@@ -92,7 +92,7 @@ export default function Formular({ onSuccess }: FormularProps) {
       </h2>
 
       <p className="reveal d1" style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-88)", marginBottom: "1.5rem" }}>
-        Einfach kurz sagen: bin dabei. Jetzt noch kein Eintritt, keine Verpflichtung — hilft uns aber enorm zu wissen, wie viele wir werden.
+        Einfach kurz melden — damit wir wissen, wie viele wir werden. Die verbindliche Anmeldung kommt im Mai.
       </p>
 
       <div className="reveal d1" style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
@@ -108,8 +108,8 @@ export default function Formular({ onSuccess }: FormularProps) {
       ) : (
         <form className="reveal d2" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
           <div style={{ background: "var(--amber-08)", border: "1px solid var(--amber-30)", borderRadius: "4px", padding: "1rem 1.3rem", fontSize: "0.9rem", lineHeight: 1.75, color: "var(--fg-80)" }}>
-            <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Abgabe bis Ende April.</strong>{" "}
-            Danach wissen wir, wie viele wir werden — und ob und wie der Abend stattfindet. Noch kein Eintritt, noch keine Verpflichtung.
+            <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Melden bis Ende April.</strong>{" "}
+            Dann wissen wir, wie viele wir werden — und es geht in die konkrete Planung. Die verbindliche Anmeldung folgt im Mai.
           </div>
 
           <div>
@@ -143,7 +143,8 @@ export default function Formular({ onSuccess }: FormularProps) {
 
           <div>
             <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem" }}>
-              Dein Lieblingssong — der auf jeden Fall gespielt werden muss 🎵
+              Dein Lieblingssong — der auf jeden Fall gespielt werden muss 🎵{" "}
+              <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "var(--amber)", opacity: 0.85 }}>schon jetzt angeben!</em>
             </label>
             <input type="text" name="song" value={form.song} onChange={handleChange} placeholder="z.B. ABBA – Dancing Queen, Nena – 99 Luftballons ..." className="formular-input" style={inputStyle} />
           </div>
