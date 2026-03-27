@@ -19,15 +19,13 @@ export default function Poster() {
           objectFit: "contain",
           objectPosition: "center center",
           display: "block",
-          background: "var(--black)",
+          background: "var(--bg-page)",
         }}
       />
       <div
         style={{
           position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
+          bottom: 0, left: 0, right: 0,
           height: "45%",
           background: "linear-gradient(to bottom, transparent 0%, rgba(10,7,4,0.6) 60%, rgba(10,7,4,0.97) 100%)",
         }}
@@ -52,28 +50,10 @@ export default function Poster() {
         }}
         aria-label="Nach unten scrollen"
       >
-        <span
-          style={{
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.75rem",
-            color: "rgba(245,232,200,0.45)",
-            letterSpacing: "0.15em",
-          }}
-        >
+        <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.45)", letterSpacing: "0.15em" }}>
           weiterlesen
         </span>
-        <span
-          style={{
-            display: "block",
-            width: "18px",
-            height: "18px",
-            borderRight: "1.5px solid rgba(245,232,200,0.3)",
-            borderBottom: "1.5px solid rgba(245,232,200,0.3)",
-            transform: "rotate(45deg)",
-            animation: "bounce 1.6s ease-in-out infinite",
-          }}
-        />
+        <span style={{ display: "block", width: "18px", height: "18px", borderRight: "1.5px solid rgba(245,232,200,0.3)", borderBottom: "1.5px solid rgba(245,232,200,0.3)", transform: "rotate(45deg)", animation: "bounce 1.6s ease-in-out infinite" }} />
       </button>
       <style>{`
         @keyframes bounce {

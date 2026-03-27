@@ -14,13 +14,13 @@ export default function Fakten() {
           grid-template-columns: 110px 1fr;
           gap: 1rem;
           padding: 1rem 0;
-          border-bottom: 1px solid rgba(245,232,200,0.07);
+          border-bottom: 1px solid var(--fg-07);
         }
         .fakten-key {
           font-family: 'Lora', serif;
           font-style: italic;
           font-size: 1rem;
-          color: rgba(245,232,200,0.78);
+          color: var(--fg-78);
         }
         .fakten-val {
           font-family: 'Playfair Display', serif;
@@ -32,7 +32,7 @@ export default function Fakten() {
           font-family: 'Lora', serif;
           font-style: italic;
           font-size: 0.95rem;
-          color: rgba(245,232,200,0.80);
+          color: var(--fg-80);
           margin-left: 0.5rem;
         }
       `}</style>

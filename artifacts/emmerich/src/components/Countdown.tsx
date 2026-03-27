@@ -8,8 +8,8 @@ function getTimeLeft(target: Date) {
   const diff = target.getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   return {
-    days: Math.floor(diff / 86400000),
-    hours: Math.floor((diff % 86400000) / 3600000),
+    days:    Math.floor(diff / 86400000),
+    hours:   Math.floor((diff % 86400000) / 3600000),
     minutes: Math.floor((diff % 3600000) / 60000),
     seconds: Math.floor((diff % 60000) / 1000),
   };
@@ -18,26 +18,10 @@ function getTimeLeft(target: Date) {
 function Unit({ value, label }: { value: number; label: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <span
-        style={{
-          fontFamily: "'Playfair Display', serif",
-          fontWeight: 800,
-          fontSize: "clamp(2.2rem,6vw,3.5rem)",
-          color: "var(--amber)",
-          lineHeight: 1,
-        }}
-      >
+      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: "clamp(2.2rem,6vw,3.5rem)", color: "var(--amber)", lineHeight: 1 }}>
         {String(value).padStart(2, "0")}
       </span>
-      <span
-        style={{
-          fontFamily: "'Lora', serif",
-          fontStyle: "italic",
-          fontSize: "0.7rem",
-          color: "var(--dimmer)",
-          marginTop: "0.2rem",
-        }}
-      >
+      <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.7rem", color: "var(--dimmer)", marginTop: "0.2rem" }}>
         {label}
       </span>
     </div>
@@ -45,14 +29,7 @@ function Unit({ value, label }: { value: number; label: string }) {
 }
 
 const SEP = (
-  <span
-    style={{
-      fontFamily: "'Playfair Display', serif",
-      fontSize: "2rem",
-      color: "rgba(232,153,26,0.3)",
-      alignSelf: "center",
-    }}
-  >·</span>
+  <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", color: "var(--amber-30)", alignSelf: "center" }}>·</span>
 );
 
 export default function Countdown() {
@@ -67,40 +44,17 @@ export default function Countdown() {
   }, [target]);
 
   return (
-    <section
-      ref={ref}
-      style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 4rem" }}
-    >
+    <section ref={ref} style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 4rem" }}>
       {isPhase1 && (
-        <p
-          className="reveal"
-          style={{
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.78rem",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "var(--amber)",
-            marginBottom: "0.6rem",
-          }}
-        >
+        <p className="reveal" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--amber)", marginBottom: "0.6rem" }}>
           Interesse melden — noch
         </p>
       )}
 
-      <div
-        className="reveal"
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          gap: "2rem",
-          alignItems: "baseline",
-          flexWrap: "wrap",
-        }}
-      >
-        <Unit value={time.days} label="Tage" />
+      <div className="reveal" style={{ display: "flex", flexDirection: "row", gap: "2rem", alignItems: "baseline", flexWrap: "wrap" }}>
+        <Unit value={time.days}    label="Tage" />
         {SEP}
-        <Unit value={time.hours} label="Stunden" />
+        <Unit value={time.hours}   label="Stunden" />
         {SEP}
         <Unit value={time.minutes} label="Minuten" />
         {SEP}
@@ -108,16 +62,7 @@ export default function Countdown() {
       </div>
 
       {isPhase1 && (
-        <p
-          className="reveal"
-          style={{
-            fontFamily: "'Lora', serif",
-            fontSize: "1rem",
-            lineHeight: 1.8,
-            color: "rgba(245,232,200,0.82)",
-            marginTop: "1rem",
-          }}
-        >
+        <p className="reveal" style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-82)", marginTop: "1rem" }}>
           Bis Ende April schauen wir, wie viele wir werden — dann entscheidet sich, was daraus wird.
           Die Party selbst steigt am <span style={{ color: "var(--warm)" }}>18. Juli 2026</span>.
           Wer sich jetzt schon angesprochen fühlt: nicht warten — einfach sofort ein Lebenszeichen hinterlassen.

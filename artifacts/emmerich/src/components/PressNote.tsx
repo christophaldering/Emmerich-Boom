@@ -4,26 +4,23 @@ export default function PressNote() {
   const ref = useReveal();
 
   return (
-    <section
-      ref={ref}
-      style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem 4rem" }}
-    >
+    <section ref={ref} style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem 4rem" }}>
       <div
         className="reveal"
         style={{
-          background: "rgba(245,232,200,0.04)",
-          border: "1px solid rgba(245,232,200,0.14)",
+          background: "var(--fg-04)",
+          border: "1px solid var(--fg-14)",
           borderRadius: "4px",
           padding: "1.4rem 1.6rem",
           fontSize: "1rem",
           lineHeight: 1.85,
-          color: "rgba(245,232,200,0.82)",
+          color: "var(--fg-82)",
           fontStyle: "italic",
         }}
       >
         <style>{`
           .pressnote strong {
-            color: rgba(245,232,200,0.85);
+            color: var(--fg-85);
             font-style: normal;
           }
         `}</style>

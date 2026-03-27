@@ -45,8 +45,8 @@ export default function Letter() {
           color: "var(--amber)",
           letterSpacing: "0.04em",
           padding: "0.7rem 0",
-          borderTop: "1px solid rgba(232,153,26,0.25)",
-          borderBottom: "1px solid rgba(232,153,26,0.25)",
+          borderTop: "1px solid var(--amber-25)",
+          borderBottom: "1px solid var(--amber-25)",
           marginBottom: "3rem",
         }}
       >
@@ -58,7 +58,7 @@ export default function Letter() {
           .letter-body p {
             font-size: clamp(1rem,2.2vw,1.12rem);
             line-height: 1.9;
-            color: rgba(245,232,200,0.90);
+            color: var(--fg-90);
             margin-bottom: 1.2em;
           }
           .letter-body strong {
@@ -73,8 +73,8 @@ export default function Letter() {
             list-style: none;
             margin: 1.4em 0;
             padding: 1.4rem 1.6rem;
-            background: rgba(245,232,200,0.03);
-            border-left: 2px solid rgba(232,153,26,0.3);
+            background: var(--fg-03);
+            border-left: 2px solid var(--amber-30);
             border-radius: 0 4px 4px 0;
             display: flex;
             flex-direction: column;
@@ -83,7 +83,7 @@ export default function Letter() {
           .bullet-list li {
             font-size: clamp(1rem,2vw,1.05rem);
             line-height: 1.8;
-            color: rgba(245,232,200,0.88);
+            color: var(--fg-88);
             padding-left: 1.2rem;
             position: relative;
           }
@@ -96,12 +96,12 @@ export default function Letter() {
           .closed-note {
             margin: 1.4rem 0;
             padding: 1.2rem 1.5rem;
-            background: rgba(232,153,26,0.06);
-            border: 1px solid rgba(232,153,26,0.22);
+            background: var(--amber-06);
+            border: 1px solid var(--amber-22);
             border-radius: 4px;
             font-size: clamp(1rem,2vw,1.05rem);
             line-height: 1.8;
-            color: rgba(245,232,200,0.88);
+            color: var(--fg-88);
           }
         `}</style>
         <div className="letter-body">

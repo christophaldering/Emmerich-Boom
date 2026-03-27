@@ -7,9 +7,9 @@ export default function SiteFooter() {
         fontStyle: "italic",
         fontSize: "1rem",
         lineHeight: 2.0,
-        color: "rgba(245,232,200,0.90)",
+        color: "var(--fg-90)",
         padding: "2.5rem 2rem 3rem",
-        borderTop: "1px solid rgba(245,232,200,0.20)",
+        borderTop: "1px solid var(--fg-20)",
       }}
     >
       <p>Emmerich boomt! · BoomerParty · 18. Juli 2026 · Bölt, Emmerich am Rhein</p>

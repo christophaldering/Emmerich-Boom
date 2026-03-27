@@ -39,50 +39,38 @@ function buildIntroText(liste: Teilnehmer[]): string {
   const songs = liste.filter(t => t.song).map(t => t.song as string);
   const n = liste.length;
 
-  // Pick one song to highlight if available
-  const songHint = songs.length > 0
-    ? `„${songs[Math.floor(songs.length / 2)]}" `
-    : null;
+  const songHint = songs.length > 0 ? `„${songs[Math.floor(songs.length / 2)]}" ` : null;
 
-  // Build name string: "Lucia", "Lucia und Aldi", "Lucia, Aldi und 3 weitere"
   let nameStr: string;
-  if (n === 1) {
-    nameStr = namen[0];
-  } else if (n === 2) {
-    nameStr = `${namen[0]} und ${namen[1]}`;
-  } else if (n === 3) {
-    nameStr = `${namen[0]}, ${namen[1]} und ${namen[2]}`;
-  } else {
-    nameStr = `${namen[0]}, ${namen[1]} und ${n - 2} weitere`;
-  }
+  if (n === 1)      nameStr = namen[0];
+  else if (n === 2) nameStr = `${namen[0]} und ${namen[1]}`;
+  else if (n === 3) nameStr = `${namen[0]}, ${namen[1]} und ${namen[2]}`;
+  else              nameStr = `${namen[0]}, ${namen[1]} und ${n - 2} weitere`;
 
   if (n === 1) {
     return `Das Orakel hat die erste Anmeldung gelesen. ${namen[0]} ist dabei — und das ist kein schlechter Anfang. Es hat kurz genickt, tief nachgedacht, und dann sehr leise gelächelt. ${songHint ? `Der Musikwunsch? ${songHint}— gute Wahl.` : "Eine Meinung hat es bereits. Natürlich."}`;
   }
-
   if (n <= 3) {
     return `Das Orakel kennt ${nameStr}. Es hat ihre Worte gelesen, ihre Musik bewertet${songHint ? ` — ${songHint}hat es besonders beeindruckt` : ""} — und es hält den Abend für vielversprechend. Sehr vielversprechend, sogar. Aber mehr verrät es erst auf Nachfrage.`;
   }
-
   if (n <= 8) {
     return `${n} Anmeldungen. Das Orakel kennt ${nameStr} — und hat jede Zeile gelesen. ${songHint ? `${songHint}ist dabei, was allein schon einiges verspricht. ` : ""}Es hat geschwiegen, dann genickt. Dann nochmal geschwiegen. Das ist bei ihm ein gutes Zeichen.`;
   }
-
   return `${n} Menschen haben sich angemeldet. Das Orakel hat sie alle gelesen — jedes Wort, jeden Songwunsch, jede zwischen den Zeilen verborgene Erwartung. Jetzt lehnt es am Bölt, sieht auf den Rhein, und lächelt. Was es dabei denkt? Frag.`;
 }
 
 function HistoryItem({ entry, index }: { entry: HistoryEntry; index: number }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderTop: "1px solid rgba(232,153,26,0.10)", padding: "0.6rem 0" }}>
+    <div style={{ borderTop: "1px solid var(--amber-10)", padding: "0.6rem 0" }}>
       <button onClick={() => setOpen(v => !v)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: 0 }}>
-        <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: "rgba(245,232,200,0.60)" }}>
+        <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: "var(--fg-60)" }}>
           {index === 0 ? "Vorherige" : `Prognose ${index + 1}`} · {formatTime(entry.ts)}
         </span>
-        <span style={{ color: "rgba(232,153,26,0.55)", fontSize: "0.65rem", flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+        <span style={{ color: "var(--amber-55)", fontSize: "0.65rem", flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.85, color: "rgba(245,232,200,0.82)", marginTop: "0.6rem", marginBottom: 0 }}>
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.85, color: "var(--fg-82)", marginTop: "0.6rem", marginBottom: 0 }}>
           {entry.inhalt}
         </p>
       )}
@@ -150,24 +138,24 @@ export default function KiStimmung() {
     <section style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem 3.5rem" }}>
       <style>{`
         .ki-intro-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.75rem; letter-spacing:0.20em; text-transform:uppercase; color:var(--amber); opacity:0.75; margin-bottom:0.6rem; }
-        .ki-intro-text { font-family:'Lora',serif; font-size:1rem; line-height:1.85; color:rgba(245,232,200,0.88); margin-bottom:1.4rem; }
+        .ki-intro-text { font-family:'Lora',serif; font-size:1rem; line-height:1.85; color:var(--fg-88); margin-bottom:1.4rem; }
         .ki-result-wrap { position:relative; margin-bottom:0.5rem; }
-        .ki-result-text { font-family:'Lora',serif; font-size:1rem; line-height:1.9; color:rgba(245,232,200,0.90); margin:0; overflow:hidden; transition:max-height 0.4s ease; }
+        .ki-result-text { font-family:'Lora',serif; font-size:1rem; line-height:1.9; color:var(--fg-90); margin:0; overflow:hidden; transition:max-height 0.4s ease; }
         .ki-result-text.collapsed { max-height:calc(1.85em * 4); }
         .ki-result-text.expanded-text { max-height:40em; }
-        .ki-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--black)); pointer-events:none; }
-        .ki-read-more { background:none; border:none; cursor:pointer; padding:0.4rem 0 0; font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:rgba(232,153,26,0.72); transition:color 0.2s; display:block; }
+        .ki-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--bg-page)); pointer-events:none; }
+        .ki-read-more { background:none; border:none; cursor:pointer; padding:0.4rem 0 0; font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--amber-72); transition:color 0.2s; display:block; }
         .ki-read-more:hover { color:var(--amber); }
-        .ki-ask-btn { display:inline-flex; align-items:center; gap:0.55rem; background:transparent; border:1px solid rgba(232,153,26,0.45); border-radius:3px; padding:0.7rem 1.4rem; color:rgba(245,232,200,0.88); font-family:'Lora',serif; font-style:italic; font-size:1rem; cursor:pointer; transition:border-color 0.2s, color 0.2s, background 0.2s; }
-        .ki-ask-btn:hover:not(:disabled) { border-color:rgba(232,153,26,0.75); background:rgba(232,153,26,0.06); color:var(--warm); }
+        .ki-ask-btn { display:inline-flex; align-items:center; gap:0.55rem; background:transparent; border:1px solid var(--amber-45); border-radius:3px; padding:0.7rem 1.4rem; color:var(--fg-88); font-family:'Lora',serif; font-style:italic; font-size:1rem; cursor:pointer; transition:border-color 0.2s, color 0.2s, background 0.2s; }
+        .ki-ask-btn:hover:not(:disabled) { border-color:var(--amber-75); background:var(--amber-06); color:var(--warm); }
         .ki-ask-btn:disabled { opacity:0.4; cursor:default; }
-        .ki-spinner { display:inline-block; width:10px; height:10px; border:1.5px solid rgba(232,153,26,0.2); border-top-color:var(--amber); border-radius:50%; animation:ki-spin 0.7s linear infinite; }
+        .ki-spinner { display:inline-block; width:10px; height:10px; border:1.5px solid var(--amber-20); border-top-color:var(--amber); border-radius:50%; animation:ki-spin 0.7s linear infinite; }
         @keyframes ki-spin { to { transform:rotate(360deg); } }
-        .ki-notice { font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:rgba(245,232,200,0.70); margin-top:0.7rem; line-height:1.6; }
-        .ki-again { display:inline-block; margin-top:0.9rem; background:none; border:none; cursor:pointer; font-family:'Lora',serif; font-style:italic; font-size:0.9rem; color:rgba(232,153,26,0.60); transition:color 0.2s; padding:0; }
-        .ki-again:hover { color:rgba(232,153,26,0.90); }
-        .ki-history-btn { background:none; border:none; cursor:pointer; padding:0.8rem 0 0.2rem; font-family:'Lora',serif; font-style:italic; font-size:0.88rem; color:rgba(245,232,200,0.50); transition:color 0.2s; display:block; }
-        .ki-history-btn:hover { color:rgba(245,232,200,0.75); }
+        .ki-notice { font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--fg-70); margin-top:0.7rem; line-height:1.6; }
+        .ki-again { display:inline-block; margin-top:0.9rem; background:none; border:none; cursor:pointer; font-family:'Lora',serif; font-style:italic; font-size:0.9rem; color:var(--amber-60); transition:color 0.2s; padding:0; }
+        .ki-again:hover { color:var(--amber-90); }
+        .ki-history-btn { background:none; border:none; cursor:pointer; padding:0.8rem 0 0.2rem; font-family:'Lora',serif; font-style:italic; font-size:0.88rem; color:var(--fg-50); transition:color 0.2s; display:block; }
+        .ki-history-btn:hover { color:var(--fg-75); }
       `}</style>
 
       <span className="ki-intro-label">Das Orakel vom Bölt</span>
@@ -184,9 +172,7 @@ export default function KiStimmung() {
       {inhalt && (
         <>
           <div className="ki-result-wrap">
-            <p ref={textRef} className={`ki-result-text ${expanded ? "expanded-text" : "collapsed"}`}>
-              {inhalt}
-            </p>
+            <p ref={textRef} className={`ki-result-text ${expanded ? "expanded-text" : "collapsed"}`}>{inhalt}</p>
             {!expanded && needsFade && <div className="ki-fade" />}
           </div>
           {needsFade && (
