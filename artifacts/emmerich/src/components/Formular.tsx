@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-const STORAGE_KEY = "emmerich_boomt_submitted";
-
-function AlreadySubmitted() {
+function SuccessMessage() {
   return (
     <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
       <div style={{ fontSize: "2rem", marginBottom: "1rem", color: "var(--amber)" }}>✦</div>
@@ -33,10 +31,6 @@ export default function Formular({ onSuccess }: FormularProps) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: "", personen: "Nur ich", statement: "", song: "" });
 
-  useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY)) setSubmitted(true);
-  }, []);
-
   const inputStyle: React.CSSProperties = {
     background: "var(--fg-04)",
     border: "1px solid var(--fg-12)",
@@ -61,7 +55,6 @@ export default function Formular({ onSuccess }: FormularProps) {
       const res = await fetch("/api/interesse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
       const data = await res.json();
       if (data.success) {
-        localStorage.setItem(STORAGE_KEY, "1");
         setSubmitted(true);
         onSuccess?.();
       } else if (data.duplicate) {
@@ -102,7 +95,7 @@ export default function Formular({ onSuccess }: FormularProps) {
       </div>
 
       {submitted ? (
-        <AlreadySubmitted />
+        <SuccessMessage />
       ) : (
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
           <div style={{ background: "var(--amber-08)", border: "1px solid var(--amber-30)", borderRadius: "4px", padding: "1rem 1.3rem", fontSize: "0.9rem", lineHeight: 1.75, color: "var(--fg-80)" }}>
