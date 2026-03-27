@@ -142,28 +142,31 @@ export default function Formular({ onSuccess }: FormularProps) {
         let newId: number | null = data.id ?? null;
 
         if (songText) {
-          try {
-            const freshRes = await fetch("/api/interesse", { cache: "no-store" });
-            const freshData: WishEntry[] = await freshRes.json();
+          const computeReveal = (freshData: WishEntry[], id: number | null) => {
             const withSongs = freshData.filter((e) => e.song && e.song.trim() !== "");
-            const sorted = buildSortedPlaylist(withSongs);
-
-            if (newId === null) {
+            const resolvedId = id ?? (() => {
               const matched = freshData
                 .filter((e) => e.name === form.name && e.song === form.song)
                 .sort((a, b) => b.id - a.id);
-              newId = matched[0]?.id ?? null;
-            }
-
-            if (newId !== null) {
-              const info = getRevealInfo(songText, newId, sorted);
-              setReveal(info);
-              onSuccess?.(newId);
+              return matched[0]?.id ?? null;
+            })();
+            const sorted = buildSortedPlaylist(withSongs);
+            if (resolvedId !== null) {
+              setReveal(getRevealInfo(songText, resolvedId, sorted));
+              onSuccess?.(resolvedId);
             } else {
+              setReveal(getRevealInfo(songText, -1, sorted));
               onSuccess?.(0);
             }
+          };
+
+          try {
+            const freshRes = await fetch("/api/interesse", { cache: "no-store" });
+            const freshData: WishEntry[] = await freshRes.json();
+            computeReveal(freshData, newId);
           } catch {
-            onSuccess?.(0);
+            const tempEntry: WishEntry = { id: newId ?? -1, name: form.name, song: songText };
+            computeReveal([tempEntry], newId ?? -1);
           }
         } else {
           onSuccess?.(0);

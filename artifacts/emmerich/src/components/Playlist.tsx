@@ -1,11 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
-  CURATED,
   PHASES,
   WishEntry,
   buildSortedPlaylist,
   buildPlaylistText,
-  getPhase,
   Track,
 } from "@/lib/playlistArc";
 
@@ -17,8 +15,6 @@ interface PlaylistProps {
 export default function Playlist({ refreshKey = 0, highlightId = null }: PlaylistProps) {
   const [wishes, setWishes] = useState<WishEntry[]>([]);
   const [downloading, setDownloading] = useState(false);
-  const highlightRef = useRef<HTMLDivElement | null>(null);
-
   const fetchWishes = () => {
     return fetch("/api/interesse", { cache: "no-store" })
       .then((r) => r.json())
@@ -142,7 +138,7 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
                 )}
                 <div
                   className={`pl-row${isHighlight ? " pl-row--highlight" : ""}`}
-                  ref={isHighlight ? highlightRef : null}
+
                 >
                   <span className="pl-num">{i + 1}</span>
                   <span className="pl-decade">
