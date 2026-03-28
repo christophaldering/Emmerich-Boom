@@ -29,11 +29,11 @@ export default function BoomerPartyPage() {
       <Poster />
       <Letter />
       <Motto />
-      <Teilnehmer refreshKey={refreshCounter} />
       <Fakten />
       <Countdown />
       <Playlist refreshKey={refreshCounter} highlightId={highlightId} />
       <Formular onSuccess={handleFormSuccess} />
+      <Teilnehmer refreshKey={refreshCounter} />
       <KaI refreshSignal={refreshCounter} />
       <BoomerClub />
       <PressNote />
