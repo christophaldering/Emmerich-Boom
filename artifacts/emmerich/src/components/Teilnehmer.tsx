@@ -9,23 +9,26 @@ type Entry = {
   createdAt: string | null;
 };
 
-const PERSONEN_LABEL: Record<string, string> = {
-  "Nur ich": "1",
-  "Wir zwei": "2",
-  "Wir drei": "3",
-  "Vier auf einen Streich": "4",
-  "Fünf oder mehr": "5+",
+const PERSONEN_SHORT: Record<string, string> = {
+  "Nur ich":              "1 Person",
+  "Wir zwei":             "2 Personen",
+  "Wir drei":             "3 Personen",
+  "Vier auf einen Streich": "4 Personen",
+  "Fünf oder mehr":       "5+ Personen",
+};
+
+const PERSONEN_COUNT: Record<string, number> = {
+  "Nur ich": 1, "Wir zwei": 2, "Wir drei": 3,
+  "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
 };
 
 interface TeilnehmerProps {
   refreshKey?: number;
 }
 
-const FEATURED = 3;
-
 export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded]   = useState(false);
   const [showAll, setShowAll] = useState(false);
 
   const fetchEntries = () => {
@@ -45,41 +48,35 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
   if (!loaded || entries.length === 0) return null;
 
-  const totalPersonen = entries.reduce((sum, e) => {
-    const raw = PERSONEN_LABEL[e.personen] ?? "1";
-    return sum + (raw === "5+" ? 5 : parseInt(raw, 10));
-  }, 0);
+  const totalPersonen = entries.reduce(
+    (sum, e) => sum + (PERSONEN_COUNT[e.personen] ?? 1), 0
+  );
 
-  const featured = entries.slice(0, FEATURED);
-  const rest     = entries.slice(FEATURED);
+  const SHOW_LIMIT = 8;
+  const visible = showAll ? entries : entries.slice(0, SHOW_LIMIT);
+  const hidden  = entries.length - SHOW_LIMIT;
 
   return (
-    <section style={{ background: "var(--bg-section)", padding: "4rem 1.5rem 4.5rem", animation: "fadeInUp 0.7s ease both" }}>
+    <section style={{ background: "var(--bg-section)", padding: "2.5rem 1.5rem 2rem", animation: "fadeInUp 0.7s ease both" }}>
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-        .promo-hero { text-align:center; margin-bottom:3rem; max-width:700px; margin-left:auto; margin-right:auto; }
-        .promo-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.78rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber); margin-bottom:1rem; opacity:0.85; }
-        .promo-count-row { display:flex; align-items:baseline; justify-content:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:0.5rem; }
+
+        .promo-hero { text-align:center; margin-bottom:2rem; max-width:700px; margin-left:auto; margin-right:auto; }
+        .promo-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.78rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber); margin-bottom:0.8rem; opacity:0.85; }
+        .promo-count-row { display:flex; align-items:baseline; justify-content:center; gap:0.7rem; flex-wrap:wrap; }
         .promo-count { font-family:'Playfair Display',serif; font-weight:800; font-size:clamp(4rem,14vw,7rem); color:var(--amber); line-height:1; text-shadow:0 0 40px rgba(205,155,65,0.25); }
         .promo-count-label { font-family:'Lora',serif; font-style:italic; font-size:clamp(1rem,3vw,1.3rem); color:var(--fg-88); line-height:1.4; max-width:18ch; text-align:left; }
         .promo-count-label strong { color:var(--warm); font-style:normal; font-weight:700; }
-        .promo-divider { width:60px; height:1px; background:linear-gradient(90deg,transparent,var(--amber),transparent); margin:2rem auto; opacity:0.4; }
 
-        .tn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.85rem; max-width:900px; margin:0 auto; }
-        .tn-card { background:var(--fg-04); border:1px solid var(--fg-08); border-radius:4px; padding:1rem 1.2rem; display:flex; flex-direction:column; gap:0.45rem; transition:border-color 0.2s; }
-        .tn-card:hover { border-color:var(--amber-25); }
-        .tn-card-top { display:flex; align-items:baseline; justify-content:space-between; gap:0.5rem; }
-        .tn-name { font-family:'Playfair Display',serif; font-weight:700; font-size:1.05rem; color:var(--warm); line-height:1.2; }
-        .tn-personen { font-family:'Lora',serif; font-style:italic; font-size:0.9rem; color:var(--fg-65); white-space:nowrap; flex-shrink:0; }
-        .tn-statement { font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--fg-85); line-height:1.65; border-left:2px solid var(--amber-20); padding-left:0.7rem; margin-top:0.1rem; }
-        .tn-song { font-family:'Lora',serif; font-style:italic; font-size:0.82rem; color:var(--amber); opacity:0.85; margin-top:0.1rem; }
+        .tn-list { max-width:640px; margin:0 auto; border-top:1px solid var(--fg-08); }
+        .tn-row { border-bottom:1px solid var(--fg-06); padding:0.45rem 0.5rem; display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:0.6rem; }
+        .tn-row:hover { background:var(--fg-03); }
+        .tn-row-name { font-family:'Courier New',Courier,monospace; font-size:0.9rem; font-weight:700; color:var(--warm); white-space:nowrap; }
+        .tn-row-mid { font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--fg-55); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .tn-row-mid em { font-style:normal; color:var(--fg-40); }
+        .tn-row-persons { font-family:'Courier New',Courier,monospace; font-size:0.75rem; color:var(--fg-40); white-space:nowrap; flex-shrink:0; }
 
-        .tn-rest { max-width:900px; margin:2rem auto 0; }
-        .tn-rest-label { font-family:'Lora',serif; font-style:italic; font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--amber-55); margin-bottom:1rem; }
-        .tn-chips { display:flex; flex-wrap:wrap; gap:0.5rem; }
-        .tn-chip { font-family:'Lora',serif; font-size:0.9rem; color:var(--fg-75); background:var(--fg-05); border:1px solid var(--fg-09); border-radius:2px; padding:0.3rem 0.7rem; line-height:1.3; }
-        .tn-chip-personen { font-size:0.72rem; color:var(--amber-60); margin-left:0.3rem; }
-        .tn-expand { background:none; border:none; font-family:'Lora',serif; font-style:italic; font-size:0.85rem; color:var(--amber-60); cursor:pointer; padding:0; margin-top:1.2rem; display:block; text-align:left; text-decoration:underline; text-underline-offset:3px; }
+        .tn-expand { display:block; font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--amber-60); background:none; border:none; cursor:pointer; padding:0.5rem 0.5rem 0; text-align:left; }
         .tn-expand:hover { color:var(--amber); }
       `}</style>
 
@@ -88,50 +85,35 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         <div className="promo-count-row">
           <span className="promo-count">{entries.length}</span>
           <span className="promo-count-label">
-            mit Boomer-Feeling dabei{totalPersonen > 0 && (<> — macht <strong>mindestens {totalPersonen}</strong> {totalPersonen === 1 ? "Mensch" : "Leute"} von der richtigen Sorte.</>)}
+            mit Boomer-Feeling dabei{totalPersonen > 0 && (
+              <> — macht <strong>mindestens {totalPersonen}</strong> {totalPersonen === 1 ? "Mensch" : "Leute"} von der richtigen Sorte.</>
+            )}
           </span>
         </div>
       </div>
 
-      <div className="promo-divider" />
-
-      <div className="tn-grid">
-        {featured.map((e) => {
-          const p = PERSONEN_LABEL[e.personen] ?? "1";
+      <div className="tn-list">
+        {visible.map((e) => {
+          const persons = PERSONEN_SHORT[e.personen] ?? "1 Person";
+          const mid = e.song
+            ? `♪ ${e.song}`
+            : e.statement
+              ? `„${e.statement.length > 48 ? e.statement.slice(0, 48) + "…" : e.statement}"`
+              : "";
           return (
-            <div key={e.id} className="tn-card">
-              <div className="tn-card-top">
-                <span className="tn-name">{e.name}</span>
-                <span className="tn-personen">{p} {p === "1" ? "Person" : "Personen"}</span>
-              </div>
-              {e.statement && <p className="tn-statement">„{e.statement}"</p>}
-              {e.song && <span className="tn-song">♪ {e.song}</span>}
+            <div key={e.id} className="tn-row">
+              <span className="tn-row-name">{e.name}</span>
+              <span className="tn-row-mid">{mid}</span>
+              <span className="tn-row-persons">{persons}</span>
             </div>
           );
         })}
+        {!showAll && hidden > 0 && (
+          <button className="tn-expand" onClick={() => setShowAll(true)}>
+            + {hidden} weitere …
+          </button>
+        )}
       </div>
-
-      {rest.length > 0 && (
-        <div className="tn-rest">
-          <p className="tn-rest-label">Außerdem dabei</p>
-          <div className="tn-chips">
-            {(showAll ? rest : rest.slice(0, 12)).map((e) => {
-              const p = PERSONEN_LABEL[e.personen] ?? "1";
-              return (
-                <span key={e.id} className="tn-chip">
-                  {e.name}
-                  {p !== "1" && <span className="tn-chip-personen">×{p}</span>}
-                </span>
-              );
-            })}
-            {!showAll && rest.length > 12 && (
-              <button className="tn-expand" onClick={() => setShowAll(true)}>
-                + {rest.length - 12} weitere …
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </section>
   );
 }
