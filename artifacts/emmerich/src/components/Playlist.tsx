@@ -115,7 +115,7 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
         <p className="pl-count">
           Aktuell <strong>{allTracks.length} Songs</strong> — {wishCount === 0
             ? "noch keine Community-Wünsche eingegangen"
-            : `davon bisher ${wishCount} ${wishCount === 1 ? "Wunsch" : "Wünsche"} von euch`}. Ergänzt gerne!!
+            : `davon bisher ${wishCount} ${wishCount === 1 ? "Wunsch" : "Wünsche"} von euch`}.
         </p>
 
         <div className="pl-list">
