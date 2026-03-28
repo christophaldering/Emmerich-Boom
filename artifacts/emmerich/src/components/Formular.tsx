@@ -195,7 +195,7 @@ export default function Formular({ onSuccess }: FormularProps) {
       <style>{`
         .formular-input::placeholder { color: var(--fg-45); }
         .formular-input:focus { border-color: var(--amber-55) !important; }
-        .submit-btn:hover:not(:disabled) { background: var(--amber2) !important; }
+        .submit-btn:hover:not(:disabled) { filter: brightness(1.1); }
         .submit-btn:disabled { opacity: 0.5; cursor: default; }
       `}</style>
 
