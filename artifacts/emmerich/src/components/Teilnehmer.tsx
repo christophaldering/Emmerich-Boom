@@ -26,11 +26,6 @@ interface TeilnehmerProps {
   refreshKey?: number;
 }
 
-const STMT_MAX = 44;
-
-function truncate(s: string, max: number) {
-  return s.length > max ? s.slice(0, max) + "…" : s;
-}
 
 export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -81,10 +76,10 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
         .tn-row-line1 { display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:0.55rem; }
         .tn-row-name { font-family:'Courier New',Courier,monospace; font-size:0.9rem; font-weight:700; color:var(--warm); white-space:nowrap; }
-        .tn-row-stmt { font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--fg-55); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .tn-row-stmt { font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--fg-55); }
         .tn-row-persons { font-family:'Courier New',Courier,monospace; font-size:0.75rem; color:var(--fg-40); white-space:nowrap; flex-shrink:0; }
 
-        .tn-row-line2 { font-family:'Courier New',Courier,monospace; font-size:0.78rem; color:var(--amber-60); padding-left:1rem; margin-top:0.1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .tn-row-line2 { font-family:'Courier New',Courier,monospace; font-size:0.78rem; color:var(--amber-60); padding-left:1rem; margin-top:0.1rem; }
 
         .tn-expand { display:block; font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--amber-60); background:none; border:none; cursor:pointer; padding:0.5rem 0.5rem 0; text-align:left; }
         .tn-expand:hover { color:var(--amber); }
@@ -109,7 +104,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           const hasSong  = !!e.song;
 
           const line1Mid = hasStmt
-            ? `„${truncate(e.statement!, STMT_MAX)}"`
+            ? `„${e.statement!}"`
             : hasSong
               ? `♪ ${e.song}`
               : "";
