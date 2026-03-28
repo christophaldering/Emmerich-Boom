@@ -124,8 +124,16 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
   const introText = buildKaiIntro(teilnehmer);
 
   return (
-    <section style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem 3.5rem" }}>
+    <section style={{ background: "var(--bg-section)", padding: "2rem 1.5rem 2.5rem" }}>
       <style>{`
+        .kai-box {
+          max-width: 640px;
+          margin: 0 auto;
+          border: 1px solid var(--amber-25);
+          border-radius: 4px;
+          background: var(--fg-04);
+          padding: 1.6rem 1.8rem 1.8rem;
+        }
         .kai-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.75rem; letter-spacing:0.20em; text-transform:uppercase; color:var(--amber); opacity:0.75; margin-bottom:0.5rem; }
         .kai-byline { font-family:'Lora',serif; font-style:italic; font-size:0.88rem; color:var(--fg-45); margin-bottom:0.5rem; line-height:1.6; }
         .kai-dynamic-intro { font-family:'Lora',serif; font-size:1rem; line-height:1.85; color:var(--fg-80); margin-bottom:1.4rem; }
@@ -133,38 +141,40 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
         .kai-text { font-family:'Lora',serif; font-size:1rem; line-height:1.9; color:var(--fg-90); margin:0; overflow:hidden; transition:max-height 0.4s ease; }
         .kai-text.collapsed { max-height:calc(1.85em * 4); }
         .kai-text.expanded-text { max-height:40em; }
-        .kai-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--bg-page)); pointer-events:none; }
+        .kai-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--bg-section)); pointer-events:none; }
         .kai-read-more { background:none; border:none; cursor:pointer; padding:0.4rem 0 0; font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--amber-75); transition:color 0.2s; display:block; }
         .kai-read-more:hover { color:var(--amber); }
         .kai-loading { font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--fg-45); }
       `}</style>
 
-      <span className="kai-label">KaI</span>
-      <p className="kai-byline">
-        KaI ist das KI-System des Entwicklerteams — und liest seit Beginn sehr aufmerksam mit.
-      </p>
-      <p className="kai-dynamic-intro">{introText}</p>
+      <div className="kai-box">
+        <span className="kai-label">KaI</span>
+        <p className="kai-byline">
+          KaI ist das KI-System des Entwicklerteams — und liest seit Beginn sehr aufmerksam mit.
+        </p>
+        <p className="kai-dynamic-intro">{introText}</p>
 
-      {loading && !inhalt && (
-        <p className="kai-loading">KaI liest gerade …</p>
-      )}
+        {loading && !inhalt && (
+          <p className="kai-loading">KaI liest gerade …</p>
+        )}
 
-      {inhalt && (
-        <div className="kai-result-wrap">
-          <p
-            ref={textRef}
-            className={`kai-text ${expanded ? "expanded-text" : "collapsed"}`}
-          >
-            {inhalt}
-          </p>
-          {!expanded && needsFade && <div className="kai-fade" />}
-          {needsFade && (
-            <button className="kai-read-more" onClick={() => setExpanded(v => !v)}>
-              {expanded ? "weniger anzeigen ▲" : "vollständig lesen ▼"}
-            </button>
-          )}
-        </div>
-      )}
+        {inhalt && (
+          <div className="kai-result-wrap">
+            <p
+              ref={textRef}
+              className={`kai-text ${expanded ? "expanded-text" : "collapsed"}`}
+            >
+              {inhalt}
+            </p>
+            {!expanded && needsFade && <div className="kai-fade" />}
+            {needsFade && (
+              <button className="kai-read-more" onClick={() => setExpanded(v => !v)}>
+                {expanded ? "weniger anzeigen ▲" : "vollständig lesen ▼"}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
