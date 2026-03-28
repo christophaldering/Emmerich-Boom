@@ -36,7 +36,6 @@ export function getPhase(energy: number): Phase {
 }
 
 export const CURATED: Track[] = [
-  { key: "c0",  label: "70er",   artist: "Boney M.",                   title: "Rivers of Babylon",          energy: 12 },
   { key: "c1",  label: "70er",   artist: "Toto",                       title: "Africa",                     energy: 18 },
   { key: "c2",  label: "2020er", artist: "Harry Styles",               title: "As It Was",                  energy: 22 },
   { key: "c3",  label: "2000er", artist: "Amy Winehouse",              title: "Rehab",                      energy: 27 },
