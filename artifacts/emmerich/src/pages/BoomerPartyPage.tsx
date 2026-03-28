@@ -31,8 +31,8 @@ export default function BoomerPartyPage() {
       <Motto />
       <Fakten />
       <Countdown />
-      <Playlist refreshKey={refreshCounter} highlightId={highlightId} />
       <Formular onSuccess={handleFormSuccess} />
+      <Playlist refreshKey={refreshCounter} highlightId={highlightId} />
       <Teilnehmer refreshKey={refreshCounter} />
       <KaI refreshSignal={refreshCounter} />
       <BoomerClub />
