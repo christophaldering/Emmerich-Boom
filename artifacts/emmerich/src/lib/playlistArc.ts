@@ -43,7 +43,6 @@ export const CURATED: Track[] = [
   { key: "c5",  label: "80er",   artist: "Duran Duran",                title: "Rio",                        energy: 38 },
   { key: "c6",  label: "90er",   artist: "Die Fantastischen Vier",     title: "Die Da",                     energy: 42 },
   { key: "c7",  label: "80er",   artist: "a-ha",                       title: "Take On Me",                 energy: 45 },
-  { key: "c8",  label: "70er",   artist: "Gloria Gaynor",              title: "I Will Survive",             energy: 50 },
   { key: "c9",  label: "80er",   artist: "Cyndi Lauper",               title: "Girls Just Want to Have Fun",energy: 55 },
   { key: "c10", label: "2010er", artist: "Pharrell Williams",          title: "Happy",                      energy: 58 },
   { key: "c11", label: "2020er", artist: "Dua Lipa",                   title: "Levitating",                 energy: 63 },

@@ -77,7 +77,7 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
         .pl-phase-line { flex: 1; height: 1px; background: var(--fg-08); }
         .pl-phase-name { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--amber); opacity: 0.6; white-space: nowrap; }
         .pl-phase-icon { font-size: 0.75rem; opacity: 0.4; }
-        .pl-phase-kai { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; color: var(--fg-35); margin: 0.18rem 0 0.4rem; text-align: center; }
+        .pl-phase-kai { font-family: 'Lora', serif; font-style: italic; font-size: 0.78rem; color: var(--fg-55); margin: 0.18rem 0 0.4rem; text-align: center; }
 
         .pl-list { display: flex; flex-direction: column; }
         .pl-row { display: flex; align-items: baseline; gap: 0.9rem; padding: 0.6rem 0; border-bottom: 1px solid var(--fg-06); transition: background 0.3s; border-radius: 2px; }
@@ -88,8 +88,8 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
           60%  { background: color-mix(in srgb, var(--amber) 10%, transparent); }
           100% { background: transparent; }
         }
-        .pl-num { font-family: 'Lora', serif; font-size: 0.72rem; color: var(--fg-35); min-width: 1.6rem; flex-shrink: 0; text-align: right; }
-        .pl-who { font-family: 'Lora', serif; font-size: 0.72rem; font-style: italic; color: var(--fg-45); min-width: 4.5rem; max-width: 6rem; flex-shrink: 0; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pl-num { font-family: 'Lora', serif; font-size: 0.72rem; color: var(--fg-50); min-width: 1.6rem; flex-shrink: 0; text-align: right; }
+        .pl-who { font-family: 'Lora', serif; font-size: 0.72rem; font-style: italic; color: var(--fg-70); min-width: 4.5rem; max-width: 6rem; flex-shrink: 0; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pl-note { font-size: 0.82rem; color: var(--amber); opacity: 0.5; flex-shrink: 0; }
         .pl-song-text { font-family: 'Lora', serif; font-size: 0.95rem; color: var(--fg-88); line-height: 1.5; flex: 1; }
         .pl-song-text strong { font-weight: 600; color: var(--warm); }
