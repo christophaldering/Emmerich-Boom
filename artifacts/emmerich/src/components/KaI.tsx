@@ -141,7 +141,7 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
         .kai-text { font-family:'Lora',serif; font-size:1rem; line-height:1.9; color:var(--fg-90); margin:0; overflow:hidden; transition:max-height 0.4s ease; }
         .kai-text.collapsed { max-height:calc(1.85em * 4); }
         .kai-text.expanded-text { max-height:40em; }
-        .kai-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--bg-section)); pointer-events:none; }
+        .kai-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--fg-04)); pointer-events:none; }
         .kai-read-more { background:none; border:none; cursor:pointer; padding:0.4rem 0 0; font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--amber-75); transition:color 0.2s; display:block; }
         .kai-read-more:hover { color:var(--amber); }
         .kai-loading { font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--fg-45); }
