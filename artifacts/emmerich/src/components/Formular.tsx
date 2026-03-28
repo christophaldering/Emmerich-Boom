@@ -191,29 +191,35 @@ export default function Formular({ onSuccess }: FormularProps) {
   };
 
   return (
-    <section id="anmeldung" style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 5rem" }}>
+    <section id="anmeldung" style={{ background: "var(--bg-section)", borderTop: "2px solid var(--amber-30)", borderBottom: "2px solid var(--amber-30)", padding: "3rem 0 5rem" }}>
       <style>{`
         .formular-input::placeholder { color: var(--fg-45); }
         .formular-input:focus { border-color: var(--amber-55) !important; }
-        .submit-btn:hover:not(:disabled) { background: var(--amber) !important; color: var(--black) !important; }
+        .submit-btn:hover:not(:disabled) { background: var(--amber2) !important; }
         .submit-btn:disabled { opacity: 0.5; cursor: default; }
       `}</style>
 
-      <h2 style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.6rem,4vw,2.2rem)", marginBottom: "1rem" }}>
-        Kurz melden.
-      </h2>
+      <div style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem" }}>
 
-      <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-88)", marginBottom: "1.5rem" }}>
-        Einfach kurz sagen: ich werde dabei sein. Das hilft uns enorm zu wissen, wie viele wir werden.
-      </p>
+        <div style={{ marginBottom: "2.5rem" }}>
+          <span style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.78rem", letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--amber)", marginBottom: "0.7rem" }}>
+            Jetzt anmelden
+          </span>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: "clamp(2.2rem, 7vw, 3.2rem)", color: "var(--warm)", lineHeight: 1.15, marginBottom: "0.6rem" }}>
+            Bist du dabei?
+          </h2>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7 }}>
+            Meld dich bis Ende April — dann planen wir den Abend.
+          </p>
+        </div>
 
-      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
-        <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "0.05rem" }}>🔒</span>
-        <span>
-          <strong style={{ color: "var(--amber)", fontWeight: 600 }}>Kein richtiger Name nötig.</strong>{" "}
-          Ein Spitzname reicht völlig — keine E-Mail, keine Adresse, nichts Persönliches.
-        </span>
-      </div>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
+          <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "0.05rem" }}>🔒</span>
+          <span>
+            <strong style={{ color: "var(--amber)", fontWeight: 600 }}>Kein richtiger Name nötig.</strong>{" "}
+            Ein Spitzname reicht völlig — keine E-Mail, keine Adresse, nichts Persönliches.
+          </span>
+        </div>
 
       {submitted && reveal ? (
         <RevealCard
@@ -287,7 +293,7 @@ export default function Formular({ onSuccess }: FormularProps) {
             )}
           </div>
 
-          <button type="submit" disabled={loading} className="submit-btn" style={{ width: "100%", padding: "1rem", background: "transparent", border: "1px solid var(--amber)", borderRadius: "3px", color: "var(--amber)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", cursor: "pointer", transition: "background 0.2s, color 0.2s" }}>
+          <button type="submit" disabled={loading} className="submit-btn" style={{ width: "100%", padding: "1rem", background: "var(--amber)", border: "none", borderRadius: "3px", color: "var(--black)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", fontWeight: 700, cursor: "pointer", transition: "background 0.2s" }}>
             {loading ? "Wird gespeichert …" : "Daumen hoch — ich bin dabei! 👍"}
           </button>
 
@@ -298,6 +304,7 @@ export default function Formular({ onSuccess }: FormularProps) {
           )}
         </form>
       )}
+      </div>
     </section>
   );
 }
