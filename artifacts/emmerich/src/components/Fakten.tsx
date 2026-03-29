@@ -55,7 +55,7 @@ export default function Fakten() {
       <div className="reveal d1">
         <div className="fakten-row">
           <span className="fakten-key">Wann</span>
-          <span className="fakten-val">Samstag, 18. Juli 2026</span>
+          <span className="fakten-val">Samstag, 18. Juli 2026 (Uhrzeit wird noch bekannt gegeben)</span>
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Wo</span>
@@ -63,7 +63,7 @@ export default function Fakten() {
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Eintritt</span>
-          <span className="fakten-val">aktuell kostenlos<small>verbindl. Anmeldung inkl. ~10 € kommt im Mai</small></span>
+          <span className="fakten-val">aktuell noch ohne Kosten<small>(verbindl. Anmeldung wird im Mai abgefragt, dann werden 10 EUR fällig)</small></span>
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Zugang</span>

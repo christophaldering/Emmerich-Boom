@@ -106,15 +106,15 @@ export default function Letter() {
         `}</style>
         <div className="letter-body">
           <p>Wir wissen zwar noch, wie man sich ohne Handy verabredet, aber wir können auch anders. 😉</p>
-          <p>Es gibt eine Party. Am <strong>18. Juli 2026</strong>. Auf dem Bölt. Ihr wisst schon — in der Gaststätte Kapaunenberg, Emmerich. Und die wird gut.</p>
+          <p> Am <strong>18. Juli 2026</strong> gibt es eine Party. Auf dem Bölt — in der Gaststätte Kapaunenberg, in Emmerich. Und die wird gut.</p>
 
           <ul className="bullet-list">
             <li>Abrocken — zu Musik, bei der man den Text noch kann</li>
-            <li>70er, 80er — laut, tanzbar, kein Wenn und Aber</li>
+            <li>70er, 80er — laut, tanzbar und zum Mitsingen</li>
             <li>Alte Freunde treffen — manche vielleicht nach Jahren</li>
             <li>Gespräche an der Theke, die irgendwie immer die besten sind</li>
             <li>Nostalgie — aber die gute Art, bei der einem warm ums Herz wird</li>
-            <li>Fingerfood, Getränke — kein Dresscode, kein Gedöns</li>
+            <li>Fingerfood, Getränke — kein Dresscode, ganz zwanglos</li>
           </ul>
 
           <p>Egal ob 50, 100 oder 150 Boomer — auf dem Bölt ist Platz.</p>

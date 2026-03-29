@@ -209,7 +209,7 @@ export default function Formular({ onSuccess }: FormularProps) {
             Bist du dabei?
           </h2>
           <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7 }}>
-            Meld dich bis Ende April — dann planen wir den Abend.
+            Melde dich bis Ende April — dann planen wir den Abend.
           </p>
         </div>
 
