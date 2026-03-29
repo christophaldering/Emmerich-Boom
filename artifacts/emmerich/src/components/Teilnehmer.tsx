@@ -90,9 +90,12 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         <div className="promo-count-row">
           <span className="promo-count">{entries.length}</span>
           <span className="promo-count-label">
-            mit Boomer-Feeling dabei{totalPersonen > 0 && (
-              <> — macht <strong>mindestens {totalPersonen}</strong> {totalPersonen === 1 ? "Mensch" : "Leute"} von der richtigen Sorte.</>
-            )}
+            {entries.length === 1
+              ? <>Anmeldung — und das ist ein guter Anfang.</>
+              : totalPersonen > entries.length
+                ? <>Anmeldungen — einige bringen jemanden mit. Macht insgesamt <strong>mindestens {totalPersonen} Personen</strong>.</>
+                : <>Anmeldungen mit Boomer-Feeling dabei.</>
+            }
           </span>
         </div>
       </div>
