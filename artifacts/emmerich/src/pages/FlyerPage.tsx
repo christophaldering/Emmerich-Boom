@@ -14,7 +14,7 @@ export default function FlyerPage() {
 
       {/* Controls */}
       <div className="no-print" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem" }}>
-        <button onClick={() => window.print()} style={{
+        <button onClick={() => { window.location.href = "/flyer-print"; }} style={{
           background: A, border: "none", borderRadius: "4px",
           color: BG, padding: "0.7rem 2.5rem",
           fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1.05rem", cursor: "pointer",
