@@ -41,6 +41,7 @@ Schreib jetzt einen Kommentar. Regeln:
 - Vornamen erlaubt — herzlich, nie bloßstellend
 - Darf auf einzelne Songs eingehen, wenn sie es wert sind, berücksichtigst dabei den Schreiber
 - Darf auf Statements eingehen, wenn sie es wert sind
+- Du berücksichtigst, wer was geschrieben hat und es gibt diesbezüglich keine Verwechselungen
 - Gehst auf die Anzahl der Anmeldungen eingehen, kommentierst sie, wenn es sich lohnt
 - Warmherzig, leicht formell, dann doch witzig
 - Kein erklärender Intro-Satz — direkt beginnen
