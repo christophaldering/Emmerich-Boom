@@ -19,10 +19,10 @@ export default function FlyerPage() {
           color: BG, padding: "0.7rem 2.5rem",
           fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1.05rem", cursor: "pointer",
         }}>
-          Flyer drucken / als PDF speichern
+          Flyer-PDF herunterladen
         </button>
         <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: "rgba(245,232,200,0.4)", margin: 0, textAlign: "center" }}>
-          Druckdialog: Papierformat A4 · Querformat · Ränder auf „Keine" · beidseitig drucken · in der Mitte falten
+          PDF öffnen → Teilen → Drucken → A4 · Querformat · Beidseitig · In der Mitte falten
         </p>
       </div>
 
