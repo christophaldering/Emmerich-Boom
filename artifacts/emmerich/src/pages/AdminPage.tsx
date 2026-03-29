@@ -246,6 +246,16 @@ export default function AdminPage() {
         </p>
       )}
 
+      <SectionTitle>Anmeldungen ({registrations.length})</SectionTitle>
+      {registrations.length === 0 ? (
+        <p style={{ color: fg(0.3), fontSize: "0.88rem" }}>Noch keine Anmeldungen.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          {registrations.map(r => <RegCard key={r.id} r={r} />)}
+        </div>
+      )}
+
+      <SectionTitle>Statistik</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "0.5rem" }}>
         <StatCard n={summary.totalAnmeldungen} label="Anmeldungen" />
         <StatCard n={summary.totalSessions}    label="Besuche gesamt" />
@@ -256,15 +266,6 @@ export default function AdminPage() {
         <StatCard n={fmt(summary.avgDurationSec)}      label="Ø Verweildauer" />
         <StatCard n={fmt(summary.todayAvgDurationSec)} label="Ø Heute" />
       </div>
-
-      <SectionTitle>Anmeldungen ({registrations.length})</SectionTitle>
-      {registrations.length === 0 ? (
-        <p style={{ color: fg(0.3), fontSize: "0.88rem" }}>Noch keine Anmeldungen.</p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          {registrations.map(r => <RegCard key={r.id} r={r} />)}
-        </div>
-      )}
 
       <SectionTitle>Geräte & Herkunft</SectionTitle>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "2rem" }}>
