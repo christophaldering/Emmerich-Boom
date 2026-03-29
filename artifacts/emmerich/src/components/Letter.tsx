@@ -110,7 +110,7 @@ export default function Letter() {
 
           <ul className="bullet-list">
             <li>Abrocken — zu Musik, bei der man den Text noch kann</li>
-            <li>70er, 80er — laut, tanzbar und zum Mitsingen</li>
+            <li>70er, 80er und auch Aktuelles — laut, tanzbar und zum Mitsingen</li>
             <li>Alte Freunde treffen — manche vielleicht nach Jahren</li>
             <li>Gespräche an der Theke, die irgendwie immer die besten sind</li>
             <li>Nostalgie — aber die gute Art, bei der einem warm ums Herz wird</li>
