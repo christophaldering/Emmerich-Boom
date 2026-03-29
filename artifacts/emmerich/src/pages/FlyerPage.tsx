@@ -41,39 +41,57 @@ export default function FlyerPage() {
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 0; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
           .no-print { display: none !important; }
+
           .flyer-page {
             background: #fff !important;
             padding: 0 !important;
             gap: 0 !important;
             min-height: 0 !important;
             display: block !important;
-          }
-          .flyer-spread {
-            box-shadow: none !important;
-            width: 100% !important;
-            height: 100vh !important;
-            aspect-ratio: auto !important;
-            page-break-after: always;
-            break-after: page;
+            width: 297mm !important;
           }
 
-          /* Seite 4 — Absender */
-          .panel-sender { background: #fff !important; }
+          /* Each spread = exactly one A4 landscape page */
+          .flyer-spread {
+            box-shadow: none !important;
+            width: 297mm !important;
+            height: 210mm !important;
+            min-height: 0 !important;
+            max-height: 210mm !important;
+            aspect-ratio: auto !important;
+            overflow: hidden !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            display: flex !important;
+            flex-direction: row !important;
+          }
+
+          /* Each panel = half A4 landscape */
+          .panel-sender, .panel-left, .panel-right, .panel-cover {
+            width: 148.5mm !important;
+            min-width: 148.5mm !important;
+            max-width: 148.5mm !important;
+            height: 210mm !important;
+            flex: none !important;
+            overflow: hidden !important;
+          }
+
+          /* White backgrounds for text panels */
+          .panel-sender { background: #fff !important; border-right: 1px dashed #ccc; }
           .panel-sender .p-label  { color: ${A2} !important; opacity: 1 !important; }
           .panel-sender .p-heading { color: ${A2} !important; }
           .panel-sender .p-body   { color: #1a0e04 !important; opacity: 1 !important; }
           .panel-sender .p-url    { color: ${A2} !important; opacity: 1 !important; }
 
-          /* Seite 2 */
           .panel-left { background: #fff !important; border-right: 1px dashed #ccc; }
           .panel-left .p-label   { color: ${A2} !important; opacity: 1 !important; }
           .panel-left .p-heading  { color: ${A2} !important; }
           .panel-left .p-body    { color: #1a0e04 !important; opacity: 1 !important; }
           .panel-left .p-italic  { color: #1a0e04 !important; opacity: 0.6 !important; }
 
-          /* Seite 3 */
           .panel-right { background: #fff !important; }
           .panel-right .p-label      { color: ${A2} !important; opacity: 1 !important; }
           .panel-right .p-heading     { color: ${A2} !important; }
@@ -84,7 +102,7 @@ export default function FlyerPage() {
           .panel-right .p-qr-label   { color: ${A2} !important; }
           .panel-right .p-qr-url     { color: #3a2a0a !important; opacity: 1 !important; }
 
-          .faltlinie { background: repeating-linear-gradient(to bottom, #bbb 0px, #bbb 6px, transparent 6px, transparent 12px) !important; }
+          .faltlinie { background: repeating-linear-gradient(to bottom, #bbb 0px, #bbb 4px, transparent 4px, transparent 8px) !important; width: 1px !important; }
         }
       `}</style>
     </div>
@@ -135,7 +153,7 @@ function Aussen() {
       <div className="faltlinie" style={{ width: "1px", flexShrink: 0, background: "repeating-linear-gradient(to bottom, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 6px, transparent 6px, transparent 12px)", alignSelf: "stretch" }} />
 
       {/* Seite 1 — Deckblatt */}
-      <div style={{ ...panelStyle, background: "#E8891A", position: "relative", overflow: "hidden" }}>
+      <div className="panel-cover" style={{ ...panelStyle, background: "#E8891A", position: "relative", overflow: "hidden" }}>
         <svg viewBox="0 0 1000 1000" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.25, zIndex: 0, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
           {Array.from({ length: 20 }, (_, i) => {
             const a = (i / 20) * 360; const r = (a * Math.PI) / 180;
