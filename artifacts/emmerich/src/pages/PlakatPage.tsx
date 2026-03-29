@@ -83,10 +83,24 @@ export default function PlakatPage() {
           flexShrink: 0,
         }}
       >
+        {/* Full photo — no cropping */}
+        <img
+          src="/boomerparty-foto.jpeg"
+          alt="BoomerParty"
+          style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", display: "block", position: "absolute", inset: 0, zIndex: 1 }}
+        />
+
+        {/* Sunrays behind headline only */}
         <Sunrays />
 
-        {/* Headline */}
-        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "3.5% 4% 0" }}>
+        {/* Top overlay: headline */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0,
+          zIndex: 3,
+          background: "linear-gradient(to bottom, rgba(232,137,26,0.97) 70%, rgba(232,137,26,0))",
+          textAlign: "center",
+          padding: "3% 4% 8%",
+        }}>
           <div style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 900,
@@ -112,25 +126,16 @@ export default function PlakatPage() {
           </div>
         </div>
 
-        {/* Photo */}
-        <div style={{ position: "relative", zIndex: 2, flex: 1, overflow: "hidden", marginTop: "2%" }}>
-          <img
-            src="/boomerparty-foto.jpeg"
-            alt="BoomerParty"
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
-          />
-        </div>
-
-        {/* Bottom band */}
+        {/* Bottom overlay: date + QR */}
         <div style={{
-          position: "relative", zIndex: 3,
-          background: "#c97d10",
-          padding: "3% 5%",
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          zIndex: 3,
+          background: "linear-gradient(to top, rgba(170,90,5,0.97) 65%, rgba(170,90,5,0))",
+          padding: "8% 5% 3.5%",
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-end",
           justifyContent: "space-between",
           gap: "4%",
-          flexShrink: 0,
         }}>
           <div style={{ flex: 1 }}>
             <div style={{
@@ -158,12 +163,12 @@ export default function PlakatPage() {
           </div>
 
           {/* QR Code */}
-          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "4%" }}>
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "6%" }}>
             <div style={{
               background: "#fff",
               padding: "clamp(3px, 1.2%, 14px)",
               borderRadius: "clamp(3px, 0.8%, 10px)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
               lineHeight: 0,
             }}>
               <QRCodeSVG
@@ -172,13 +177,13 @@ export default function PlakatPage() {
                 bgColor="#ffffff"
                 fgColor="#0a0704"
                 level="H"
-                style={{ width: "clamp(50px, 15vw, 180px)", height: "auto", display: "block" }}
+                style={{ width: "clamp(50px, 14vw, 170px)", height: "auto", display: "block" }}
               />
             </div>
             <div style={{
               fontFamily: "'Lora', serif",
               fontStyle: "italic",
-              fontSize: "clamp(0.4rem, 1.5vw, 1.8rem)",
+              fontSize: "clamp(0.4rem, 1.4vw, 1.7rem)",
               color: "#fff",
               textAlign: "center",
               opacity: 0.9,
