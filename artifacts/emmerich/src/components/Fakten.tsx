@@ -59,7 +59,7 @@ export default function Fakten() {
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Wo</span>
-          <span className="fakten-val">Bölt / Kapaunenberg<small>Emmerich am Rhein</small></span>
+          <span className="fakten-val">Bölt / Gaststätte Kapaunenberg<small>Emmerich am Rhein</small></span>
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Eintritt</span>

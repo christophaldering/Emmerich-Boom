@@ -124,7 +124,8 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
             const showDivider = phaseIdx !== lastPhaseIdx;
             if (showDivider) lastPhaseIdx = phaseIdx;
             const phase = PHASES[phaseIdx];
-            const isHighlight = highlightId !== null && t.key === `w${highlightId}`;
+            const highlightKey = highlightId !== null ? `w${highlightId}` : null;
+            const isHighlight = highlightKey !== null && (t.key === highlightKey || (t.memberKeys?.includes(highlightKey) ?? false));
 
             return (
               <div key={t.key}>

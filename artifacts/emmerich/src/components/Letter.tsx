@@ -50,7 +50,7 @@ export default function Letter() {
           marginBottom: "3rem",
         }}
       >
-        18. Juli 2026 · Bölt / Kapaunenberg · Emmerich am Rhein
+        18. Juli 2026 · Bölt / Gaststätte Kapaunenberg · Emmerich am Rhein
       </p>
 
       <div className="reveal" style={{ animationDelay: "0.55s" }}>
@@ -106,7 +106,7 @@ export default function Letter() {
         `}</style>
         <div className="letter-body">
           <p>Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉</p>
-          <p>Also. Es gibt eine Party. Am <strong>18. Juli 2026</strong>. Auf dem Bölt. Ihr wisst schon — Kapaunenberg, Emmerich. Und die wird gut.</p>
+          <p>Also: Es gibt eine Party. Am <strong>18. Juli 2026</strong>. Auf dem Bölt. Ihr wisst schon — in der Gaststätte Kapaunenberg, Emmerich. Und die wird gut.</p>
 
           <ul className="bullet-list">
             <li>Abrocken — zu Musik, bei der man den Text noch kann</li>

@@ -5,6 +5,7 @@ export type Track = {
   title: string;
   energy: number;
   wishBy?: string;
+  memberKeys?: string[];
 };
 
 export type Phase = {
@@ -105,29 +106,55 @@ function parseSong(raw: string): { artist: string; title: string } {
   return { artist: raw.trim(), title: "" };
 }
 
-export function buildSortedPlaylist(wishes: WishEntry[]): Track[] {
-  const wishTracks: Track[] = wishes
-    .filter((e) => e.song && e.song.trim() !== "")
-    .map((e) => {
-      const raw = e.song!.trim();
-      const { artist, title } = parseSong(raw);
-      const energy = estimateEnergy(raw);
-      return {
-        key: `w${e.id}`,
-        label: "♥",
-        artist,
-        title,
-        energy,
-        wishBy: e.name,
-      };
-    });
+function normalizeSong(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[–\-]/g, " ")
+    .replace(/[^a-z0-9 äöüß]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  return [...CURATED, ...wishTracks].sort((a, b) => a.energy - b.energy);
+export function buildSortedPlaylist(wishes: WishEntry[]): Track[] {
+  const validWishes = wishes.filter((e) => e.song && e.song.trim() !== "");
+
+  const groupMap = new Map<string, Track[]>();
+  for (const e of validWishes) {
+    const raw = e.song!.trim();
+    const { artist, title } = parseSong(raw);
+    const energy = estimateEnergy(raw);
+    const normKey = normalizeSong(raw);
+    const track: Track = { key: `w${e.id}`, label: "♥", artist, title, energy, wishBy: e.name };
+    if (!groupMap.has(normKey)) groupMap.set(normKey, []);
+    groupMap.get(normKey)!.push(track);
+  }
+
+  const mergedWishes: Track[] = [];
+  for (const group of groupMap.values()) {
+    if (group.length === 1) {
+      mergedWishes.push(group[0]);
+    } else {
+      const base = group[0];
+      mergedWishes.push({
+        ...base,
+        wishBy: group.map((t) => t.wishBy!).join(" & "),
+        memberKeys: group.slice(1).map((t) => t.key),
+      });
+    }
+  }
+
+  const wishNormKeys = new Set(groupMap.keys());
+  const filteredCurated = CURATED.filter((c) => {
+    const norm = normalizeSong(`${c.artist} ${c.title}`);
+    return !wishNormKeys.has(norm);
+  });
+
+  return [...filteredCurated, ...mergedWishes].sort((a, b) => a.energy - b.energy);
 }
 
 export function getRevealInfo(submittedSong: string, submittedId: number, allTracks: Track[]): RevealInfo {
   const key = `w${submittedId}`;
-  const idx = allTracks.findIndex((t) => t.key === key);
+  const idx = allTracks.findIndex((t) => t.key === key || (t.memberKeys?.includes(key) ?? false));
   const energy = estimateEnergy(submittedSong);
   const phase = getPhase(energy);
 
