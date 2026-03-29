@@ -26,15 +26,15 @@ export default function FlyerPage() {
         </p>
       </div>
 
-      {/* Seite A: Außenseite */}
-      <div className="print-label no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.35)", alignSelf: "flex-start", marginLeft: "2vw" }}>
-        Seite A — Außenseite drucken (Seite 1 & 4)
+      {/* Außenseite: Seite 4 (links) + Seite 1 (rechts) */}
+      <div className="no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.35)", alignSelf: "flex-start", marginLeft: "2vw" }}>
+        Druckseite 1 — Außenseite (Seite 4 links · Seite 1 rechts)
       </div>
       <Aussen />
 
-      {/* Seite B: Innenseite */}
-      <div className="print-label no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.35)", alignSelf: "flex-start", marginLeft: "2vw" }}>
-        Seite B — Innenseite drucken (Seite 2 & 3)
+      {/* Innenseite: Seite 2 (links) + Seite 3 (rechts) */}
+      <div className="no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.35)", alignSelf: "flex-start", marginLeft: "2vw" }}>
+        Druckseite 2 — Innenseite (Seite 2 links · Seite 3 rechts)
       </div>
       <Innen />
 
@@ -44,7 +44,6 @@ export default function FlyerPage() {
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
           .no-print { display: none !important; }
-
           .flyer-page {
             background: #fff !important;
             padding: 0 !important;
@@ -53,8 +52,6 @@ export default function FlyerPage() {
             display: block !important;
             width: 297mm !important;
           }
-
-          /* Each spread = exactly one A4 landscape page */
           .flyer-spread {
             box-shadow: none !important;
             width: 297mm !important;
@@ -68,8 +65,6 @@ export default function FlyerPage() {
             display: flex !important;
             flex-direction: row !important;
           }
-
-          /* Each panel = half A4 landscape */
           .panel-sender, .panel-left, .panel-right, .panel-cover {
             width: 148.5mm !important;
             min-width: 148.5mm !important;
@@ -78,20 +73,17 @@ export default function FlyerPage() {
             flex: none !important;
             overflow: hidden !important;
           }
-
-          /* White backgrounds for text panels */
-          .panel-sender { background: #fff !important; border-right: 1px dashed #ccc; }
-          .panel-sender .p-label  { color: ${A2} !important; opacity: 1 !important; }
-          .panel-sender .p-heading { color: ${A2} !important; }
-          .panel-sender .p-body   { color: #1a0e04 !important; opacity: 1 !important; }
-          .panel-sender .p-url    { color: ${A2} !important; opacity: 1 !important; }
-
+          .panel-sender { background: #fff !important; }
+          .panel-sender .p-label   { color: ${A2} !important; opacity: 1 !important; }
+          .panel-sender .p-heading  { color: ${A2} !important; }
+          .panel-sender .p-body    { color: #1a0e04 !important; opacity: 1 !important; }
+          .panel-sender .p-wa-text { color: #075e54 !important; opacity: 1 !important; }
+          .panel-sender .p-url     { color: ${A2} !important; opacity: 1 !important; }
           .panel-left { background: #fff !important; border-right: 1px dashed #ccc; }
-          .panel-left .p-label   { color: ${A2} !important; opacity: 1 !important; }
-          .panel-left .p-heading  { color: ${A2} !important; }
-          .panel-left .p-body    { color: #1a0e04 !important; opacity: 1 !important; }
-          .panel-left .p-italic  { color: #1a0e04 !important; opacity: 0.6 !important; }
-
+          .panel-left .p-label    { color: ${A2} !important; opacity: 1 !important; }
+          .panel-left .p-heading   { color: ${A2} !important; }
+          .panel-left .p-body     { color: #1a0e04 !important; opacity: 1 !important; }
+          .panel-left .p-note     { color: #1a0e04 !important; background: #f7f0e0 !important; border-color: #e0c88a !important; opacity: 1 !important; }
           .panel-right { background: #fff !important; }
           .panel-right .p-label      { color: ${A2} !important; opacity: 1 !important; }
           .panel-right .p-heading     { color: ${A2} !important; }
@@ -101,7 +93,6 @@ export default function FlyerPage() {
           .panel-right .p-qr-box     { background: #f7f0e0 !important; border: 1px solid #e0c88a !important; }
           .panel-right .p-qr-label   { color: ${A2} !important; }
           .panel-right .p-qr-url     { color: #3a2a0a !important; opacity: 1 !important; }
-
           .faltlinie { background: repeating-linear-gradient(to bottom, #bbb 0px, #bbb 4px, transparent 4px, transparent 8px) !important; width: 1px !important; }
         }
       `}</style>
@@ -109,42 +100,58 @@ export default function FlyerPage() {
   );
 }
 
-/* ── AUSSENSEITE: Seite 4 (links) + Seite 1 (rechts) ── */
+/* ════════════════════════════════════════════════════
+   AUSSENSEITE
+   links  = Seite 4 — BoomerClub (Rückseite / Absender)
+   rechts = Seite 1 — Deckblatt mit Foto
+   ════════════════════════════════════════════════════ */
 function Aussen() {
   return (
     <div className="flyer-spread" style={spreadStyle}>
-      {/* Seite 4 — Absender */}
-      <div className="panel-sender" style={{ ...panelStyle, background: BG, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8% 7%" }}>
-        <div>
-          <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.45rem, 1.1vw, 0.8rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: "0 0 0.6em", opacity: 0.8 }}>
-            Absender
+
+      {/* ── Seite 4: BoomerClub-Hinweis ── */}
+      <div className="panel-sender" style={{ ...panelStyle, background: BG, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "7% 7%" }}>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.6em" }}>
+          <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 1vw, 0.72rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: 0, opacity: 0.8 }}>
+            Der BoomerClub Emmerich
           </p>
-          <div className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1rem, 2.8vw, 2rem)", color: A, lineHeight: 1.1 }}>
-            BoomerClub<br />Emmerich
+          <div className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.6vw, 1.85rem)", color: A, lineHeight: 1.1 }}>
+            Gegründet 2024 — an der Theke der Societät.
           </div>
         </div>
-        <div>
-          <p className="p-body" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.5rem, 1.15vw, 0.85rem)", color: FG, lineHeight: 1.7, opacity: 0.85, margin: 0 }}>
-            Gegründet 2024 an der Theke der Societät — rund 130 Leute dabei. Von uns. Für uns. Wird Zeit.
+
+        <div className="p-body" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.5rem, 1.15vw, 0.85rem)", color: FG, lineHeight: 1.75, opacity: 0.88 }}>
+          <p style={{ margin: "0 0 0.7em" }}>
+            Rund <strong style={{ color: A }}>130 Leute</strong> aus Emmerich und Umgebung sind dabei.
+            Manche kommen zu den gemütlichen Treffen — die finden alle vier bis sechs Monate statt, etwa dreimal im Jahr.
+          </p>
+          <p style={{ margin: 0 }}>
+            Andere verfolgen einfach, was so passiert — direkt über WhatsApp. Beides ist vollkommen richtig. Passt doch.
           </p>
         </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75em" }}>
+          {/* Website QR */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.8em" }}>
             <div style={{ background: "#fff", padding: "clamp(2px, 0.5%, 6px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
               <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor={BG} level="M"
-                style={{ width: "clamp(28px, 6vw, 52px)", height: "auto", display: "block" }} />
+                style={{ width: "clamp(30px, 6.5vw, 54px)", height: "auto", display: "block" }} />
             </div>
-            <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.75rem)", color: A, margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
-              emmerich-boomt<br />.replit.app
+            <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", color: A, margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
+              emmerich-boomt.replit.app<br />
+              <span style={{ opacity: 0.7, fontSize: "0.9em" }}>Zur Party-Website</span>
             </p>
           </div>
+          {/* WhatsApp QR */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.8em" }}>
             <div style={{ background: "#fff", padding: "clamp(2px, 0.5%, 6px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
               <QRCodeSVG value={WA_URL} size={256} bgColor="#fff" fgColor="#075e54" level="M"
-                style={{ width: "clamp(28px, 6vw, 52px)", height: "auto", display: "block" }} />
+                style={{ width: "clamp(30px, 6.5vw, 54px)", height: "auto", display: "block" }} />
             </div>
-            <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.75rem)", color: "#4fce82", margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
-              WhatsApp-<br />Gruppe beitreten
+            <p className="p-wa-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", color: "#4fce82", margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
+              WhatsApp-Gruppe<br />
+              <span style={{ opacity: 0.8, fontSize: "0.9em" }}>BoomerClub Emmerich</span>
             </p>
           </div>
         </div>
@@ -152,7 +159,7 @@ function Aussen() {
 
       <div className="faltlinie" style={{ width: "1px", flexShrink: 0, background: "repeating-linear-gradient(to bottom, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 6px, transparent 6px, transparent 12px)", alignSelf: "stretch" }} />
 
-      {/* Seite 1 — Deckblatt */}
+      {/* ── Seite 1: Deckblatt ── */}
       <div className="panel-cover" style={{ ...panelStyle, background: "#E8891A", position: "relative", overflow: "hidden" }}>
         <svg viewBox="0 0 1000 1000" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.25, zIndex: 0, pointerEvents: "none" }} preserveAspectRatio="xMidYMid slice">
           {Array.from({ length: 20 }, (_, i) => {
@@ -180,94 +187,104 @@ function Aussen() {
           </div>
         </div>
       </div>
+
     </div>
   );
 }
 
-/* ── INNENSEITE: Seite 2 (links) + Seite 3 (rechts) ── */
+/* ════════════════════════════════════════════════════
+   INNENSEITE
+   links  = Seite 2 — Was euch erwartet (Geschichte / Brief)
+   rechts = Seite 3 — Wie ihr dabei seid (Prozess)
+   ════════════════════════════════════════════════════ */
 function Innen() {
   return (
     <div className="flyer-spread" style={spreadStyle}>
-      {/* Seite 2 */}
-      <div className="panel-left" style={{ ...panelStyle, background: "#1a0e04", display: "flex", flexDirection: "column", justifyContent: "center", padding: "8% 7%", gap: "1em" }}>
+
+      {/* ── Seite 2: Geschichte & Was erwartet euch ── */}
+      <div className="panel-left" style={{ ...panelStyle, background: "#1a0e04", display: "flex", flexDirection: "column", justifyContent: "center", padding: "7% 7%", gap: "1em" }}>
         <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: 0, opacity: 0.8 }}>
-          Was euch erwartet
+          Emmerich, Frühjahr 2026
         </p>
-        <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.6vw, 1.85rem)", color: A, lineHeight: 1.15, margin: 0 }}>
-          Von uns. Für uns. Wird Zeit.
+        <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.95rem, 2.6vw, 1.85rem)", color: A, lineHeight: 1.1, margin: 0 }}>
+          Am 18. Juli 2026 gibt es eine Party. Auf dem Bölt. Und die wird gut.
         </h2>
         <div className="p-body" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.5rem, 1.1vw, 0.82rem)", color: FG, lineHeight: 1.75, opacity: 0.88 }}>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "0.45em" }}>
+          <ul style={{ listStyle: "none", margin: "0 0 0.8em", padding: 0, display: "flex", flexDirection: "column", gap: "0.4em" }}>
             {[
               "Abrocken — zu Musik, bei der man den Text noch kann",
-              "70er, 80er und auch Aktuelles — laut, tanzbar und zum Mitsingen",
+              "70er, 80er und Aktuelles — laut, tanzbar, zum Mitsingen",
               "Alte Freunde treffen — manche vielleicht nach Jahren",
               "Gespräche an der Theke — die irgendwie immer die besten sind",
               "Nostalgie — aber die gute Art, bei der einem warm ums Herz wird",
               "Fingerfood, Getränke — kein Dresscode, ganz zwanglos",
             ].map((item, i) => (
-              <li key={i} style={{ display: "flex", gap: "0.5em" }}>
+              <li key={i} style={{ display: "flex", gap: "0.45em" }}>
                 <span style={{ color: A, flexShrink: 0 }}>—</span>
                 <span>{item}</span>
               </li>
             ))}
           </ul>
         </div>
-        <p className="p-italic" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.72rem)", color: FG, opacity: 0.6, margin: 0, lineHeight: 1.6 }}>
-          Das wird eine geschlossene Gesellschaft — kein offenes Stadtfest. Wer sich angesprochen fühlt, ist dabei.
-        </p>
+        <div className="p-note" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.72rem)", color: FG, opacity: 0.65, lineHeight: 1.6, padding: "0.6em 0.8em", background: "rgba(232,153,26,0.07)", borderLeft: `2px solid rgba(232,153,26,0.3)`, borderRadius: "0 3px 3px 0" }}>
+          Das wird eine geschlossene Gesellschaft — kein offenes Stadtfest. Wer sich angesprochen fühlt, ist dabei. Und wer jemanden kennt: <strong style={{ color: A }}>gerne weitersagen.</strong>
+        </div>
       </div>
 
       <div className="faltlinie" style={{ width: "1px", flexShrink: 0, background: "repeating-linear-gradient(to bottom, rgba(232,153,26,0.25) 0px, rgba(232,153,26,0.25) 6px, transparent 6px, transparent 12px)", alignSelf: "stretch" }} />
 
-      {/* Seite 3 */}
-      <div className="panel-right" style={{ ...panelStyle, background: "#0a0704", display: "flex", flexDirection: "column", justifyContent: "center", padding: "8% 7%", gap: "1em" }}>
+      {/* ── Seite 3: Prozess — So seid ihr dabei ── */}
+      <div className="panel-right" style={{ ...panelStyle, background: "#0a0704", display: "flex", flexDirection: "column", justifyContent: "center", padding: "7% 7%", gap: "1.1em" }}>
         <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: 0, opacity: 0.8 }}>
-          Die Fakten
+          So seid ihr dabei
         </p>
-        <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.4vw, 1.7rem)", color: A, lineHeight: 1.15, margin: 0 }}>
-          Was, wo, wann — und wie.
+        <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.4vw, 1.7rem)", color: A, lineHeight: 1.1, margin: 0 }}>
+          Dabei sein ist alles.
         </h2>
-        <div style={{ display: "flex", flexDirection: "column", borderTop: `1px solid rgba(232,153,26,0.2)` }}>
-          {[
-            ["Wann", "Samstag, 18. Juli 2026 (Uhrzeit folgt)"],
-            ["Wo", "Bölt / Gaststätte Kapaunenberg, Emmerich am Rhein"],
-            ["Eintritt", "aktuell kostenlos — 10 EUR bei verbindl. Anmeldung im Mai"],
-            ["Zugang", "Nur mit Anmeldung"],
-          ].map(([key, val]) => (
-            <div key={key} style={{ display: "grid", gridTemplateColumns: "clamp(28px, 5.5vw, 42px) 1fr", gap: "0.5em", padding: "0.5em 0", borderBottom: `1px solid rgba(232,153,26,0.15)`, alignItems: "baseline" }}>
-              <span className="p-step-title" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.7rem)", color: FG, opacity: 0.6, lineHeight: 1.4 }}>{key}</span>
-              <span className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.46rem, 1vw, 0.75rem)", color: FG, lineHeight: 1.4 }}>{val}</span>
+
+        {/* 2-Schritt-Prozess */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1em" }}>
+          {([
+            [
+              "1",
+              "Jetzt: Interesse anmelden",
+              "Einfach QR-Code scannen oder auf der Website melden — kein Aufwand, keine Kosten. Bis Ende April.",
+              "Schritt 1 von 2"
+            ],
+            [
+              "2",
+              "Im Mai: Verbindlich anmelden",
+              "Dann kommt die konkrete Planung — und die richtige Anmeldung mit 10 EUR für Musik und Fingerfood. Dann gibt's auch das Ticket.",
+              "Schritt 2 von 2"
+            ],
+          ] as [string, string, string, string][]).map(([n, title, text]) => (
+            <div key={n} style={{ display: "flex", gap: "0.9em", alignItems: "flex-start", padding: "0.8em", background: "rgba(232,153,26,0.06)", borderRadius: "4px", border: "1px solid rgba(232,153,26,0.15)" }}>
+              <div className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(1.2rem, 3vw, 2.2rem)", color: A, lineHeight: 1, flexShrink: 0, minWidth: "1.1em", textAlign: "center" }}>{n}</div>
+              <div>
+                <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: "clamp(0.52rem, 1.1vw, 0.82rem)", color: FG, lineHeight: 1.3, marginBottom: "0.3em" }}>{title}</div>
+                <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.46rem, 1vw, 0.74rem)", color: FG, opacity: 0.65, lineHeight: 1.55 }}>{text}</div>
+              </div>
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.35em", marginTop: "0.2em" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5em" }}>
-            <span className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.72rem, 1.6vw, 1.1rem)", color: A, lineHeight: 1, flexShrink: 0 }}>1</span>
-            <div>
-              <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.46rem, 1vw, 0.75rem)", color: FG, lineHeight: 1.3 }}>Jetzt: Interesse anmelden</div>
-              <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.6, lineHeight: 1.4, marginTop: "0.1em" }}>Einfach QR-Code scannen — bis Ende April</div>
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5em" }}>
-            <span className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.72rem, 1.6vw, 1.1rem)", color: A, lineHeight: 1, flexShrink: 0 }}>2</span>
-            <div>
-              <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.46rem, 1vw, 0.75rem)", color: FG, lineHeight: 1.3 }}>Mai: verbindliche Anmeldung, 10 EUR</div>
-              <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.6, lineHeight: 1.4, marginTop: "0.1em" }}>Dann geht's in die konkrete Planung</div>
-            </div>
-          </div>
-        </div>
-        <div className="p-qr-box" style={{ display: "flex", alignItems: "center", gap: "1em", marginTop: "0.3em", padding: "0.8em", background: "rgba(232,153,26,0.08)", borderRadius: "6px", border: "1px solid rgba(232,153,26,0.25)" }}>
-          <div style={{ background: "#fff", padding: "clamp(3px, 0.6%, 7px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
+
+        {/* QR-Code Box */}
+        <div className="p-qr-box" style={{ display: "flex", alignItems: "center", gap: "1em", padding: "0.9em", background: "rgba(232,153,26,0.1)", borderRadius: "6px", border: "1px solid rgba(232,153,26,0.3)" }}>
+          <div style={{ background: "#fff", padding: "clamp(3px, 0.6%, 8px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
             <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor="#0a0704" level="H"
-              style={{ width: "clamp(38px, 8.5vw, 68px)", height: "auto", display: "block" }} />
+              style={{ width: "clamp(40px, 9vw, 72px)", height: "auto", display: "block" }} />
           </div>
           <div>
-            <div className="p-qr-label" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(0.55rem, 1.3vw, 0.95rem)", color: A, fontWeight: 700 }}>Jetzt anmelden</div>
-            <div className="p-qr-url" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.65, marginTop: "0.2em" }}>emmerich-boomt.replit.app</div>
+            <div className="p-qr-label" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(0.6rem, 1.4vw, 1rem)", color: A, fontWeight: 700 }}>
+              Jetzt Interesse anmelden
+            </div>
+            <div className="p-qr-url" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.44rem, 0.95vw, 0.72rem)", color: FG, opacity: 0.6, marginTop: "0.25em" }}>
+              emmerich-boomt.replit.app
+            </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 }
