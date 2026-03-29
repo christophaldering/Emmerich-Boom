@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 const SITE_URL = "https://emmerich-boomt.replit.app";
@@ -9,88 +8,81 @@ const BG = "#0a0704";
 const FG = "#f5e8c8";
 
 export default function FlyerPage() {
-  const [view, setView] = useState<"aussen" | "innen">("aussen");
-
   return (
-    <div className="flyer-page" style={{ background: "#1a1208", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.25rem" }}>
+    <div className="flyer-page" style={{ background: "#1a1208", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "2rem" }}>
 
       {/* Controls */}
-      <div className="no-print" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          {(["aussen", "innen"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)} style={{
-              background: view === v ? A : "transparent",
-              border: `1px solid ${A}`,
-              borderRadius: "3px",
-              color: view === v ? BG : A,
-              padding: "0.4rem 1.2rem",
-              fontFamily: "'Playfair Display', serif",
-              fontStyle: "italic",
-              fontWeight: view === v ? 700 : 400,
-              fontSize: "0.95rem",
-              cursor: "pointer",
-            }}>
-              {v === "aussen" ? "Außenseite (Seite 1 & 4)" : "Innenseite (Seite 2 & 3)"}
-            </button>
-          ))}
-        </div>
+      <div className="no-print" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.6rem" }}>
         <button onClick={() => window.print()} style={{
           background: A, border: "none", borderRadius: "4px",
-          color: BG, padding: "0.7rem 2rem",
-          fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1rem", cursor: "pointer",
+          color: BG, padding: "0.7rem 2.5rem",
+          fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1.05rem", cursor: "pointer",
         }}>
-          Diese Seite drucken / als PDF
+          Flyer drucken / als PDF speichern
         </button>
         <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: "rgba(245,232,200,0.4)", margin: 0, textAlign: "center" }}>
-          Papierformat A4 · Querformat · Ränder auf „Keine" · beide Seiten drucken, dann in der Mitte falten
+          Druckdialog: Papierformat A4 · Querformat · Ränder auf „Keine" · beidseitig drucken · in der Mitte falten
         </p>
       </div>
 
-      {/* Spread */}
-      {view === "aussen" ? <Aussen /> : <Innen />}
+      {/* Seite A: Außenseite */}
+      <div className="print-label no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.35)", alignSelf: "flex-start", marginLeft: "2vw" }}>
+        Seite A — Außenseite drucken (Seite 1 & 4)
+      </div>
+      <Aussen />
+
+      {/* Seite B: Innenseite */}
+      <div className="print-label no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.35)", alignSelf: "flex-start", marginLeft: "2vw" }}>
+        Seite B — Innenseite drucken (Seite 2 & 3)
+      </div>
+      <Innen />
 
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 0; }
           body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
           .no-print { display: none !important; }
-          .flyer-page { background: #fff !important; padding: 0 !important; min-height: 0 !important; }
-          .flyer-spread { box-shadow: none !important; width: 100% !important; height: 100vh !important; }
-
-          /* Seite 4 — Absender: weiß mit bernsteinfarbener Kontur */
-          .panel-sender {
+          .flyer-page {
             background: #fff !important;
-            border-right: 1px dashed #ccc;
+            padding: 0 !important;
+            gap: 0 !important;
+            min-height: 0 !important;
+            display: block !important;
           }
-          .panel-sender .p-label { color: ${A2} !important; opacity: 1 !important; }
+          .flyer-spread {
+            box-shadow: none !important;
+            width: 100% !important;
+            height: 100vh !important;
+            aspect-ratio: auto !important;
+            page-break-after: always;
+            break-after: page;
+          }
+
+          /* Seite 4 — Absender */
+          .panel-sender { background: #fff !important; }
+          .panel-sender .p-label  { color: ${A2} !important; opacity: 1 !important; }
           .panel-sender .p-heading { color: ${A2} !important; }
-          .panel-sender .p-body { color: #1a0e04 !important; opacity: 1 !important; }
-          .panel-sender .p-url { color: ${A2} !important; opacity: 1 !important; }
+          .panel-sender .p-body   { color: #1a0e04 !important; opacity: 1 !important; }
+          .panel-sender .p-url    { color: ${A2} !important; opacity: 1 !important; }
 
-          /* Seite 2 — Was ist das */
-          .panel-left {
-            background: #fff !important;
-            border-right: 1px dashed #ccc;
-          }
-          .panel-left .p-label { color: ${A2} !important; opacity: 1 !important; }
-          .panel-left .p-heading { color: ${A2} !important; }
-          .panel-left .p-body { color: #1a0e04 !important; opacity: 1 !important; }
-          .panel-left .p-italic { color: #1a0e04 !important; opacity: 0.6 !important; }
+          /* Seite 2 */
+          .panel-left { background: #fff !important; border-right: 1px dashed #ccc; }
+          .panel-left .p-label   { color: ${A2} !important; opacity: 1 !important; }
+          .panel-left .p-heading  { color: ${A2} !important; }
+          .panel-left .p-body    { color: #1a0e04 !important; opacity: 1 !important; }
+          .panel-left .p-italic  { color: #1a0e04 !important; opacity: 0.6 !important; }
 
-          /* Seite 3 — Anmeldung */
-          .panel-right {
-            background: #fff !important;
-          }
-          .panel-right .p-label { color: ${A2} !important; opacity: 1 !important; }
-          .panel-right .p-heading { color: ${A2} !important; }
-          .panel-right .p-step-num { color: ${A2} !important; }
+          /* Seite 3 */
+          .panel-right { background: #fff !important; }
+          .panel-right .p-label      { color: ${A2} !important; opacity: 1 !important; }
+          .panel-right .p-heading     { color: ${A2} !important; }
+          .panel-right .p-step-num   { color: ${A2} !important; }
           .panel-right .p-step-title { color: #1a0e04 !important; }
-          .panel-right .p-step-text { color: #3a2a0a !important; opacity: 1 !important; }
-          .panel-right .p-qr-box { background: #f7f0e0 !important; border: 1px solid #e0c88a !important; }
-          .panel-right .p-qr-label { color: ${A2} !important; }
-          .panel-right .p-qr-url { color: #3a2a0a !important; opacity: 1 !important; }
+          .panel-right .p-step-text  { color: #3a2a0a !important; opacity: 1 !important; }
+          .panel-right .p-qr-box     { background: #f7f0e0 !important; border: 1px solid #e0c88a !important; }
+          .panel-right .p-qr-label   { color: ${A2} !important; }
+          .panel-right .p-qr-url     { color: #3a2a0a !important; opacity: 1 !important; }
 
-          /* Faltlinie */
           .faltlinie { background: repeating-linear-gradient(to bottom, #bbb 0px, #bbb 6px, transparent 6px, transparent 12px) !important; }
         }
       `}</style>
@@ -102,7 +94,7 @@ export default function FlyerPage() {
 function Aussen() {
   return (
     <div className="flyer-spread" style={spreadStyle}>
-      {/* Seite 4 — Rückseite / Absender */}
+      {/* Seite 4 — Absender */}
       <div className="panel-sender" style={{ ...panelStyle, background: BG, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "8% 7%" }}>
         <div>
           <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.45rem, 1.1vw, 0.8rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: "0 0 0.6em", opacity: 0.8 }}>
@@ -112,14 +104,12 @@ function Aussen() {
             BoomerClub<br />Emmerich
           </div>
         </div>
-
         <div>
           <p className="p-body" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.5rem, 1.15vw, 0.85rem)", color: FG, lineHeight: 1.7, opacity: 0.85, margin: 0 }}>
             Gegründet 2024 — an der Theke der Societät. Rund 130 Mitglieder aus Emmerich und Umgebung.
             Eine Community für alle, die dabei sein wollen — bei gemütlichen Treffen oder einfach per WhatsApp.
           </p>
         </div>
-
         <div style={{ display: "flex", alignItems: "center", gap: "1em" }}>
           <div style={{ background: "#fff", padding: "clamp(2px, 0.5%, 6px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
             <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor={BG} level="M"
@@ -131,7 +121,7 @@ function Aussen() {
         </div>
       </div>
 
-      <div className="faltlinie" style={{ width: "1px", flexShrink: 0, background: "repeating-linear-gradient(to bottom, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 6px, transparent 6px, transparent 12px)", alignSelf: "stretch" }} />
+      <div className="faltlinie" style={{ width: "1px", flexShrink: 0, background: "repeating-linear-gradient(to bottom, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 6px, transparent 6px, transparent 12px)", alignSelf: "stretch" }} />
 
       {/* Seite 1 — Deckblatt */}
       <div style={{ ...panelStyle, background: "#E8891A", position: "relative", overflow: "hidden" }}>
@@ -200,7 +190,6 @@ function Innen() {
         <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.4vw, 1.7rem)", color: A, lineHeight: 1.15, margin: 0 }}>
           Dabei sein ist alles.
         </h2>
-
         <div style={{ display: "flex", flexDirection: "column", gap: "0.6em" }}>
           {[
             ["1", "Interesse anmelden", "Einfach QR-Code scannen und auf der Website eintragen — kein Aufwand."],
@@ -209,9 +198,7 @@ function Innen() {
             ["4", "Einfach kommen", "Ticket vorzeigen, reinkommen, genießen."],
           ].map(([n, title, text]) => (
             <div key={n} style={{ display: "flex", gap: "0.75em", alignItems: "flex-start" }}>
-              <div className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.8rem, 2vw, 1.4rem)", color: A, lineHeight: 1, flexShrink: 0, minWidth: "1.2em" }}>
-                {n}
-              </div>
+              <div className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.8rem, 2vw, 1.4rem)", color: A, lineHeight: 1, flexShrink: 0, minWidth: "1.2em" }}>{n}</div>
               <div>
                 <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.48rem, 1.05vw, 0.78rem)", color: FG, lineHeight: 1.3 }}>{title}</div>
                 <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.7rem)", color: FG, opacity: 0.65, lineHeight: 1.5, marginTop: "0.15em" }}>{text}</div>
@@ -219,19 +206,14 @@ function Innen() {
             </div>
           ))}
         </div>
-
         <div className="p-qr-box" style={{ display: "flex", alignItems: "center", gap: "1em", marginTop: "0.5em", padding: "0.8em", background: "rgba(232,153,26,0.08)", borderRadius: "6px", border: "1px solid rgba(232,153,26,0.25)" }}>
           <div style={{ background: "#fff", padding: "clamp(3px, 0.6%, 7px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
             <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor="#0a0704" level="H"
               style={{ width: "clamp(38px, 8.5vw, 68px)", height: "auto", display: "block" }} />
           </div>
           <div>
-            <div className="p-qr-label" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(0.55rem, 1.3vw, 0.95rem)", color: A, fontWeight: 700 }}>
-              Jetzt anmelden
-            </div>
-            <div className="p-qr-url" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.65, marginTop: "0.2em" }}>
-              emmerich-boomt.replit.app
-            </div>
+            <div className="p-qr-label" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(0.55rem, 1.3vw, 0.95rem)", color: A, fontWeight: 700 }}>Jetzt anmelden</div>
+            <div className="p-qr-url" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.65, marginTop: "0.2em" }}>emmerich-boomt.replit.app</div>
           </div>
         </div>
       </div>
