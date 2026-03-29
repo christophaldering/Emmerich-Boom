@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useRef, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 const SITE_URL = "https://emmerich-boomt.replit.app";
 
@@ -13,7 +15,22 @@ const FORMATE = [
 ];
 
 export default function PlakatPage() {
-  const [format, setFormat] = useState(FORMATE[1]); // A1 default
+  const [format, setFormat] = useState(FORMATE[1]);
+  const [generating, setGenerating] = useState(false);
+  const plakatRef = useRef<HTMLDivElement>(null);
+
+  const downloadPDF = async () => {
+    if (!plakatRef.current) return;
+    setGenerating(true);
+    try {
+      const canvas = await html2canvas(plakatRef.current, { scale: 3, useCORS: true, allowTaint: false, backgroundColor: null, logging: false });
+      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [format.w, format.h] });
+      pdf.addImage(imgData, "JPEG", 0, 0, format.w, format.h);
+      pdf.save(`emmerich-boomt-plakat-${format.label.toLowerCase()}.pdf`);
+    } catch (e) { console.error(e); alert("PDF konnte nicht erstellt werden."); }
+    setGenerating(false);
+  };
 
   return (
     <div style={{ background: "#2a1f0e", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.25rem" }}>
@@ -44,9 +61,10 @@ export default function PlakatPage() {
           ))}
         </div>
 
-        {/* Print button */}
+        {/* Download button */}
         <button
-          onClick={() => window.print()}
+          onClick={downloadPDF}
+          disabled={generating}
           style={{
             background: "#e8991a",
             border: "none",
@@ -57,18 +75,20 @@ export default function PlakatPage() {
             fontStyle: "italic",
             fontWeight: 700,
             fontSize: "1rem",
-            cursor: "pointer",
+            cursor: generating ? "wait" : "pointer",
+            opacity: generating ? 0.7 : 1,
           }}
         >
-          Plakat drucken / als PDF speichern ({format.label})
+          {generating ? "PDF wird erstellt …" : `PDF herunterladen (${format.label})`}
         </button>
         <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: "rgba(245,232,200,0.45)", margin: 0, textAlign: "center" }}>
-          Im Druckdialog: Papierformat {format.label} · Ränder auf „Keine" setzen
+          PDF öffnen → Drucken → Papierformat {format.label} · Ränder „Keine"
         </p>
       </div>
 
       {/* Poster */}
       <div
+        ref={plakatRef}
         className="plakat"
         style={{
           width: `min(${format.w}mm, 92vw)`,
@@ -87,6 +107,7 @@ export default function PlakatPage() {
         <img
           src="/boomerparty-foto.jpeg"
           alt="BoomerParty"
+          crossOrigin="anonymous"
           style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center", display: "block", position: "absolute", inset: 0, zIndex: 1 }}
         />
 
@@ -172,7 +193,7 @@ export default function PlakatPage() {
               lineHeight: 0,
               flexShrink: 0,
             }}>
-              <QRCodeSVG
+              <QRCodeCanvas
                 value={SITE_URL}
                 size={512}
                 bgColor="#ffffff"
@@ -195,18 +216,6 @@ export default function PlakatPage() {
         </div>
       </div>
 
-      <style>{`
-        @media print {
-          @page { size: ${format.size} portrait; margin: 0; }
-          body, html { margin: 0 !important; padding: 0 !important; background: #E8891A !important; }
-          .no-print { display: none !important; }
-          .plakat {
-            width: ${format.w}mm !important;
-            height: ${format.h}mm !important;
-            box-shadow: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
