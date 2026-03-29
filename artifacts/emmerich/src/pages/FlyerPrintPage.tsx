@@ -46,9 +46,9 @@ export default function FlyerPrintPage() {
         ));
 
         const canvas = await html2canvas(el, {
-          scale: 4,
-          useCORS: true,
-          allowTaint: false,
+          scale: 3,
+          useCORS: false,
+          allowTaint: true,
           logging: false,
           backgroundColor: "#ffffff",
           width: CW,
@@ -223,7 +223,7 @@ export default function FlyerPrintPage() {
 
           {/* Seite 1 — Deckblatt */}
           <div style={{ width: PW, height: CH, flexShrink: 0, position: "relative", overflow: "hidden", background: "#E8891A" }}>
-            <img src="/boomerparty-foto.jpeg" alt="Party" crossOrigin="anonymous"
+            <img src="/boomerparty-foto.jpeg" alt="Party"
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, background: "linear-gradient(to bottom,rgba(232,137,26,0.95) 55%,transparent)", padding: "8% 8% 14%", textAlign: "center" }}>
               <div style={{ fontFamily: "Playfair Display, Georgia, serif", fontWeight: 900, fontSize: 40, lineHeight: 0.9, color: "#fff", textTransform: "uppercase" }}>

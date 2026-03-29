@@ -23,7 +23,7 @@ export default function PlakatPageB() {
     if (!plakatRef.current) return;
     setGenerating(true);
     try {
-      const canvas = await html2canvas(plakatRef.current, { scale: 3, useCORS: true, allowTaint: false, backgroundColor: null, logging: false });
+      const canvas = await html2canvas(plakatRef.current, { scale: 2, useCORS: false, allowTaint: true, backgroundColor: null, logging: false, imageTimeout: 0 });
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [format.w, format.h] });
       pdf.addImage(imgData, "JPEG", 0, 0, format.w, format.h);
@@ -178,7 +178,6 @@ export default function PlakatPageB() {
             <img
               src="/boomerparty-foto.jpeg"
               alt="BoomerParty"
-              crossOrigin="anonymous"
               style={{
                 width: "100%",
                 height: "100%",
