@@ -9,6 +9,7 @@ import Teilnehmer from "@/components/Teilnehmer";
 import KaI from "@/components/KaI";
 import Playlist from "@/components/Playlist";
 import BoomerClub from "@/components/BoomerClub";
+import DruckMaterial from "@/components/DruckMaterial";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
@@ -36,6 +37,7 @@ export default function BoomerPartyPage() {
       <Teilnehmer refreshKey={refreshCounter} />
       <KaI refreshSignal={refreshCounter} />
       <BoomerClub />
+      <DruckMaterial />
       <PressNote />
       <Legal />
       <SiteFooter />
