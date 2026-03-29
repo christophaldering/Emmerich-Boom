@@ -105,7 +105,7 @@ export default function Letter() {
           }
         `}</style>
         <div className="letter-body">
-          <p>Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉</p>
+          <p>Wir wissen zwar noch, wie man sich ohne Handy verabredet aber wir können auch anders. 😉</p>
           <p>Also: Es gibt eine Party. Am <strong>18. Juli 2026</strong>. Auf dem Bölt. Ihr wisst schon — in der Gaststätte Kapaunenberg, Emmerich. Und die wird gut.</p>
 
           <ul className="bullet-list">

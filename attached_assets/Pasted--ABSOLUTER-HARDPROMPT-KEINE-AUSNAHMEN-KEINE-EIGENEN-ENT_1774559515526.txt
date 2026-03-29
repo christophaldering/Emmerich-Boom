@@ -319,10 +319,10 @@ Und jetzt das Wichtigste: [strong]Wir wollen erstmal wissen, wer dabei ist.[/str
 **BULLET-LISTE — exakt diese 6 Punkte, „—" als Marker in var(--amber):**
 ```
 — Abrocken — zu Musik, bei der man den Text noch kann
-— 70er, 80er — laut, tanzbar, kein Wenn und Aber
+— 70er, 80er, und auch Aktuelles — tanzbar und auch mal lauter
 — Alte Freunde treffen — manche vielleicht nach Jahren
 — Gespräche an der Theke, die irgendwie immer die besten sind
-— Nostalgie — aber die gute Art, die einem warm ums Herz wird
+— ein bisschen Nostalgie — auf die Art, die einem warm ums Herz werden lässt
 — Fingerfood, Getränke — kein Dresscode, kein Gedöns
 ```
 
