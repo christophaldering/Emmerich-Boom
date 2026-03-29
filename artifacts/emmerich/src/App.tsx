@@ -4,6 +4,7 @@ import AdminPage from "@/pages/AdminPage";
 import TicketPage from "@/pages/TicketPage";
 import EinlassPage from "@/pages/EinlassPage";
 import PlakatPage from "@/pages/PlakatPage";
+import FlyerPage from "@/pages/FlyerPage";
 import Beacon from "@/components/Beacon";
 
 const ADMIN_SLUG = "boomer-orga-intern";
@@ -17,6 +18,7 @@ function getRoute(): { page: string; param?: string } {
   if (clean === ADMIN_SLUG) return { page: "admin" };
   if (clean === "einlass") return { page: "einlass" };
   if (clean === "plakat") return { page: "plakat" };
+  if (clean === "flyer") return { page: "flyer" };
   const ticketMatch = clean.match(/^ticket\/([A-Fa-f0-9]{16})$/);
   if (ticketMatch) return { page: "ticket", param: ticketMatch[1].toUpperCase() };
   return { page: "main" };
@@ -32,6 +34,7 @@ export default function App() {
   if (route.page === "admin") return <AdminPage />;
   if (route.page === "einlass") return <EinlassPage />;
   if (route.page === "plakat") return <PlakatPage />;
+  if (route.page === "flyer") return <FlyerPage />;
   if (route.page === "ticket" && route.param) return <TicketPage code={route.param} />;
 
   return (

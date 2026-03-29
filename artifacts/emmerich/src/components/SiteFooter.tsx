@@ -19,6 +19,10 @@ export default function SiteFooter() {
         <a href="/plakat" style={{ color: "var(--amber)", textDecoration: "underline", fontStyle: "italic" }}>
           Plakat zum Ausdrucken (A0–A5)
         </a>
+        {" · "}
+        <a href="/flyer" style={{ color: "var(--amber)", textDecoration: "underline", fontStyle: "italic" }}>
+          Flyer (A4, Mittelfaltung)
+        </a>
       </p>
     </footer>
   );
