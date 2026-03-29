@@ -204,6 +204,68 @@ router.get("/admin-stats", async (req, res) => {
       }))
       .sort((a, b) => (b.lastSeen?.getTime() ?? 0) - (a.lastSeen?.getTime() ?? 0));
 
+    // --- Time-series analytics ---
+    const TZ = "Europe/Berlin";
+    const tzDate = (d: Date) =>
+      new Intl.DateTimeFormat("de-DE", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" })
+        .format(d).split(".").reverse().join("-"); // => "YYYY-MM-DD"
+    const tzHour = (d: Date) =>
+      parseInt(new Intl.DateTimeFormat("de-DE", { timeZone: TZ, hour: "2-digit", hour12: false }).format(d), 10);
+    const tzWeekdayIdx = (d: Date) => {
+      // 0=So … 6=Sa, reorder to Mo=0
+      const raw = d.getDay(); // JS: 0=Sun
+      return (raw + 6) % 7;  // Mo=0, Di=1, … So=6
+    };
+
+    // Daily visits — last 30 days
+    const days30: string[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      days30.push(tzDate(d));
+    }
+    const visitsByDay: Record<string, number> = {};
+    const regsByDay:   Record<string, number> = {};
+    for (const d of days30) { visitsByDay[d] = 0; regsByDay[d] = 0; }
+    for (const r of all) {
+      if (!r.createdAt) continue;
+      const d = tzDate(r.createdAt);
+      if (d in visitsByDay) visitsByDay[d]++;
+    }
+    for (const r of allReg) {
+      if (!r.createdAt) continue;
+      const d = tzDate(r.createdAt);
+      if (d in regsByDay) regsByDay[d]++;
+    }
+    const dailyVisits = days30.map(d => ({
+      date:          d,
+      visits:        visitsByDay[d],
+      registrations: regsByDay[d],
+    }));
+
+    // Hourly distribution (all-time)
+    const hourly = new Array<number>(24).fill(0);
+    for (const r of all) {
+      if (!r.createdAt) continue;
+      const h = tzHour(r.createdAt);
+      if (h >= 0 && h < 24) hourly[h]++;
+    }
+    const hourlyDistribution = hourly.map((count, hour) => ({ hour, count }));
+
+    // Weekday distribution Mo–So
+    const DAYS_DE = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+    const weekday = new Array<number>(7).fill(0);
+    for (const r of all) {
+      if (!r.createdAt) continue;
+      weekday[tzWeekdayIdx(r.createdAt)]++;
+    }
+    const weekdayDistribution = DAYS_DE.map((day, i) => ({ day, count: weekday[i] }));
+
+    // Registration timeline (chronological)
+    const registrationTimeline = [...allReg]
+      .reverse()
+      .map(r => ({ name: r.name, date: r.createdAt, song: r.song ?? null }));
+
     res.json({
       summary: {
         totalSessions:       all.length,
@@ -217,6 +279,10 @@ router.get("/admin-stats", async (req, res) => {
       },
       registrations,
       returnerNames,
+      dailyVisits,
+      hourlyDistribution,
+      weekdayDistribution,
+      registrationTimeline,
       referrers:      byReferrer(all),
       devices:        byDevice(all),
       todayReferrers: byReferrer(today),
