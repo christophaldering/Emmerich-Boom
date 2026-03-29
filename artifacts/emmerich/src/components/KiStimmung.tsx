@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "emmerich_ki_historie";
 const MAX_HISTORY = 5;
@@ -86,8 +86,6 @@ export default function KiStimmung() {
   const [history, setHistory]     = useState<HistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [teilnehmer, setTeilnehmer]   = useState<Teilnehmer[]>([]);
-  const textRef   = useRef<HTMLParagraphElement>(null);
-  const [needsFade, setNeedsFade] = useState(false);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -96,12 +94,6 @@ export default function KiStimmung() {
       .then((d: Teilnehmer[]) => setTeilnehmer(d))
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!expanded && inhalt && textRef.current) {
-      setNeedsFade(textRef.current.scrollHeight > textRef.current.clientHeight + 4);
-    }
-  }, [inhalt, expanded]);
 
   const analyse = async () => {
     if (loading) return;
@@ -139,12 +131,11 @@ export default function KiStimmung() {
       <style>{`
         .ki-intro-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.75rem; letter-spacing:0.20em; text-transform:uppercase; color:var(--amber); opacity:0.75; margin-bottom:0.6rem; }
         .ki-intro-text { font-family:'Lora',serif; font-size:1rem; line-height:1.85; color:var(--fg-88); margin-bottom:1.4rem; }
-        .ki-result-wrap { position:relative; margin-bottom:0.5rem; }
+        .ki-result-wrap { margin-bottom:0.5rem; }
         .ki-result-text { font-family:'Lora',serif; font-size:1rem; line-height:1.9; color:var(--fg-90); margin:0; overflow:hidden; transition:max-height 0.4s ease; }
-        .ki-result-text.collapsed { max-height:calc(1.85em * 4); }
-        .ki-result-text.expanded-text { max-height:40em; }
-        .ki-fade { position:absolute; bottom:0; left:0; right:0; height:3em; background:linear-gradient(to bottom, transparent, var(--bg-page)); pointer-events:none; }
-        .ki-read-more { background:none; border:none; cursor:pointer; padding:0.4rem 0 0; font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--amber-72); transition:color 0.2s; display:block; }
+        .ki-result-text.collapsed { max-height:calc(1.9em * 4); }
+        .ki-result-text.expanded-text { max-height:none; }
+        .ki-read-more { background:none; border:none; cursor:pointer; padding:0.5rem 0 0; font-family:'Lora',serif; font-style:italic; font-size:0.95rem; color:var(--amber-72); transition:color 0.2s; display:block; }
         .ki-read-more:hover { color:var(--amber); }
         .ki-ask-btn { display:inline-flex; align-items:center; gap:0.55rem; background:transparent; border:1px solid var(--amber-45); border-radius:3px; padding:0.7rem 1.4rem; color:var(--fg-88); font-family:'Lora',serif; font-style:italic; font-size:1rem; cursor:pointer; transition:border-color 0.2s, color 0.2s, background 0.2s; }
         .ki-ask-btn:hover:not(:disabled) { border-color:var(--amber-75); background:var(--amber-06); color:var(--warm); }
@@ -172,14 +163,11 @@ export default function KiStimmung() {
       {inhalt && (
         <>
           <div className="ki-result-wrap">
-            <p ref={textRef} className={`ki-result-text ${expanded ? "expanded-text" : "collapsed"}`}>{inhalt}</p>
-            {!expanded && needsFade && <div className="ki-fade" />}
+            <p className={`ki-result-text ${expanded ? "expanded-text" : "collapsed"}`}>{inhalt}</p>
           </div>
-          {needsFade && (
-            <button className="ki-read-more" onClick={() => setExpanded(v => !v)}>
-              {expanded ? "weniger anzeigen ▲" : "vollständig lesen ▼"}
-            </button>
-          )}
+          <button className="ki-read-more" onClick={() => setExpanded(v => !v)}>
+            {expanded ? "einklappen ▲" : "vollständig lesen ▼"}
+          </button>
           {notice && <p className="ki-notice">{notice}</p>}
           <button className="ki-again" onClick={analyse} disabled={loading}>↺ Orakel erneut befragen</button>
           {historyWithoutCurrent.length > 0 && (
