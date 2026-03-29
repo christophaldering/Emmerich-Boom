@@ -475,12 +475,39 @@ function visitOrdinal(n: number | null): string {
   return `${n}.`;
 }
 
+type Tab = "anmeldungen" | "tickets" | "statistik";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "anmeldungen", label: "Anmeldungen" },
+  { id: "tickets",     label: "Tickets" },
+  { id: "statistik",   label: "Statistik" },
+];
+
+function TabBar({ active, onSelect }: { active: Tab; onSelect: (t: Tab) => void }) {
+  return (
+    <div style={{ display: "flex", gap: "0.25rem", borderBottom: `1px solid ${am(0.25)}`, marginBottom: "2rem" }}>
+      {TABS.map(t => (
+        <button key={t.id} onClick={() => onSelect(t.id)} style={{
+          background: "transparent", border: "none", borderBottom: active === t.id ? `2px solid ${A}` : "2px solid transparent",
+          color: active === t.id ? A : fg(0.55), cursor: "pointer",
+          fontFamily: "'Playfair Display', serif", fontStyle: "italic",
+          fontSize: "1rem", padding: "0.55rem 1.1rem 0.5rem", marginBottom: "-1px",
+          transition: "color 0.15s",
+        }}>
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
+  const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
 
   const load = () => {
     fetch(`${BASE}/api/admin-stats?key=${SECRET}`)
@@ -508,197 +535,166 @@ export default function AdminPage() {
   return (
     <div style={{ background: BG, color: FG, minHeight: "100svh", fontFamily: "'Lora', serif", padding: "2rem 1.5rem", maxWidth: "820px", margin: "0 auto" }}>
 
+      {/* ── Header ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.4rem" }}>
-        <h1 style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(1.5rem,4vw,2.1rem)", color: A, lineHeight: 1.2 }}>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(1.4rem,4vw,2rem)", color: A, lineHeight: 1.2 }}>
           Emmerich boomt — Orga
         </h1>
-        <button onClick={load} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
-          Aktualisieren
-        </button>
+        <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+          <a href={`${BASE}/boomer-orga-intern/einlass`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
+            Einlass-Scanner
+          </a>
+          <button onClick={() => { load(); loadTickets(); }} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
+            Aktualisieren
+          </button>
+        </div>
       </div>
-      {lastLoaded && <p style={{ fontSize: "0.85rem", color: fg(0.55), marginBottom: "2rem", fontFamily: "'Lora', serif" }}>Stand: {lastLoaded.toLocaleString("de-DE")}</p>}
+      {lastLoaded && <p style={{ fontSize: "0.85rem", color: fg(0.55), marginBottom: "1.5rem", fontFamily: "'Lora', serif" }}>Stand: {lastLoaded.toLocaleString("de-DE")}</p>}
 
-      {/* ── Anmeldungen ── */}
-      <SectionTitle>Anmeldungen ({registrations.length})</SectionTitle>
-      {registrations.length === 0
-        ? <p style={{ color: fg(0.55), fontSize: "0.92rem", fontFamily: "'Lora', serif" }}>Noch keine Anmeldungen.</p>
-        : <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-            {registrations.map(r => <RegCard key={r.id} r={r} />)}
-          </div>
-      }
+      {/* ── Tab-Navigation ── */}
+      <TabBar active={activeTab} onSelect={setActiveTab} />
 
-      {/* ── Ticket-Verwaltung ── */}
-      <SectionTitle>Ticket-Verwaltung</SectionTitle>
-      <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.6), marginBottom: "1rem", marginTop: "-0.5rem" }}>
-        Zahlung bestätigen → Tickets generieren → Druckansicht öffnen
-      </p>
-      {registrations.length === 0
-        ? <p style={{ color: fg(0.55), fontSize: "0.92rem", fontFamily: "'Lora', serif" }}>Noch keine Anmeldungen.</p>
-        : registrations.map(r => (
-            <TicketManager key={r.id} reg={r} tickets={ticketRows} onRefresh={loadTickets} />
-          ))
-      }
-
-      {/* ── Anmeldungs-Zeitstrahl ── */}
-      {registrationTimeline.length > 0 && (
+      {/* ── Tab: Anmeldungen ── */}
+      {activeTab === "anmeldungen" && (
         <>
-          <SectionTitle>Anmeldungs-Zeitstrahl</SectionTitle>
-          <RegTimeline data={registrationTimeline} />
-        </>
-      )}
-
-      {/* ── Statistik ── */}
-      <SectionTitle>Statistik</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))", gap: "0.85rem", marginBottom: "0.5rem" }}>
-        <StatCard n={summary.totalAnmeldungen}         label="Anmeldungen" />
-        <StatCard n={summary.totalSessions}            label="Besuche gesamt" />
-        <StatCard n={summary.todaySessions}            label="Besuche heute" />
-        <StatCard n={summary.weekSessions}             label="Diese Woche" />
-        <StatCard n={summary.uniqueVisitors}           label="Eindeutige Besucher" />
-        <StatCard n={summary.returnVisitors}           label="Wiederkommer" />
-        <StatCard n={fmt(summary.avgDurationSec)}      label="Ø Verweildauer" />
-        <StatCard n={fmt(summary.todayAvgDurationSec)} label="Ø Heute" />
-        <StatCard n={`${summary.bounceRate}%`}         label="Absprungrate" sub="Besuche unter 30 s" />
-        <StatCard n={`${summary.conversionRate}%`}     label="Konversionsrate" sub="Besucher → Angemeldet" />
-        <StatCard
-          n={summary.avgScrollDepth != null ? `${summary.avgScrollDepth}%` : "—"}
-          label="Ø Scroll-Tiefe"
-          sub="Wie weit gescrollt"
-        />
-      </div>
-
-      {/* ── Besuchsverlauf ── */}
-      <SectionTitle>Besuchsverlauf — letzte 30 Tage</SectionTitle>
-      <DailyChart data={dailyVisits} />
-
-      {/* ── Tageszeit & Wochentag ── */}
-      <SectionTitle>Wann kommen Besucher?</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "2.5rem" }}>
-        <div>
-          <SubLabel>Uhrzeit (MEZ/MESZ)</SubLabel>
-          <HourlyChart data={hourlyDistribution} />
-        </div>
-        <div>
-          <SubLabel>Wochentag</SubLabel>
-          <WeekdayChart data={weekdayDistribution} />
-        </div>
-      </div>
-
-      {/* ── Geräte & Herkunft ── */}
-      <SectionTitle>Geräte & Herkunft</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "2rem" }}>
-        <div>
-          <SubLabel>Geräte</SubLabel>
-          <BarChart rows={deviceRows} />
-        </div>
-        <div>
-          <SubLabel>Herkunft gesamt</SubLabel>
-          <BarChart rows={referrers} />
-        </div>
-        {todayReferrers.length > 0 && (
-          <div>
-            <SubLabel>Herkunft heute</SubLabel>
-            <BarChart rows={todayReferrers} />
-          </div>
-        )}
-        <div>
-          <SubLabel>Sprachen</SubLabel>
-          <BarChart rows={languages} />
-        </div>
-      </div>
-
-      {/* ── Browser & Betriebssystem ── */}
-      <SectionTitle>Browser & Betriebssystem</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "2rem" }}>
-        <div>
-          <SubLabel>Browser</SubLabel>
-          <BarChart rows={browsers} />
-        </div>
-        <div>
-          <SubLabel>Betriebssystem</SubLabel>
-          <BarChart rows={oses} />
-        </div>
-        {connectionTypes.length > 0 && (
-          <div>
-            <SubLabel>Verbindungstyp</SubLabel>
-            <BarChart rows={connectionTypes} />
-          </div>
-        )}
-        <div>
-          <SubLabel>Farbschema</SubLabel>
-          <BarChart rows={colorSchemes} />
-        </div>
-        {touchDevices.length > 0 && (
-          <div>
-            <SubLabel>Touch-Gerät</SubLabel>
-            <BarChart rows={touchDevices} />
-          </div>
-        )}
-      </div>
-
-      {/* ── Wiederkommer ── */}
-      {returnerNames.length > 0 && (
-        <>
-          <SectionTitle>Bekannte Wiederkommer</SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            {returnerNames.map(r => (
-              <div key={r.name} style={{ display: "flex", gap: "1rem", alignItems: "center", fontFamily: "'Lora', serif", fontSize: "0.92rem" }}>
-                <span style={{ color: A, fontWeight: 600, minWidth: "110px" }}>{r.name}</span>
-                <span style={{ color: fg(0.75) }}>{r.visitCount} Besuche</span>
-                <span style={{ color: fg(0.6), fontSize: "0.88rem" }}>zuletzt {when(r.lastSeen)}</span>
+          <SectionTitle>Anmeldungen ({registrations.length})</SectionTitle>
+          {registrations.length === 0
+            ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Anmeldungen.</p>
+            : <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                {registrations.map(r => <RegCard key={r.id} r={r} />)}
               </div>
-            ))}
+          }
+          {registrationTimeline.length > 0 && (
+            <>
+              <SectionTitle>Anmeldungs-Zeitstrahl</SectionTitle>
+              <RegTimeline data={registrationTimeline} />
+            </>
+          )}
+        </>
+      )}
+
+      {/* ── Tab: Tickets ── */}
+      {activeTab === "tickets" && (
+        <>
+          <SectionTitle>Ticket-Verwaltung</SectionTitle>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.6), marginBottom: "1.25rem", marginTop: "-0.5rem" }}>
+            Zahlung bestätigen → Tickets generieren → Druckansicht öffnen
+          </p>
+          {registrations.length === 0
+            ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Anmeldungen.</p>
+            : registrations.map(r => (
+                <TicketManager key={r.id} reg={r} tickets={ticketRows} onRefresh={loadTickets} />
+              ))
+          }
+        </>
+      )}
+
+      {/* ── Tab: Statistik ── */}
+      {activeTab === "statistik" && (
+        <>
+          <SectionTitle>Übersicht</SectionTitle>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))", gap: "0.85rem", marginBottom: "0.5rem" }}>
+            <StatCard n={summary.totalAnmeldungen}         label="Anmeldungen" />
+            <StatCard n={summary.totalSessions}            label="Besuche gesamt" />
+            <StatCard n={summary.todaySessions}            label="Besuche heute" />
+            <StatCard n={summary.weekSessions}             label="Diese Woche" />
+            <StatCard n={summary.uniqueVisitors}           label="Eindeutige Besucher" />
+            <StatCard n={summary.returnVisitors}           label="Wiederkommer" />
+            <StatCard n={fmt(summary.avgDurationSec)}      label="Ø Verweildauer" />
+            <StatCard n={fmt(summary.todayAvgDurationSec)} label="Ø Heute" />
+            <StatCard n={`${summary.bounceRate}%`}         label="Absprungrate" sub="Besuche unter 30 s" />
+            <StatCard n={`${summary.conversionRate}%`}     label="Konversionsrate" sub="Besucher → Angemeldet" />
+            <StatCard
+              n={summary.avgScrollDepth != null ? `${summary.avgScrollDepth}%` : "—"}
+              label="Ø Scroll-Tiefe"
+              sub="Wie weit gescrollt"
+            />
+          </div>
+
+          <SectionTitle>Besuchsverlauf — letzte 30 Tage</SectionTitle>
+          <DailyChart data={dailyVisits} />
+
+          <SectionTitle>Wann kommen Besucher?</SectionTitle>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: "2.5rem" }}>
+            <div>
+              <SubLabel>Uhrzeit (MEZ/MESZ)</SubLabel>
+              <HourlyChart data={hourlyDistribution} />
+            </div>
+            <div>
+              <SubLabel>Wochentag</SubLabel>
+              <WeekdayChart data={weekdayDistribution} />
+            </div>
+          </div>
+
+          <SectionTitle>Geräte & Herkunft</SectionTitle>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "2rem" }}>
+            <div><SubLabel>Geräte</SubLabel><BarChart rows={deviceRows} /></div>
+            <div><SubLabel>Herkunft gesamt</SubLabel><BarChart rows={referrers} /></div>
+            {todayReferrers.length > 0 && <div><SubLabel>Herkunft heute</SubLabel><BarChart rows={todayReferrers} /></div>}
+            <div><SubLabel>Sprachen</SubLabel><BarChart rows={languages} /></div>
+          </div>
+
+          <SectionTitle>Browser & Betriebssystem</SectionTitle>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "2rem" }}>
+            <div><SubLabel>Browser</SubLabel><BarChart rows={browsers} /></div>
+            <div><SubLabel>Betriebssystem</SubLabel><BarChart rows={oses} /></div>
+            {connectionTypes.length > 0 && <div><SubLabel>Verbindungstyp</SubLabel><BarChart rows={connectionTypes} /></div>}
+            <div><SubLabel>Farbschema</SubLabel><BarChart rows={colorSchemes} /></div>
+            {touchDevices.length > 0 && <div><SubLabel>Touch-Gerät</SubLabel><BarChart rows={touchDevices} /></div>}
+          </div>
+
+          {returnerNames.length > 0 && (
+            <>
+              <SectionTitle>Bekannte Wiederkommer</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {returnerNames.map(r => (
+                  <div key={r.name} style={{ display: "flex", gap: "1rem", alignItems: "center", fontSize: "0.92rem" }}>
+                    <span style={{ color: A, fontWeight: 600, minWidth: "110px" }}>{r.name}</span>
+                    <span style={{ color: fg(0.75) }}>{r.visitCount} Besuche</span>
+                    <span style={{ color: fg(0.6), fontSize: "0.88rem" }}>zuletzt {when(r.lastSeen)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {utmSources.length > 0 && (
+            <>
+              <SectionTitle>UTM-Quellen (getrackte Links)</SectionTitle>
+              <BarChart rows={utmSources} />
+            </>
+          )}
+
+          <SectionTitle>Letzte Besuche</SectionTitle>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.84rem", minWidth: "700px" }}>
+              <thead>
+                <tr>
+                  {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #", "Wer"].map(h => (
+                    <th key={h} style={{ textAlign: "left", padding: "0.5rem 0.6rem", borderBottom: `1px solid ${am(0.25)}`, color: fg(0.65), fontWeight: 400, fontStyle: "italic", whiteSpace: "nowrap", fontSize: "0.82rem" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map(r => (
+                  <tr key={r.id}>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.85), whiteSpace: "nowrap" }}>{when(r.when)}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: A, whiteSpace: "nowrap" }}>{fmt(r.duration)}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.device}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.browser ?? "—"}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.75) }}>{r.os ?? "—"}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}` }}><ScrollBar depth={r.scrollDepth} /></td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.65), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.entryPath ?? undefined}>{r.entryPath ?? "—"}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.6), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.exitPath ?? undefined}>{r.exitPath ?? "—"}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.7), textAlign: "center" }}>{visitOrdinal(r.visitNumber)}</td>
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: r.knownName ? A : fg(0.4), fontStyle: r.knownName ? "normal" : "italic", fontSize: "0.82rem" }}>{r.knownName ?? (r.visitorId ? `${r.visitorId}…` : "—")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </>
       )}
-
-      {/* ── UTM ── */}
-      {utmSources.length > 0 && (
-        <>
-          <SectionTitle>UTM-Quellen (getrackte Links)</SectionTitle>
-          <BarChart rows={utmSources} />
-        </>
-      )}
-
-      {/* ── Letzte Besuche ── */}
-      <SectionTitle>Letzte Besuche</SectionTitle>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.84rem", minWidth: "700px", fontFamily: "'Lora', serif" }}>
-          <thead>
-            <tr>
-              {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #", "Wer"].map(h => (
-                <th key={h} style={{ textAlign: "left", padding: "0.5rem 0.6rem", borderBottom: `1px solid ${am(0.25)}`, color: fg(0.65), fontWeight: 400, fontStyle: "italic", whiteSpace: "nowrap", fontSize: "0.82rem" }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {recent.map(r => (
-              <tr key={r.id}>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.85), whiteSpace: "nowrap" }}>{when(r.when)}</td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: A, whiteSpace: "nowrap" }}>{fmt(r.duration)}</td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.device}</td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.browser ?? "—"}</td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.75) }}>{r.os ?? "—"}</td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}` }}>
-                  <ScrollBar depth={r.scrollDepth} />
-                </td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.65), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.entryPath ?? undefined}>
-                  {r.entryPath ?? "—"}
-                </td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.6), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.exitPath ?? undefined}>
-                  {r.exitPath ?? "—"}
-                </td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.7), textAlign: "center" }}>
-                  {visitOrdinal(r.visitNumber)}
-                </td>
-                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: r.knownName ? A : fg(0.4), fontStyle: r.knownName ? "normal" : "italic", fontSize: "0.82rem" }}>
-                  {r.knownName ?? (r.visitorId ? `${r.visitorId}…` : "—")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
