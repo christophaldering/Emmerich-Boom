@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import jsQR from "jsqr";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const API = `${BASE}/api`;
@@ -34,98 +34,141 @@ function PasswordGate({ onAuth }: { onAuth: () => void }) {
   );
 }
 
+async function sendScan(code: string): Promise<ScanResult> {
+  try {
+    const r = await fetch(`${API}/ticket/${code}/scan`, {
+      method: "POST",
+      headers: { "x-admin-secret": SECRET },
+    });
+    return await r.json();
+  } catch {
+    return { status: "error", message: "Verbindungsfehler" };
+  }
+}
+
 export default function EinlassPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [camError, setCamError] = useState("");
   const [loading, setLoading] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number | null>(null);
   const cooldownRef = useRef(false);
 
-  const startScanner = async () => {
-    setResult(null);
-    setScanning(true);
-    const scanner = new Html5Qrcode("qr-reader");
-    scannerRef.current = scanner;
-    try {
-      await scanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        async (decodedText) => {
-          if (cooldownRef.current) return;
-          cooldownRef.current = true;
-
-          // Extract code from URL or use raw text
-          let code = decodedText.trim().toUpperCase();
-          const match = decodedText.match(/\/ticket\/([A-F0-9]{16})/i);
-          if (match) code = match[1].toUpperCase();
-
-          setLoading(true);
-          try {
-            const r = await fetch(`${API}/ticket/${code}/scan`, {
-              method: "POST",
-              headers: { "x-admin-secret": SECRET },
-            });
-            const data = await r.json();
-            setResult(data);
-          } catch {
-            setResult({ status: "error", message: "Verbindungsfehler" });
-          } finally {
-            setLoading(false);
-          }
-
-          // Stop scanner after successful scan
-          try {
-            await scanner.stop();
-            setScanning(false);
-          } catch { /* ignore */ }
-        },
-        () => { /* ignore non-QR frames */ }
-      );
-    } catch {
-      setResult({ status: "error", message: "Kamera konnte nicht gestartet werden. Bitte Berechtigung prüfen." });
-      setScanning(false);
-    }
-  };
-
-  const stopScanner = async () => {
-    if (scannerRef.current) {
-      try { await scannerRef.current.stop(); } catch { /* ignore */ }
-    }
+  const stopScan = () => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    if (videoRef.current) videoRef.current.srcObject = null;
     setScanning(false);
   };
 
-  const reset = () => {
-    cooldownRef.current = false;
-    setResult(null);
+  const tick = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || video.readyState < video.HAVE_ENOUGH_DATA) {
+      rafRef.current = requestAnimationFrame(tick);
+      return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+    if (code && !cooldownRef.current) {
+      cooldownRef.current = true;
+      const raw = code.data.trim();
+      // Extract code from URL or use raw
+      const match = raw.match(/\/ticket\/([A-F0-9]{16})/i);
+      const ticketCode = match ? match[1].toUpperCase() : raw.toUpperCase();
+      stopScan();
+      setLoading(true);
+      sendScan(ticketCode).then(r => { setResult(r); setLoading(false); });
+      return;
+    }
+    rafRef.current = requestAnimationFrame(tick);
   };
 
-  useEffect(() => {
-    return () => { stopScanner(); };
-  }, []);
+  const startScan = async () => {
+    setCamError("");
+    setResult(null);
+    cooldownRef.current = false;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (!video) return;
+      video.srcObject = stream;
+      video.setAttribute("playsinline", "true");
+      video.setAttribute("muted", "true");
+      await video.play();
+      setScanning(true);
+      rafRef.current = requestAnimationFrame(tick);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("Permission") || msg.includes("NotAllowed")) {
+        setCamError("Kamera-Zugriff verweigert. Bitte in den Einstellungen erlauben.");
+      } else {
+        setCamError("Kamera konnte nicht gestartet werden.");
+      }
+    }
+  };
+
+  useEffect(() => () => { stopScan(); }, []);
 
   if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
 
   const bgColor =
-    result?.status === "ok" ? "#0a2e10" :
-    result?.status === "already_used" ? "#2e1a0a" :
-    result?.status === "invalid" || result?.status === "error" ? "#2e0a0a" :
+    result?.status === "ok" ? "#061a0a" :
+    result?.status === "already_used" ? "#1a0e03" :
+    result?.status === "invalid" || result?.status === "error" ? "#1a0303" :
     "#0a0704";
 
   return (
-    <div style={{ minHeight: "100svh", background: bgColor, display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.5rem", transition: "background 0.4s" }}>
+    <div style={{ minHeight: "100svh", background: bgColor, display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.25rem", transition: "background 0.35s" }}>
+
       <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.3rem", color: "#e8991a", margin: 0 }}>
         Einlass-Scanner
       </p>
 
-      {/* Scanner viewport */}
-      {scanning && (
-        <div style={{ width: "100%", maxWidth: "360px", borderRadius: "8px", overflow: "hidden", border: "2px solid #e8991a" }}>
-          <div id="qr-reader" style={{ width: "100%" }} />
+      {/* Video viewport (always in DOM so ref works) */}
+      <div style={{
+        width: "100%", maxWidth: "360px",
+        aspectRatio: "4/3",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: `2px solid ${scanning ? "#e8991a" : "rgba(232,153,26,0.25)"}`,
+        background: "#000",
+        position: "relative",
+        display: scanning ? "block" : "none",
+      }}>
+        <video
+          ref={videoRef}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          playsInline
+          muted
+          autoPlay
+        />
+        {/* Aim overlay */}
+        <div style={{
+          position: "absolute", inset: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          pointerEvents: "none",
+        }}>
+          <div style={{ width: "200px", height: "200px", border: "2px solid rgba(232,153,26,0.7)", borderRadius: "8px", boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)" }} />
         </div>
-      )}
+      </div>
+      <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      {/* Result display */}
+      {/* Result */}
       {result && !loading && (
         <div style={{
           width: "100%", maxWidth: "360px",
@@ -133,25 +176,20 @@ export default function EinlassPage() {
           border: `2px solid ${result.status === "ok" ? "#2ecc71" : result.status === "already_used" ? "#e8991a" : "#e74c3c"}`,
           padding: "1.5rem",
           textAlign: "center",
-          background: "rgba(0,0,0,0.3)",
         }}>
-          <p style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "3rem",
-            margin: "0 0 0.5rem",
-          }}>
+          <p style={{ fontSize: "3rem", margin: "0 0 0.5rem" }}>
             {result.status === "ok" ? "✅" : result.status === "already_used" ? "⚠️" : "❌"}
           </p>
           {"personName" in result && (
-            <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.4rem", color: "#f5e8c8", margin: "0 0 0.5rem" }}>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.4rem", color: "#f5e8c8", margin: "0 0 0.4rem" }}>
               {result.personName}
             </p>
           )}
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "#f5e8c8", margin: "0 0 0.5rem" }}>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "#f5e8c8", margin: "0 0 0.3rem" }}>
             {result.message}
           </p>
           {result.status === "already_used" && (
-            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", color: "rgba(245,232,200,0.6)", margin: 0 }}>
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "rgba(245,232,200,0.55)", margin: 0 }}>
               Eingelöst um {new Date(result.usedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr
             </p>
           )}
@@ -162,26 +200,31 @@ export default function EinlassPage() {
         <p style={{ fontFamily: "'Lora', serif", color: "#e8991a", fontStyle: "italic" }}>Prüfe Ticket…</p>
       )}
 
+      {camError && (
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e74c3c", textAlign: "center", maxWidth: "320px" }}>
+          {camError}
+        </p>
+      )}
+
       {/* Buttons */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%", maxWidth: "360px" }}>
         {!scanning && !result && (
-          <button onClick={startScanner} style={btnStyle("#e8991a")}>
+          <button onClick={startScan} style={btn("#e8991a")}>
             Kamera starten &amp; scannen
           </button>
         )}
         {scanning && (
-          <button onClick={stopScanner} style={btnStyle("rgba(245,232,200,0.3)")}>
+          <button onClick={stopScan} style={btn("rgba(245,232,200,0.4)")}>
             Abbrechen
           </button>
         )}
         {result && !scanning && (
-          <button onClick={() => { reset(); startScanner(); }} style={btnStyle("#e8991a")}>
+          <button onClick={() => { setResult(null); startScan(); }} style={btn("#e8991a")}>
             Nächsten scannen
           </button>
         )}
       </div>
 
-      {/* Manual code entry fallback */}
       <ManualEntry />
     </div>
   );
@@ -197,41 +240,23 @@ function ManualEntry() {
     e.preventDefault();
     if (!code.trim()) return;
     setLoading(true);
-    try {
-      const r = await fetch(`${API}/ticket/${code.trim()}/scan`, {
-        method: "POST",
-        headers: { "x-admin-secret": SECRET },
-      });
-      const data = await r.json();
-      setResult(data);
-    } catch {
-      setResult({ status: "error", message: "Verbindungsfehler" });
-    } finally {
-      setLoading(false);
-    }
+    const r = await sendScan(code.trim());
+    setResult(r);
+    setLoading(false);
   };
 
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.35)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline" }}>
-        Code manuell eingeben
-      </button>
-    );
-  }
+  if (!open) return (
+    <button onClick={() => setOpen(true)} style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.35)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline" }}>
+      Code manuell eingeben
+    </button>
+  );
 
   return (
     <div style={{ width: "100%", maxWidth: "360px" }}>
       <form onSubmit={submit} style={{ display: "flex", gap: "0.5rem" }}>
-        <input
-          value={code}
-          onChange={e => { setCode(e.target.value.toUpperCase()); setResult(null); }}
-          placeholder="XXXXXXXXXXXXXXXX"
-          maxLength={16}
-          style={{ flex: 1, background: "rgba(245,232,200,0.07)", border: "1px solid rgba(245,232,200,0.2)", borderRadius: "3px", color: "#f5e8c8", padding: "0.6rem 0.75rem", fontSize: "0.9rem", fontFamily: "monospace", outline: "none", letterSpacing: "0.1em" }}
-        />
-        <button type="submit" disabled={loading} style={btnStyle("#e8991a", "0.6rem 1rem")}>
-          Prüfen
-        </button>
+        <input value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setResult(null); }} placeholder="XXXXXXXXXXXXXXXX" maxLength={16}
+          style={{ flex: 1, background: "rgba(245,232,200,0.07)", border: "1px solid rgba(245,232,200,0.2)", borderRadius: "3px", color: "#f5e8c8", padding: "0.6rem 0.75rem", fontSize: "0.9rem", fontFamily: "monospace", outline: "none", letterSpacing: "0.1em" }} />
+        <button type="submit" disabled={loading} style={btn("#e8991a", "0.6rem 1rem")}>Prüfen</button>
       </form>
       {result && (
         <p style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: result.status === "ok" ? "#2ecc71" : result.status === "already_used" ? "#e8991a" : "#e74c3c", marginTop: "0.5rem", textAlign: "center" }}>
@@ -242,17 +267,6 @@ function ManualEntry() {
   );
 }
 
-function btnStyle(borderColor: string, padding = "0.75rem"): React.CSSProperties {
-  return {
-    background: "transparent",
-    border: `1px solid ${borderColor}`,
-    borderRadius: "4px",
-    color: borderColor,
-    padding,
-    fontFamily: "'Playfair Display', serif",
-    fontStyle: "italic",
-    fontSize: "1rem",
-    cursor: "pointer",
-    width: "100%",
-  };
+function btn(color: string, padding = "0.75rem"): React.CSSProperties {
+  return { background: "transparent", border: `1px solid ${color}`, borderRadius: "4px", color, padding, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", cursor: "pointer", width: "100%" };
 }
