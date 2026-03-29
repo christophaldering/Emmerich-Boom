@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { pageViews } from "@workspace/db";
-import { eq, desc, gte, sql, count, countDistinct } from "drizzle-orm";
+import { pageViews, interessenten } from "@workspace/db";
+import { eq, desc, sql } from "drizzle-orm";
 import { buildAndSendDailyReport } from "../services/dailyReport.js";
 
 const router = Router();
@@ -81,7 +81,10 @@ router.get("/admin-stats", async (req, res) => {
     const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
     const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
 
-    const all = await db.select().from(pageViews).orderBy(desc(pageViews.createdAt));
+    const [all, allReg] = await Promise.all([
+      db.select().from(pageViews).orderBy(desc(pageViews.createdAt)),
+      db.select().from(interessenten).orderBy(desc(interessenten.createdAt)),
+    ]);
 
     const today = all.filter(v => v.createdAt && v.createdAt >= todayStart);
     const week  = all.filter(v => v.createdAt && v.createdAt >= weekStart);
@@ -141,23 +144,56 @@ router.get("/admin-stats", async (req, res) => {
       try { return new URL(url).hostname || "Direkt"; } catch { return url; }
     };
 
-    const recent = all.slice(0, 100).map(r => ({
-      id:          r.id,
-      when:        r.createdAt,
-      lastSeen:    r.lastSeenAt,
-      duration:    (r.pingCount ?? 1) * 30,
-      device:      parseDevice(r.userAgent ?? ""),
-      referrer:    hostOf(r.referrer),
-      visitorId:   (r.visitorId ?? "").slice(0, 8),
-      lang:        r.lang ?? null,
-      timezone:    r.timezone ?? null,
-      screen:      r.screenWidth && r.screenHeight ? `${r.screenWidth}×${r.screenHeight}` : null,
-      viewport:    r.viewportWidth && r.viewportHeight ? `${r.viewportWidth}×${r.viewportHeight}` : null,
-      utmSource:   r.utmSource   ?? null,
-      utmMedium:   r.utmMedium   ?? null,
-      utmCampaign: r.utmCampaign ?? null,
-      entryPath:   r.entryPath   ?? null,
-    }));
+    const visitorViewMap: Record<string, { count: number; lastSeen: Date | null }> = {};
+    for (const r of all) {
+      if (!r.visitorId) continue;
+      const vid = r.visitorId;
+      if (!visitorViewMap[vid]) visitorViewMap[vid] = { count: 0, lastSeen: null };
+      visitorViewMap[vid].count++;
+      const ts = r.lastSeenAt ?? r.createdAt;
+      if (ts && (!visitorViewMap[vid].lastSeen || ts > visitorViewMap[vid].lastSeen!)) {
+        visitorViewMap[vid].lastSeen = ts;
+      }
+    }
+
+    const registrations = allReg.map(r => {
+      const vinfo = r.visitorId ? (visitorViewMap[r.visitorId] ?? null) : null;
+      return {
+        id:         r.id,
+        name:       r.name,
+        personen:   r.personen,
+        song:       r.song ?? null,
+        statement:  r.statement ?? null,
+        createdAt:  r.createdAt,
+        visitorId:  r.visitorId ?? null,
+        visitCount: vinfo?.count ?? null,
+        lastSeen:   vinfo?.lastSeen ?? null,
+      };
+    });
+
+    const recent = all.slice(0, 100).map(r => {
+      const knownName = r.visitorId
+        ? (allReg.find(reg => reg.visitorId === r.visitorId)?.name ?? null)
+        : null;
+      return {
+        id:          r.id,
+        when:        r.createdAt,
+        lastSeen:    r.lastSeenAt,
+        duration:    (r.pingCount ?? 1) * 30,
+        device:      parseDevice(r.userAgent ?? ""),
+        referrer:    hostOf(r.referrer),
+        visitorId:   (r.visitorId ?? "").slice(0, 8),
+        knownName,
+        lang:        r.lang ?? null,
+        timezone:    r.timezone ?? null,
+        screen:      r.screenWidth && r.screenHeight ? `${r.screenWidth}×${r.screenHeight}` : null,
+        viewport:    r.viewportWidth && r.viewportHeight ? `${r.viewportWidth}×${r.viewportHeight}` : null,
+        utmSource:   r.utmSource   ?? null,
+        utmMedium:   r.utmMedium   ?? null,
+        utmCampaign: r.utmCampaign ?? null,
+        entryPath:   r.entryPath   ?? null,
+      };
+    });
 
     res.json({
       summary: {
@@ -168,7 +204,9 @@ router.get("/admin-stats", async (req, res) => {
         returnVisitors,
         avgDurationSec:      avgDuration(all),
         todayAvgDurationSec: avgDuration(today),
+        totalAnmeldungen:    allReg.length,
       },
+      registrations,
       referrers:      byReferrer(all),
       devices:        byDevice(all),
       todayReferrers: byReferrer(today),

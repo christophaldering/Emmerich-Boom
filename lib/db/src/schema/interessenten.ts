@@ -6,5 +6,6 @@ export const interessenten = pgTable('interessenten', {
   personen: text('personen').notNull().default('1'),
   statement: text('statement'),
   song: text('song'),
+  visitorId: text('visitor_id'),
   createdAt: timestamp('created_at').defaultNow(),
 });

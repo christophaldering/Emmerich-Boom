@@ -12,6 +12,7 @@ const interesSchema = z.object({
   personen: z.string(),
   statement: z.string().max(500).optional(),
   song: z.string().max(200).optional(),
+  visitorId: z.string().max(64).optional(),
 });
 
 router.post("/interesse", async (req, res) => {
@@ -35,7 +36,11 @@ router.post("/interesse", async (req, res) => {
     return;
   }
 
-  const inserted = await db.insert(interessenten).values(parsed.data).returning({ id: interessenten.id });
+  const { visitorId, ...rest } = parsed.data;
+  const inserted = await db
+    .insert(interessenten)
+    .values({ ...rest, visitorId: visitorId ?? null })
+    .returning({ id: interessenten.id });
   res.json({ success: true, id: inserted[0]?.id ?? null });
 
   generateKaiComment().catch(() => {});
