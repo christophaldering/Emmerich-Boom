@@ -112,12 +112,12 @@ export default function Letter() {
             <li>Abrocken — zu Musik, bei der man den Text noch kann</li>
             <li>70er, 80er und auch Aktuelles — laut, tanzbar und zum Mitsingen</li>
             <li>Alte Freunde treffen — manche vielleicht nach Jahren</li>
-            <li>Gespräche an der Theke, die irgendwie immer die besten sind</li>
+            <li>Gespräche an der Theke - die irgendwie immer die besten sind</li>
             <li>Nostalgie — aber die gute Art, bei der einem warm ums Herz wird</li>
             <li>Fingerfood, Getränke — kein Dresscode, ganz zwanglos</li>
           </ul>
 
-          <p>Egal ob 50, 100 oder 150 Boomer — auf dem Bölt ist Platz.</p>
+          <p>Egal ob 50, 100 oder 150 Boomer — auf dem Bölt ist auf jeden Fall genug Platz. Abhängig von der Anzahl feiern wir in der Gaststätte und in der angrenzenden Tanzbar.</p>
 
           <div className="closed-note">
             Kleiner Hinweis: das wird eine <em>geschlossene Gesellschaft</em> — kein offenes Stadtfest. Die Einladung richtet sich in erster Linie an Emmericher Boomer — egal, ob man noch hier wohnt, weggezogen ist oder einfach einen Bezug zur Stadt hat. Wer sich angesprochen fühlt, ist dabei. Und wer jemanden kennt, dem das gefallen könnte: <strong>gerne weitersagen.</strong>
