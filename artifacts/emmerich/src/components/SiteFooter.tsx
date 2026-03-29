@@ -12,7 +12,7 @@ export default function SiteFooter() {
         borderTop: "1px solid var(--fg-20)",
       }}
     >
-      <p>Emmerich boomt! · BoomerParty · 18. Juli 2026 · Bölt, Emmerich am Rhein</p>
+      <p>Emmerich boomt! · BoomerParty · 18. Juli 2026 (Uhrzeit wird noch bekanntgegeben) · Bölt, Emmerich am Rhein</p>
       <p>Eine Veranstaltung des BoomerClub Emmerich · Entstanden an einer Theke · Wie immer.</p>
       <p style={{ color: "var(--amber)", opacity: 0.85 }}>Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam</p>
     </footer>

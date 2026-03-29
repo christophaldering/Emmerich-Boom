@@ -128,13 +128,10 @@ export default function Formular({ onSuccess }: FormularProps) {
     setError("");
     setLoading(true);
     try {
-      const visitorId: string | undefined = (() => {
-        try { return localStorage.getItem("emmerich_vid") ?? undefined; } catch { return undefined; }
-      })();
       const res = await fetch("/api/interesse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, ...(visitorId ? { visitorId } : {}) }),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (data.success) {
@@ -297,7 +294,7 @@ export default function Formular({ onSuccess }: FormularProps) {
           </div>
 
           <button type="submit" disabled={loading} className="submit-btn" style={{ width: "100%", padding: "1rem", background: "var(--amber)", border: "none", borderRadius: "3px", color: "var(--black)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", fontWeight: 700, cursor: "pointer", transition: "background 0.2s" }}>
-            {loading ? "Wird gespeichert …" : "Daumen hoch — ich bin dabei! 👍"}
+            {loading ? "Wird gespeichert …" : "Bitte bestätigen! 👍"}
           </button>
 
           {error && (
