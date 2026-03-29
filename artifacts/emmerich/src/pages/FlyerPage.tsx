@@ -60,10 +60,18 @@ export default function FlyerPage() {
             max-height: 210mm !important;
             aspect-ratio: auto !important;
             overflow: hidden !important;
-            page-break-after: always !important;
-            break-after: page !important;
+            page-break-after: auto !important;
+            break-after: auto !important;
             display: flex !important;
             flex-direction: row !important;
+          }
+          .flyer-spread-1 {
+            page-break-after: always !important;
+            break-after: page !important;
+          }
+          .flyer-spread-2 {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
           }
           .panel-sender, .panel-left, .panel-right, .panel-cover {
             width: 148.5mm !important;
@@ -107,7 +115,7 @@ export default function FlyerPage() {
    ════════════════════════════════════════════════════ */
 function Aussen() {
   return (
-    <div className="flyer-spread" style={spreadStyle}>
+    <div className="flyer-spread flyer-spread-1" style={spreadStyle}>
 
       {/* ── Seite 4: BoomerClub-Hinweis ── */}
       <div className="panel-sender" style={{ ...panelStyle, background: BG, display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "7% 7%" }}>
@@ -199,7 +207,7 @@ function Aussen() {
    ════════════════════════════════════════════════════ */
 function Innen() {
   return (
-    <div className="flyer-spread" style={spreadStyle}>
+    <div className="flyer-spread flyer-spread-2" style={spreadStyle}>
 
       {/* ── Seite 2: Geschichte & Was erwartet euch ── */}
       <div className="panel-left" style={{ ...panelStyle, background: "#1a0e04", display: "flex", flexDirection: "column", justifyContent: "center", padding: "7% 7%", gap: "1em" }}>
