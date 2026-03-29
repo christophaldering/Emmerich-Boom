@@ -1,40 +1,78 @@
+import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
-const URL = "https://emmerich-boomt.replit.app";
+const SITE_URL = "https://emmerich-boomt.replit.app";
+
+const FORMATE = [
+  { label: "A0", size: "A0", w: 841, h: 1189 },
+  { label: "A1", size: "A1", w: 594, h: 841  },
+  { label: "A2", size: "A2", w: 420, h: 594  },
+  { label: "A3", size: "A3", w: 297, h: 420  },
+  { label: "A4", size: "A4", w: 210, h: 297  },
+  { label: "A5", size: "A5", w: 148, h: 210  },
+];
 
 export default function PlakatPage() {
-  return (
-    <div style={{ background: "#2a1f0e", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.5rem" }}>
+  const [format, setFormat] = useState(FORMATE[1]); // A1 default
 
-      {/* Print button */}
-      <button
-        onClick={() => window.print()}
-        className="no-print"
-        style={{
-          background: "#e8991a",
-          border: "none",
-          borderRadius: "4px",
-          color: "#0a0704",
-          padding: "0.75rem 2rem",
-          fontFamily: "'Playfair Display', serif",
-          fontStyle: "italic",
-          fontWeight: 700,
-          fontSize: "1rem",
-          cursor: "pointer",
-        }}
-      >
-        Plakat drucken / als PDF speichern
-      </button>
-      <p className="no-print" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "rgba(245,232,200,0.5)", margin: "-1rem 0 0" }}>
-        Im Druckdialog: Papierformat A1, Ränder auf „Keine" setzen
-      </p>
+  return (
+    <div style={{ background: "#2a1f0e", minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.25rem" }}>
+
+      {/* Controls */}
+      <div className="no-print" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+        {/* Format picker */}
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "center" }}>
+          {FORMATE.map(f => (
+            <button
+              key={f.label}
+              onClick={() => setFormat(f)}
+              style={{
+                background: f.label === format.label ? "#e8991a" : "transparent",
+                border: "1px solid #e8991a",
+                borderRadius: "3px",
+                color: f.label === format.label ? "#0a0704" : "#e8991a",
+                padding: "0.4rem 0.9rem",
+                fontFamily: "'Playfair Display', serif",
+                fontStyle: "italic",
+                fontSize: "0.95rem",
+                fontWeight: f.label === format.label ? 700 : 400,
+                cursor: "pointer",
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Print button */}
+        <button
+          onClick={() => window.print()}
+          style={{
+            background: "#e8991a",
+            border: "none",
+            borderRadius: "4px",
+            color: "#0a0704",
+            padding: "0.7rem 2rem",
+            fontFamily: "'Playfair Display', serif",
+            fontStyle: "italic",
+            fontWeight: 700,
+            fontSize: "1rem",
+            cursor: "pointer",
+          }}
+        >
+          Plakat drucken / als PDF speichern ({format.label})
+        </button>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: "rgba(245,232,200,0.45)", margin: 0, textAlign: "center" }}>
+          Im Druckdialog: Papierformat {format.label} · Ränder auf „Keine" setzen
+        </p>
+      </div>
 
       {/* Poster */}
       <div
         className="plakat"
         style={{
-          width: "min(594mm, 95vw)",
-          aspectRatio: "594 / 841",
+          width: `min(${format.w}mm, 92vw)`,
+          aspectRatio: `${format.w} / ${format.h}`,
           background: "#E8891A",
           position: "relative",
           overflow: "hidden",
@@ -42,25 +80,20 @@ export default function PlakatPage() {
           flexDirection: "column",
           fontFamily: "'Playfair Display', serif",
           boxShadow: "0 20px 80px rgba(0,0,0,0.7)",
+          flexShrink: 0,
         }}
       >
-        {/* Sunray background */}
         <Sunrays />
 
-        {/* Top headline */}
-        <div style={{
-          position: "relative", zIndex: 2,
-          textAlign: "center",
-          padding: "3.5% 4% 0",
-        }}>
+        {/* Headline */}
+        <div style={{ position: "relative", zIndex: 2, textAlign: "center", padding: "3.5% 4% 0" }}>
           <div style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 900,
-            fontSize: "clamp(2rem, 11vw, 13rem)",
+            fontSize: "clamp(1.5rem, 11vw, 13rem)",
             lineHeight: 0.9,
             color: "#fff",
-            textShadow: "4px 6px 0 rgba(0,0,0,0.22), 0 0 60px rgba(232,153,26,0.5)",
-            letterSpacing: "-0.01em",
+            textShadow: "4px 6px 0 rgba(0,0,0,0.22)",
             textTransform: "uppercase",
           }}>
             EMMERICH<br />BOOMT!
@@ -68,8 +101,7 @@ export default function PlakatPage() {
           <div style={{
             fontFamily: "'Lora', serif",
             fontStyle: "italic",
-            fontWeight: 400,
-            fontSize: "clamp(0.8rem, 2.8vw, 3.2rem)",
+            fontSize: "clamp(0.55rem, 2.8vw, 3.2rem)",
             color: "#0a0704",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
@@ -81,29 +113,15 @@ export default function PlakatPage() {
         </div>
 
         {/* Photo */}
-        <div style={{
-          position: "relative", zIndex: 2,
-          flex: 1,
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "center",
-          overflow: "hidden",
-          marginTop: "2%",
-        }}>
+        <div style={{ position: "relative", zIndex: 2, flex: 1, overflow: "hidden", marginTop: "2%" }}>
           <img
             src="/boomerparty-foto.jpeg"
             alt="BoomerParty"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center top",
-              display: "block",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
           />
         </div>
 
-        {/* Bottom info band */}
+        {/* Bottom band */}
         <div style={{
           position: "relative", zIndex: 3,
           background: "#c97d10",
@@ -114,12 +132,11 @@ export default function PlakatPage() {
           gap: "4%",
           flexShrink: 0,
         }}>
-          {/* Date + Location */}
           <div style={{ flex: 1 }}>
             <div style={{
               fontFamily: "'Playfair Display', serif",
               fontWeight: 900,
-              fontSize: "clamp(1rem, 4.5vw, 5.5rem)",
+              fontSize: "clamp(0.8rem, 4.5vw, 5.5rem)",
               color: "#fff",
               textTransform: "uppercase",
               lineHeight: 1.1,
@@ -130,7 +147,7 @@ export default function PlakatPage() {
             <div style={{
               fontFamily: "'Lora', serif",
               fontStyle: "italic",
-              fontSize: "clamp(0.7rem, 2.5vw, 2.8rem)",
+              fontSize: "clamp(0.5rem, 2.5vw, 2.8rem)",
               color: "#fff",
               opacity: 0.92,
               marginTop: "2%",
@@ -141,33 +158,27 @@ export default function PlakatPage() {
           </div>
 
           {/* QR Code */}
-          <div style={{
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "4%",
-          }}>
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "4%" }}>
             <div style={{
               background: "#fff",
-              padding: "clamp(4px, 1.2%, 14px)",
-              borderRadius: "clamp(4px, 0.8%, 10px)",
+              padding: "clamp(3px, 1.2%, 14px)",
+              borderRadius: "clamp(3px, 0.8%, 10px)",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
               lineHeight: 0,
             }}>
               <QRCodeSVG
-                value={URL}
+                value={SITE_URL}
                 size={512}
                 bgColor="#ffffff"
                 fgColor="#0a0704"
                 level="H"
-                style={{ width: "clamp(60px, 15vw, 180px)", height: "auto", display: "block" }}
+                style={{ width: "clamp(50px, 15vw, 180px)", height: "auto", display: "block" }}
               />
             </div>
             <div style={{
               fontFamily: "'Lora', serif",
               fontStyle: "italic",
-              fontSize: "clamp(0.5rem, 1.5vw, 1.8rem)",
+              fontSize: "clamp(0.4rem, 1.5vw, 1.8rem)",
               color: "#fff",
               textAlign: "center",
               opacity: 0.9,
@@ -180,22 +191,13 @@ export default function PlakatPage() {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
-
         @media print {
-          @page {
-            size: A1 portrait;
-            margin: 0;
-          }
-          body, html {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #E8891A !important;
-          }
+          @page { size: ${format.size} portrait; margin: 0; }
+          body, html { margin: 0 !important; padding: 0 !important; background: #E8891A !important; }
           .no-print { display: none !important; }
           .plakat {
-            width: 594mm !important;
-            height: 841mm !important;
+            width: ${format.w}mm !important;
+            height: ${format.h}mm !important;
             box-shadow: none !important;
           }
         }
@@ -209,15 +211,7 @@ function Sunrays() {
   return (
     <svg
       viewBox="0 0 1000 1000"
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "55%",
-        opacity: 0.35,
-        zIndex: 1,
-        pointerEvents: "none",
-      }}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "55%", opacity: 0.35, zIndex: 1, pointerEvents: "none" }}
       preserveAspectRatio="xMidYMin slice"
     >
       {Array.from({ length: rays }, (_, i) => {
@@ -229,9 +223,7 @@ function Sunrays() {
         const rNext = (aNext * Math.PI) / 180;
         const x3 = 500 + Math.cos(rNext) * 1200;
         const y3 = -50 + Math.sin(rNext) * 1200;
-        return (
-          <polygon key={i} points={`500,-50 ${x2},${y2} ${x3},${y3}`} fill={i % 2 === 0 ? "#fff" : "#c97d10"} />
-        );
+        return <polygon key={i} points={`500,-50 ${x2},${y2} ${x3},${y3}`} fill={i % 2 === 0 ? "#fff" : "#c97d10"} />;
       })}
     </svg>
   );
