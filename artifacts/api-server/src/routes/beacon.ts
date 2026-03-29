@@ -20,6 +20,28 @@ function parseDevice(ua: string): string {
   return "Desktop";
 }
 
+function parseBrowser(ua: string): string {
+  if (/Edg\//i.test(ua)) return "Edge";
+  if (/OPR\/|Opera\//i.test(ua)) return "Opera";
+  if (/SamsungBrowser/i.test(ua)) return "Samsung";
+  if (/Chrome\/[0-9]/i.test(ua) && !/Chromium/i.test(ua)) return "Chrome";
+  if (/Firefox\/[0-9]/i.test(ua)) return "Firefox";
+  if (/Safari\/[0-9]/i.test(ua) && !/Chrome/i.test(ua)) return "Safari";
+  if (/MSIE|Trident/i.test(ua)) return "IE";
+  if (/Chromium/i.test(ua)) return "Chromium";
+  return "Sonstige";
+}
+
+function parseOS(ua: string): string {
+  if (/Windows NT/i.test(ua)) return "Windows";
+  if (/iPhone|iPad/i.test(ua)) return "iOS";
+  if (/Macintosh|Mac OS X/i.test(ua) && !/iPhone|iPad/i.test(ua)) return "macOS";
+  if (/Android/i.test(ua)) return "Android";
+  if (/Linux/i.test(ua)) return "Linux";
+  if (/CrOS/i.test(ua)) return "ChromeOS";
+  return "Sonstige";
+}
+
 router.post("/beacon", async (req, res) => {
   try {
     const { sessionId, visitorId, referrer, action } = req.body;
@@ -33,8 +55,22 @@ router.post("/beacon", async (req, res) => {
       const {
         entryPath, lang, timezone,
         screenWidth, screenHeight, viewportWidth, viewportHeight,
-        utmSource, utmMedium, utmCampaign,
+        utmSource, utmMedium, utmCampaign, utmTerm, utmContent,
+        connectionType, touchEnabled, colorScheme,
       } = req.body;
+
+      const browser = parseBrowser(userAgent);
+      const os = parseOS(userAgent);
+
+      // Calculate visit number for this visitor
+      let visitNumber = 1;
+      if (visitorId) {
+        const prevVisits = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(pageViews)
+          .where(eq(pageViews.visitorId, visitorId));
+        visitNumber = (prevVisits[0]?.count ?? 0) + 1;
+      }
 
       await db.insert(pageViews).values({
         sessionId,
@@ -52,16 +88,49 @@ router.post("/beacon", async (req, res) => {
         utmSource:   (utmSource   ?? "").slice(0, 256) || null,
         utmMedium:   (utmMedium   ?? "").slice(0, 128) || null,
         utmCampaign: (utmCampaign ?? "").slice(0, 128) || null,
+        utmTerm:     (utmTerm     ?? "").slice(0, 128) || null,
+        utmContent:  (utmContent  ?? "").slice(0, 128) || null,
+        os,
+        browser,
+        connectionType: (connectionType ?? "").slice(0, 32) || null,
+        touchEnabled:   touchEnabled != null ? Boolean(touchEnabled) : null,
+        colorScheme:    (colorScheme ?? "").slice(0, 16) || null,
+        visitNumber,
         pingCount: 1,
       });
     } else if (action === "ping") {
-      await db
-        .update(pageViews)
-        .set({
+      const { scrollDepth, exitPath } = req.body;
+      const rawDepth = Number(scrollDepth);
+      const clampedDepth = scrollDepth != null && Number.isFinite(rawDepth)
+        ? Math.min(100, Math.max(0, Math.round(rawDepth)))
+        : null;
+      const cleanExitPath = exitPath ? String(exitPath).slice(0, 512) : null;
+
+      if (clampedDepth != null && cleanExitPath) {
+        await db.update(pageViews).set({
           lastSeenAt: new Date(),
           pingCount: sql`${pageViews.pingCount} + 1`,
-        })
-        .where(eq(pageViews.sessionId, sessionId));
+          scrollDepth: sql`GREATEST(COALESCE(${pageViews.scrollDepth}, 0), ${clampedDepth})`,
+          exitPath: cleanExitPath,
+        }).where(eq(pageViews.sessionId, sessionId));
+      } else if (clampedDepth != null) {
+        await db.update(pageViews).set({
+          lastSeenAt: new Date(),
+          pingCount: sql`${pageViews.pingCount} + 1`,
+          scrollDepth: sql`GREATEST(COALESCE(${pageViews.scrollDepth}, 0), ${clampedDepth})`,
+        }).where(eq(pageViews.sessionId, sessionId));
+      } else if (cleanExitPath) {
+        await db.update(pageViews).set({
+          lastSeenAt: new Date(),
+          pingCount: sql`${pageViews.pingCount} + 1`,
+          exitPath: cleanExitPath,
+        }).where(eq(pageViews.sessionId, sessionId));
+      } else {
+        await db.update(pageViews).set({
+          lastSeenAt: new Date(),
+          pingCount: sql`${pageViews.pingCount} + 1`,
+        }).where(eq(pageViews.sessionId, sessionId));
+      }
     }
 
     res.json({ ok: true });
@@ -171,6 +240,44 @@ router.get("/admin-stats", async (req, res) => {
       };
     });
 
+    // --- Bounce rate: sessions < 30s (pingCount <= 1) ---
+    const bounceCount = all.filter(r => (r.pingCount ?? 1) <= 1).length;
+    const bounceRate  = all.length > 0 ? Math.round((bounceCount / all.length) * 100) : 0;
+
+    // --- Conversion rate: % of unique visitors who registered ---
+    const registeredVisitorIds = new Set(allReg.map(r => r.visitorId).filter(Boolean));
+    const totalUniqueVisitors = uniqueVisitors(all);
+    const conversionRate = totalUniqueVisitors > 0
+      ? Math.round((registeredVisitorIds.size / totalUniqueVisitors) * 100)
+      : 0;
+
+    // --- Avg scroll depth ---
+    const scrollRows = all.filter(r => r.scrollDepth != null);
+    const avgScrollDepth = scrollRows.length > 0
+      ? Math.round(scrollRows.reduce((s, r) => s + (r.scrollDepth ?? 0), 0) / scrollRows.length)
+      : null;
+
+    // --- Browser & OS distribution ---
+    const browsers = byField(all, r => r.browser ?? parseBrowser(r.userAgent ?? ""));
+    const oses     = byField(all, r => r.os ?? parseOS(r.userAgent ?? ""));
+
+    // --- Connection type, color scheme & touch device ---
+    const connectionTypes = byField(all.filter(r => r.connectionType), r => r.connectionType);
+    const colorSchemes    = byField(all, r => r.colorScheme);
+    const touchDevices: [string, number][] = (() => {
+      let yes = 0; let no = 0; let unknown = 0;
+      for (const r of all) {
+        if (r.touchEnabled === true) yes++;
+        else if (r.touchEnabled === false) no++;
+        else unknown++;
+      }
+      const result: [string, number][] = [];
+      if (yes > 0) result.push(["Touch-Gerät", yes]);
+      if (no > 0) result.push(["Kein Touch", no]);
+      if (unknown > 0) result.push(["Unbekannt", unknown]);
+      return result.sort((a, b) => b[1] - a[1]);
+    })();
+
     const recent = all.slice(0, 100).map(r => {
       const knownName = r.visitorId
         ? (allReg.find(reg => reg.visitorId === r.visitorId)?.name ?? null)
@@ -192,6 +299,11 @@ router.get("/admin-stats", async (req, res) => {
         utmMedium:   r.utmMedium   ?? null,
         utmCampaign: r.utmCampaign ?? null,
         entryPath:   r.entryPath   ?? null,
+        browser:     r.browser ?? parseBrowser(r.userAgent ?? ""),
+        os:          r.os ?? parseOS(r.userAgent ?? ""),
+        scrollDepth: r.scrollDepth ?? null,
+        exitPath:    r.exitPath ?? null,
+        visitNumber: r.visitNumber ?? null,
       };
     });
 
@@ -212,8 +324,7 @@ router.get("/admin-stats", async (req, res) => {
     const tzHour = (d: Date) =>
       parseInt(new Intl.DateTimeFormat("de-DE", { timeZone: TZ, hour: "2-digit", hour12: false }).format(d), 10);
     const tzWeekdayIdx = (d: Date) => {
-      // 0=So … 6=Sa, reorder to Mo=0
-      const raw = d.getDay(); // JS: 0=Sun
+      const raw = d.getDay();
       return (raw + 6) % 7;  // Mo=0, Di=1, … So=6
     };
 
@@ -271,11 +382,14 @@ router.get("/admin-stats", async (req, res) => {
         totalSessions:       all.length,
         todaySessions:       today.length,
         weekSessions:        week.length,
-        uniqueVisitors:      uniqueVisitors(all),
+        uniqueVisitors:      totalUniqueVisitors,
         returnVisitors,
         avgDurationSec:      avgDuration(all),
         todayAvgDurationSec: avgDuration(today),
         totalAnmeldungen:    allReg.length,
+        bounceRate,
+        conversionRate,
+        avgScrollDepth,
       },
       registrations,
       returnerNames,
@@ -289,6 +403,11 @@ router.get("/admin-stats", async (req, res) => {
       utmSources:     byField(all.filter(r => r.utmSource), r => r.utmSource),
       languages:      byField(all, r => r.lang),
       screens:        byField(all.filter(r => r.screenWidth), r => r.screenWidth && r.screenHeight ? `${r.screenWidth}×${r.screenHeight}` : null),
+      browsers,
+      oses,
+      connectionTypes,
+      colorSchemes,
+      touchDevices,
       recent,
     });
   } catch (err) {

@@ -39,6 +39,9 @@ interface Visit {
   lang: string | null; timezone: string | null;
   utmSource: string | null; utmMedium: string | null;
   utmCampaign: string | null; entryPath: string | null;
+  browser: string | null; os: string | null;
+  scrollDepth: number | null; exitPath: string | null;
+  visitNumber: number | null;
 }
 interface ReturnerName { name: string; visitCount: number; lastSeen: string | null; }
 interface DayEntry { date: string; visits: number; registrations: number; }
@@ -51,6 +54,7 @@ interface Stats {
     totalSessions: number; todaySessions: number; weekSessions: number;
     uniqueVisitors: number; returnVisitors: number;
     avgDurationSec: number; todayAvgDurationSec: number; totalAnmeldungen: number;
+    bounceRate: number; conversionRate: number; avgScrollDepth: number | null;
   };
   registrations: Registration[];
   returnerNames: ReturnerName[];
@@ -64,6 +68,11 @@ interface Stats {
   utmSources: [string, number][];
   languages: [string, number][];
   screens: [string, number][];
+  browsers: [string, number][];
+  oses: [string, number][];
+  connectionTypes: [string, number][];
+  colorSchemes: [string, number][];
+  touchDevices: [string, number][];
   recent: Visit[];
 }
 
@@ -103,11 +112,12 @@ function SubLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function StatCard({ n, label }: { n: string | number; label: string }) {
+function StatCard({ n, label, sub }: { n: string | number; label: string; sub?: string }) {
   return (
     <div style={{ background: am(0.06), border: `1px solid ${am(0.25)}`, borderRadius: "6px", padding: "1rem 1.2rem" }}>
       <div style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "2rem", color: A, lineHeight: 1 }}>{n}</div>
       <div style={{ fontSize: "0.82rem", color: fg(0.7), marginTop: "0.35rem", fontFamily: "'Lora', serif" }}>{label}</div>
+      {sub && <div style={{ fontSize: "0.78rem", color: fg(0.5), marginTop: "0.2rem", fontFamily: "'Lora', serif", fontStyle: "italic" }}>{sub}</div>}
     </div>
   );
 }
@@ -290,6 +300,23 @@ function RegTimeline({ data }: { data: RegTimelineEntry[] }) {
   );
 }
 
+function ScrollBar({ depth }: { depth: number | null }) {
+  if (depth == null) return <span style={{ color: fg(0.4), fontStyle: "italic" }}>—</span>;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+      <div style={{ width: "48px", height: "6px", background: am(0.2), borderRadius: "3px", overflow: "hidden" }}>
+        <div style={{ width: `${depth}%`, height: "100%", background: A, borderRadius: "3px" }} />
+      </div>
+      <span style={{ color: fg(0.8), fontSize: "0.82rem" }}>{depth}%</span>
+    </div>
+  );
+}
+
+function visitOrdinal(n: number | null): string {
+  if (n == null) return "—";
+  return `${n}.`;
+}
+
 export default function AdminPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
   const [stats, setStats] = useState<Stats | null>(null);
@@ -309,7 +336,7 @@ export default function AdminPage() {
   if (error) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: A, marginTop: "4rem" }}>⚠ {error}</p></div>;
   if (!stats) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: fg(0.55), marginTop: "4rem" }}>Lädt …</p></div>;
 
-  const { summary, registrations, returnerNames, dailyVisits, hourlyDistribution, weekdayDistribution, registrationTimeline, referrers, devices, todayReferrers, utmSources, languages, recent } = stats;
+  const { summary, registrations, returnerNames, dailyVisits, hourlyDistribution, weekdayDistribution, registrationTimeline, referrers, devices, todayReferrers, utmSources, languages, browsers, oses, connectionTypes, colorSchemes, touchDevices, recent } = stats;
   const deviceRows = Object.entries(devices).sort((a, b) => b[1] - a[1]) as [string, number][];
 
   return (
@@ -353,6 +380,13 @@ export default function AdminPage() {
         <StatCard n={summary.returnVisitors}           label="Wiederkommer" />
         <StatCard n={fmt(summary.avgDurationSec)}      label="Ø Verweildauer" />
         <StatCard n={fmt(summary.todayAvgDurationSec)} label="Ø Heute" />
+        <StatCard n={`${summary.bounceRate}%`}         label="Absprungrate" sub="Besuche unter 30 s" />
+        <StatCard n={`${summary.conversionRate}%`}     label="Konversionsrate" sub="Besucher → Angemeldet" />
+        <StatCard
+          n={summary.avgScrollDepth != null ? `${summary.avgScrollDepth}%` : "—"}
+          label="Ø Scroll-Tiefe"
+          sub="Wie weit gescrollt"
+        />
       </div>
 
       {/* ── Besuchsverlauf ── */}
@@ -395,6 +429,35 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* ── Browser & Betriebssystem ── */}
+      <SectionTitle>Browser & Betriebssystem</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "2rem" }}>
+        <div>
+          <SubLabel>Browser</SubLabel>
+          <BarChart rows={browsers} />
+        </div>
+        <div>
+          <SubLabel>Betriebssystem</SubLabel>
+          <BarChart rows={oses} />
+        </div>
+        {connectionTypes.length > 0 && (
+          <div>
+            <SubLabel>Verbindungstyp</SubLabel>
+            <BarChart rows={connectionTypes} />
+          </div>
+        )}
+        <div>
+          <SubLabel>Farbschema</SubLabel>
+          <BarChart rows={colorSchemes} />
+        </div>
+        {touchDevices.length > 0 && (
+          <div>
+            <SubLabel>Touch-Gerät</SubLabel>
+            <BarChart rows={touchDevices} />
+          </div>
+        )}
+      </div>
+
       {/* ── Wiederkommer ── */}
       {returnerNames.length > 0 && (
         <>
@@ -422,22 +485,35 @@ export default function AdminPage() {
       {/* ── Letzte Besuche ── */}
       <SectionTitle>Letzte Besuche</SectionTitle>
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem", minWidth: "480px", fontFamily: "'Lora', serif" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.84rem", minWidth: "700px", fontFamily: "'Lora', serif" }}>
           <thead>
             <tr>
-              {["Wann", "Dauer", "Gerät", "Herkunft", "Wer"].map(h => (
-                <th key={h} style={{ textAlign: "left", padding: "0.5rem 0.7rem", borderBottom: `1px solid ${am(0.25)}`, color: fg(0.65), fontWeight: 400, fontStyle: "italic", whiteSpace: "nowrap", fontSize: "0.85rem" }}>{h}</th>
+              {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #", "Wer"].map(h => (
+                <th key={h} style={{ textAlign: "left", padding: "0.5rem 0.6rem", borderBottom: `1px solid ${am(0.25)}`, color: fg(0.65), fontWeight: 400, fontStyle: "italic", whiteSpace: "nowrap", fontSize: "0.82rem" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {recent.map(r => (
               <tr key={r.id}>
-                <td style={{ padding: "0.45rem 0.7rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.85), whiteSpace: "nowrap" }}>{when(r.when)}</td>
-                <td style={{ padding: "0.45rem 0.7rem", borderBottom: `1px solid ${fg(0.06)}`, color: A, whiteSpace: "nowrap" }}>{fmt(r.duration)}</td>
-                <td style={{ padding: "0.45rem 0.7rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.device}</td>
-                <td style={{ padding: "0.45rem 0.7rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.75) }}>{r.referrer}</td>
-                <td style={{ padding: "0.45rem 0.7rem", borderBottom: `1px solid ${fg(0.06)}`, color: r.knownName ? A : fg(0.4), fontStyle: r.knownName ? "normal" : "italic", fontSize: "0.85rem" }}>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.85), whiteSpace: "nowrap" }}>{when(r.when)}</td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: A, whiteSpace: "nowrap" }}>{fmt(r.duration)}</td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.device}</td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.8) }}>{r.browser ?? "—"}</td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.75) }}>{r.os ?? "—"}</td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}` }}>
+                  <ScrollBar depth={r.scrollDepth} />
+                </td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.65), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.entryPath ?? undefined}>
+                  {r.entryPath ?? "—"}
+                </td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.6), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.exitPath ?? undefined}>
+                  {r.exitPath ?? "—"}
+                </td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.7), textAlign: "center" }}>
+                  {visitOrdinal(r.visitNumber)}
+                </td>
+                <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: r.knownName ? A : fg(0.4), fontStyle: r.knownName ? "normal" : "italic", fontSize: "0.82rem" }}>
                   {r.knownName ?? (r.visitorId ? `${r.visitorId}…` : "—")}
                 </td>
               </tr>
