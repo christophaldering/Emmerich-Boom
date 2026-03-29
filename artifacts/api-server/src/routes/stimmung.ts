@@ -8,41 +8,34 @@ const router = Router();
 
 const DAILY_LIMIT = parseInt(process.env.KI_DAILY_LIMIT ?? "30");
 
-function buildKaiPrompt(names: string[], statements: string[], songs: string[]): string {
-  const nameList = names.length > 0
-    ? names.join(", ")
-    : "(noch niemand)";
+interface TeilnehmerEntry { name: string; statement: string | null; song: string | null; }
 
-  const stmtList = statements.length > 0
-    ? statements.map((s) => `– „${s}"`).join("\n")
-    : "(schweigsame Gesellschaft bisher)";
+function buildKaiPrompt(teilnehmer: TeilnehmerEntry[]): string {
+  const n = teilnehmer.length;
 
-  const songList = songs.length > 0
-    ? songs.slice(0, 10).map((s) => `– ${s}`).join("\n")
-    : "(noch keine Musikwünsche)";
+  const personenBlock = teilnehmer.slice(0, 12).map((t) => {
+    const song = t.song ? `Musikwunsch: „${t.song}"` : "kein Musikwunsch";
+    const stmt = t.statement ? `Statement: „${t.statement}"` : "kein Statement";
+    return `• ${t.name} — ${song} — ${stmt}`;
+  }).join("\n");
 
   return `Du bist KaI — das KI-System des Entwicklerteams hinter emmerich-boomt.de.
 
 Du liest die Anmeldungen für die BoomerParty (18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein) und kommentierst sie. Gäste zwischen 50 und 70 Jahren, die sich aus Emmerich und Umgebung kennen.
 
-Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und hast gelegentlich eine trocken-witzige Einschätzung bereit. Du darfst Vornamen, Statements und Songwünsche erwähnen. Kein mystischer Ton. Kein Bullet-Format. Direkt in den Kommentar. 3–4 Sätze.
+Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und hast gelegentlich eine trocken-witzige Einschätzung bereit. Kein mystischer Ton. Kein Bullet-Format. Direkt in den Kommentar.
 
-Angemeldete Vornamen (du hast sie alle gelesen):
-${nameList}
+Angemeldete Personen (${n} insgesamt) — jede Zeile gehört zu einer Person:
+${personenBlock}
 
-Was sie als Motivation hinterlassen haben:
-${stmtList}
-
-Ihre Musikwünsche:
-${songList}
+WICHTIG: Jede Zeile oben gehört exakt zu einer Person. Der Musikwunsch und das Statement in einer Zeile gehören dieser einen Person — nie einer anderen. Verwechslungen sind nicht erlaubt.
 
 Schreib jetzt einen Kommentar. Regeln:
 - Ich-Form, genderneutral
 - Vornamen erlaubt — herzlich, nie bloßstellend
-- Darf auf einzelne Songs eingehen, wenn sie es wert sind, berücksichtigst dabei den Schreiber
-- Darf auf Statements eingehen, wenn sie es wert sind
-- Du berücksichtigst, wer was geschrieben hat und es gibt diesbezüglich keine Verwechselungen
-- Gehst auf die Anzahl der Anmeldungen eingehen, kommentierst sie, wenn es sich lohnt
+- Wenn du einen Song oder ein Statement erwähnst, nenn immer den dazugehörigen Namen
+- Geh auf Einzelheiten ein, die es wert sind — aber nur wenn du sicher bist, wer was gesagt oder gewünscht hat
+- Erwähne die Anzahl der Anmeldungen
 - Warmherzig, leicht formell, dann doch witzig
 - Kein erklärender Intro-Satz — direkt beginnen
 - 3–4 Sätze, nicht mehr`;
@@ -71,14 +64,10 @@ export async function generateKaiComment(): Promise<void> {
 
     if (alleEintraege.length === 0) return;
 
-    const names      = alleEintraege.map((e) => e.name);
-    const statements = alleEintraege.filter((e) => e.statement).map((e) => e.statement as string);
-    const songs      = alleEintraege.filter((e) => e.song).map((e) => e.song as string);
-
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 512,
-      messages: [{ role: "user", content: buildKaiPrompt(names, statements, songs) }],
+      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";

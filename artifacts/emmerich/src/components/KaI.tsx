@@ -90,7 +90,7 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
   }, []);
 
   useEffect(() => {
-    if (inhalt && textRef.current) {
+    if (!expanded && inhalt && textRef.current) {
       setNeedsFade(textRef.current.scrollHeight > textRef.current.clientHeight + 4);
     }
   }, [inhalt, expanded]);
