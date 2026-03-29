@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 const SECRET = "emmerich-orga-stats-2026";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -300,6 +300,164 @@ function RegTimeline({ data }: { data: RegTimelineEntry[] }) {
   );
 }
 
+interface TicketRow {
+  id: number;
+  anmeldungId: number | null;
+  personName: string;
+  ticketCode: string;
+  paymentMethod: string | null;
+  paidAt: string | null;
+  usedAt: string | null;
+  createdAt: string;
+  registrationName: string | null;
+}
+
+const PAY_LABELS: Record<string, string> = { paypal: "PayPal", ueberweisung: "Überweisung", bar: "Bar" };
+const PAY_OPTIONS = [
+  { value: "paypal",       label: "PayPal" },
+  { value: "ueberweisung", label: "Überweisung" },
+  { value: "bar",          label: "Bar" },
+];
+
+function parsePersonenCount(personen: string): number {
+  if (personen === "Nur ich") return 1;
+  const m = personen.match(/(\d+)/);
+  return m ? parseInt(m[1]) : 1;
+}
+
+function defaultNames(baseName: string, count: number): string[] {
+  if (count === 1) return [baseName];
+  return Array.from({ length: count }, (_, i) => i === 0 ? baseName : "");
+}
+
+function TicketManager({ reg, tickets, onRefresh }: {
+  reg: Registration;
+  tickets: TicketRow[];
+  onRefresh: () => void;
+}) {
+  const myTickets = tickets.filter(t => t.anmeldungId === reg.id);
+  const personCount = parsePersonenCount(reg.personen);
+  const [open, setOpen] = useState(myTickets.length === 0);
+  const [payMethod, setPayMethod] = useState(myTickets[0]?.paymentMethod ?? "bar");
+  const [names, setNames] = useState<string[]>(() =>
+    myTickets.length > 0 ? myTickets.map(t => t.personName) : defaultNames(reg.name, personCount)
+  );
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const generate = async () => {
+    const validNames = names.map(n => n.trim()).filter(Boolean);
+    if (validNames.length === 0) { setMsg("Bitte mindestens einen Namen eingeben."); return; }
+    setLoading(true); setMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/tickets/generate`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-admin-secret": SECRET },
+        body: JSON.stringify({ anmeldungId: reg.id, paymentMethod: payMethod, names: validNames }),
+      });
+      const data = await r.json();
+      if (data.success) { setMsg("Tickets generiert!"); setOpen(false); onRefresh(); }
+      else { setMsg(`Fehler: ${data.error ?? "Unbekannt"}`); }
+    } catch { setMsg("Verbindungsfehler."); }
+    finally { setLoading(false); }
+  };
+
+  const ticketBase = `${window.location.origin}${BASE}/ticket/`;
+
+  return (
+    <div style={{ border: `1px solid ${am(0.25)}`, borderRadius: "6px", overflow: "hidden", marginBottom: "0.6rem" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", background: am(0.06), cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1rem", color: A }}>{reg.name}</span>
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.6) }}>{reg.personen}</span>
+          {myTickets.length > 0 && (
+            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: "#2ecc71", background: "rgba(46,204,113,0.12)", padding: "0.15rem 0.5rem", borderRadius: "20px" }}>
+              {myTickets.length} Ticket{myTickets.length > 1 ? "s" : ""} · {PAY_LABELS[myTickets[0].paymentMethod ?? ""] ?? "—"}
+            </span>
+          )}
+        </div>
+        <span style={{ color: fg(0.5), fontSize: "0.85rem" }}>{open ? "▲" : "▼"}</span>
+      </div>
+
+      {/* Existing tickets */}
+      {myTickets.length > 0 && (
+        <div style={{ padding: "0.75rem 1rem", borderBottom: `1px solid ${am(0.15)}` }}>
+          {myTickets.map(t => (
+            <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.85), minWidth: "120px" }}>{t.personName}</span>
+              <code style={{ fontFamily: "monospace", fontSize: "0.8rem", color: A, letterSpacing: "0.08em" }}>{t.ticketCode}</code>
+              {t.usedAt
+                ? <span style={{ fontSize: "0.78rem", color: "#e8991a", fontFamily: "'Lora', serif" }}>✓ Eingelöst {new Date(t.usedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr</span>
+                : <span style={{ fontSize: "0.78rem", color: "#2ecc71", fontFamily: "'Lora', serif" }}>Noch nicht eingelöst</span>
+              }
+              <a href={`${ticketBase}${t.ticketCode}`} target="_blank" rel="noreferrer"
+                style={{ fontSize: "0.78rem", color: A, fontFamily: "'Lora', serif", fontStyle: "italic", textDecoration: "underline" }}>
+                Ansehen / Drucken
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Generation form */}
+      {open && (
+        <div style={{ padding: "1rem" }}>
+          {/* Payment method */}
+          <div style={{ marginBottom: "0.85rem" }}>
+            <p style={{ fontSize: "0.78rem", color: fg(0.6), fontFamily: "'Lora', serif", margin: "0 0 0.4rem", textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>Zahlungsart</p>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              {PAY_OPTIONS.map(o => (
+                <button key={o.value} onClick={() => setPayMethod(o.value)}
+                  style={{ background: payMethod === o.value ? A : "transparent", border: `1px solid ${A}`, borderRadius: "3px", color: payMethod === o.value ? BG : A, padding: "0.35rem 0.85rem", fontFamily: "'Lora', serif", fontSize: "0.88rem", cursor: "pointer" }}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Name inputs */}
+          <div style={{ marginBottom: "0.85rem" }}>
+            <p style={{ fontSize: "0.78rem", color: fg(0.6), fontFamily: "'Lora', serif", margin: "0 0 0.4rem", textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>
+              Namen der Personen ({names.length})
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              {names.map((n, i) => (
+                <div key={i} style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                  <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.5), width: "1.5rem", textAlign: "right", flexShrink: 0 }}>{i + 1}.</span>
+                  <input value={n} onChange={e => setNames(prev => prev.map((v, j) => j === i ? e.target.value : v))}
+                    style={{ flex: 1, background: "rgba(245,232,200,0.06)", border: `1px solid ${am(0.3)}`, borderRadius: "3px", color: FG, padding: "0.45rem 0.7rem", fontSize: "0.9rem", fontFamily: "'Lora', serif", outline: "none" }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+              {names.length < 10 && (
+                <button onClick={() => setNames(prev => [...prev, ""])}
+                  style={{ background: "transparent", border: `1px solid ${am(0.35)}`, borderRadius: "3px", color: fg(0.7), padding: "0.3rem 0.7rem", fontFamily: "'Lora', serif", fontSize: "0.82rem", cursor: "pointer" }}>
+                  + Person
+                </button>
+              )}
+              {names.length > 1 && (
+                <button onClick={() => setNames(prev => prev.slice(0, -1))}
+                  style={{ background: "transparent", border: `1px solid ${am(0.2)}`, borderRadius: "3px", color: fg(0.5), padding: "0.3rem 0.7rem", fontFamily: "'Lora', serif", fontSize: "0.82rem", cursor: "pointer" }}>
+                  − entfernen
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Generate */}
+          <button onClick={generate} disabled={loading}
+            style={{ background: A, border: "none", borderRadius: "4px", color: BG, padding: "0.65rem 1.5rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1, fontWeight: 700 }}>
+            {loading ? "Generiere…" : myTickets.length > 0 ? "Tickets neu generieren" : "Tickets generieren"}
+          </button>
+          {msg && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: msg.startsWith("Fehler") ? "#e74c3c" : "#2ecc71", marginTop: "0.5rem" }}>{msg}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ScrollBar({ depth }: { depth: number | null }) {
   if (depth == null) return <span style={{ color: fg(0.4), fontStyle: "italic" }}>—</span>;
   return (
@@ -322,6 +480,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
+  const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
 
   const load = () => {
     fetch(`${BASE}/api/admin-stats?key=${SECRET}`)
@@ -330,7 +489,14 @@ export default function AdminPage() {
       .catch(() => setError("Verbindungsfehler"));
   };
 
-  useEffect(() => { if (authed) load(); }, [authed]);
+  const loadTickets = useCallback(() => {
+    fetch(`${BASE}/api/admin/tickets`, { headers: { "x-admin-secret": SECRET } })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setTicketRows(data); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { if (authed) { load(); loadTickets(); } }, [authed]);
 
   if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
   if (error) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: A, marginTop: "4rem" }}>⚠ {error}</p></div>;
@@ -359,6 +525,18 @@ export default function AdminPage() {
         : <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
             {registrations.map(r => <RegCard key={r.id} r={r} />)}
           </div>
+      }
+
+      {/* ── Ticket-Verwaltung ── */}
+      <SectionTitle>Ticket-Verwaltung</SectionTitle>
+      <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.6), marginBottom: "1rem", marginTop: "-0.5rem" }}>
+        Zahlung bestätigen → Tickets generieren → Druckansicht öffnen
+      </p>
+      {registrations.length === 0
+        ? <p style={{ color: fg(0.55), fontSize: "0.92rem", fontFamily: "'Lora', serif" }}>Noch keine Anmeldungen.</p>
+        : registrations.map(r => (
+            <TicketManager key={r.id} reg={r} tickets={ticketRows} onRefresh={loadTickets} />
+          ))
       }
 
       {/* ── Anmeldungs-Zeitstrahl ── */}
