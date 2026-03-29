@@ -362,7 +362,7 @@ function TicketManager({ reg, tickets, onRefresh }: {
     finally { setLoading(false); }
   };
 
-  const ticketBase = `${window.location.origin}${BASE}/ticket/`;
+  const ticketBase = `${window.location.origin}${BASE}/boomer-orga-intern/ticket/`;
 
   return (
     <div style={{ border: `1px solid ${am(0.25)}`, borderRadius: "6px", overflow: "hidden", marginBottom: "0.6rem" }}>

@@ -84,7 +84,7 @@ export default function EinlassPage() {
       cooldownRef.current = true;
       const raw = code.data.trim();
       // Extract code from URL or use raw
-      const match = raw.match(/\/ticket\/([A-F0-9]{16})/i);
+      const match = raw.match(/\/boomer-orga-intern\/ticket\/([A-F0-9]{16})/i);
       const ticketCode = match ? match[1].toUpperCase() : raw.toUpperCase();
       stopScan();
       setLoading(true);

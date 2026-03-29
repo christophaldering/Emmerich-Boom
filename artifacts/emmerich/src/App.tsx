@@ -18,12 +18,12 @@ function getRoute(): { page: string; param?: string } {
   const clean = stripped.replace(/^\/+/, "");
 
   if (clean === ADMIN_SLUG) return { page: "admin" };
-  if (clean === "einlass") return { page: "einlass" };
+  if (clean === `${ADMIN_SLUG}/einlass`) return { page: "einlass" };
   if (clean === "plakat") return { page: "plakat" };
   if (clean === "plakat-b") return { page: "plakat-b" };
   if (clean === "plakat-c") return { page: "plakat-c" };
   if (clean === "flyer") return { page: "flyer" };
-  const ticketMatch = clean.match(/^ticket\/([A-Fa-f0-9]{16})$/);
+  const ticketMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})$`));
   if (ticketMatch) return { page: "ticket", param: ticketMatch[1].toUpperCase() };
   return { page: "main" };
 }
