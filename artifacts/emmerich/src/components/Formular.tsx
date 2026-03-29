@@ -128,10 +128,13 @@ export default function Formular({ onSuccess }: FormularProps) {
     setError("");
     setLoading(true);
     try {
+      const visitorId: string | undefined = (() => {
+        try { return localStorage.getItem("emmerich_vid") ?? undefined; } catch { return undefined; }
+      })();
       const res = await fetch("/api/interesse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...(visitorId ? { visitorId } : {}) }),
       });
       const data = await res.json();
       if (data.success) {

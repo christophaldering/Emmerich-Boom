@@ -76,6 +76,12 @@ interface Visit {
   entryPath: string | null;
 }
 
+interface ReturnerName {
+  name: string;
+  visitCount: number;
+  lastSeen: string | null;
+}
+
 interface Stats {
   summary: {
     totalSessions: number;
@@ -88,6 +94,7 @@ interface Stats {
     totalAnmeldungen: number;
   };
   registrations: Registration[];
+  returnerNames: ReturnerName[];
   referrers: [string, number][];
   devices: Record<string, number>;
   todayReferrers: [string, number][];
@@ -215,7 +222,7 @@ export default function AdminPage() {
   if (error) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: A, marginTop: "4rem" }}>⚠ {error}</p></div>;
   if (!stats) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: fg(0.4), marginTop: "4rem" }}>Lädt …</p></div>;
 
-  const { summary, registrations, referrers, devices, todayReferrers, utmSources, languages, recent } = stats;
+  const { summary, registrations, returnerNames, referrers, devices, todayReferrers, utmSources, languages, recent } = stats;
 
   const deviceRows = Object.entries(devices).sort((a, b) => b[1] - a[1]) as [string, number][];
 
@@ -280,6 +287,21 @@ export default function AdminPage() {
           <BarChart rows={languages} />
         </div>
       </div>
+
+      {returnerNames.length > 0 && (
+        <>
+          <SectionTitle>Bekannte Wiederkommer</SectionTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            {returnerNames.map(r => (
+              <div key={r.name} style={{ display: "flex", gap: "0.8rem", alignItems: "center", fontFamily: "'Lora', serif", fontSize: "0.88rem" }}>
+                <span style={{ color: A, fontWeight: 600, minWidth: "100px" }}>{r.name}</span>
+                <span style={{ color: fg(0.5) }}>{r.visitCount} Besuche</span>
+                <span style={{ color: fg(0.35), fontSize: "0.78rem" }}>zuletzt {when(r.lastSeen)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {utmSources.length > 0 && (
         <>

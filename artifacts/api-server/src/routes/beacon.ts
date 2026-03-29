@@ -195,6 +195,15 @@ router.get("/admin-stats", async (req, res) => {
       };
     });
 
+    const returnerNames = allReg
+      .filter(r => r.visitorId && visitorViewMap[r.visitorId] && visitorViewMap[r.visitorId].count > 1)
+      .map(r => ({
+        name:       r.name,
+        visitCount: visitorViewMap[r.visitorId!].count,
+        lastSeen:   visitorViewMap[r.visitorId!].lastSeen,
+      }))
+      .sort((a, b) => (b.lastSeen?.getTime() ?? 0) - (a.lastSeen?.getTime() ?? 0));
+
     res.json({
       summary: {
         totalSessions:       all.length,
@@ -207,6 +216,7 @@ router.get("/admin-stats", async (req, res) => {
         totalAnmeldungen:    allReg.length,
       },
       registrations,
+      returnerNames,
       referrers:      byReferrer(all),
       devices:        byDevice(all),
       todayReferrers: byReferrer(today),
