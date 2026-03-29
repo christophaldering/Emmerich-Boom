@@ -71,15 +71,15 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
         .tn-list { max-width:640px; margin:0 auto; border-top:1px solid var(--fg-08); }
 
-        .tn-row { border-bottom:1px solid var(--fg-06); padding:0.4rem 0.5rem 0.35rem; }
+        .tn-row { border-bottom:1px solid var(--fg-06); padding:0.45rem 0.5rem 0.4rem; }
         .tn-row:hover { background:var(--fg-03); }
 
-        .tn-row-line1 { display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:0.55rem; }
-        .tn-row-name { font-family:'Courier New',Courier,monospace; font-size:0.9rem; font-weight:700; color:var(--warm); white-space:nowrap; }
-        .tn-row-stmt { font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--fg-85); }
-        .tn-row-persons { font-family:'Courier New',Courier,monospace; font-size:0.75rem; color:var(--fg-75); white-space:nowrap; flex-shrink:0; }
+        .tn-row-header { display:flex; justify-content:space-between; align-items:baseline; gap:0.6rem; }
+        .tn-row-name { font-family:'Courier New',Courier,monospace; font-size:0.9rem; font-weight:700; color:var(--warm); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+        .tn-row-persons { font-family:'Courier New',Courier,monospace; font-size:0.75rem; color:var(--fg-65); white-space:nowrap; flex-shrink:0; }
 
-        .tn-row-line2 { font-family:'Courier New',Courier,monospace; font-size:0.78rem; color:var(--fg-85); padding-left:1rem; margin-top:0.1rem; }
+        .tn-row-stmt { font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--fg-85); margin-top:0.12rem; word-break:break-word; overflow-wrap:anywhere; }
+        .tn-row-song { font-family:'Courier New',Courier,monospace; font-size:0.78rem; color:var(--fg-80); margin-top:0.1rem; word-break:break-word; overflow-wrap:anywhere; }
 
         .tn-expand { display:block; font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--amber-60); background:none; border:none; cursor:pointer; padding:0.5rem 0.5rem 0; text-align:left; }
         .tn-expand:hover { color:var(--amber); }
@@ -106,23 +106,17 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           const hasStmt  = !!e.statement;
           const hasSong  = !!e.song;
 
-          const line1Mid = hasStmt
-            ? `„${e.statement!}"`
-            : hasSong
-              ? `♪ ${e.song}`
-              : "";
-
-          const showSongLine2 = hasStmt && hasSong;
-
           return (
             <div key={e.id} className="tn-row">
-              <div className="tn-row-line1">
+              <div className="tn-row-header">
                 <span className="tn-row-name">{e.name}</span>
-                <span className="tn-row-stmt">{line1Mid}</span>
                 <span className="tn-row-persons">{persons}</span>
               </div>
-              {showSongLine2 && (
-                <div className="tn-row-line2">♪ {e.song}</div>
+              {hasStmt && (
+                <div className="tn-row-stmt">„{e.statement}"</div>
+              )}
+              {hasSong && (
+                <div className="tn-row-song">♪ {e.song}</div>
               )}
             </div>
           );
