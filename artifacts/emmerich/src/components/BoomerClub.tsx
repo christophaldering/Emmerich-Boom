@@ -82,7 +82,7 @@ export default function BoomerClub() {
         <p className="boomerclub-text">
           2024 entstand der Boomerclub an der Theke der Societät — in bester Bierlaune, wie es sich gehört.
           Seitdem sind rund <strong style={{ color: "var(--warm)" }}>130 Leute</strong> dabei.
-          Manche kommen zu den gemütlichen Treffen, wenn sie Lust haben. Andere verfolgen einfach, was so passiert — direkt über WhatsApp. Beides ist vollkommen richtig.
+          Manche kommen zu den gemütlichen Treffen — die finden alle vier bis sechs Monate statt, etwa dreimal im Jahr. Andere verfolgen einfach, was so passiert — direkt über WhatsApp. Beides ist vollkommen richtig.
           Passt doch.
         </p>
         <p className="boomerclub-text" style={{ marginTop: "-0.4rem" }}>
