@@ -150,7 +150,7 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
       <div className="kai-box">
         <span className="kai-label">KaI</span>
         <p className="kai-byline">
-          KaI ist das KI-System des Entwicklerteams — und liest seit Beginn sehr aufmerksam mit.
+          KaI ist das KI-System des Entwicklerteams und fasst die bisherigen Anmeldungen zusammen.
         </p>
         <p className="kai-dynamic-intro">{introText}</p>
 
