@@ -1,6 +1,7 @@
 import { QRCodeSVG } from "qrcode.react";
 
 const SITE_URL = "https://emmerich-boomt.replit.app";
+const WA_URL   = "https://chat.whatsapp.com/Ie7Jo01K44H8BREFq4XuIV?mode=gi_t";
 
 const A  = "#E8991A";
 const A2 = "#c97d10";
@@ -106,18 +107,28 @@ function Aussen() {
         </div>
         <div>
           <p className="p-body" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.5rem, 1.15vw, 0.85rem)", color: FG, lineHeight: 1.7, opacity: 0.85, margin: 0 }}>
-            Gegründet 2024 — an der Theke der Societät. Rund 130 Mitglieder aus Emmerich und Umgebung.
-            Eine Community für alle, die dabei sein wollen — bei gemütlichen Treffen oder einfach per WhatsApp.
+            Gegründet 2024 an der Theke der Societät — rund 130 Leute dabei. Von uns. Für uns. Wird Zeit.
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "1em" }}>
-          <div style={{ background: "#fff", padding: "clamp(2px, 0.5%, 6px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
-            <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor={BG} level="M"
-              style={{ width: "clamp(28px, 6vw, 52px)", height: "auto", display: "block" }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.8em" }}>
+            <div style={{ background: "#fff", padding: "clamp(2px, 0.5%, 6px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
+              <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor={BG} level="M"
+                style={{ width: "clamp(28px, 6vw, 52px)", height: "auto", display: "block" }} />
+            </div>
+            <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.75rem)", color: A, margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
+              emmerich-boomt<br />.replit.app
+            </p>
           </div>
-          <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.75rem)", color: A, margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
-            emmerich-boomt<br />.replit.app
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.8em" }}>
+            <div style={{ background: "#fff", padding: "clamp(2px, 0.5%, 6px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
+              <QRCodeSVG value={WA_URL} size={256} bgColor="#fff" fgColor="#075e54" level="M"
+                style={{ width: "clamp(28px, 6vw, 52px)", height: "auto", display: "block" }} />
+            </div>
+            <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.75rem)", color: "#4fce82", margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
+              WhatsApp-<br />Gruppe beitreten
+            </p>
+          </div>
         </div>
       </div>
 
@@ -160,24 +171,33 @@ function Innen() {
   return (
     <div className="flyer-spread" style={spreadStyle}>
       {/* Seite 2 */}
-      <div className="panel-left" style={{ ...panelStyle, background: "#1a0e04", display: "flex", flexDirection: "column", justifyContent: "center", padding: "8% 7%", gap: "1.2em" }}>
+      <div className="panel-left" style={{ ...panelStyle, background: "#1a0e04", display: "flex", flexDirection: "column", justifyContent: "center", padding: "8% 7%", gap: "1em" }}>
         <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: 0, opacity: 0.8 }}>
-          Was ist das hier eigentlich?
+          Was euch erwartet
         </p>
         <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.6vw, 1.85rem)", color: A, lineHeight: 1.15, margin: 0 }}>
-          Alter Wein, neue Schläuche — und sehr gute Mucke.
+          Von uns. Für uns. Wird Zeit.
         </h2>
-        <div className="p-body" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.5rem, 1.15vw, 0.85rem)", color: FG, lineHeight: 1.8, opacity: 0.88 }}>
-          <p style={{ margin: "0 0 0.8em" }}>
-            Der BoomerClub Emmerich veranstaltet am 18. Juli 2026 die erste BoomerParty — eine Sommerparty für alle, die mit den Hits der 70er, 80er und 90er aufgewachsen sind.
-          </p>
-          <p style={{ margin: "0 0 0.8em" }}>
-            Kein Konzert, keine Vorlesung, kein Programm. Einfach ein richtig guter Abend draußen: alte Bekannte wiedersehen, neue kennenlernen, reden, lachen, tanzen.
-          </p>
-          <p className="p-italic" style={{ margin: 0, fontStyle: "italic", opacity: 0.75 }}>
-            Von uns. Für uns. Wird Zeit.
-          </p>
+        <div className="p-body" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.5rem, 1.1vw, 0.82rem)", color: FG, lineHeight: 1.75, opacity: 0.88 }}>
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "0.45em" }}>
+            {[
+              "Abrocken — zu Musik, bei der man den Text noch kann",
+              "70er, 80er und auch Aktuelles — laut, tanzbar und zum Mitsingen",
+              "Alte Freunde treffen — manche vielleicht nach Jahren",
+              "Gespräche an der Theke — die irgendwie immer die besten sind",
+              "Nostalgie — aber die gute Art, bei der einem warm ums Herz wird",
+              "Fingerfood, Getränke — kein Dresscode, ganz zwanglos",
+            ].map((item, i) => (
+              <li key={i} style={{ display: "flex", gap: "0.5em" }}>
+                <span style={{ color: A, flexShrink: 0 }}>—</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
+        <p className="p-italic" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.72rem)", color: FG, opacity: 0.6, margin: 0, lineHeight: 1.6 }}>
+          Das wird eine geschlossene Gesellschaft — kein offenes Stadtfest. Wer sich angesprochen fühlt, ist dabei.
+        </p>
       </div>
 
       <div className="faltlinie" style={{ width: "1px", flexShrink: 0, background: "repeating-linear-gradient(to bottom, rgba(232,153,26,0.25) 0px, rgba(232,153,26,0.25) 6px, transparent 6px, transparent 12px)", alignSelf: "stretch" }} />
@@ -185,28 +205,41 @@ function Innen() {
       {/* Seite 3 */}
       <div className="panel-right" style={{ ...panelStyle, background: "#0a0704", display: "flex", flexDirection: "column", justifyContent: "center", padding: "8% 7%", gap: "1em" }}>
         <p className="p-label" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", letterSpacing: "0.2em", textTransform: "uppercase", color: A, margin: 0, opacity: 0.8 }}>
-          So bist du dabei
+          Die Fakten
         </p>
         <h2 className="p-heading" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(0.9rem, 2.4vw, 1.7rem)", color: A, lineHeight: 1.15, margin: 0 }}>
-          Dabei sein ist alles.
+          Was, wo, wann — und wie.
         </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.6em" }}>
+        <div style={{ display: "flex", flexDirection: "column", borderTop: `1px solid rgba(232,153,26,0.2)` }}>
           {[
-            ["1", "Interesse anmelden", "Einfach QR-Code scannen und auf der Website eintragen — kein Aufwand."],
-            ["2", "Einladung & Details erhalten", "Du bekommst alle weiteren Infos direkt per Mail zugeschickt."],
-            ["3", "Anmeldegebühr überweisen", "Sobald alles feststeht, wird die Gebühr fällig — dann gibt's dein Ticket."],
-            ["4", "Einfach kommen", "Ticket vorzeigen, reinkommen, genießen."],
-          ].map(([n, title, text]) => (
-            <div key={n} style={{ display: "flex", gap: "0.75em", alignItems: "flex-start" }}>
-              <div className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.8rem, 2vw, 1.4rem)", color: A, lineHeight: 1, flexShrink: 0, minWidth: "1.2em" }}>{n}</div>
-              <div>
-                <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.48rem, 1.05vw, 0.78rem)", color: FG, lineHeight: 1.3 }}>{title}</div>
-                <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.7rem)", color: FG, opacity: 0.65, lineHeight: 1.5, marginTop: "0.15em" }}>{text}</div>
-              </div>
+            ["Wann", "Samstag, 18. Juli 2026 (Uhrzeit folgt)"],
+            ["Wo", "Bölt / Gaststätte Kapaunenberg, Emmerich am Rhein"],
+            ["Eintritt", "aktuell kostenlos — 10 EUR bei verbindl. Anmeldung im Mai"],
+            ["Zugang", "Nur mit Anmeldung"],
+          ].map(([key, val]) => (
+            <div key={key} style={{ display: "grid", gridTemplateColumns: "clamp(28px, 5.5vw, 42px) 1fr", gap: "0.5em", padding: "0.5em 0", borderBottom: `1px solid rgba(232,153,26,0.15)`, alignItems: "baseline" }}>
+              <span className="p-step-title" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.44rem, 0.95vw, 0.7rem)", color: FG, opacity: 0.6, lineHeight: 1.4 }}>{key}</span>
+              <span className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.46rem, 1vw, 0.75rem)", color: FG, lineHeight: 1.4 }}>{val}</span>
             </div>
           ))}
         </div>
-        <div className="p-qr-box" style={{ display: "flex", alignItems: "center", gap: "1em", marginTop: "0.5em", padding: "0.8em", background: "rgba(232,153,26,0.08)", borderRadius: "6px", border: "1px solid rgba(232,153,26,0.25)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35em", marginTop: "0.2em" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5em" }}>
+            <span className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.72rem, 1.6vw, 1.1rem)", color: A, lineHeight: 1, flexShrink: 0 }}>1</span>
+            <div>
+              <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.46rem, 1vw, 0.75rem)", color: FG, lineHeight: 1.3 }}>Jetzt: Interesse anmelden</div>
+              <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.6, lineHeight: 1.4, marginTop: "0.1em" }}>Einfach QR-Code scannen — bis Ende April</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5em" }}>
+            <span className="p-step-num" style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900, fontSize: "clamp(0.72rem, 1.6vw, 1.1rem)", color: A, lineHeight: 1, flexShrink: 0 }}>2</span>
+            <div>
+              <div className="p-step-title" style={{ fontFamily: "'Lora', serif", fontWeight: 600, fontSize: "clamp(0.46rem, 1vw, 0.75rem)", color: FG, lineHeight: 1.3 }}>Mai: verbindliche Anmeldung, 10 EUR</div>
+              <div className="p-step-text" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.9vw, 0.68rem)", color: FG, opacity: 0.6, lineHeight: 1.4, marginTop: "0.1em" }}>Dann geht's in die konkrete Planung</div>
+            </div>
+          </div>
+        </div>
+        <div className="p-qr-box" style={{ display: "flex", alignItems: "center", gap: "1em", marginTop: "0.3em", padding: "0.8em", background: "rgba(232,153,26,0.08)", borderRadius: "6px", border: "1px solid rgba(232,153,26,0.25)" }}>
           <div style={{ background: "#fff", padding: "clamp(3px, 0.6%, 7px)", borderRadius: "4px", lineHeight: 0, flexShrink: 0 }}>
             <QRCodeSVG value={SITE_URL} size={256} bgColor="#fff" fgColor="#0a0704" level="H"
               style={{ width: "clamp(38px, 8.5vw, 68px)", height: "auto", display: "block" }} />
