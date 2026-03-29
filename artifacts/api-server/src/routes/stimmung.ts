@@ -8,16 +8,30 @@ const router = Router();
 
 const DAILY_LIMIT = parseInt(process.env.KI_DAILY_LIMIT ?? "30");
 
-interface TeilnehmerEntry { name: string; statement: string | null; song: string | null; }
+interface TeilnehmerEntry { name: string; personen: string | null; statement: string | null; song: string | null; }
+
+const PERSONEN_COUNT: Record<string, number> = {
+  "Nur ich": 1, "Wir zwei": 2, "Wir drei": 3,
+  "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
+};
 
 function buildKaiPrompt(teilnehmer: TeilnehmerEntry[]): string {
-  const n = teilnehmer.length;
+  const anmeldungen = teilnehmer.length;
+  const totalPersonen = teilnehmer.reduce(
+    (sum, t) => sum + (PERSONEN_COUNT[t.personen ?? ""] ?? 1), 0
+  );
 
-  const personenBlock = teilnehmer.slice(0, 12).map((t) => {
+  const personenBlock = teilnehmer.slice(0, 15).map((t) => {
+    const anzahl = PERSONEN_COUNT[t.personen ?? ""] ?? 1;
+    const wer = anzahl > 1 ? `kommt zu ${anzahl}` : "kommt alleine";
     const song = t.song ? `Musikwunsch: „${t.song}"` : "kein Musikwunsch";
     const stmt = t.statement ? `Statement: „${t.statement}"` : "kein Statement";
-    return `• ${t.name} — ${song} — ${stmt}`;
+    return `• ${t.name} (${wer}) — ${song} — ${stmt}`;
   }).join("\n");
+
+  const personenHinweis = totalPersonen > anmeldungen
+    ? `Es gibt ${anmeldungen} Anmeldungen, aber da einige Leute mit Begleitung kommen, sind insgesamt mindestens ${totalPersonen} Personen dabei.`
+    : `Es gibt ${anmeldungen} Anmeldungen — alle kommen alleine, also ${anmeldungen} Personen.`;
 
   return `Du bist KaI — das KI-System des Entwicklerteams hinter emmerich-boomt.de.
 
@@ -25,17 +39,19 @@ Du liest die Anmeldungen für die BoomerParty (18. Juli 2026, Bölt/Kapaunenberg
 
 Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und hast gelegentlich eine trocken-witzige Einschätzung bereit. Kein mystischer Ton. Kein Bullet-Format. Direkt in den Kommentar.
 
-Angemeldete Personen (${n} insgesamt) — jede Zeile gehört zu einer Person:
+${personenHinweis}
+
+Anmeldeliste — jede Zeile gehört zu genau einer Anmeldung:
 ${personenBlock}
 
-WICHTIG: Jede Zeile oben gehört exakt zu einer Person. Der Musikwunsch und das Statement in einer Zeile gehören dieser einen Person — nie einer anderen. Verwechslungen sind nicht erlaubt.
+WICHTIG: Jede Zeile oben gehört exakt zu einer Anmeldung. Musikwunsch und Statement in einer Zeile gehören dieser einen Person — nie einer anderen. Keine Verwechslungen.
 
 Schreib jetzt einen Kommentar. Regeln:
 - Ich-Form, genderneutral
 - Vornamen erlaubt — herzlich, nie bloßstellend
 - Wenn du einen Song oder ein Statement erwähnst, nenn immer den dazugehörigen Namen
+- Erwähne sowohl die Anzahl der Anmeldungen als auch die Gesamtzahl der Personen, wenn sie voneinander abweichen
 - Geh auf Einzelheiten ein, die es wert sind — aber nur wenn du sicher bist, wer was gesagt oder gewünscht hat
-- Erwähne die Anzahl der Anmeldungen
 - Warmherzig, leicht formell, dann doch witzig
 - Kein erklärender Intro-Satz — direkt beginnen
 - 3–4 Sätze, nicht mehr`;
@@ -56,6 +72,7 @@ export async function generateKaiComment(): Promise<void> {
     const alleEintraege = await db
       .select({
         name: interessenten.name,
+        personen: interessenten.personen,
         statement: interessenten.statement,
         song: interessenten.song,
       })
