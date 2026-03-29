@@ -183,8 +183,8 @@ export default function PlakatPageC() {
             </div>
           </div>
 
-          {/* QR Code */}
-          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "6%" }}>
+          {/* QR Code + Label nebeneinander */}
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: "3%" }}>
             <div style={{
               background: "#fff",
               padding: "clamp(3px, 1.2%, 14px)",
@@ -192,6 +192,7 @@ export default function PlakatPageC() {
               boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
               lineHeight: 0,
               border: "1px solid rgba(0,0,0,0.08)",
+              flexShrink: 0,
             }}>
               <QRCodeSVG
                 value={SITE_URL}
@@ -207,8 +208,7 @@ export default function PlakatPageC() {
               fontStyle: "italic",
               fontSize: "clamp(0.4rem, 1.3vw, 1.5rem)",
               color: "#3d1800",
-              textAlign: "center",
-              lineHeight: 1.3,
+              lineHeight: 1.4,
             }}>
               Jetzt anmelden &amp;<br />mehr erfahren
             </div>
