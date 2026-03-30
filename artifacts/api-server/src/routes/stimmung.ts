@@ -21,7 +21,7 @@ function buildKaiPrompt(teilnehmer: TeilnehmerEntry[]): string {
     (sum, t) => sum + (PERSONEN_COUNT[t.personen ?? ""] ?? 1), 0
   );
 
-  const personenBlock = teilnehmer.slice(0, 15).map((t) => {
+  const personenBlock = teilnehmer.map((t) => {
     const anzahl = PERSONEN_COUNT[t.personen ?? ""] ?? 1;
     const wer = anzahl > 1 ? `kommt zu ${anzahl}` : "kommt alleine";
     const song = t.song ? `Musikwunsch: „${t.song}"` : "kein Musikwunsch";
