@@ -96,6 +96,48 @@ export async function generateKaiComment(): Promise<void> {
   }
 }
 
+const ADMIN_SECRET = "emmerich-orga-stats-2026";
+
+router.post("/stimmung/regenerate", async (req, res) => {
+  if (req.headers["x-admin-secret"] !== ADMIN_SECRET) {
+    res.status(401).json({ error: "Nicht autorisiert" });
+    return;
+  }
+  try {
+    const alleEintraege = await db
+      .select({
+        name: interessenten.name,
+        personen: interessenten.personen,
+        statement: interessenten.statement,
+        song: interessenten.song,
+      })
+      .from(interessenten)
+      .orderBy(desc(interessenten.createdAt));
+
+    if (alleEintraege.length === 0) {
+      res.json({ ok: false, reason: "Keine Anmeldungen vorhanden" });
+      return;
+    }
+
+    const message = await anthropic.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 512,
+      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege) }],
+    });
+
+    const inhalt = message.content[0].type === "text" ? message.content[0].text : "";
+    if (inhalt) {
+      await db.insert(kiRequests).values({ ip: "server-admin", inhalt });
+      res.json({ ok: true, inhalt });
+    } else {
+      res.json({ ok: false, reason: "Leere Antwort von KaI" });
+    }
+  } catch (err) {
+    console.error("KaI regenerate error:", err);
+    res.status(500).json({ error: "KaI-Generierung fehlgeschlagen" });
+  }
+});
+
 router.get("/stimmung", async (_req, res) => {
   try {
     const latest = await db

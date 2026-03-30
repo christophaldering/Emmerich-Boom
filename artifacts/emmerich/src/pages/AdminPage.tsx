@@ -508,6 +508,22 @@ export default function AdminPage() {
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
+  const [kaiState, setKaiState] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const regenerateKai = async () => {
+    setKaiState("loading");
+    try {
+      const r = await fetch(`${BASE}/api/stimmung/regenerate`, {
+        method: "POST",
+        headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+      });
+      const d = await r.json();
+      setKaiState(d.ok ? "done" : "error");
+    } catch {
+      setKaiState("error");
+    }
+    setTimeout(() => setKaiState("idle"), 5000);
+  };
 
   const load = () => {
     fetch(`${BASE}/api/admin-stats?key=${SECRET}`)
@@ -592,6 +608,31 @@ export default function AdminPage() {
       {/* ── Tab: Statistik ── */}
       {activeTab === "statistik" && (
         <>
+          {/* KaI neu generieren */}
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem", padding: "0.9rem 1.1rem", background: am(0.06), borderRadius: "6px", border: `1px solid ${am(0.2)}` }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", color: A, fontWeight: 700 }}>KaI — Kommentar</div>
+              <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: fg(0.5), marginTop: "0.2rem" }}>Neuen KaI-Kommentar mit allen aktuellen Anmeldungen generieren</div>
+            </div>
+            <button onClick={regenerateKai} disabled={kaiState === "loading"} style={{
+              background: kaiState === "done" ? "transparent" : A,
+              border: `1px solid ${kaiState === "error" ? "#e05555" : A}`,
+              borderRadius: "4px",
+              color: kaiState === "done" ? A : BG,
+              padding: "0.5rem 1.1rem",
+              fontFamily: "'Playfair Display', serif",
+              fontStyle: "italic",
+              fontWeight: 700,
+              fontSize: "0.88rem",
+              cursor: kaiState === "loading" ? "wait" : "pointer",
+              opacity: kaiState === "loading" ? 0.6 : 1,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}>
+              {kaiState === "loading" ? "Generiert …" : kaiState === "done" ? "✓ Erstellt" : kaiState === "error" ? "Fehler" : "KaI neu generieren"}
+            </button>
+          </div>
+
           <SectionTitle>Übersicht</SectionTitle>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(148px, 1fr))", gap: "0.85rem", marginBottom: "0.5rem" }}>
             <StatCard n={summary.totalAnmeldungen}         label="Anmeldungen" />
