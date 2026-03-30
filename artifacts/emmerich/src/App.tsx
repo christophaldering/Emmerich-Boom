@@ -4,6 +4,7 @@ import AdminPage from "@/pages/AdminPage";
 import TicketPage from "@/pages/TicketPage";
 import EinlassPage from "@/pages/EinlassPage";
 import PlakatPage from "@/pages/PlakatPage";
+import PlakatPrintPage from "@/pages/PlakatPrintPage";
 import FlyerPage from "@/pages/FlyerPage";
 import FlyerPrintPage from "@/pages/FlyerPrintPage";
 import Beacon from "@/components/Beacon";
@@ -19,6 +20,7 @@ function getRoute(): { page: string; param?: string } {
   if (clean === ADMIN_SLUG) return { page: "admin" };
   if (clean === `${ADMIN_SLUG}/einlass`) return { page: "einlass" };
   if (clean === "plakat") return { page: "plakat" };
+  if (clean === "plakat-print") return { page: "plakat-print" };
   if (clean === "flyer") return { page: "flyer" };
   if (clean === "flyer-print") return { page: "flyer-print" };
   const ticketMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})$`));
@@ -36,6 +38,7 @@ export default function App() {
   if (route.page === "admin") return <AdminPage />;
   if (route.page === "einlass") return <EinlassPage />;
   if (route.page === "plakat") return <PlakatPage />;
+  if (route.page === "plakat-print") return <PlakatPrintPage />;
   if (route.page === "flyer") return <FlyerPage />;
   if (route.page === "flyer-print") return <FlyerPrintPage />;
   if (route.page === "ticket" && route.param) return <TicketPage code={route.param} />;
