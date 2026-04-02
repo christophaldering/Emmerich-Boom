@@ -30,76 +30,88 @@ export default function PlakatPrintPage() {
         img.src = POSTER_SRC;
       });
 
-      /* Canvas in nativer Bildauflösung → kein Qualitätsverlust durch Reskalierung */
       const CW = img.naturalWidth;
       const CH = img.naturalHeight;
-      const canvas = document.createElement("canvas");
-      canvas.width  = CW;
-      canvas.height = CH;
-      const ctx = canvas.getContext("2d")!;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, CW, CH);
-      ctx.drawImage(img, 0, 0, CW, CH);
 
-      /* ── QR-Code unten rechts ── */
+      /* ── QR-Code-Maße vorab berechnen (formatabhängig in mm) ── */
       const QR_URL   = "https://emmerich-boomt.replit.app";
       const QR_LABEL = "emmerich-boomt.replit.app";
 
-      /* Pixel-Auflösung für den QR-Code: groß genug für scharfe Qualität */
+      /* Physische QR-Größe je DIN-Format */
+      const QR_MM_BY_FORMAT: Record<string, number> = {
+        A0: 80, A1: 60, A2: 45, A3: 32, A4: 24, A5: 18,
+      };
+      const QR_SIZE_MM  = QR_MM_BY_FORMAT[format.label] ?? 32;
+      const QR_PAD_MM   = 7;
+      const FONT_MM     = Math.round(QR_SIZE_MM * 0.18);
+      const TEXT_GAP_MM = 3;
+      /* Gesamthöhe des Streifens in mm */
+      const STRIP_H_MM  = QR_PAD_MM + QR_SIZE_MM + TEXT_GAP_MM + FONT_MM + QR_PAD_MM;
+
+      /* Pixel-per-mm aus der nativen Bildbreite */
+      const pxPerMm  = CW / format.w;
+      const QR_SIZE  = Math.round(QR_SIZE_MM  * pxPerMm);
+      const QR_PAD   = Math.round(QR_PAD_MM   * pxPerMm);
+      const FONT_PX  = Math.round(FONT_MM     * pxPerMm);
+      const TEXT_GAP = Math.round(TEXT_GAP_MM * pxPerMm);
+      const STRIP_H  = Math.round(STRIP_H_MM  * pxPerMm);
+
+      /* Canvas: Plakat + weißer Streifen darunter */
+      const canvas = document.createElement("canvas");
+      canvas.width  = CW;
+      canvas.height = CH + STRIP_H;
+      const ctx = canvas.getContext("2d")!;
+
+      /* Weißer Hintergrund (Plakat + Streifen) */
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, CW, CH + STRIP_H);
+
+      /* Plakat */
+      ctx.drawImage(img, 0, 0, CW, CH);
+
+      /* Dünne Trennlinie zwischen Plakat und Streifen */
+      ctx.strokeStyle = "#cccccc";
+      ctx.lineWidth   = Math.max(1, Math.round(pxPerMm * 0.3));
+      ctx.beginPath();
+      ctx.moveTo(0, CH);
+      ctx.lineTo(CW, CH);
+      ctx.stroke();
+
+      /* QR-Code generieren (höhere interne Auflösung für Schärfe) */
       const qrDataUrl = await QRCode.toDataURL(QR_URL, {
         margin: 1,
-        width: 512,
+        width: Math.max(512, QR_SIZE * 2),
         color: { dark: "#000000", light: "#ffffff" },
       });
-
       const qrImg = new Image();
       await new Promise<void>((resolve) => {
         qrImg.onload = () => resolve();
         qrImg.src = qrDataUrl;
       });
 
-      /* Größen proportional zur nativen Bildbreite */
-      const QR_SIZE   = Math.round(CW * 0.13);
-      const QR_PAD    = Math.round(CW * 0.010);
-      const FONT_SIZE = Math.round(CW * 0.013);
-      const TEXT_GAP  = Math.round(CW * 0.007);
-      const MARGIN    = Math.round(CW * 0.025);
+      /* QR-Code zentriert im Streifen */
+      const QR_X = Math.round((CW - QR_SIZE) / 2);
+      const QR_Y = CH + QR_PAD;
+      ctx.drawImage(qrImg, QR_X, QR_Y, QR_SIZE, QR_SIZE);
 
-      const BOX_W = QR_SIZE + QR_PAD * 2;
-      const BOX_H = QR_SIZE + QR_PAD * 2 + TEXT_GAP + FONT_SIZE + QR_PAD;
-      const BOX_X = CW - MARGIN - BOX_W;
-      const BOX_Y = CH - MARGIN - BOX_H;
-
-      /* Weißer Hintergrund-Kasten mit leichtem Schatten-Effekt */
-      ctx.shadowColor   = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur    = Math.round(CW * 0.006);
-      ctx.shadowOffsetX = Math.round(CW * 0.002);
-      ctx.shadowOffsetY = Math.round(CW * 0.002);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(BOX_X, BOX_Y, BOX_W, BOX_H);
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur  = 0;
-
-      /* QR-Code */
-      ctx.drawImage(qrImg, BOX_X + QR_PAD, BOX_Y + QR_PAD, QR_SIZE, QR_SIZE);
-
-      /* URL-Label */
+      /* URL-Label unter dem QR-Code */
       ctx.fillStyle    = "#111111";
-      ctx.font         = `bold ${FONT_SIZE}px sans-serif`;
+      ctx.font         = `bold ${FONT_PX}px sans-serif`;
       ctx.textAlign    = "center";
       ctx.textBaseline = "top";
-      ctx.fillText(
-        QR_LABEL,
-        BOX_X + BOX_W / 2,
-        BOX_Y + QR_PAD + QR_SIZE + TEXT_GAP,
-      );
+      ctx.fillText(QR_LABEL, CW / 2, QR_Y + QR_SIZE + TEXT_GAP);
       ctx.textAlign    = "left";
       ctx.textBaseline = "alphabetic";
 
+      /* PDF mit erweiterter Seitenhöhe (Plakat + Streifen) */
+      const TOTAL_H_MM = format.h + STRIP_H_MM;
       const imgData = canvas.toDataURL("image/jpeg", 0.97);
-
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [format.w, format.h] });
-      pdf.addImage(imgData, "JPEG", 0, 0, format.w, format.h);
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: [format.w, TOTAL_H_MM],
+      });
+      pdf.addImage(imgData, "JPEG", 0, 0, format.w, TOTAL_H_MM);
 
       const blob = pdf.output("blob");
       const url  = URL.createObjectURL(blob);
