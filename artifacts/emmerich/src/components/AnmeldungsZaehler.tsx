@@ -86,11 +86,11 @@ export default function AnmeldungsZaehler({ refreshKey = 0 }: Props) {
 
       <div className="az-top-rule" />
 
-      <p className="az-pre">Bisher haben sich schon</p>
+      <p className="az-pre">Bisher haben schon</p>
       <span className="az-number">{personen}</span>
       <p className="az-post">
         <strong>Boomer</strong> — und solche, die sich so fühlen
-        <br />oder einfach mitfeiern wollen — <strong>angemeldet</strong>.
+        <br />oder einfach mitfeiern wollen — <strong>ihr Interesse bekundet</strong>.
       </p>
 
       <div className="az-bottom-rule" />
