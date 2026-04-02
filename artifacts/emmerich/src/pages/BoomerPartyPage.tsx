@@ -29,6 +29,7 @@ export default function BoomerPartyPage() {
     <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
       <ThemeToggle />
       <Poster />
+      <AnmeldungsZaehler refreshKey={refreshCounter} />
       <Letter />
       <Motto />
       <Fakten />
@@ -36,7 +37,6 @@ export default function BoomerPartyPage() {
       <Formular onSuccess={handleFormSuccess} />
       <Playlist refreshKey={refreshCounter} highlightId={highlightId} />
       <Teilnehmer refreshKey={refreshCounter} />
-      <AnmeldungsZaehler refreshKey={refreshCounter} />
       <KaI refreshSignal={refreshCounter} />
       <BoomerClub />
       <DruckMaterial />

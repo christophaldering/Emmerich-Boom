@@ -5,23 +5,16 @@ const PERSONEN_COUNT: Record<string, number> = {
   "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
 };
 
-function todayDe(): string {
-  return new Date().toLocaleDateString("de-DE", {
-    day: "numeric", month: "long", year: "numeric",
-  });
-}
-
 interface Props { refreshKey?: number; }
 
 export default function AnmeldungsZaehler({ refreshKey = 0 }: Props) {
-  const [anmeldungen, setAnmeldungen] = useState<number | null>(null);
-  const [personen,    setPersonen]    = useState<number | null>(null);
+  const [personen, setPersonen] = useState<number | null>(null);
 
   const load = () => {
     fetch("/api/interesse", { cache: "no-store" })
       .then(r => r.json())
       .then((data: { personen: string }[]) => {
-        setAnmeldungen(data.length);
+        if (!Array.isArray(data) || data.length === 0) return;
         setPersonen(data.reduce((s, e) => s + (PERSONEN_COUNT[e.personen] ?? 1), 0));
       })
       .catch(() => {});
@@ -35,68 +28,72 @@ export default function AnmeldungsZaehler({ refreshKey = 0 }: Props) {
 
   useEffect(() => { if (refreshKey > 0) load(); }, [refreshKey]);
 
-  if (anmeldungen === null || anmeldungen === 0) return null;
-
-  const datum = todayDe();
+  if (personen === null) return null;
 
   return (
-    <div style={{
+    <section style={{
       background: "var(--bg-section)",
-      padding: "1.1rem 1.5rem",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
+      padding: "2.8rem 1.5rem 3rem",
+      textAlign: "center",
+      position: "relative",
     }}>
-      <div style={{
-        maxWidth: "640px",
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        gap: "1.2rem",
-        padding: "0.85rem 1.2rem",
-        background: "var(--amber-08)",
-        border: "1px solid var(--amber-25)",
-        borderRadius: "4px",
-      }}>
-        {/* Datum */}
-        <div style={{ flex: "0 0 auto" }}>
-          <span style={{
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.72rem",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "var(--fg-45)",
-          }}>
-            {datum}
-          </span>
-        </div>
+      <style>{`
+        .az-top-rule {
+          width: 48px;
+          height: 2px;
+          background: var(--amber-40);
+          margin: 0 auto 1.6rem;
+        }
+        .az-pre {
+          font-family: 'Lora', serif;
+          font-style: italic;
+          font-size: 1.05rem;
+          color: var(--fg-60);
+          line-height: 1.5;
+          margin: 0 0 0.5rem;
+        }
+        .az-number {
+          font-family: 'Playfair Display', serif;
+          font-style: italic;
+          font-weight: 700;
+          font-size: clamp(4rem, 18vw, 7rem);
+          line-height: 1;
+          color: var(--amber);
+          display: block;
+          margin: 0 0 0.4rem;
+          letter-spacing: -0.02em;
+        }
+        .az-post {
+          font-family: 'Lora', serif;
+          font-style: italic;
+          font-size: 1.05rem;
+          color: var(--fg-60);
+          line-height: 1.7;
+          max-width: 480px;
+          margin: 0 auto;
+        }
+        .az-post strong {
+          color: var(--fg-80);
+          font-weight: 600;
+        }
+        .az-bottom-rule {
+          width: 48px;
+          height: 2px;
+          background: var(--amber-40);
+          margin: 1.6rem auto 0;
+        }
+      `}</style>
 
-        {/* Trennlinie */}
-        <div style={{ flex: 1, height: "1px", background: "var(--amber-20)" }} />
+      <div className="az-top-rule" />
 
-        {/* Zahlen */}
-        <div style={{ flex: "0 0 auto", display: "flex", gap: "0.6rem", alignItems: "baseline" }}>
-          <span style={{
-            fontFamily: "'Playfair Display', serif",
-            fontStyle: "italic",
-            fontWeight: 700,
-            fontSize: "1.45rem",
-            color: "var(--amber)",
-            lineHeight: 1,
-          }}>
-            {personen}
-          </span>
-          <span style={{
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.82rem",
-            color: "var(--fg-45)",
-          }}>
-            {personen === 1 ? "Person" : "Personen"} dabei
-          </span>
-        </div>
-      </div>
-    </div>
+      <p className="az-pre">Bisher haben sich schon</p>
+      <span className="az-number">{personen}</span>
+      <p className="az-post">
+        <strong>Boomer</strong> — und solche, die sich so fühlen
+        <br />oder einfach mitfeiern wollen — <strong>angemeldet</strong>.
+      </p>
+
+      <div className="az-bottom-rule" />
+    </section>
   );
 }
