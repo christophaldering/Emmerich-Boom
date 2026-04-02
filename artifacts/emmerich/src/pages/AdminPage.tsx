@@ -510,19 +510,27 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
   const [kaiState, setKaiState] = useState<"idle" | "loading" | "done" | "error">("idle");
 
+  const [kaiComment, setKaiComment] = useState<string | null>(null);
+
   const regenerateKai = async () => {
     setKaiState("loading");
+    setKaiComment(null);
     try {
-      const r = await fetch(`${BASE}/api/stimmung/regenerate`, {
+      const r = await fetch("/api/stimmung/regenerate", {
         method: "POST",
         headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
       });
       const d = await r.json();
-      setKaiState(d.ok ? "done" : "error");
+      if (d.ok) {
+        setKaiState("done");
+        setKaiComment(d.inhalt ?? null);
+      } else {
+        setKaiState("error");
+      }
     } catch {
       setKaiState("error");
     }
-    setTimeout(() => setKaiState("idle"), 5000);
+    setTimeout(() => setKaiState(s => s === "done" ? "idle" : s), 15000);
   };
 
   const load = () => {
@@ -609,28 +617,37 @@ export default function AdminPage() {
       {activeTab === "statistik" && (
         <>
           {/* KaI neu generieren */}
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem", padding: "0.9rem 1.1rem", background: am(0.06), borderRadius: "6px", border: `1px solid ${am(0.2)}` }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", color: A, fontWeight: 700 }}>KaI — Kommentar</div>
-              <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: fg(0.5), marginTop: "0.2rem" }}>Neuen KaI-Kommentar mit allen aktuellen Anmeldungen generieren</div>
+          <div style={{ marginBottom: "1.5rem", background: am(0.06), borderRadius: "6px", border: `1px solid ${am(0.2)}`, overflow: "hidden" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1.1rem" }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", color: A, fontWeight: 700 }}>KaI — Kommentar</div>
+                <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: fg(0.5), marginTop: "0.2rem" }}>Neuen KaI-Kommentar mit allen aktuellen Anmeldungen generieren</div>
+              </div>
+              <button onClick={regenerateKai} disabled={kaiState === "loading"} style={{
+                background: kaiState === "done" ? "transparent" : kaiState === "error" ? "transparent" : A,
+                border: `1px solid ${kaiState === "error" ? "#e05555" : A}`,
+                borderRadius: "4px",
+                color: kaiState === "done" ? A : kaiState === "error" ? "#e05555" : BG,
+                padding: "0.5rem 1.1rem",
+                fontFamily: "'Playfair Display', serif",
+                fontStyle: "italic",
+                fontWeight: 700,
+                fontSize: "0.88rem",
+                cursor: kaiState === "loading" ? "wait" : "pointer",
+                opacity: kaiState === "loading" ? 0.6 : 1,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}>
+                {kaiState === "loading" ? "Generiert …" : kaiState === "done" ? "✓ Erstellt" : kaiState === "error" ? "✗ Fehler" : "KaI neu generieren"}
+              </button>
             </div>
-            <button onClick={regenerateKai} disabled={kaiState === "loading"} style={{
-              background: kaiState === "done" ? "transparent" : A,
-              border: `1px solid ${kaiState === "error" ? "#e05555" : A}`,
-              borderRadius: "4px",
-              color: kaiState === "done" ? A : BG,
-              padding: "0.5rem 1.1rem",
-              fontFamily: "'Playfair Display', serif",
-              fontStyle: "italic",
-              fontWeight: 700,
-              fontSize: "0.88rem",
-              cursor: kaiState === "loading" ? "wait" : "pointer",
-              opacity: kaiState === "loading" ? 0.6 : 1,
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}>
-              {kaiState === "loading" ? "Generiert …" : kaiState === "done" ? "✓ Erstellt" : kaiState === "error" ? "Fehler" : "KaI neu generieren"}
-            </button>
+            {kaiComment && (
+              <div style={{ padding: "0.7rem 1.1rem", borderTop: `1px solid ${am(0.18)}`, background: am(0.04) }}>
+                <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: fg(0.75), lineHeight: 1.55 }}>
+                  „{kaiComment}"
+                </div>
+              </div>
+            )}
           </div>
 
           <SectionTitle>Übersicht</SectionTitle>

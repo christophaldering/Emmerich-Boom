@@ -7,6 +7,7 @@ import Countdown from "@/components/Countdown";
 import Formular from "@/components/Formular";
 import Teilnehmer from "@/components/Teilnehmer";
 import KaI from "@/components/KaI";
+import AnmeldungsZaehler from "@/components/AnmeldungsZaehler";
 import Playlist from "@/components/Playlist";
 import BoomerClub from "@/components/BoomerClub";
 import DruckMaterial from "@/components/DruckMaterial";
@@ -35,6 +36,7 @@ export default function BoomerPartyPage() {
       <Formular onSuccess={handleFormSuccess} />
       <Playlist refreshKey={refreshCounter} highlightId={highlightId} />
       <Teilnehmer refreshKey={refreshCounter} />
+      <AnmeldungsZaehler refreshKey={refreshCounter} />
       <KaI refreshSignal={refreshCounter} />
       <BoomerClub />
       <DruckMaterial />
