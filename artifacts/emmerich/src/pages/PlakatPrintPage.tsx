@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { jsPDF } from "jspdf";
+import QRCode from "qrcode";
 
 const A  = "#E8991A";
 const BG = "#0a0704";
@@ -39,6 +40,61 @@ export default function PlakatPrintPage() {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, CW, CH);
       ctx.drawImage(img, 0, 0, CW, CH);
+
+      /* ── QR-Code unten rechts ── */
+      const QR_URL   = "https://emmerich-boomt.replit.app";
+      const QR_LABEL = "emmerich-boomt.replit.app";
+
+      /* Pixel-Auflösung für den QR-Code: groß genug für scharfe Qualität */
+      const qrDataUrl = await QRCode.toDataURL(QR_URL, {
+        margin: 1,
+        width: 512,
+        color: { dark: "#000000", light: "#ffffff" },
+      });
+
+      const qrImg = new Image();
+      await new Promise<void>((resolve) => {
+        qrImg.onload = () => resolve();
+        qrImg.src = qrDataUrl;
+      });
+
+      /* Größen proportional zur nativen Bildbreite */
+      const QR_SIZE   = Math.round(CW * 0.13);
+      const QR_PAD    = Math.round(CW * 0.010);
+      const FONT_SIZE = Math.round(CW * 0.013);
+      const TEXT_GAP  = Math.round(CW * 0.007);
+      const MARGIN    = Math.round(CW * 0.025);
+
+      const BOX_W = QR_SIZE + QR_PAD * 2;
+      const BOX_H = QR_SIZE + QR_PAD * 2 + TEXT_GAP + FONT_SIZE + QR_PAD;
+      const BOX_X = CW - MARGIN - BOX_W;
+      const BOX_Y = CH - MARGIN - BOX_H;
+
+      /* Weißer Hintergrund-Kasten mit leichtem Schatten-Effekt */
+      ctx.shadowColor   = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur    = Math.round(CW * 0.006);
+      ctx.shadowOffsetX = Math.round(CW * 0.002);
+      ctx.shadowOffsetY = Math.round(CW * 0.002);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(BOX_X, BOX_Y, BOX_W, BOX_H);
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur  = 0;
+
+      /* QR-Code */
+      ctx.drawImage(qrImg, BOX_X + QR_PAD, BOX_Y + QR_PAD, QR_SIZE, QR_SIZE);
+
+      /* URL-Label */
+      ctx.fillStyle    = "#111111";
+      ctx.font         = `bold ${FONT_SIZE}px sans-serif`;
+      ctx.textAlign    = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(
+        QR_LABEL,
+        BOX_X + BOX_W / 2,
+        BOX_Y + QR_PAD + QR_SIZE + TEXT_GAP,
+      );
+      ctx.textAlign    = "left";
+      ctx.textBaseline = "alphabetic";
 
       const imgData = canvas.toDataURL("image/jpeg", 0.97);
 
