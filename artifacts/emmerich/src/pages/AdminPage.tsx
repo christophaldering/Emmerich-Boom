@@ -516,7 +516,7 @@ export default function AdminPage() {
     setKaiState("loading");
     setKaiComment(null);
     try {
-      const r = await fetch("/api/stimmung/regenerate", {
+      const r = await fetch(`${BASE}/api/stimmung/regenerate`, {
         method: "POST",
         headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
       });
