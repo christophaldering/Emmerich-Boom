@@ -5,6 +5,7 @@ import stimmungRouter from "./stimmung";
 import beaconRouter from "./beacon";
 import ticketsRouter from "./tickets";
 import anmeldungRouter from "./anmeldung";
+import anmeldungAdminRouter from "./anmeldung-admin";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(stimmungRouter);
 router.use(beaconRouter);
 router.use(ticketsRouter);
 router.use(anmeldungRouter);
+router.use(anmeldungAdminRouter);
 
 export default router;

@@ -18,6 +18,7 @@
 //   export type Post = typeof postsTable.$inferSelect;
 
 export * from "./anmeldungen";
+export * from "./anmeldung_tickets";
 export * from "./interessenten";
 export * from "./ki_cache";
 export * from "./ki_requests";

@@ -312,6 +312,163 @@ interface TicketRow {
   registrationName: string | null;
 }
 
+interface AnmeldungRow {
+  id: number;
+  email: string;
+  telefon: string | null;
+  personen_anzahl: number;
+  personen: string[];
+  bezahlweg: string;
+  song: string | null;
+  statement: string | null;
+  betrag_gesamt: number;
+  bezahlt_am: string | null;
+  ticket_versendet_am: string | null;
+  created_at: string;
+  ticket_count: number;
+}
+
+const BW_LABEL: Record<string, string> = { ueberweisung: "Überw.", paypal: "PayPal" };
+
+function AnmeldungCard({ row, onRefresh }: { row: AnmeldungRow; onRefresh: () => void }) {
+  const [bzLoading, setBzLoading] = useState(false);
+  const [tkLoading, setTkLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const markBezahlt = async () => {
+    setBzLoading(true); setMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/bezahlt`, {
+        method: "POST", headers: { "x-admin-secret": SECRET },
+      });
+      const d = await r.json();
+      if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
+    } catch { setMsg("Verbindungsfehler"); }
+    finally { setBzLoading(false); }
+  };
+
+  const sendeTickets = async () => {
+    setTkLoading(true); setMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/tickets-versenden`, {
+        method: "POST", headers: { "x-admin-secret": SECRET },
+      });
+      const d = await r.json();
+      if (d.ok) { setMsg(`${d.tickets_count} Ticket${d.tickets_count !== 1 ? "s" : ""} versendet`); onRefresh(); }
+      else { setMsg(d.error ?? "Fehler"); }
+    } catch { setMsg("Verbindungsfehler"); }
+    finally { setTkLoading(false); }
+  };
+
+  const personen = Array.isArray(row.personen) ? row.personen : [];
+
+  return (
+    <div style={{
+      border: `1px solid ${row.bezahlt_am ? "rgba(46,204,113,0.35)" : am(0.22)}`,
+      borderLeft: `4px solid ${row.bezahlt_am ? "#2ecc71" : am(0.45)}`,
+      borderRadius: "0 6px 6px 0",
+      padding: "1rem 1.2rem",
+      background: am(0.04),
+    }}>
+      {/* Kopfzeile */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.6rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1rem", color: A }}>
+            #{String(row.id).padStart(3, "0")}
+          </span>
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: FG }}>
+            {personen.join(", ")}
+          </span>
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.6) }}>
+            {row.personen_anzahl} Person{row.personen_anzahl !== 1 ? "en" : ""} · {row.betrag_gesamt} € · {BW_LABEL[row.bezahlweg] ?? row.bezahlweg}
+          </span>
+        </div>
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.55) }}>
+          {dateFmt(row.created_at)}
+        </span>
+      </div>
+
+      {/* E-Mail */}
+      <div style={{ fontFamily: "'Lora', serif", fontSize: "0.83rem", color: fg(0.6), marginBottom: "0.8rem" }}>
+        {row.email}{row.telefon ? ` · ${row.telefon}` : ""}
+      </div>
+
+      {/* Status-Badges + Aktionsbuttons */}
+      <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+        {/* Bezahlt */}
+        {row.bezahlt_am ? (
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "#2ecc71", background: "rgba(46,204,113,0.12)", padding: "0.25rem 0.7rem", borderRadius: "20px" }}>
+            ✓ Bezahlt {dateFmt(row.bezahlt_am)}
+          </span>
+        ) : (
+          <button onClick={markBezahlt} disabled={bzLoading} style={{
+            background: "transparent", border: `1px solid ${am(0.5)}`, borderRadius: "3px",
+            color: A, fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.3rem 0.8rem",
+            cursor: bzLoading ? "wait" : "pointer", opacity: bzLoading ? 0.6 : 1,
+          }}>
+            {bzLoading ? "…" : "Als bezahlt markieren"}
+          </button>
+        )}
+
+        {/* Tickets */}
+        {row.ticket_versendet_am ? (
+          <>
+            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "#2ecc71", background: "rgba(46,204,113,0.12)", padding: "0.25rem 0.7rem", borderRadius: "20px" }}>
+              ✉ Tickets versendet {dateFmt(row.ticket_versendet_am)}
+            </span>
+            <button onClick={sendeTickets} disabled={tkLoading || !row.bezahlt_am} style={{
+              background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "3px",
+              color: fg(0.6), fontFamily: "'Lora', serif", fontSize: "0.78rem", padding: "0.25rem 0.6rem",
+              cursor: tkLoading ? "wait" : "pointer", opacity: tkLoading ? 0.6 : 1,
+            }}>
+              {tkLoading ? "…" : "Nochmal senden"}
+            </button>
+          </>
+        ) : (
+          <button onClick={sendeTickets} disabled={tkLoading || !row.bezahlt_am} style={{
+            background: row.bezahlt_am ? A : "transparent",
+            border: `1px solid ${row.bezahlt_am ? A : am(0.25)}`,
+            borderRadius: "3px",
+            color: row.bezahlt_am ? BG : fg(0.4),
+            fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.3rem 0.8rem",
+            cursor: (!row.bezahlt_am || tkLoading) ? "not-allowed" : "pointer",
+            opacity: tkLoading ? 0.6 : 1,
+            fontWeight: row.bezahlt_am ? 600 : 400,
+          }}>
+            {tkLoading ? "Wird versendet …" : `Tickets versenden (${row.personen_anzahl})`}
+          </button>
+        )}
+      </div>
+
+      {/* Ticket-Codes anzeigen wenn vorhanden */}
+      {Number(row.ticket_count) > 0 && (
+        <div style={{ marginTop: "0.7rem", fontFamily: "monospace", fontSize: "0.8rem", color: am(0.8) }}>
+          {Number(row.ticket_count)} Ticket-Code{Number(row.ticket_count) > 1 ? "s" : ""} generiert
+        </div>
+      )}
+
+      {/* Song / Statement */}
+      {row.song && (
+        <div style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.75), marginTop: "0.5rem" }}>
+          ♪ {row.song}
+        </div>
+      )}
+      {row.statement && (
+        <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.83rem", color: fg(0.65), borderLeft: `2px solid ${am(0.25)}`, paddingLeft: "0.6rem", marginTop: "0.4rem" }}>
+          {row.statement}
+        </div>
+      )}
+
+      {/* Fehlermeldung */}
+      {msg && (
+        <div style={{ marginTop: "0.5rem", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.83rem", color: msg.includes("versendet") ? "#2ecc71" : "#e74c3c" }}>
+          {msg}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PAY_LABELS: Record<string, string> = { paypal: "PayPal", ueberweisung: "Überweisung", bar: "Bar" };
 const PAY_OPTIONS = [
   { value: "paypal",       label: "PayPal" },
@@ -507,6 +664,7 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
+  const [anmeldungenRows, setAnmeldungenRows] = useState<AnmeldungRow[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
   const [kaiState, setKaiState] = useState<"idle" | "loading" | "done" | "error">("idle");
 
@@ -547,7 +705,14 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => { if (authed) { load(); loadTickets(); } }, [authed]);
+  const loadAnmeldungen = useCallback(() => {
+    fetch(`${BASE}/api/admin/anmeldungen`, { headers: { "x-admin-secret": SECRET } })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setAnmeldungenRows(data); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { if (authed) { load(); loadTickets(); loadAnmeldungen(); } }, [authed]);
 
   if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
   if (error) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: A, marginTop: "4rem" }}>⚠ {error}</p></div>;
@@ -581,19 +746,37 @@ export default function AdminPage() {
       {/* ── Tab: Anmeldungen ── */}
       {activeTab === "anmeldungen" && (
         <>
-          <SectionTitle>Anmeldungen ({registrations.length})</SectionTitle>
-          {registrations.length === 0
+          {/* Bezahlt-Zusammenfassung */}
+          {anmeldungenRows.length > 0 && (() => {
+            const bezahlt   = anmeldungenRows.filter(r => r.bezahlt_am).length;
+            const versendet = anmeldungenRows.filter(r => r.ticket_versendet_am).length;
+            const sumPersonen = anmeldungenRows.reduce((s, r) => s + r.personen_anzahl, 0);
+            const sumBetrag   = anmeldungenRows.reduce((s, r) => s + r.betrag_gesamt, 0);
+            const sumBezahlt  = anmeldungenRows.filter(r => r.bezahlt_am).reduce((s, r) => s + r.betrag_gesamt, 0);
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "2rem" }}>
+                <StatCard n={anmeldungenRows.length} label="Anmeldungen" />
+                <StatCard n={sumPersonen}            label="Personen gesamt" />
+                <StatCard n={`${bezahlt} / ${anmeldungenRows.length}`} label="Bezahlt" />
+                <StatCard n={`${versendet} / ${anmeldungenRows.length}`} label="Tickets versendet" />
+                <StatCard n={`${sumBetrag} €`}       label="Erwartet gesamt" />
+                <StatCard n={`${sumBezahlt} €`}      label="Eingegangen" />
+              </div>
+            );
+          })()}
+
+          <SectionTitle>Phase-2-Anmeldungen ({anmeldungenRows.length})</SectionTitle>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55), marginTop: "-0.75rem", marginBottom: "1.25rem" }}>
+            Grüner Rand = bezahlt. Zuerst „Als bezahlt markieren", dann „Tickets versenden".
+          </p>
+          {anmeldungenRows.length === 0
             ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Anmeldungen.</p>
             : <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-                {registrations.map(r => <RegCard key={r.id} r={r} />)}
+                {anmeldungenRows.map(r => (
+                  <AnmeldungCard key={r.id} row={r} onRefresh={loadAnmeldungen} />
+                ))}
               </div>
           }
-          {registrationTimeline.length > 0 && (
-            <>
-              <SectionTitle>Anmeldungs-Zeitstrahl</SectionTitle>
-              <RegTimeline data={registrationTimeline} />
-            </>
-          )}
         </>
       )}
 
