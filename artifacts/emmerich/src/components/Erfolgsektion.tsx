@@ -44,8 +44,6 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
         }
       `}</style>
 
-      <div style={{ color: "var(--amber)", fontSize: "1.8rem", marginBottom: "1rem" }}>✦</div>
-
       <h2
         style={{
           fontFamily: "'Playfair Display', serif",

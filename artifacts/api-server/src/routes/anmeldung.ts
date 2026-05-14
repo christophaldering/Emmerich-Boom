@@ -12,7 +12,7 @@ const anmeldungSchema = z.object({
   begleitnamen:    z.array(z.string().max(200)),
   bezahlweg:       z.enum(["ueberweisung", "paypal", "bar"]),
   song:            z.string().max(300).optional().nullable(),
-  statement:       z.string().max(500).optional().nullable(),
+  statement:       z.string().max(200).optional().nullable(),
   betrag_gesamt:   z.number().int().min(1),
 });
 
