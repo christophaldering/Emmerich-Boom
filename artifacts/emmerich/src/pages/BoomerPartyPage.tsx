@@ -27,7 +27,7 @@ export default function BoomerPartyPage() {
   };
 
   return (
-    <main style={{ background: "var(--bg-page)", minHeight: "100svh", paddingBottom: "4.5rem" }}>
+    <main style={{ background: "var(--bg-page)", minHeight: "100svh", paddingTop: "2.8rem" }}>
       <ThemeToggle />
       <AnmeldeButton />
       <Poster />

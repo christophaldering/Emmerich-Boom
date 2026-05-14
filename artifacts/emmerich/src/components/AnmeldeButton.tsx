@@ -5,7 +5,7 @@ export default function AnmeldeButton() {
     <div
       style={{
         position: "fixed",
-        bottom: 0,
+        top: 0,
         left: 0,
         right: 0,
         zIndex: 900,
@@ -13,11 +13,11 @@ export default function AnmeldeButton() {
         alignItems: "center",
         justifyContent: "center",
         gap: "1rem",
-        padding: "0.7rem 1rem max(0.7rem, env(safe-area-inset-bottom))",
+        padding: "0.55rem 1rem",
         background: "rgba(10,7,4,0.92)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        borderTop: "1px solid rgba(232,153,26,0.30)",
+        borderBottom: "1px solid rgba(232,153,26,0.30)",
         flexWrap: "wrap",
       }}
     >
@@ -31,7 +31,7 @@ export default function AnmeldeButton() {
           lineHeight: 1.4,
         }}
       >
-        Phase-1-Eintrag reicht nicht — jetzt verbindlich anmelden
+        Phase-1-Eintrag zählt nicht mehr — hier neu anmelden
       </span>
       <a
         href={`${BASE}/anmeldung`}
@@ -43,14 +43,14 @@ export default function AnmeldeButton() {
           fontWeight: 700,
           fontSize: "0.92rem",
           letterSpacing: "0.04em",
-          padding: "0.5rem 1.4rem",
+          padding: "0.4rem 1.2rem",
           borderRadius: "3px",
           textDecoration: "none",
           whiteSpace: "nowrap",
           flexShrink: 0,
         }}
       >
-        Jetzt anmelden →
+        Jetzt verbindlich anmelden →
       </a>
     </div>
   );
