@@ -13,8 +13,8 @@ export const anmeldungenTable = pgTable("anmeldungen", {
   song:                 text("song"),
   statement:            text("statement"),
   betrag_gesamt:        integer("betrag_gesamt").notNull(),
-  bezahlt_am:           timestamp("bezahlt_am").default(undefined),
-  ticket_versendet_am:  timestamp("ticket_versendet_am").default(undefined),
+  bezahlt_am:           timestamp("bezahlt_am"),
+  ticket_versendet_am:  timestamp("ticket_versendet_am"),
   created_at:           timestamp("created_at").defaultNow(),
 });
 
