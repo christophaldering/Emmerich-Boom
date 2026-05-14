@@ -8,8 +8,6 @@
 import type { AnmeldungInputBezahlweg } from "./anmeldungInputBezahlweg";
 
 export interface AnmeldungInput {
-  /** @minLength 2 */
-  hauptname: string;
   email: string;
   /** @nullable */
   telefon?: string | null;
@@ -18,7 +16,7 @@ export interface AnmeldungInput {
    * @maximum 6
    */
   personen_anzahl: number;
-  begleitnamen: string[];
+  personen: string[];
   bezahlweg: AnmeldungInputBezahlweg;
   /** @nullable */
   song?: string | null;

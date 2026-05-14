@@ -19,6 +19,7 @@ import type {
 import type {
   AnmeldungInput,
   AnmeldungResult,
+  AnmeldungStats,
   ApiError,
   HealthStatus,
 } from "./api.schemas";
@@ -193,3 +194,79 @@ export const useSubmitAnmeldung = <
 > => {
   return useMutation(getSubmitAnmeldungMutationOptions(options));
 };
+
+/**
+ * Liefert die Gesamtzahl angemeldeter Personen
+ * @summary Anmeldungsstatistik abrufen
+ */
+export const getGetAnmeldungStatsUrl = () => {
+  return `/api/anmeldung/stats`;
+};
+
+export const getAnmeldungStats = async (
+  options?: RequestInit,
+): Promise<AnmeldungStats> => {
+  return customFetch<AnmeldungStats>(getGetAnmeldungStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAnmeldungStatsQueryKey = () => {
+  return [`/api/anmeldung/stats`] as const;
+};
+
+export const getGetAnmeldungStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAnmeldungStats>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAnmeldungStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAnmeldungStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAnmeldungStats>>
+  > = ({ signal }) => getAnmeldungStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAnmeldungStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAnmeldungStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAnmeldungStats>>
+>;
+export type GetAnmeldungStatsQueryError = ErrorType<ApiError>;
+
+/**
+ * @summary Anmeldungsstatistik abrufen
+ */
+
+export function useGetAnmeldungStats<
+  TData = Awaited<ReturnType<typeof getAnmeldungStats>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAnmeldungStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAnmeldungStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

@@ -34,12 +34,11 @@ export default function AnmeldungBrief() {
         `}</style>
         <div className="anmeldung-brief">
           <p>
-            Jetzt wird's konkret — und wir müssen uns kurz outen: Beim ersten Mal haben wir
-            vergessen, eure Kontaktdaten abzufragen. Bisschen Boomer-Versäumnis. 😉
-          </p>
-          <p>
-            Damit wir euch das Ticket schicken können und wisst, wer am 18. Juli mitkommt,
-            brauchen wir jetzt zwei Dinge: ein paar Daten — und einen Zehner pro Person.
+            Jetzt wird's konkret. In Phase 1 wollten wir bewusst keine Daten von euch — wer
+            kommt, sollte einfach Lust sagen können, ohne Formular und ohne sich auszuweisen.
+            Jetzt geht es nicht mehr anders: Damit wir euch die Tickets schicken können und am
+            Einlass wissen, wer dazugehört, brauchen wir Namen und eine Mailadresse. Und einen
+            Zehner pro Person.
           </p>
         </div>
       </div>

@@ -19,8 +19,6 @@ export const AnmeldungInputBezahlweg = {
 } as const;
 
 export interface AnmeldungInput {
-  /** @minLength 2 */
-  hauptname: string;
   email: string;
   /** @nullable */
   telefon?: string | null;
@@ -29,7 +27,7 @@ export interface AnmeldungInput {
    * @maximum 6
    */
   personen_anzahl: number;
-  begleitnamen: string[];
+  personen: string[];
   bezahlweg: AnmeldungInputBezahlweg;
   /** @nullable */
   song?: string | null;
@@ -45,6 +43,10 @@ export interface AnmeldungInput {
 export interface AnmeldungResult {
   id: number;
   betrag_gesamt: number;
+}
+
+export interface AnmeldungStats {
+  angemeldete_personen: number;
 }
 
 export type ApiErrorDetails = { [key: string]: unknown };

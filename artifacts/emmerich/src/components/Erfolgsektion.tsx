@@ -103,8 +103,8 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
         <div className="erfolg-block">
           <span className="erfolg-label">Bar</span>
           <p style={{ margin: 0 }}>
-            Bar zahlen geht auch — komm einfach im Kapaunenberg vorbei und gib den Zehner dort ab.
-            Farzin und Revse wissen Bescheid.
+            Bar zahlen geht auch — komm im Kapaunenberg vorbei und gib den Zehner pro Person dort
+            ab. Farzin oder Revse tragen euch direkt aufs Ticket ein und ihr nehmt es mit.
           </p>
           <p style={{ marginTop: "1rem", marginBottom: 0, color: "var(--fg-70)", fontStyle: "italic" }}>
             Bitte bis spätestens {PHASE2_CONFIG.ANMELDEFRIST}.
@@ -112,19 +112,38 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
         </div>
       )}
 
-      <p
-        style={{
-          fontFamily: "'Lora', serif",
-          fontStyle: "italic",
-          fontSize: "0.9rem",
-          color: "var(--fg-55)",
-          lineHeight: 1.7,
-          marginTop: "2rem",
-        }}
-      >
-        Wir melden uns mit eurem Ticket, sobald das Geld angekommen ist. Bei Fragen:{" "}
-        <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
-      </p>
+      {bezahlweg !== "bar" && (
+        <p
+          style={{
+            fontFamily: "'Lora', serif",
+            fontStyle: "italic",
+            fontSize: "0.9rem",
+            color: "var(--fg-55)",
+            lineHeight: 1.7,
+            marginTop: "2rem",
+          }}
+        >
+          Wir melden uns mit eurem Ticket, sobald das Geld angekommen ist.{" "}
+          Bei Fragen:{" "}
+          <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
+        </p>
+      )}
+
+      {bezahlweg === "bar" && (
+        <p
+          style={{
+            fontFamily: "'Lora', serif",
+            fontStyle: "italic",
+            fontSize: "0.9rem",
+            color: "var(--fg-55)",
+            lineHeight: 1.7,
+            marginTop: "1.5rem",
+          }}
+        >
+          Bei Fragen:{" "}
+          <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
+        </p>
+      )}
     </section>
   );
 }

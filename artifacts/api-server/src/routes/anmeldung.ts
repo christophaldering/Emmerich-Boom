@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db, anmeldungenTable } from "@workspace/db";
+import { sum } from "drizzle-orm";
 
 const router = Router();
 
@@ -8,11 +9,10 @@ const PREIS_PRO_PERSON = 10;
 
 const anmeldungSchema = z
   .object({
-    hauptname:       z.string().min(2).max(200),
     email:           z.string().email().max(300),
     telefon:         z.string().max(50).optional().nullable(),
     personen_anzahl: z.number().int().min(1).max(6),
-    begleitnamen:    z.array(z.string().min(2).max(200)),
+    personen:        z.array(z.string().min(2).max(200)),
     bezahlweg:       z.enum(["ueberweisung", "paypal", "bar"]),
     song:            z.string().max(300).optional().nullable(),
     statement:       z.string().max(200).optional().nullable(),
@@ -21,15 +21,27 @@ const anmeldungSchema = z
     }),
   })
   .superRefine((data, ctx) => {
-    const expected = data.personen_anzahl - 1;
-    if (data.begleitnamen.length !== expected) {
+    if (data.personen.length !== data.personen_anzahl) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["begleitnamen"],
-        message: `Erwartet ${expected} Begleitnamen, erhalten ${data.begleitnamen.length}.`,
+        path: ["personen"],
+        message: `Erwartet ${data.personen_anzahl} Namen, erhalten ${data.personen.length}.`,
       });
     }
   });
+
+router.get("/anmeldung/stats", async (req, res) => {
+  try {
+    const result = await db
+      .select({ total: sum(anmeldungenTable.personen_anzahl) })
+      .from(anmeldungenTable);
+    const angemeldete_personen = Number(result[0]?.total ?? 0);
+    res.json({ angemeldete_personen });
+  } catch (err) {
+    req.log.error(err, "anmeldung stats failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
 
 router.post("/anmeldung", async (req, res) => {
   const parsed = anmeldungSchema.safeParse(req.body);
@@ -45,11 +57,10 @@ router.post("/anmeldung", async (req, res) => {
     const inserted = await db
       .insert(anmeldungenTable)
       .values({
-        hauptname:       d.hauptname,
         email:           d.email,
         telefon:         d.telefon ?? null,
         personen_anzahl: d.personen_anzahl,
-        begleitnamen:    d.begleitnamen,
+        personen:        d.personen,
         bezahlweg:       d.bezahlweg,
         song:            d.song ?? null,
         statement:       d.statement ?? null,

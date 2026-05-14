@@ -8,6 +8,7 @@ import FaktenPhase2 from "@/components/FaktenPhase2";
 import Anmeldeformular from "@/components/Anmeldeformular";
 import Erfolgsektion from "@/components/Erfolgsektion";
 import LegalPhase2 from "@/components/LegalPhase2";
+import AnmeldungCounter from "@/components/AnmeldungCounter";
 
 export default function AnmeldungPage() {
   const [erfolg, setErfolg] = useState<{ anzahl: number; bezahlweg: string } | null>(null);
@@ -28,6 +29,7 @@ export default function AnmeldungPage() {
       <FaktenPhase2 />
       <Countdown />
 
+      <AnmeldungCounter />
       <Anmeldeformular onSuccess={handleSuccess} />
       {erfolg && (
         <div ref={erfolgsRef}>

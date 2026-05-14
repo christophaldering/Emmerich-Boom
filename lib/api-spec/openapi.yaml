@@ -56,6 +56,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /anmeldung/stats:
+    get:
+      operationId: getAnmeldungStats
+      tags: [anmeldung]
+      summary: Anmeldungsstatistik abrufen
+      description: Liefert die Gesamtzahl angemeldeter Personen
+      responses:
+        "200":
+          description: Statistik
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnmeldungStats"
+        "500":
+          description: Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -68,16 +87,12 @@ components:
     AnmeldungInput:
       type: object
       required:
-        - hauptname
         - email
         - personen_anzahl
-        - begleitnamen
+        - personen
         - bezahlweg
         - verbindlich
       properties:
-        hauptname:
-          type: string
-          minLength: 2
         email:
           type: string
           format: email
@@ -87,7 +102,7 @@ components:
           type: integer
           minimum: 1
           maximum: 6
-        begleitnamen:
+        personen:
           type: array
           items:
             type: string
@@ -112,6 +127,13 @@ components:
         id:
           type: integer
         betrag_gesamt:
+          type: integer
+    AnmeldungStats:
+      type: object
+      required:
+        - angemeldete_personen
+      properties:
+        angemeldete_personen:
           type: integer
     ApiError:
       type: object

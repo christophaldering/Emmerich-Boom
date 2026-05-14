@@ -18,27 +18,30 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Verbindliche Anmeldung einreichen
  */
-export const submitAnmeldungBodyHauptnameMin = 2;
-
 export const submitAnmeldungBodyPersonenAnzahlMax = 6;
 
-export const submitAnmeldungBodyBegleitnamenItemMin = 2;
+export const submitAnmeldungBodyPersonenItemMin = 2;
 
 export const submitAnmeldungBodyStatementMax = 200;
 
 export const SubmitAnmeldungBody = zod.object({
-  hauptname: zod.string().min(submitAnmeldungBodyHauptnameMin),
   email: zod.string().email(),
   telefon: zod.string().nullish(),
   personen_anzahl: zod
     .number()
     .min(1)
     .max(submitAnmeldungBodyPersonenAnzahlMax),
-  begleitnamen: zod.array(
-    zod.string().min(submitAnmeldungBodyBegleitnamenItemMin),
-  ),
+  personen: zod.array(zod.string().min(submitAnmeldungBodyPersonenItemMin)),
   bezahlweg: zod.enum(["ueberweisung", "paypal", "bar"]),
   song: zod.string().nullish(),
   statement: zod.string().max(submitAnmeldungBodyStatementMax).nullish(),
   verbindlich: zod.boolean().describe("Muss true sein"),
+});
+
+/**
+ * Liefert die Gesamtzahl angemeldeter Personen
+ * @summary Anmeldungsstatistik abrufen
+ */
+export const GetAnmeldungStatsResponse = zod.object({
+  angemeldete_personen: zod.number(),
 });

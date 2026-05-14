@@ -9,6 +9,7 @@
 export * from "./anmeldungInput";
 export * from "./anmeldungInputBezahlweg";
 export * from "./anmeldungResult";
+export * from "./anmeldungStats";
 export * from "./apiError";
 export * from "./apiErrorDetails";
 export * from "./healthStatus";

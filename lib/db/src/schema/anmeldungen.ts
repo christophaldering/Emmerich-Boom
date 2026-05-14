@@ -4,11 +4,10 @@ import { z } from "zod/v4";
 
 export const anmeldungenTable = pgTable("anmeldungen", {
   id:                   serial("id").primaryKey(),
-  hauptname:            text("hauptname").notNull(),
   email:                text("email").notNull(),
   telefon:              text("telefon"),
   personen_anzahl:      integer("personen_anzahl").notNull(),
-  begleitnamen:         jsonb("begleitnamen").notNull().default([]),
+  personen:             jsonb("personen").notNull().default([]),
   bezahlweg:            text("bezahlweg").notNull(),
   song:                 text("song"),
   statement:            text("statement"),

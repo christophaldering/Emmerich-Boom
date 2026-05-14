@@ -37,26 +37,27 @@ const hintStyle: React.CSSProperties = {
 };
 
 export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
-  const [hauptname, setHauptname]       = useState("");
-  const [personenAnzahl, setPersonen]   = useState(1);
-  const [begleitnamen, setBegleit]      = useState<string[]>([]);
-  const [email, setEmail]               = useState("");
-  const [telefon, setTelefon]           = useState("");
-  const [bezahlweg, setBezahlweg]       = useState<"ueberweisung" | "paypal" | "bar">("ueberweisung");
-  const [song, setSong]                 = useState("");
-  const [statement, setStatement]       = useState("");
-  const [verbindlich, setVerbindlich]   = useState(false);
-  const [clientError, setClientError]   = useState("");
+  const [personenAnzahl, setPersonen] = useState(1);
+  const [personen, setPersonen_]      = useState<string[]>([""]);
+  const [email, setEmail]             = useState("");
+  const [telefon, setTelefon]         = useState("");
+  const [bezahlweg, setBezahlweg]     = useState<"ueberweisung" | "paypal" | "bar">("ueberweisung");
+  const [song, setSong]               = useState("");
+  const [statement, setStatement]     = useState("");
+  const [verbindlich, setVerbindlich] = useState(false);
+  const [clientError, setClientError] = useState("");
 
   const mutation = useSubmitAnmeldung();
 
   const handlePersonenChange = (n: number) => {
     setPersonen(n);
-    setBegleit(Array.from({ length: Math.max(0, n - 1) }, (_, i) => begleitnamen[i] ?? ""));
+    setPersonen_((prev) =>
+      Array.from({ length: n }, (_, i) => prev[i] ?? ""),
+    );
   };
 
-  const handleBegleitChange = (i: number, val: string) => {
-    setBegleit((prev) => {
+  const handlePersonName = (i: number, val: string) => {
+    setPersonen_((prev) => {
       const next = [...prev];
       next[i] = val;
       return next;
@@ -75,11 +76,10 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
     mutation.mutate(
       {
         data: {
-          hauptname:       hauptname.trim(),
           email:           email.trim(),
           telefon:         telefon.trim() || null,
           personen_anzahl: personenAnzahl,
-          begleitnamen:    begleitnamen.map((b) => b.trim()),
+          personen:        personen.map((p) => p.trim()),
           bezahlweg,
           song:            song.trim() || null,
           statement:       statement.trim() || null,
@@ -103,7 +103,6 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
 
   const MAX = PHASE2_CONFIG.MAX_PERSONEN_PRO_ANMELDUNG;
   const loading = mutation.isPending;
-  const error = clientError;
 
   return (
     <section
@@ -167,24 +166,9 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
 
-          {/* Hauptname */}
+          {/* Personenanzahl zuerst */}
           <div>
-            <label style={labelStyle}>Dein Name</label>
-            <input
-              type="text"
-              required
-              minLength={2}
-              value={hauptname}
-              onChange={(e) => setHauptname(e.target.value)}
-              placeholder="Vor- und Nachname"
-              className="af-input"
-              style={inputStyle}
-            />
-          </div>
-
-          {/* Personenanzahl */}
-          <div>
-            <label style={labelStyle}>Wie viele kommen mit?</label>
+            <label style={labelStyle}>Wie viele kommen?</label>
             <input
               type="number"
               required
@@ -197,16 +181,18 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
             />
           </div>
 
-          {/* Begleitnamen dynamisch */}
-          {personenAnzahl > 1 && Array.from({ length: personenAnzahl - 1 }).map((_, i) => (
+          {/* Immer genau personen_anzahl Namensfelder */}
+          {Array.from({ length: personenAnzahl }).map((_, i) => (
             <div key={i}>
-              <label style={labelStyle}>{i + 2}. Person</label>
+              <label style={labelStyle}>
+                {personenAnzahl === 1 ? "Dein Name" : `${i + 1}. Person`}
+              </label>
               <input
                 type="text"
                 required
                 minLength={2}
-                value={begleitnamen[i] ?? ""}
-                onChange={(e) => handleBegleitChange(i, e.target.value)}
+                value={personen[i] ?? ""}
+                onChange={(e) => handlePersonName(i, e.target.value)}
                 placeholder="Vor- und Nachname"
                 className="af-input"
                 style={inputStyle}
@@ -340,9 +326,9 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
             {loading ? "Wird gespeichert …" : "Jetzt verbindlich anmelden"}
           </button>
 
-          {error && (
+          {clientError && (
             <div style={{ background: "var(--amber-06)", border: "1px solid var(--amber-25)", borderRadius: "4px", padding: "0.9rem 1.1rem", fontFamily: "'Lora', serif", fontStyle: "italic", color: "var(--amber)", fontSize: "0.9rem", lineHeight: 1.7 }}>
-              {error}
+              {clientError}
             </div>
           )}
         </form>
