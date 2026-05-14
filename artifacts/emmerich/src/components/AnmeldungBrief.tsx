@@ -35,7 +35,7 @@ export default function AnmeldungBrief() {
         <div className="anmeldung-brief">
           <p>
             Jetzt wird's konkret. In Phase 1 wollten wir bewusst keine Daten von euch — wer
-            kommt, sollte einfach Lust sagen können, ohne Formular und ohne sich auszuweisen.
+            kommt, sollte einfach Ja sagen können, ohne Formular und ohne sich auszuweisen.
             Jetzt geht es nicht mehr anders: Damit wir euch die Tickets schicken können und am
             Einlass wissen, wer dazugehört, brauchen wir Namen und eine Mailadresse. Und einen
             Zehner pro Person.

@@ -15,6 +15,7 @@ import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
 import ThemeToggle from "@/components/ThemeToggle";
+import AnmeldeButton from "@/components/AnmeldeButton";
 
 export default function BoomerPartyPage() {
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -26,8 +27,9 @@ export default function BoomerPartyPage() {
   };
 
   return (
-    <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
+    <main style={{ background: "var(--bg-page)", minHeight: "100svh", paddingBottom: "4.5rem" }}>
       <ThemeToggle />
+      <AnmeldeButton />
       <Poster />
       <AnmeldungsZaehler refreshKey={refreshCounter} />
       <Letter />
