@@ -41,7 +41,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
   const [personen, setPersonen_]      = useState<string[]>([""]);
   const [email, setEmail]             = useState("");
   const [telefon, setTelefon]         = useState("");
-  const [bezahlweg, setBezahlweg]     = useState<"ueberweisung" | "paypal" | "bar">("ueberweisung");
+  const [bezahlweg, setBezahlweg]     = useState<"ueberweisung" | "paypal">("ueberweisung");
   const [song, setSong]               = useState("");
   const [statement, setStatement]     = useState("");
   const [verbindlich, setVerbindlich] = useState(false);
@@ -233,7 +233,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
           <div>
             <label style={{ ...labelStyle, marginBottom: "0.8rem" }}>Wie wollt ihr zahlen?</label>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-              {(["ueberweisung", "paypal", "bar"] as const).map((opt) => (
+              {(["ueberweisung", "paypal"] as const).map((opt) => (
                 <label key={opt} className="af-radio-label">
                   <input
                     type="radio"
@@ -244,16 +244,9 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
                   />
                   {opt === "ueberweisung" && "Überweisung"}
                   {opt === "paypal" && "PayPal"}
-                  {opt === "bar" && "Bar — Zahlung & Ticket-Abholung im Kapaunenberg"}
                 </label>
               ))}
             </div>
-            {bezahlweg === "bar" && (
-              <p style={{ ...hintStyle, marginTop: "0.75rem", borderLeft: "3px solid var(--amber-30)", paddingLeft: "0.75rem" }}>
-                Die Anmeldung hier ist trotzdem Pflicht — ohne sie ist eine Teilnahme nicht möglich.
-                Bezahlung und Ticket-Abholung erfolgen dann persönlich vor Ort im Kapaunenberg.
-              </p>
-            )}
           </div>
 
           {/* Song */}

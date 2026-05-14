@@ -13,7 +13,7 @@ const anmeldungSchema = z
     telefon:         z.string().max(50).optional().nullable(),
     personen_anzahl: z.number().int().min(1).max(6),
     personen:        z.array(z.string().min(2).max(200)),
-    bezahlweg:       z.enum(["ueberweisung", "paypal", "bar"]),
+    bezahlweg:       z.enum(["ueberweisung", "paypal"]),
     song:            z.string().max(300).optional().nullable(),
     statement:       z.string().max(200).optional().nullable(),
     verbindlich:     z.literal(true, {
