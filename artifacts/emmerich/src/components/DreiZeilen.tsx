@@ -1,9 +1,10 @@
 import { useReveal } from "@/hooks/useReveal";
+import { PHASE2_CONFIG } from "@/config/phase2";
 
 const ZEILEN = [
   "— Verbindlich. Wer sich anmeldet, kommt.",
-  "— 10 € pro Person. Egal wie alt, egal wie viele.",
-  "— Bis Sonntag, 28. Juni. Danach machen wir zu.",
+  `— ${PHASE2_CONFIG.PREIS_PRO_PERSON} € pro Person. Egal wie alt, egal wie viele.`,
+  `— Bis ${PHASE2_CONFIG.ANMELDEFRIST}. Danach machen wir zu.`,
 ];
 
 export default function DreiZeilen() {

@@ -28,12 +28,11 @@ export default function AnmeldungPage() {
       <FaktenPhase2 />
       <Countdown />
 
-      {erfolg ? (
+      <Anmeldeformular onSuccess={handleSuccess} />
+      {erfolg && (
         <div ref={erfolgsRef}>
           <Erfolgsektion anzahl={erfolg.anzahl} bezahlweg={erfolg.bezahlweg} />
         </div>
-      ) : (
-        <Anmeldeformular onSuccess={handleSuccess} />
       )}
 
       <PressNote />

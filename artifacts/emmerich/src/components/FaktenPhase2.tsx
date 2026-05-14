@@ -64,7 +64,7 @@ export default function FaktenPhase2() {
         </div>
         <div className="fakten2-row">
           <span className="fakten2-key">Eintritt</span>
-          <span className="fakten2-val">10 € pro Person<small>Musik & Fingerfood</small></span>
+          <span className="fakten2-val">{PHASE2_CONFIG.PREIS_PRO_PERSON} € pro Person<small>Musik &amp; Fingerfood</small></span>
         </div>
         <div className="fakten2-row">
           <span className="fakten2-key">Zugang</span>
