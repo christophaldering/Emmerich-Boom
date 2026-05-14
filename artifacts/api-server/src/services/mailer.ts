@@ -46,8 +46,7 @@ const BEZAHLWEG_LABEL: Record<string, string> = {
 export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   const transport = createTransport();
   if (!transport) {
-    console.warn("[Mailer] GMAIL_APP_PASSWORD nicht gesetzt — Ticket-Mail übersprungen");
-    return;
+    throw new Error("GMAIL_APP_PASSWORD nicht gesetzt — Ticket-Mail kann nicht versendet werden");
   }
 
   const ticketBlocks = opts.tickets
