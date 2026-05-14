@@ -58,7 +58,7 @@ export default function AnmeldeButton() {
             lineHeight: 1.4,
           }}
         >
-          Phase-1-Eintrag zählt nicht mehr — hier neu anmelden
+          Phase-1-Eintrag zählt nicht mehr — verbindliche Anmeldung erforderlich
         </span>
         <a
           href={`${BASE}/anmeldung`}
@@ -77,7 +77,7 @@ export default function AnmeldeButton() {
             flexShrink: 0,
           }}
         >
-          Jetzt verbindlich anmelden →
+          Zur Anmeldung →
         </a>
       </div>
     </>

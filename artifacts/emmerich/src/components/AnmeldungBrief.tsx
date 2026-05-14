@@ -34,11 +34,20 @@ export default function AnmeldungBrief() {
         `}</style>
         <div className="anmeldung-brief">
           <p>
-            Jetzt wird's konkret. In Phase 1 wollten wir bewusst keine Daten von euch — wer
-            kommt, sollte einfach Ja sagen können, ohne Formular und ohne sich auszuweisen.
-            Jetzt geht es nicht mehr anders: Damit wir euch die Tickets schicken können und am
-            Einlass wissen, wer dazugehört, brauchen wir Namen und eine Mailadresse. Und einen
-            Zehner pro Person.
+            Die Vorabfrage war bewusst unverbindlich — kein Formular, keine Daten, einfach Ja
+            sagen können. Das Ergebnis ist eindeutig: Das Interesse ist da, und das in einem
+            Ausmaß, das uns wirklich überrascht hat.
+          </p>
+          <p>
+            Das gibt uns jetzt die Grundlage, konkret zu planen: Gespräche mit dem Wirt,
+            Kapazitäten, Technik, Material. All das kostet Geld — und die Organisatoren gehen
+            dabei in Vorleistung. Das können wir nur verantworten, wenn wir wissen, wer wirklich
+            dabei ist.
+          </p>
+          <p>
+            Darum bitten wir jetzt um verbindliche Anmeldungen — mit Name, Mailadresse und zehn
+            Euro pro Person. Wer sich in Phase 1 eingetragen hat, muss das hier nochmal tun. Der
+            frühere Eintrag war kein Versprechen — und das war so gewollt. Jetzt schon.
           </p>
         </div>
       </div>

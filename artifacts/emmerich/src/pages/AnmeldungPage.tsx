@@ -9,6 +9,49 @@ import Anmeldeformular from "@/components/Anmeldeformular";
 import Erfolgsektion from "@/components/Erfolgsektion";
 import LegalPhase2 from "@/components/LegalPhase2";
 import AnmeldungCounter from "@/components/AnmeldungCounter";
+import { PHASE2_CONFIG } from "@/config/phase2";
+
+function AnmeldungDemnächst() {
+  return (
+    <section style={{
+      maxWidth: "640px",
+      margin: "0 auto",
+      padding: "4rem 2rem 6rem",
+      textAlign: "center",
+    }}>
+      <div style={{
+        display: "inline-block",
+        border: "1px solid rgba(232,153,26,0.35)",
+        borderRadius: "6px",
+        padding: "2.5rem 2rem",
+        background: "rgba(232,153,26,0.04)",
+      }}>
+        <p style={{
+          fontFamily: "'Playfair Display', serif",
+          fontWeight: 700,
+          fontSize: "clamp(1.3rem, 4vw, 1.8rem)",
+          color: "var(--amber)",
+          marginBottom: "1rem",
+          lineHeight: 1.3,
+        }}>
+          Anmeldung öffnet in Kürze
+        </p>
+        <p style={{
+          fontFamily: "'Lora', serif",
+          fontStyle: "italic",
+          fontSize: "1rem",
+          color: "rgba(245,232,200,0.65)",
+          lineHeight: 1.8,
+          marginBottom: 0,
+        }}>
+          Wir stellen gerade die letzten Details fertig —<br />
+          Kontoverbindung, Zahlungswege, Anmeldefrist.<br />
+          Schaut in den nächsten Tagen nochmal rein.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 export default function AnmeldungPage() {
   const [erfolg, setErfolg] = useState<{ anzahl: number; bezahlweg: string } | null>(null);
@@ -29,12 +72,18 @@ export default function AnmeldungPage() {
       <FaktenPhase2 />
       <Countdown />
 
-      <AnmeldungCounter />
-      <Anmeldeformular onSuccess={handleSuccess} />
-      {erfolg && (
-        <div ref={erfolgsRef}>
-          <Erfolgsektion anzahl={erfolg.anzahl} bezahlweg={erfolg.bezahlweg} />
-        </div>
+      {PHASE2_CONFIG.ANMELDUNG_AKTIV ? (
+        <>
+          <AnmeldungCounter />
+          <Anmeldeformular onSuccess={handleSuccess} />
+          {erfolg && (
+            <div ref={erfolgsRef}>
+              <Erfolgsektion anzahl={erfolg.anzahl} bezahlweg={erfolg.bezahlweg} />
+            </div>
+          )}
+        </>
+      ) : (
+        <AnmeldungDemnächst />
       )}
 
       <PressNote />
