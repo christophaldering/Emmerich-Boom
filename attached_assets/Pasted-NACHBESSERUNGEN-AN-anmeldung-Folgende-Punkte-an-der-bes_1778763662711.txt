@@ -1,0 +1,70 @@
+NACHBESSERUNGEN AN /anmeldung
+
+Folgende Punkte an der bestehenden /anmeldung-Seite anpassen. Phase 1 (/) bleibt unangetastet. Design-Regeln aus den vorigen Prompts gelten weiter (nur Schwarz/Amber/Warm, nur Playfair/Lora, keine Tailwind-Farben).
+
+1. BRIEF — Text komplett ersetzen durch wörtlich folgenden Text:
+
+"118 Daumen hoch. Wir sind ehrlich gesagt baff.
+
+Jetzt wird's konkret. In Phase 1 wollten wir bewusst keine Daten von euch — wer kommt, sollte einfach Lust sagen können, ohne Formular und ohne sich auszuweisen. Jetzt geht es nicht mehr anders: Damit wir euch die Tickets schicken können und am Einlass wissen, wer dazugehört, brauchen wir Namen und eine Mailadresse. Und einen Zehner pro Person."
+
+Das zwinkernde Emoji 😉 fällt weg. Erste Zeile bleibt in Playfair, Rest in Lora.
+
+2. NAMENS-LOGIK IM FORMULAR ÄNDERN
+
+Bisher gab es ein Pflichtfeld "Dein Name" plus dynamische Begleitnamen-Felder. Das wird umgebaut:
+
+- Das Feld "Hauptname" entfällt als separates Konzept.
+- Stattdessen werden IMMER so viele Namensfelder eingeblendet wie Personen angemeldet sind.
+- Bei Personenanzahl 1: ein Feld "Dein Name"
+- Bei Personenanzahl 2 oder mehr: Felder "1. Person", "2. Person", "3. Person" usw. Alle Pflicht.
+- Reihenfolge im Formular bleibt: Personenanzahl-Feld zuerst, dann dynamisch die entsprechende Anzahl Namensfelder, dann E-Mail, Telefon, Bezahlweg etc.
+
+Datenbank-Schema in lib/db/src/schema/anmeldungen.ts entsprechend anpassen:
+- Spalte `hauptname` entfernen
+- Spalte `begleitnamen` umbenennen zu `personen` (jsonb, Array of Strings, Länge = personen_anzahl, jeder Eintrag min 2 Zeichen)
+- Migration ausführen via `pnpm --filter @workspace/db run push`
+
+Backend-Validation in /api/anmeldung entsprechend anpassen: `personen` ist Array of String, Länge muss exakt personen_anzahl entsprechen, jeder Eintrag min 2 Zeichen.
+
+3. LIVE-ZÄHLER ÖFFENTLICH
+
+Über dem Anmeldeformular einen Zähler einblenden, der live aus der DB die Summe der angemeldeten Personen anzeigt.
+
+Format (Playfair, Amber-Farbe, mittig):
+"Schon dabei: [X] Personen"
+
+Berechnung: Summe von `personen_anzahl` über alle Einträge in Tabelle `anmeldungen` (ohne Bezahl-Status-Filter — alle Anmeldungen zählen).
+
+Neue API-Route: GET /api/anmeldung/stats
+Response: { angemeldete_personen: number }
+
+Frontend lädt diesen Wert beim Seitenaufruf und zeigt ihn an. Bei Werten unter 1: Zähler-Bereich nicht anzeigen.
+
+KEIN Bezahlt-Zähler öffentlich. Das bleibt der späteren Admin-Seite vorbehalten.
+
+4. BAR-ZAHLER — TEXT IN ERFOLGS-SEKTION ANPASSEN
+
+Bei Auswahl Bezahlweg "Bar im Kapaunenberg" wird in der Erfolgs-Sektion folgender Text angezeigt (wörtlich):
+
+"Bar zahlen geht auch — komm im Kapaunenberg vorbei und gib den Zehner pro Person dort ab. Farzin oder Revse tragen euch direkt aufs Ticket ein und ihr nehmt es mit.
+
+Bitte bis spätestens [ANMELDEFRIST]."
+
+Der bisherige Hinweis "Wir melden uns mit eurem Ticket, sobald das Geld angekommen ist" wird bei Bar-Zahlern NICHT angezeigt — sie kriegen ihr Ticket physisch vor Ort, nicht per Mail. Stattdessen darunter kleiner: "Bei Fragen: [KONTAKT_MAIL]"
+
+Für Überweisung und PayPal bleibt der Mail-Hinweis wie bisher.
+
+CHECKLISTE
+
+- [ ] Brief-Text wörtlich ersetzt, 😉 entfernt
+- [ ] Datenbank-Spalte `hauptname` entfernt, `begleitnamen` umbenannt zu `personen`
+- [ ] Migration ausgeführt
+- [ ] Formular zeigt IMMER personen_anzahl viele Namensfelder
+- [ ] Bei personen_anzahl=1: "Dein Name", sonst "1. Person", "2. Person" etc.
+- [ ] GET /api/anmeldung/stats liefert Personensumme
+- [ ] Zähler "Schon dabei: X Personen" über dem Formular
+- [ ] Bar-Zahler-Text in Erfolgs-Sektion wörtlich angepasst, Mail-Hinweis entfernt
+- [ ] Phase 1 (/) nicht angefasst
+
+Wenn fertig, schreibe wörtlich: "Nachbesserungen erledigt."
