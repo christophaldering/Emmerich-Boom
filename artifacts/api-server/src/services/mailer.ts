@@ -85,7 +85,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="utf-8"><title>Euer Ticket — EMMERICH BOOMT!</title></head>
-<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:Georgia,'Times New Roman',serif;">
+<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:'Playfair Display',Georgia,'Times New Roman',serif;">
   <div style="max-width:580px;margin:0 auto;padding:2.5rem 1.5rem;">
 
     <div style="text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,153,26,0.3);">

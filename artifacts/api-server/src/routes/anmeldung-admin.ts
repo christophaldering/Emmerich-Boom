@@ -156,7 +156,7 @@ router.post("/admin/anmeldungen/:id/tickets-versenden", async (req: Request, res
     res.json({ ok: true, tickets_count: vorhandene.length });
   } catch (err) {
     req.log.error(err, "tickets-versenden failed");
-    res.status(500).json({ error: "Versand fehlgeschlagen: " + String(err) });
+    res.status(500).json({ error: "Ticketversand fehlgeschlagen. Bitte Serverlogs prüfen." });
   }
 });
 
