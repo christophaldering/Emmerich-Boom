@@ -244,10 +244,16 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
                   />
                   {opt === "ueberweisung" && "Überweisung"}
                   {opt === "paypal" && "PayPal"}
-                  {opt === "bar" && "Bar im Kapaunenberg"}
+                  {opt === "bar" && "Bar — Zahlung & Ticket-Abholung im Kapaunenberg"}
                 </label>
               ))}
             </div>
+            {bezahlweg === "bar" && (
+              <p style={{ ...hintStyle, marginTop: "0.75rem", borderLeft: "3px solid var(--amber-30)", paddingLeft: "0.75rem" }}>
+                Die Anmeldung hier ist trotzdem Pflicht — ohne sie ist eine Teilnahme nicht möglich.
+                Bezahlung und Ticket-Abholung erfolgen dann persönlich vor Ort im Kapaunenberg.
+              </p>
+            )}
           </div>
 
           {/* Song */}

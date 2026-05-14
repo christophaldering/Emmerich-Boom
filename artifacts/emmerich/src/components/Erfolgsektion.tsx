@@ -104,7 +104,7 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
           <span className="erfolg-label">Bar</span>
           <p style={{ margin: 0 }}>
             Bar zahlen geht auch — komm im Kapaunenberg vorbei und gib den Zehner pro Person dort
-            ab. Farzin oder Revse tragen euch direkt aufs Ticket ein und ihr nehmt es mit.
+            ab. Farzin oder Revse tragen euch direkt aufs Ticket ein, und ihr holt euer Ticket dort ab.
           </p>
           <p style={{ marginTop: "1rem", marginBottom: "1rem", color: "var(--fg-70)", fontStyle: "italic" }}>
             Bitte bis spätestens {PHASE2_CONFIG.ANMELDEFRIST}.
