@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { PHASE2_CONFIG } from "@/config/phase2";
+import { useSubmitAnmeldung } from "@workspace/api-client-react";
 
 interface AnmeldeformularProps {
   onSuccess: (data: { anzahl: number; bezahlweg: string }) => void;
@@ -45,8 +46,9 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
   const [song, setSong]                 = useState("");
   const [statement, setStatement]       = useState("");
   const [verbindlich, setVerbindlich]   = useState(false);
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState("");
+  const [clientError, setClientError]   = useState("");
+
+  const mutation = useSubmitAnmeldung();
 
   const handlePersonenChange = (n: number) => {
     setPersonen(n);
@@ -61,16 +63,18 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-    const betrag = personenAnzahl * PHASE2_CONFIG.PREIS_PRO_PERSON;
-    try {
-      const res = await fetch("/api/anmeldung", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    setClientError("");
+
+    if (!verbindlich) {
+      setClientError("Bitte bestätigt die verbindliche Anmeldung.");
+      return;
+    }
+
+    mutation.mutate(
+      {
+        data: {
           hauptname:       hauptname.trim(),
           email:           email.trim(),
           telefon:         telefon.trim() || null,
@@ -79,23 +83,27 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
           bezahlweg,
           song:            song.trim() || null,
           statement:       statement.trim() || null,
-          betrag_gesamt:   betrag,
-        }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        onSuccess({ anzahl: personenAnzahl, bezahlweg });
-      } else {
-        setError(data.error ?? "Ein Fehler ist aufgetreten.");
-      }
-    } catch {
-      setError("Verbindungsfehler. Bitte nochmal versuchen.");
-    } finally {
-      setLoading(false);
-    }
+          verbindlich:     true,
+        },
+      },
+      {
+        onSuccess: () => {
+          onSuccess({ anzahl: personenAnzahl, bezahlweg });
+        },
+        onError: (err) => {
+          const msg =
+            typeof err === "object" && err !== null && "data" in err
+              ? ((err as { data?: { error?: string } }).data?.error ?? "Ein Fehler ist aufgetreten.")
+              : "Verbindungsfehler. Bitte nochmal versuchen.";
+          setClientError(msg);
+        },
+      },
+    );
   };
 
   const MAX = PHASE2_CONFIG.MAX_PERSONEN_PRO_ANMELDUNG;
+  const loading = mutation.isPending;
+  const error = clientError;
 
   return (
     <section
@@ -165,6 +173,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
             <input
               type="text"
               required
+              minLength={2}
               value={hauptname}
               onChange={(e) => setHauptname(e.target.value)}
               placeholder="Vor- und Nachname"
@@ -195,6 +204,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
               <input
                 type="text"
                 required
+                minLength={2}
                 value={begleitnamen[i] ?? ""}
                 onChange={(e) => handleBegleitChange(i, e.target.value)}
                 placeholder="Vor- und Nachname"

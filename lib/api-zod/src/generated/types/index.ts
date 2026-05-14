@@ -6,4 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./anmeldungInput";
+export * from "./anmeldungInputBezahlweg";
+export * from "./anmeldungResult";
+export * from "./apiError";
+export * from "./apiErrorDetails";
 export * from "./healthStatus";

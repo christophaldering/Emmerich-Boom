@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  AnmeldungInput,
+  AnmeldungResult,
+  ApiError,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,89 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Verbindliche Anmeldung einreichen
+ */
+export const getSubmitAnmeldungUrl = () => {
+  return `/api/anmeldung`;
+};
+
+export const submitAnmeldung = async (
+  anmeldungInput: AnmeldungInput,
+  options?: RequestInit,
+): Promise<AnmeldungResult> => {
+  return customFetch<AnmeldungResult>(getSubmitAnmeldungUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(anmeldungInput),
+  });
+};
+
+export const getSubmitAnmeldungMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitAnmeldung>>,
+    TError,
+    { data: BodyType<AnmeldungInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitAnmeldung>>,
+  TError,
+  { data: BodyType<AnmeldungInput> },
+  TContext
+> => {
+  const mutationKey = ["submitAnmeldung"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitAnmeldung>>,
+    { data: BodyType<AnmeldungInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitAnmeldung(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitAnmeldungMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitAnmeldung>>
+>;
+export type SubmitAnmeldungMutationBody = BodyType<AnmeldungInput>;
+export type SubmitAnmeldungMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Verbindliche Anmeldung einreichen
+ */
+export const useSubmitAnmeldung = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitAnmeldung>>,
+    TError,
+    { data: BodyType<AnmeldungInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitAnmeldung>>,
+  TError,
+  { data: BodyType<AnmeldungInput> },
+  TContext
+> => {
+  return useMutation(getSubmitAnmeldungMutationOptions(options));
+};

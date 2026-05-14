@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: anmeldung
+    description: Event registration
 paths:
   /healthz:
     get:
@@ -24,6 +26,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /anmeldung:
+    post:
+      operationId: submitAnmeldung
+      tags: [anmeldung]
+      summary: Verbindliche Anmeldung einreichen
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnmeldungInput"
+      responses:
+        "201":
+          description: Anmeldung erfolgreich gespeichert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnmeldungResult"
+        "400":
+          description: Validierungsfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +65,60 @@ components:
           type: string
       required:
         - status
-
+    AnmeldungInput:
+      type: object
+      required:
+        - hauptname
+        - email
+        - personen_anzahl
+        - begleitnamen
+        - bezahlweg
+        - verbindlich
+      properties:
+        hauptname:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        telefon:
+          type: ["string", "null"]
+        personen_anzahl:
+          type: integer
+          minimum: 1
+          maximum: 6
+        begleitnamen:
+          type: array
+          items:
+            type: string
+            minLength: 2
+        bezahlweg:
+          type: string
+          enum: [ueberweisung, paypal, bar]
+        song:
+          type: ["string", "null"]
+        statement:
+          type: ["string", "null"]
+          maxLength: 200
+        verbindlich:
+          type: boolean
+          description: Muss true sein
+    AnmeldungResult:
+      type: object
+      required:
+        - id
+        - betrag_gesamt
+      properties:
+        id:
+          type: integer
+        betrag_gesamt:
+          type: integer
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        details:
+          type: object

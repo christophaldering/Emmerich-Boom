@@ -5,18 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export type AnmeldungInputBezahlweg =
-  (typeof AnmeldungInputBezahlweg)[keyof typeof AnmeldungInputBezahlweg];
-
-export const AnmeldungInputBezahlweg = {
-  ueberweisung: "ueberweisung",
-  paypal: "paypal",
-  bar: "bar",
-} as const;
+import type { AnmeldungInputBezahlweg } from "./anmeldungInputBezahlweg";
 
 export interface AnmeldungInput {
   /** @minLength 2 */
@@ -40,16 +29,4 @@ export interface AnmeldungInput {
   statement?: string | null;
   /** Muss true sein */
   verbindlich: boolean;
-}
-
-export interface AnmeldungResult {
-  id: number;
-  betrag_gesamt: number;
-}
-
-export type ApiErrorDetails = { [key: string]: unknown };
-
-export interface ApiError {
-  error: string;
-  details?: ApiErrorDetails;
 }
