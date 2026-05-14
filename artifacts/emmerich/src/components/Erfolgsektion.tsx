@@ -106,8 +106,11 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
             Bar zahlen geht auch — komm im Kapaunenberg vorbei und gib den Zehner pro Person dort
             ab. Farzin oder Revse tragen euch direkt aufs Ticket ein und ihr nehmt es mit.
           </p>
-          <p style={{ marginTop: "1rem", marginBottom: 0, color: "var(--fg-70)", fontStyle: "italic" }}>
+          <p style={{ marginTop: "1rem", marginBottom: "1rem", color: "var(--fg-70)", fontStyle: "italic" }}>
             Bitte bis spätestens {PHASE2_CONFIG.ANMELDEFRIST}.
+          </p>
+          <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--fg-55)", fontStyle: "italic" }}>
+            Bei Fragen: <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
           </p>
         </div>
       )}
@@ -124,22 +127,6 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
           }}
         >
           Wir melden uns mit eurem Ticket, sobald das Geld angekommen ist.{" "}
-          Bei Fragen:{" "}
-          <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
-        </p>
-      )}
-
-      {bezahlweg === "bar" && (
-        <p
-          style={{
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.9rem",
-            color: "var(--fg-55)",
-            lineHeight: 1.7,
-            marginTop: "1.5rem",
-          }}
-        >
           Bei Fragen:{" "}
           <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
         </p>
