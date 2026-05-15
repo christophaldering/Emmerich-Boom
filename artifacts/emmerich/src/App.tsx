@@ -8,6 +8,7 @@ import PlakatPrintPage from "@/pages/PlakatPrintPage";
 import FlyerPage from "@/pages/FlyerPage";
 import FlyerPrintPage from "@/pages/FlyerPrintPage";
 import AnmeldungPage from "@/pages/AnmeldungPage";
+import TicketDemoPage from "@/pages/TicketDemoPage";
 import Beacon from "@/components/Beacon";
 
 const ADMIN_SLUG = "boomer-orga-intern";
@@ -25,6 +26,7 @@ function getRoute(): { page: string; param?: string } {
   if (clean === "flyer") return { page: "flyer" };
   if (clean === "flyer-print") return { page: "flyer-print" };
   if (clean === "anmeldung") return { page: "anmeldung" };
+  if (clean === "ticket-demo") return { page: "ticket-demo" };
   const ticketMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})$`));
   if (ticketMatch) return { page: "ticket", param: ticketMatch[1].toUpperCase() };
   return { page: "main" };
@@ -45,6 +47,7 @@ export default function App() {
   if (route.page === "flyer-print") return <FlyerPrintPage />;
   if (route.page === "ticket" && route.param) return <TicketPage code={route.param} />;
   if (route.page === "anmeldung") return <AnmeldungPage />;
+  if (route.page === "ticket-demo") return <TicketDemoPage />;
 
   return (
     <>
