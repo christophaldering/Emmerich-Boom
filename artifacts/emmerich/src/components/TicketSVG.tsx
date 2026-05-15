@@ -29,14 +29,15 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           <rect x="0" y="0" width="900" height="320" rx="6" ry="6" />
         </clipPath>
 
-        {/* Dunkler Fade: transparent → schwarze Fläche, kein heller Amber-Streifen */}
+        {/* Warm-Amber-Fade: Poster-Wärme nach rechts auslaufen lassen */}
         <linearGradient id={`fade-${id}`} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
-          <stop offset="0%"   stopColor="#0A0704" stopOpacity="0" />
-          <stop offset="28%"  stopColor="#0A0704" stopOpacity="0" />
-          <stop offset="36%"  stopColor="#0A0704" stopOpacity="0.55" />
-          <stop offset="48%"  stopColor="#0A0704" stopOpacity="0.85" />
-          <stop offset="65%"  stopColor="#0A0704" stopOpacity="0.97" />
-          <stop offset="100%" stopColor="#0A0704" stopOpacity="1" />
+          <stop offset="0%"   stopColor="#0A0704"       stopOpacity="0" />
+          <stop offset="28%"  stopColor="#0A0704"       stopOpacity="0" />
+          <stop offset="33%"  stopColor="rgb(200,120,20)" stopOpacity="0.30" />
+          <stop offset="44%"  stopColor="rgb(160,85,12)"  stopOpacity="0.50" />
+          <stop offset="58%"  stopColor="rgb(60,28,5)"    stopOpacity="0.82" />
+          <stop offset="72%"  stopColor="#0A0704"         stopOpacity="0.96" />
+          <stop offset="100%" stopColor="#0A0704"         stopOpacity="1" />
         </linearGradient>
       </defs>
 
@@ -115,7 +116,7 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           stroke="#E8991A" strokeWidth="1" strokeDasharray="3,5" strokeOpacity="0.45"
         />
         {/* Nummer + Label, um -45° gedreht, zentriert im Streifen */}
-        <g transform="rotate(-45, 870, 160)">
+        <g transform="rotate(-90, 870, 160)">
           <text
             x="870" y="152"
             fontFamily="'Lora', Georgia, serif"
