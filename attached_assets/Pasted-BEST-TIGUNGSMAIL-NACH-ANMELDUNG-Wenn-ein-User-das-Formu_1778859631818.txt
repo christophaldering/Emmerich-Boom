@@ -1,0 +1,133 @@
+BESTÄTIGUNGSMAIL NACH ANMELDUNG
+
+Wenn ein User das Formular auf /anmeldung erfolgreich absendet, soll sofort eine Bestätigungsmail an die angegebene E-Mail-Adresse gehen. Versand über Resend.
+
+INFRASTRUKTUR
+
+- Resend ist verifiziert für emmerich-boomt.de (DKIM/SPF/MX-Records sind bei IONOS gesetzt)
+- API-Key liegt als Environment-Variable RESEND_API_KEY (NICHT im Code hardcoden)
+- Absender-Mail: boomerparty26@emmerich-boomt.de
+- Absender-Name: "Boomerparty Emmerich"
+- Reply-To: boomerparty26@emmerich-boomt.de
+
+PHASE2_CONFIG erweitern
+
+Datei artifacts/emmerich/src/config/phase2.ts (oder gleichwertig auf Server-Seite) bzw. eine neue Server-Config-Datei ergänzen um:
+
+ABSENDER_NAME: "Boomerparty Emmerich"
+ABSENDER_MAIL: "boomerparty26@emmerich-boomt.de"
+
+Falls KONTAKT_MAIL bereits gesetzt ist, auf "boomerparty26@emmerich-boomt.de" ändern (bisher war es "tickets@emmerich-boomt.de" als Platzhalter).
+
+INTEGRATION
+
+Im api-server: Bibliothek `resend` per pnpm installieren:
+`pnpm --filter @workspace/api-server add resend`
+
+Resend-Client initialisieren mit process.env.RESEND_API_KEY.
+
+ZEITPUNKT DES VERSANDS
+
+In der bestehenden POST /api/anmeldung-Route: nach erfolgreichem Insert in die DB die Bestätigungsmail asynchron versenden. Mail-Fehler dürfen den 201-Response für den User NICHT blockieren — der User soll die Erfolgsseite normal sehen, auch wenn der Mailversand intern hängt. Mail-Fehler werden serverseitig geloggt, aber nicht an den Client weitergegeben.
+
+MAILTEXT (wörtlich übernehmen)
+
+Betreff: "Wir haben euch — Boomerparty 18. Juli"
+
+Body (Plaintext-Version):
+
+---
+Hallo [HAUPTNAME],
+
+danke! Wir haben eure Anmeldung für die Boomerparty.
+
+[X] Person(en) angemeldet:
+- [Name 1]
+- [Name 2]
+- ...
+
+Macht zusammen [BETRAG] €.
+
+[Wenn bezahlweg === 'ueberweisung':]
+Bitte überweist bis spätestens 28. Juni:
+
+Kontoinhaber: Christoph Aldering
+IBAN: [IBAN aus PHASE2_CONFIG]
+Bank: DKB
+Verwendungszweck: Boomerparty + [HAUPTNAME]
+
+[Wenn bezahlweg === 'paypal':]
+Bitte sendet bis spätestens 28. Juni:
+
+PayPal-Link: [PAYPAL_LINK aus PHASE2_CONFIG]
+Verwendungszweck: Boomerparty + [HAUPTNAME]
+
+[Wenn bezahlweg === 'bar':]
+Kommt einfach im Kapaunenberg vorbei und gebt den Zehner pro 
+Person ab. Farzin oder Revse tragen euch direkt aufs Ticket ein. 
+Bitte bis spätestens 28. Juni.
+
+[Bei allen Bezahlwegen außer 'bar':]
+Eure Tickets schicken wir euch im Juli per Mail — als PDF zum 
+Ausdrucken oder fürs Handy.
+
+[Bei 'bar':]
+Eure Tickets bekommt ihr direkt im Kapaunenberg, wenn ihr den 
+Zehner abgebt.
+
+Bei Fragen einfach auf diese Mail antworten.
+
+Bis bald!
+
+Christoph, Farzin & Revse
+— Orga BoomerParty 2026 —
+emmerich-boomt.de
+---
+
+[HAUPTNAME] = personen[0] aus der Anmeldung
+[X] = personen_anzahl
+[Name 1, Name 2, ...] = alle Einträge aus dem personen-Array
+[BETRAG] = betrag_gesamt
+
+HTML-VERSION
+
+Zusätzlich zur Plaintext-Version eine HTML-Version generieren. Stil: schwarzer Hintergrund (#0A0704), Amber Akzentfarbe (#E8991A), Warm Text (#F5E8C8), Lora-Schrift als Web-Font. Maximalbreite 600px, zentriert.
+
+Header der Mail (HTML):
+- Kleine Versalzeile in Amber: "EMMERICH BOOMT!"
+- Darunter Headline in Playfair: "Wir haben euch."
+
+Inhalt wie im Plaintext, aber gestaltet:
+- Personen-Liste als Bullet-Liste mit Amber-Punkten
+- Bezahl-Block in einem leicht hervorgehobenen Kasten mit Amber-Rahmen (1px solid, 4px radius)
+- IBAN/PayPal-Link in Mono-Font (Courier oder Menlo), damit Boomers das gut kopieren können
+- Footer-Zeile am Ende: "emmerich-boomt.de" als Amber-Link
+
+Wichtig: E-Mail-Clients (besonders Outlook und Gmail) sind eingeschränkt bei CSS. Inline-Styles statt externe Klassen verwenden. Keine SVGs, keine Web-Fonts mit @import, keine modernen CSS-Features.
+
+FEHLERFALL
+
+Wenn Resend mit Fehler antwortet (z.B. domain not verified, rate limit, invalid email):
+- Fehler ins Server-Log schreiben (console.error mit Anmeldung-ID und Fehlerdetails)
+- KEIN Fehler-Status an den Client zurückgeben — die Anmeldung war erfolgreich gespeichert, das soll nicht überschrieben werden
+- Optional: Ein neues Feld `bestaetigungsmail_versendet_am` (timestamp, nullable) in der `anmeldungen`-Tabelle ergänzen, das bei erfolgreichem Versand gesetzt wird. Damit später nachvollziehbar ist, wer keine Bestätigung bekommen hat.
+
+CHECKLISTE
+
+- [ ] Bibliothek `resend` im api-server installiert
+- [ ] RESEND_API_KEY wird ausschließlich aus process.env gelesen, nirgends im Code als String
+- [ ] Absender: "Boomerparty Emmerich" <boomerparty26@emmerich-boomt.de>
+- [ ] Reply-To: boomerparty26@emmerich-boomt.de
+- [ ] Versand nach erfolgreichem Insert in /api/anmeldung
+- [ ] Mail-Fehler blockieren NICHT den User-facing 201-Response
+- [ ] Plaintext- UND HTML-Version
+- [ ] Inline-Styles in HTML-Version (Outlook-kompatibel)
+- [ ] Bezahlweg-spezifischer Text wird dynamisch eingesetzt
+- [ ] Neues DB-Feld `bestaetigungsmail_versendet_am` und Migration ausgeführt
+- [ ] Phase 1 (/) unangetastet
+
+TESTEN
+
+Nach Fertigstellung: Eine Testanmeldung über /anmeldung machen mit einer echten E-Mail-Adresse, die du selbst empfangen kannst. Prüfen, dass die Mail ankommt und das Layout sauber dargestellt wird.
+
+Wenn fertig, schreibe wörtlich: "Bestätigungsmail erledigt. Bereit für Testanmeldung."
