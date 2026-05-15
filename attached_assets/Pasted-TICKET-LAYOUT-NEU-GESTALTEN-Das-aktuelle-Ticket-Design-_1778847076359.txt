@@ -1,0 +1,58 @@
+TICKET-LAYOUT NEU GESTALTEN
+
+Das aktuelle Ticket-Design (DIN A5 quer mit Abriss-Stub rechts) wird komplett ersetzt. Neues Format und neue Anatomie.
+
+FORMAT
+
+Eventim-ähnliches Querformat. SVG viewBox: "0 0 900 320".
+Seitenverhältnis etwa 2.8:1 (breiter und flacher als bisher).
+border-radius: 6px, Außenrahmen Amber stroke-width 1.5px, Hintergrund #0A0704.
+
+KEIN ABRISS-STUB MEHR. Keine gestrichelte Vertikallinie. Das Ticket ist ein durchgehendes Element — beim Einlass wird es einfach eingerissen und damit entwertet.
+
+LINKER BLOCK — POSTER
+
+Breite: 33% (also etwa 300 von 900 Punkten).
+Inhalt: das vorhandene Landingpage-Poster (gleicher Asset-Pfad, NICHT neu rendern).
+object-fit: cover.
+object-position: center, damit alle drei Charaktere und der BOOMER-PARTY-Schriftzug sichtbar sind.
+
+ORANGE-FADE IN DEN HAUPTTEIL
+
+Ab Position 33% beginnt ein linearer Gradient nach rechts (in der Übergangszone von etwa 33%–73% der Ticketbreite):
+- Bei 33% (Position 300px): rgba(232, 153, 26, 0.85) — also kräftiges Amber-Orange mit hoher Opazität
+- Bei 50% (Position 450px): rgba(196, 106, 18, 0.45) — gedämpfteres Orange, halbtransparent
+- Bei 73% (Position 660px): rgba(10, 7, 4, 0.95) — fast komplett Schwarz
+- Bei 100% (Position 900px): rgba(10, 7, 4, 1) — voll Schwarz
+
+Das Orange aus dem Poster soll dadurch warm in den Hauptteil hineingleiten und erst ab etwa zwei Dritteln Breite völlig im Schwarz aufgehen. Kein harter Schnitt, fließender Übergang.
+
+HAUPTTEIL — TEXT UNTEREINANDER
+
+Beginnt bei x=370 (also nach dem stärksten Teil des Orange-Fades, wenn die Lesbarkeit gut ist).
+Alle Textelemente linksbündig untereinander angeordnet.
+
+Von oben nach unten:
+
+1. Versalzeile in Amber, Lora 13px, letter-spacing 3px:
+   "EMMERICH BOOMT!"
+   Position y: 80
+
+2. Großer Name in Playfair Display, font-weight 500, Farbe #E8991A
+   Default font-size: 44px
+   Position y: 142
+   WICHTIG: Bei langen Namen (über 18 Zeichen) Schriftgröße dynamisch reduzieren auf 38px. Bei über 24 Zeichen auf 32px. Damit der Name niemals abgeschnitten wird und sich an die Containerbreite anpasst (verfügbare Breite ca. 500px bis Ticket-Rand).
+   Dynamisch: der jeweilige Personenname aus der Anmeldung
+
+3. Kurze Trennlinie in Amber, 120px breit, opacity 0.4
+   Position: x1=370 y1=166 x2=490 y2=166
+
+4. Datum+Einlass in Lora 17px, Warm #F5E8C8:
+   "Samstag, 18. Juli 2026 · Einlass ab 19 Uhr"
+   Position y: 208
+
+5. Ort in Lora 15px, Warm opacity 0.7:
+   "Bölt / Kapaunenberg · Emmerich am Rhein"
+   Position y: 234
+
+6. Eintritts-Zeile (zwei Textelemente n​​​​​​​​​​​​​​​​
