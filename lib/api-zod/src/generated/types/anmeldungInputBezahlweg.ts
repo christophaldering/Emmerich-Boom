@@ -12,4 +12,5 @@ export type AnmeldungInputBezahlweg =
 export const AnmeldungInputBezahlweg = {
   ueberweisung: "ueberweisung",
   paypal: "paypal",
+  bar: "bar",
 } as const;

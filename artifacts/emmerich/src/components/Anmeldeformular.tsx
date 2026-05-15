@@ -41,7 +41,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
   const [personen, setPersonen_]      = useState<string[]>([""]);
   const [email, setEmail]             = useState("");
   const [telefon, setTelefon]         = useState("");
-  const [bezahlweg, setBezahlweg]     = useState<"ueberweisung" | "paypal">("ueberweisung");
+  const [bezahlweg, setBezahlweg]     = useState<"ueberweisung" | "paypal" | "bar">("ueberweisung");
   const [song, setSong]               = useState("");
   const [statement, setStatement]     = useState("");
   const [verbindlich, setVerbindlich] = useState(false);
@@ -238,7 +238,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
           <div>
             <label style={{ ...labelStyle, marginBottom: "0.8rem" }}>Wie wollt ihr zahlen?</label>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-              {(["ueberweisung", "paypal"] as const).map((opt) => (
+              {(["ueberweisung", "paypal", "bar"] as const).map((opt) => (
                 <label key={opt} className="af-radio-label">
                   <input
                     type="radio"
@@ -249,6 +249,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
                   />
                   {opt === "ueberweisung" && "Überweisung"}
                   {opt === "paypal" && "PayPal"}
+                  {opt === "bar" && "Bar (im Kapaunenberg)"}
                 </label>
               ))}
             </div>

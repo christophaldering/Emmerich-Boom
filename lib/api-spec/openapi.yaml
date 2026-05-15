@@ -109,7 +109,7 @@ components:
             minLength: 2
         bezahlweg:
           type: string
-          enum: [ueberweisung, paypal]
+          enum: [ueberweisung, paypal, bar]
         song:
           type: ["string", "null"]
         statement:
