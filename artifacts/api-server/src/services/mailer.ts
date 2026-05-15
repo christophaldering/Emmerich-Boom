@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
+import { SERVER_CONFIG } from "../config.js";
 
 // ─── Gmail (täglicher Bericht) ───────────────────────────────────────────────
 
@@ -35,21 +36,21 @@ export async function sendDailyReport(html: string, text: string): Promise<void>
 
 // ─── Resend (Bestätigungsmail nach Anmeldung) ─────────────────────────────────
 
-const ABSENDER_MAIL = "boomerparty26@emmerich-boomt.de";
-const ABSENDER_NAME = "Boomerparty Emmerich";
-
-// Kontodetails & Zahlungsinfos — spiegeln PHASE2_CONFIG
-const IBAN          = "PLATZHALTER_IBAN";
-const KONTOINHABER  = "Christoph Aldering";
-const BANK          = "DKB";
-const PAYPAL_LINK   = "PLATZHALTER_PAYPAL_LINK";
-const ANMELDEFRIST  = "28. Juni 2026";
+const {
+  ABSENDER_MAIL,
+  ABSENDER_NAME,
+  IBAN,
+  KONTOINHABER,
+  BANK,
+  PAYPAL_LINK,
+  ANMELDEFRIST,
+} = SERVER_CONFIG;
 
 export interface BestaetigungsMailOptions {
   to:             string;
   personen:       string[];
   personen_anzahl: number;
-  bezahlweg:      string;
+  bezahlweg:      "ueberweisung" | "paypal";
   betrag_gesamt:  number;
 }
 
@@ -61,7 +62,7 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function buildBezahlBlock(bezahlweg: string, hauptname: string): { html: string; text: string } {
+function buildBezahlBlock(bezahlweg: "ueberweisung" | "paypal", hauptname: string): { html: string; text: string } {
   const vz = `Boomerparty + ${hauptname}`;
 
   if (bezahlweg === "ueberweisung") {
@@ -80,9 +81,9 @@ function buildBezahlBlock(bezahlweg: string, hauptname: string): { html: string;
     };
   }
 
-  if (bezahlweg === "paypal") {
-    return {
-      html: `
+  // paypal
+  return {
+    html: `
 <div style="margin:24px 0;padding:16px 20px;border:1px solid #e8991a;border-radius:4px;background:#120c04;">
   <p style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#e8991a;">Bitte sendet bis spätestens ${ANMELDEFRIST}:</p>
   <table style="border-collapse:collapse;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">
@@ -90,27 +91,11 @@ function buildBezahlBlock(bezahlweg: string, hauptname: string): { html: string;
     <tr><td style="padding:3px 16px 3px 0;opacity:.6;">Verwendungszweck</td><td><span style="font-family:Courier,Menlo,monospace;">${escHtml(vz)}</span></td></tr>
   </table>
 </div>`,
-      text: `Bitte sendet bis spätestens ${ANMELDEFRIST}:\n\nPayPal-Link: ${PAYPAL_LINK}\nVerwendungszweck: ${vz}`,
-    };
-  }
-
-  // bar
-  return {
-    html: `
-<div style="margin:24px 0;padding:16px 20px;border:1px solid #e8991a;border-radius:4px;background:#120c04;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;line-height:1.6;">
-  Kommt einfach im Kapaunenberg vorbei und gebt den Zehner pro Person ab. Farzin oder Revse tragen euch direkt aufs Ticket ein. Bitte bis spätestens ${ANMELDEFRIST}.
-</div>`,
-    text: `Kommt einfach im Kapaunenberg vorbei und gebt den Zehner pro Person ab. Farzin oder Revse tragen euch direkt aufs Ticket ein. Bitte bis spätestens ${ANMELDEFRIST}.`,
+    text: `Bitte sendet bis spätestens ${ANMELDEFRIST}:\n\nPayPal-Link: ${PAYPAL_LINK}\nVerwendungszweck: ${vz}`,
   };
 }
 
-function buildTicketHinweis(bezahlweg: string): { html: string; text: string } {
-  if (bezahlweg === "bar") {
-    return {
-      html: `<p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.65);line-height:1.7;">Eure Tickets bekommt ihr direkt im Kapaunenberg, wenn ihr den Zehner abgebt.</p>`,
-      text: "Eure Tickets bekommt ihr direkt im Kapaunenberg, wenn ihr den Zehner abgebt.",
-    };
-  }
+function buildTicketHinweis(): { html: string; text: string } {
   return {
     html: `<p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.65);line-height:1.7;">Eure Tickets schicken wir euch im Juli per Mail — als PDF zum Ausdrucken oder fürs Handy.</p>`,
     text: "Eure Tickets schicken wir euch im Juli per Mail — als PDF zum Ausdrucken oder fürs Handy.",
@@ -126,7 +111,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
   const resend = new Resend(apiKey);
   const hauptname = opts.personen[0] ?? "Unbekannt";
   const bezahlBlock = buildBezahlBlock(opts.bezahlweg, hauptname);
-  const ticketHinweis = buildTicketHinweis(opts.bezahlweg);
+  const ticketHinweis = buildTicketHinweis();
 
   const personenListeHtml = opts.personen
     .map(p => `<li style="padding:2px 0;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;">${escHtml(p)}</li>`)
