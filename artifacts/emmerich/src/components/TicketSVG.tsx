@@ -43,12 +43,24 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
         {/* Schwarzer Hintergrund */}
         <rect x="0" y="0" width="900" height="320" fill="#0A0704" />
 
-        {/* LINKER BLOCK — Poster 33% Breite */}
+        {/* LINKER BLOCK — Poster 33% Breite, ganzes Motiv sichtbar */}
+        <rect x="0" y="0" width="300" height="320" fill="#c47a1a" />
         <image
           href={POSTER_SRC}
           x="0" y="0" width="300" height="320"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="xMidYMid meet"
         />
+
+        {/* Weicher Übergang rechts am Poster (~80px) */}
+        <defs>
+          <linearGradient id={`edge-${id}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stopColor="#0A0704" stopOpacity="0" />
+            <stop offset="40%"  stopColor="#0A0704" stopOpacity="0.4" />
+            <stop offset="75%"  stopColor="#0A0704" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#0A0704" stopOpacity="1" />
+          </linearGradient>
+        </defs>
+        <rect x="220" y="0" width="80" height="320" fill={`url(#edge-${id})`} />
 
         {/* Orange-Fade-Overlay über das gesamte Ticket */}
         <rect x="0" y="0" width="900" height="320" fill={`url(#fade-${id})`} />
