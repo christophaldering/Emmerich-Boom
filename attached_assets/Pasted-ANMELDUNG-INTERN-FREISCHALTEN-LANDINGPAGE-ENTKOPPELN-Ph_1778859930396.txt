@@ -1,0 +1,43 @@
+ANMELDUNG INTERN FREISCHALTEN, LANDINGPAGE ENTKOPPELN
+
+Phase 2 wird intern für Testzwecke aktiviert. Die Landingpage soll dabei KEINEN Hinweis auf die Anmeldung enthalten — kein Button, kein CTA, kein Link, kein Wartetext. Niemand außer mir soll von der Landingpage aus zur Anmeldung gelangen.
+
+ZWEI ÄNDERUNGEN
+
+1. AUF / (Landingpage) — alle Hinweise zur Anmeldung KOMPLETT entfernen
+
+Konkret entfernen:
+- Falls vorhanden: Phase-1-Interesse-Formular (Nickname, Personen, Statement, Song)
+- Falls vorhanden: Hinweise wie "Anmeldung öffnet in Kürze", "Bald geht's los", "Demnächst hier" etc.
+- Falls vorhanden: Buttons oder Links zur /anmeldung-Seite
+- Falls vorhanden: Personen-Zähler ("Schon dabei: X Personen") auf der Landingpage
+
+WICHTIG: Nichts NEUES auf der Landingpage hinzufügen. Keine Ersatz-CTA, kein Verweis auf /anmeldung, keine Andeutung dass die Anmeldung schon offen ist.
+
+Die Landingpage bleibt in ihrem ruhigen Phase-1-Zustand: Poster, Brief, Fakten-Tabelle, Countdown, Pressnotiz, Legal-Accordion. Punkt.
+
+2. AUF /anmeldung — voll funktional schalten
+
+Falls dort noch ein Hinweis wie "Anmeldung öffnet in Kürze" oder ähnliches steht: entfernen. Das Formular soll aktiv ausfüllbar sein, Submit funktioniert, Bestätigungsmail geht raus.
+
+Die /anmeldung-URL bleibt direkt aufrufbar (für mich zum Testen), wird aber nirgendwo verlinkt.
+
+WAS NICHT VERÄNDERT WIRD
+
+- Eröffnungssatz der Landingpage bleibt unangetastet: "Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉"
+- Brief-Text auf der Landingpage bleibt unangetastet
+- Fakten-Tabelle, Countdown, Pressnotiz, Legal-Accordion bleiben unverändert
+- Poster bleibt gleich
+- Datenbank: Tabelle `interessenten` (alte Phase-1-Daten) bleibt erhalten, wird nicht gelöscht
+
+CHECKLISTE
+
+- [ ] Auf /: Phase-1-Formular entfernt (falls vorhanden)
+- [ ] Auf /: Jeglicher Hinweis zur Anmeldung entfernt (Buttons, Texte, Zähler, "öffnet bald" etc.)
+- [ ] Auf /: KEIN neuer CTA oder Link zur Anmeldung eingefügt
+- [ ] Auf /anmeldung: "Anmeldung öffnet in Kürze"-Hinweis entfernt
+- [ ] Auf /anmeldung: Formular und Submit voll funktional, Bestätigungsmail aktiv
+- [ ] /anmeldung weiterhin direkt per URL aufrufbar
+- [ ] Tabelle `interessenten` in DB bleibt erhalten
+
+Wenn fertig, schreibe wörtlich: "Landingpage entkoppelt, /anmeldung intern aktiv."

@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db, anmeldungenTable } from "@workspace/db";
-import { sql, sum } from "drizzle-orm";
+import { sql, sum, eq } from "drizzle-orm";
+import { sendBestaetigung } from "../services/mailer.js";
 
 const router = Router();
 
@@ -55,7 +56,6 @@ router.post("/anmeldung", async (req, res) => {
 
   try {
     const { id, ticket_nummern } = await db.transaction(async (tx) => {
-      // Atomare Nummer-Vergabe: Row-Lock verhindert Race Conditions bei parallelen Requests
       const counterResult = await tx.execute(
         sql`SELECT next_nummer FROM ticket_nummer_counter WHERE id = 1 FOR UPDATE`,
       );
@@ -68,12 +68,10 @@ router.post("/anmeldung", async (req, res) => {
         (_, i) => startNum + i,
       );
 
-      // Counter hochsetzen
       await tx.execute(
         sql`UPDATE ticket_nummer_counter SET next_nummer = ${startNum + d.personen_anzahl} WHERE id = 1`,
       );
 
-      // Anmeldung einfügen
       const inserted = await tx
         .insert(anmeldungenTable)
         .values({
@@ -92,7 +90,28 @@ router.post("/anmeldung", async (req, res) => {
       return { id: inserted[0]?.id ?? null, ticket_nummern: nummern };
     });
 
+    // 201 sofort senden — Mail-Versand blockiert den User nicht
     res.status(201).json({ id, betrag_gesamt, ticket_nummern });
+
+    // Fire-and-forget: Bestätigungsmail asynchron versenden
+    sendBestaetigung({
+      to:             d.email,
+      personen:       d.personen,
+      personen_anzahl: d.personen_anzahl,
+      bezahlweg:      d.bezahlweg,
+      betrag_gesamt,
+    })
+      .then(() => {
+        // Bei Erfolg: Timestamp in DB setzen
+        return db
+          .update(anmeldungenTable)
+          .set({ bestaetigungsmail_versendet_am: new Date() })
+          .where(eq(anmeldungenTable.id, id!));
+      })
+      .catch((err: unknown) => {
+        req.log.error({ err, anmeldungId: id }, "Bestätigungsmail fehlgeschlagen");
+      });
+
   } catch (err) {
     req.log.error(err, "anmeldung insert failed");
     res.status(500).json({ error: "Datenbankfehler" });

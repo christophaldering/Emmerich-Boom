@@ -10,6 +10,6 @@ export const PHASE2_CONFIG = {
   KONTOINHABER: "Christoph Aldering",
   BANK: "DKB",
   VERWENDUNGSZWECK_VORLAGE: "Boomerparty + dein Name",
-  KONTAKT_MAIL: "tickets@emmerich-boomt.de",
+  KONTAKT_MAIL: "boomerparty26@emmerich-boomt.de",
   MAX_PERSONEN_PRO_ANMELDUNG: 6,
 };
