@@ -29,13 +29,14 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           <rect x="0" y="0" width="900" height="320" rx="6" ry="6" />
         </clipPath>
 
-        {/* Orange fade: Amber bei 33% → gedämpftes Orange bei 50% → fast Schwarz bei 73% → Schwarz bei 100% */}
+        {/* Dunkler Fade: transparent → schwarze Fläche, kein heller Amber-Streifen */}
         <linearGradient id={`fade-${id}`} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
           <stop offset="0%"   stopColor="#0A0704" stopOpacity="0" />
-          <stop offset="33%"  stopColor="rgb(232,153,26)" stopOpacity="0.85" />
-          <stop offset="50%"  stopColor="rgb(196,106,18)" stopOpacity="0.45" />
-          <stop offset="73%"  stopColor="rgb(10,7,4)"     stopOpacity="0.95" />
-          <stop offset="100%" stopColor="rgb(10,7,4)"     stopOpacity="1" />
+          <stop offset="28%"  stopColor="#0A0704" stopOpacity="0" />
+          <stop offset="36%"  stopColor="#0A0704" stopOpacity="0.55" />
+          <stop offset="48%"  stopColor="#0A0704" stopOpacity="0.85" />
+          <stop offset="65%"  stopColor="#0A0704" stopOpacity="0.97" />
+          <stop offset="100%" stopColor="#0A0704" stopOpacity="1" />
         </linearGradient>
       </defs>
 
@@ -43,26 +44,15 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
         {/* Schwarzer Hintergrund */}
         <rect x="0" y="0" width="900" height="320" fill="#0A0704" />
 
-        {/* LINKER BLOCK — Poster 33% Breite, ganzes Motiv sichtbar */}
-        <rect x="0" y="0" width="300" height="320" fill="#c47a1a" />
+        {/* LINKER BLOCK — Poster, dunkler Hintergrund damit kein heller Streifen */}
+        <rect x="0" y="0" width="300" height="320" fill="#2a1305" />
         <image
           href={POSTER_SRC}
           x="0" y="0" width="300" height="320"
           preserveAspectRatio="xMidYMid meet"
         />
 
-        {/* Weicher Übergang rechts am Poster (~80px) */}
-        <defs>
-          <linearGradient id={`edge-${id}`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%"   stopColor="#0A0704" stopOpacity="0" />
-            <stop offset="40%"  stopColor="#0A0704" stopOpacity="0.4" />
-            <stop offset="75%"  stopColor="#0A0704" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#0A0704" stopOpacity="1" />
-          </linearGradient>
-        </defs>
-        <rect x="220" y="0" width="80" height="320" fill={`url(#edge-${id})`} />
-
-        {/* Orange-Fade-Overlay über das gesamte Ticket */}
+        {/* Fließender Übergang Bild → schwarze Fläche */}
         <rect x="0" y="0" width="900" height="320" fill={`url(#fade-${id})`} />
 
         {/* 1 — "EMMERICH BOOMT!" */}
@@ -118,28 +108,37 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           Bölt / Kapaunenberg · Emmerich am Rhein
         </text>
 
-        {/* 6 — Eintritts-Zeile: Label + Nummer */}
-        <text
-          x="370" y="282"
-          fontFamily="'Lora', Georgia, serif"
-          fontSize="11"
-          letterSpacing="2.5"
-          textAnchor="start"
-          fill="#E8991A"
-          fillOpacity="0.5"
-        >
-          EINTRITT
-        </text>
-        <text
-          x="446" y="282"
-          fontFamily="'Playfair Display', Georgia, serif"
-          fontSize="18"
-          fontWeight="500"
-          textAnchor="start"
-          fill="#E8991A"
-        >
-          № {numStr}
-        </text>
+        {/* 6 — Abreiß-Streifen rechts */}
+        {/* Gestrichelte Trennlinie */}
+        <line
+          x1="840" y1="12" x2="840" y2="308"
+          stroke="#E8991A" strokeWidth="1" strokeDasharray="3,5" strokeOpacity="0.45"
+        />
+        {/* Nummer + Label, um -45° gedreht, zentriert im Streifen */}
+        <g transform="rotate(-45, 870, 160)">
+          <text
+            x="870" y="152"
+            fontFamily="'Lora', Georgia, serif"
+            fontSize="11"
+            letterSpacing="2.5"
+            textAnchor="middle"
+            fill="#E8991A"
+            fillOpacity="0.55"
+          >
+            EINTRITT
+          </text>
+          <text
+            x="870" y="176"
+            fontFamily="'Playfair Display', Georgia, serif"
+            fontSize="22"
+            fontWeight="500"
+            textAnchor="middle"
+            fill="#E8991A"
+          >
+            № {numStr}
+          </text>
+        </g>
+
       </g>
 
       {/* Außenrahmen Amber */}
