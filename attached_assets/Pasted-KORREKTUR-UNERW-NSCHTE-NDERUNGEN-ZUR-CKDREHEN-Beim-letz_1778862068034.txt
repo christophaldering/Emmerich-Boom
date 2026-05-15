@@ -1,0 +1,48 @@
+KORREKTUR — UNERWÜNSCHTE ÄNDERUNGEN ZURÜCKDREHEN
+
+Beim letzten Schritt sind mehrere Dinge eingebaut worden, die nicht beauftragt waren. Diese müssen zurückgedreht werden.
+
+ZU ENTFERNEN
+
+1. Oberer Banner-Streifen "Phase-1-Eintrag zählt nicht mehr — verbindliche Anmeldung erforderlich" mit Button "Zur Anmeldung →":
+KOMPLETT entfernen. Auf der Landingpage gibt es KEINEN Hinweis auf die Anmeldung, KEINEN Button, KEINE Verlinkung zu /anmeldung. Das war ausdrücklich so beauftragt.
+
+2. "dunkel/hell"-Toggle (Theme-Switcher) rechts oben:
+KOMPLETT entfernen. Es gibt KEIN Light/Dark-Mode-Feature in diesem Projekt. Das wurde nie beauftragt.
+
+3. Hintergrundfarbe der Landingpage ist gelb geworden:
+ZURÜCKDREHEN auf den ursprünglichen Zustand. Die Landingpage hatte einen schwarzen Hintergrund mit Amber-Akzenten und Warm-Text — wie sie seit Wochen aussah. Falls für den Theme-Toggle CSS-Variablen oder Theme-Logik eingeführt wurde: ebenfalls entfernen oder auf den dunklen Zustand fixieren.
+
+GEWÜNSCHTER ENDZUSTAND DER LANDINGPAGE /
+
+- Schwarzer Hintergrund #0A0704
+- Eröffnungssatz oben: "Wir wissen noch, wie man sich ohne Handy verabredet. Aber hiermit zeigen wir: wir können auch anders. 😉"
+- Brief in Lora
+- Poster
+- Fakten-Tabelle
+- Countdown
+- Pressnotiz
+- Legal-Accordion
+
+Keine Anmelde-Buttons. Keine Theme-Toggles. Keine Phase-1-Formulare. Keine Banner. Keine Verlinkungen zu /anmeldung.
+
+GEWÜNSCHTER ENDZUSTAND VON /anmeldung
+
+Bleibt voll funktional, direkt per URL aufrufbar, nirgendwo verlinkt.
+
+GRUNDPRINZIP
+
+Bitte nichts hinzufügen, was nicht ausdrücklich im Prompt steht. Wenn unklar ist, ob etwas gewünscht ist: lieber NICHTS einbauen und nachfragen.
+
+CHECKLISTE
+
+- [ ] Banner "Phase-1-Eintrag zählt nicht mehr" entfernt
+- [ ] Button "Zur Anmeldung →" auf der Landingpage entfernt
+- [ ] "dunkel/hell"-Theme-Toggle entfernt
+- [ ] Hintergrund der Landingpage wieder schwarz #0A0704
+- [ ] Keine neuen Theme-Variablen/Light-Mode-Logik vorhanden
+- [ ] Eröffnungssatz, Brief, Poster, Fakten, Countdown, Pressnotiz, Legal-Accordion alle wie vor der letzten Änderung
+- [ ] /anmeldung bleibt voll funktional, direkt aufrufbar
+- [ ] Keine Verlinkung von / zu /anmeldung
+
+Wenn fertig, schreibe wörtlich: "Korrektur abgeschlossen, Landingpage im ursprünglichen Zustand."
