@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useReveal } from "@/hooks/useReveal";
 
-const PHASE1 = new Date('2026-04-30T23:59:59');
-const PHASE2 = new Date('2026-07-18T19:00:00');
+const TARGET = new Date('2026-07-18T19:00:00');
 
-function getTimeLeft(target: Date) {
-  const diff = target.getTime() - Date.now();
+function getTimeLeft() {
+  const diff = TARGET.getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   return {
     days:    Math.floor(diff / 86400000),
@@ -33,24 +32,16 @@ const SEP = (
 );
 
 export default function Countdown() {
-  const isPhase1 = Date.now() < PHASE1.getTime();
-  const target = isPhase1 ? PHASE1 : PHASE2;
-  const [time, setTime] = useState(getTimeLeft(target));
+  const [time, setTime] = useState(getTimeLeft);
   const ref = useReveal();
 
   useEffect(() => {
-    const id = setInterval(() => setTime(getTimeLeft(target)), 1000);
+    const id = setInterval(() => setTime(getTimeLeft()), 1000);
     return () => clearInterval(id);
-  }, [target]);
+  }, []);
 
   return (
     <section ref={ref} style={{ maxWidth: "640px", margin: "0 auto", padding: "2rem 2rem 4rem" }}>
-      {isPhase1 && (
-        <p className="reveal" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--amber)", marginBottom: "0.6rem" }}>
-          Interesse melden — noch
-        </p>
-      )}
-
       <div className="reveal" style={{ display: "flex", flexDirection: "row", gap: "2rem", alignItems: "baseline", flexWrap: "wrap" }}>
         <Unit value={time.days}    label="Tage" />
         {SEP}
@@ -60,14 +51,6 @@ export default function Countdown() {
         {SEP}
         <Unit value={time.seconds} label="Sekunden" />
       </div>
-
-      {isPhase1 && (
-        <p className="reveal" style={{ fontFamily: "'Lora', serif", fontSize: "1rem", lineHeight: 1.8, color: "var(--fg-82)", marginTop: "1rem" }}>
-          Bis Ende April sammeln wir die Anmeldungen — dann geht's in die konkrete Planung.
-          Die Party steigt am <span style={{ color: "var(--warm)" }}>18. Juli 2026</span> — das steht.
-          Wer sich angesprochen fühlt: nicht warten, einfach sofort melden.
-        </p>
-      )}
     </section>
   );
 }
