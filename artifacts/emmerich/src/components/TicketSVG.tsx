@@ -19,14 +19,14 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
 
   return (
     <svg
-      viewBox="0 0 900 320"
+      viewBox="0 0 900 340"
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: "100%", height: "auto", display: "block" }}
       aria-label={`Ticket ${numStr} — ${name}`}
     >
       <defs>
         <clipPath id={`clip-${id}`}>
-          <rect x="0" y="0" width="900" height="320" rx="6" ry="6" />
+          <rect x="0" y="0" width="900" height="340" rx="6" ry="6" />
         </clipPath>
 
         {/* Warm-Amber-Fade: Poster-Wärme nach rechts auslaufen lassen */}
@@ -43,18 +43,18 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
 
       <g clipPath={`url(#clip-${id})`}>
         {/* Schwarzer Hintergrund */}
-        <rect x="0" y="0" width="900" height="320" fill="#0A0704" />
+        <rect x="0" y="0" width="900" height="340" fill="#0A0704" />
 
-        {/* LINKER BLOCK — Poster, dunkler Hintergrund damit kein heller Streifen */}
-        <rect x="0" y="0" width="300" height="320" fill="#2a1305" />
+        {/* LINKER BLOCK — Poster */}
+        <rect x="0" y="0" width="300" height="340" fill="#2a1305" />
         <image
           href={POSTER_SRC}
-          x="0" y="0" width="300" height="320"
+          x="0" y="0" width="300" height="340"
           preserveAspectRatio="xMidYMid meet"
         />
 
         {/* Fließender Übergang Bild → schwarze Fläche */}
-        <rect x="0" y="0" width="900" height="320" fill={`url(#fade-${id})`} />
+        <rect x="0" y="0" width="900" height="340" fill={`url(#fade-${id})`} />
 
         {/* 1 — "EMMERICH BOOMT!" */}
         <text
@@ -110,12 +110,10 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
         </text>
 
         {/* 6 — Abreiß-Streifen rechts */}
-        {/* Gestrichelte Trennlinie */}
         <line
           x1="840" y1="12" x2="840" y2="308"
           stroke="#E8991A" strokeWidth="1" strokeDasharray="3,5" strokeOpacity="0.45"
         />
-        {/* Nummer + Label, vertikal, zentriert im Streifen */}
         <g transform="rotate(-90, 858, 160)">
           <text
             x="858" y="148"
@@ -140,11 +138,23 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           </text>
         </g>
 
+        {/* 7 — Rand-Zeile unten */}
+        <text
+          x="450" y="322"
+          fontFamily="'Lora', Georgia, serif"
+          fontSize="9"
+          textAnchor="middle"
+          fill="#F5E8C8"
+          fillOpacity="0.5"
+        >
+          Eintritt nur mit Ticket, Personalausweis nicht erforderlich, gesundes Hüftgelenk empfohlen.
+        </text>
+
       </g>
 
       {/* Außenrahmen Amber */}
       <rect
-        x="0.75" y="0.75" width="898.5" height="318.5"
+        x="0.75" y="0.75" width="898.5" height="338.5"
         rx="6" ry="6"
         fill="none"
         stroke="#E8991A"

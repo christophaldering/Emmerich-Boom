@@ -1,5 +1,6 @@
 import { PHASE2_CONFIG } from "@/config/phase2";
 import TicketSVG from "@/components/TicketSVG";
+import TicketRueckseite from "@/components/TicketRueckseite";
 
 interface ErfolgsektionProps {
   anzahl: number;
@@ -80,14 +81,27 @@ export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_numm
         <strong style={{ color: "var(--amber)" }}>{betrag} €</strong> gesamt
       </p>
 
-      {/* SVG-Tickets — eine pro Person */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginBottom: "2.5rem" }}>
+      {/* SVG-Tickets — Vorder- + Rückseite pro Person */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "2.5rem" }}>
         {personen.map((name, i) => (
-          <TicketSVG
-            key={ticket_nummern[i] ?? i}
-            name={name}
-            nummer={ticket_nummern[i] ?? i + 1}
-          />
+          <div key={ticket_nummern[i] ?? i} style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            <TicketSVG
+              name={name}
+              nummer={ticket_nummern[i] ?? i + 1}
+            />
+            <p style={{
+              fontFamily: "'Lora', serif",
+              fontStyle: "italic",
+              fontSize: "11px",
+              color: "#E8991A",
+              opacity: 0.6,
+              textAlign: "center",
+              margin: "0.4rem 0 0.2rem",
+            }}>
+              Rückseite
+            </p>
+            <TicketRueckseite />
+          </div>
         ))}
       </div>
 

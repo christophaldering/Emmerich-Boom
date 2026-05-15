@@ -1,0 +1,117 @@
+TICKET-ERWEITERUNG — RAND-ZEILE UND RÜCKSEITE
+
+Das bestehende Ticket-Layout wird um zwei Elemente erweitert:
+1. Eine schmale Rand-Zeile am unteren Rand der Vorderseite
+2. Eine komplette Rückseite mit Hausregeln und Footer
+
+Beide Seiten werden sowohl im Browser auf /anmeldung (Erfolgsseite) als auch im PDF-Anhang sichtbar.
+
+DESIGN-GRUNDLAGEN
+
+Gleiche Farben, Fonts und Stil wie das bestehende Ticket:
+- Schwarz #0A0704 Hintergrund
+- Amber #E8991A Akzente
+- Warm #F5E8C8 Text
+- Playfair Display für Headlines, Lora für Body
+- Außenrahmen Amber 1.5px, border-radius 6px
+
+VORDERSEITE — schmale Rand-Zeile unten ergänzen
+
+Am unteren Rand der bestehenden Vorderseite, mit etwas Abstand zum Außenrahmen (ca. 16px), eine einzelne Zeile in Lora 9px, Warm-Farbe mit Opazität 0.5, zentriert:
+
+"Eintritt nur mit Ticket, Personalausweis nicht erforderlich, gesundes Hüftgelenk empfohlen."
+
+Falls die Zeile nicht in eine Zeile passt: Schriftgröße auf 8px reduzieren. Die Zeile soll subtil wirken, nicht dominant — wie die Mikro-Bedingungen auf echten Eventim-Tickets.
+
+WICHTIG: Das bestehende Ticket-Layout (Poster links, Name/Datum/Ort mittig, EINTRITT/Nummer rechts) bleibt unverändert. Die Rand-Zeile kommt ZUSÄTZLICH unten dazu, ohne das bestehende Layout zu stauchen. Falls dafür der vertikale Innenraum etwas angepasst werden muss (z.B. obere Elemente leicht nach oben rücken), darf das so sein — Hauptsache, der Name links und die Nummer rechts bleiben gut lesbar und proportional.
+
+RÜCKSEITE — neue Komponente
+
+Ein separates Ticket-Element im gleichen Querformat (viewBox 0 0 900 320, gleiche Proportionen wie Vorderseite), aber mit anderem Inhalt. Wird auf der Erfolgsseite UNTER der Vorderseite gerendert, mit kleiner Beschriftung "Rückseite" in Lora 11px Amber zwischen den beiden Tickets.
+
+Im PDF: Rückseite kommt auf eine eigene neue Seite, jeweils direkt nach der entsprechenden Vorderseite. Bei mehreren Personen also: Vorderseite Ticket 1, Rückseite Ticket 1, Vorderseite Ticket 2, Rückseite Ticket 2, ... So kann man bei beidseitigem Druck die Tickets korrekt erstellen.
+
+INHALT DER RÜCKSEITE
+
+Aufgebaut in drei vertikalen Blöcken:
+
+BLOCK 1 (oben, ca. 30% der Höhe) — "Was dich erwartet"
+
+Headline in Playfair Display 14px, Amber, letter-spacing 3px, Versalien:
+"WAS DICH ERWARTET"
+
+Untertext in Lora 13px, Warm-Farbe, normal:
+"Ein Abend, an dem niemand sein Handy braucht, um sich zu erinnern, wie alles war. Niemand sagt 'wir müssen los', bevor es 23 Uhr ist. Und niemand bestellt einen Aperol Spritz."
+
+(Vier-Zeilen-Block etwa, je nach Breite. Linksbündig, max-width etwa 70% der Ticketbreite, damit es atmen kann.)
+
+BLOCK 2 (Mitte, ca. 45% der Höhe) — "Hausregeln"
+
+Headline in Playfair Display 14px, Amber, letter-spacing 3px, Versalien:
+"HAUSREGELN"
+
+Darunter fünf Paragraphen, jeder mit "§ N" als Amber-Marker, dann Text in Lora 10px Warm-Farbe. Pro Paragraph eine eigene Zeile mit etwas Zeilenabstand:
+
+§ 1 Mitbringen erwünscht: gute Laune, ein paar Geschichten, der Song, den du auf der Anmeldung genannt hast.
+
+§ 2 Mitbringen unerwünscht: Kinder unter 25, sofern nicht volljährig.
+
+§ 3 Die Veranstalter haften nicht für: Heiserkeit am nächsten Morgen, peinliche Tanzeinlagen, plötzliche Erinnerungen an die 80er.
+
+§ 4 Der Spruch "Das hätte es früher nicht gegeben" gilt als Begrüßung.
+
+§ 5 Tickets sind personalisiert. Ein Tausch innerhalb des Haushalts ist erlaubt, ein Verkauf bei eBay verboten und vermutlich auch nicht lohnend.
+
+Die § N-Marker (z.B. "§ 1") in Amber, der Rest des Paragraphen in Warm-Farbe. Zwischen den Paragraphen 6px vertikaler Abstand.
+
+BLOCK 3 (unten, ca. 25% der Höhe) — Veranstalter-Footer
+
+Eine dünne Amber-Trennlinie quer (stroke-width 1, Opazität 0.4) als visuelle Abgrenzung zum Mittelblock.
+
+Darunter zwei Zeilen in Lora 10px:
+
+Zeile 1, Warm-Farbe:
+"Veranstalter: BoomerClub Emmerich · Ein loser Zusammenschluss von Menschen, die sich seit Karneval 2024 an der Theke der Sozietät kennen."
+
+Zeile 2, etwas heller / Opazität 0.7:
+"Kontakt: boomerparty26@emmerich-boomt.de · www.emmerich-boomt.de"
+
+Zeile 1 darf umbrechen, falls nötig. Zeile 2 möglichst auf einer Zeile.
+
+LAYOUT-PRINZIPIEN FÜR DIE RÜCKSEITE
+
+- Innenabstand zum Rahmen: ca. 32px links/rechts, 24px oben/unten
+- Die drei Blöcke füllen die Höhe gleichmäßig
+- Kein Poster auf der Rückseite, kein Name, keine Nummer — Rückseite ist generisch, gleich für alle Tickets
+- Außenrahmen identisch zur Vorderseite (Amber 1.5px, border-radius 6px)
+- Hintergrund schwarz #0A0704
+
+BROWSER-ANSICHT
+
+Auf der Erfolgsseite /anmeldung wird pro angemeldeter Person gerendert:
+1. Vorderseite (mit Name, Nummer, neuer Rand-Zeile)
+2. Kleine Zwischen-Beschriftung "Rückseite" in Lora 11px Amber, Opazität 0.6, mittig, mit etwas Abstand oben und unten
+3. Rückseite (für alle gleich)
+
+Falls 3 Personen angemeldet sind, sieht der User also 6 Ticket-Bilder untereinander (3 Vorder + 3 Rückseiten).
+
+PDF-VERSION
+
+Im generateTicketPDF() pro Person zwei Seiten:
+- Seite 1: Vorderseite mit Name + Nummer
+- Seite 2: Rückseite (immer gleich)
+
+Beide Seiten im gleichen Format (A4 quer oder A5 quer — was bisher konfiguriert war beibehalten).
+
+CHECKLISTE
+
+- [ ] Vorderseite: untere Rand-Zeile "Eintritt nur mit Ticket..." in Lora 9px (oder 8px wenn nötig), Warm-Opazität 0.5, zentriert
+- [ ] Bestehendes Vorderseiten-Layout (Poster/Name/Nummer) bleibt visuell unverändert
+- [ ] Neue Rückseiten-Komponente erstellt mit Block 1 (Was dich erwartet), Block 2 (Hausregeln § 1-5), Block 3 (Veranstalter-Footer)
+- [ ] Rückseite hat denselben Außenrahmen wie Vorderseite
+- [ ] Browser: Rückseite direkt unter Vorderseite, mit "Rückseite"-Beschriftung dazwischen
+- [ ] PDF: pro Person zwei Seiten (Vorder + Rück)
+- [ ] Phase 1 (/) unangetastet
+- [ ] Keine anderen Änderungen am Ticket (Farben, Fonts, Datenstruktur bleiben)
+
+Wenn fertig, schreibe wörtlich: "Vorder- und Rückseite erledigt."
