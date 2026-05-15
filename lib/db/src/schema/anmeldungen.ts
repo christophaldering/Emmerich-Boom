@@ -12,6 +12,7 @@ export const anmeldungenTable = pgTable("anmeldungen", {
   song:                 text("song"),
   statement:            text("statement"),
   betrag_gesamt:        integer("betrag_gesamt").notNull(),
+  ticket_nummern:       jsonb("ticket_nummern").notNull().default([]),
   bezahlt_am:           timestamp("bezahlt_am"),
   ticket_versendet_am:  timestamp("ticket_versendet_am"),
   created_at:           timestamp("created_at").defaultNow(),

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db, anmeldungenTable } from "@workspace/db";
-import { sum } from "drizzle-orm";
+import { sql, sum } from "drizzle-orm";
 
 const router = Router();
 
@@ -54,6 +54,20 @@ router.post("/anmeldung", async (req, res) => {
   const betrag_gesamt = d.personen_anzahl * PREIS_PRO_PERSON;
 
   try {
+    // Ermittle die aktuell höchste vergebene Nummer über alle Anmeldungen
+    const maxResult = await db.execute(
+      sql`SELECT COALESCE(MAX(val::int), 0) AS max_num
+          FROM anmeldungen
+          CROSS JOIN LATERAL jsonb_array_elements_text(ticket_nummern) AS t(val)`,
+    );
+    const maxNum = Number((maxResult.rows[0] as { max_num: string })?.max_num ?? 0);
+
+    // Fortlaufende Nummern ab maxNum+1
+    const ticket_nummern: number[] = Array.from(
+      { length: d.personen_anzahl },
+      (_, i) => maxNum + 1 + i,
+    );
+
     const inserted = await db
       .insert(anmeldungenTable)
       .values({
@@ -65,10 +79,15 @@ router.post("/anmeldung", async (req, res) => {
         song:            d.song ?? null,
         statement:       d.statement ?? null,
         betrag_gesamt,
+        ticket_nummern,
       })
       .returning({ id: anmeldungenTable.id });
 
-    res.status(201).json({ id: inserted[0]?.id ?? null, betrag_gesamt });
+    res.status(201).json({
+      id:             inserted[0]?.id ?? null,
+      betrag_gesamt,
+      ticket_nummern,
+    });
   } catch (err) {
     req.log.error(err, "anmeldung insert failed");
     res.status(500).json({ error: "Datenbankfehler" });

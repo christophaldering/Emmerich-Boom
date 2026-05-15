@@ -1,18 +1,26 @@
 import { PHASE2_CONFIG } from "@/config/phase2";
+import TicketSVG from "@/components/TicketSVG";
 
 interface ErfolgsektionProps {
   anzahl: number;
   bezahlweg: string;
+  personen: string[];
+  ticket_nummern: number[];
 }
 
-export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps) {
+const BEZAHLWEG_LABEL: Record<string, string> = {
+  ueberweisung: "Überweisung",
+  paypal: "PayPal",
+};
+
+export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_nummern }: ErfolgsektionProps) {
   const betrag = anzahl * PHASE2_CONFIG.PREIS_PRO_PERSON;
 
   return (
     <section
       id="erfolg"
       style={{
-        maxWidth: "640px",
+        maxWidth: "760px",
         margin: "0 auto",
         padding: "4rem 2rem 3rem",
       }}
@@ -24,7 +32,7 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
           border-left: 4px solid var(--amber);
           border-radius: 0 4px 4px 0;
           padding: 1.5rem 1.6rem;
-          margin-top: 2rem;
+          margin-top: 0;
           font-family: 'Lora', serif;
           font-size: clamp(0.95rem, 2vw, 1.05rem);
           line-height: 1.9;
@@ -44,33 +52,45 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
         }
       `}</style>
 
-      <h2
+      {/* Zusammenfassung */}
+      <p
         style={{
           fontFamily: "'Playfair Display', serif",
           fontWeight: 800,
-          fontSize: "clamp(2rem, 6vw, 3rem)",
+          fontSize: "clamp(1.8rem, 5vw, 2.6rem)",
           color: "var(--warm)",
-          lineHeight: 1.15,
-          marginBottom: "1rem",
-        }}
-      >
-        Klasse. Wir haben euch.
-      </h2>
-
-      <p
-        style={{
-          fontFamily: "'Lora', serif",
-          fontSize: "clamp(1rem, 2.2vw, 1.1rem)",
-          lineHeight: 1.8,
-          color: "var(--fg-85)",
+          lineHeight: 1.2,
           marginBottom: "0.5rem",
         }}
       >
-        {anzahl} Person{anzahl !== 1 ? "en" : ""} angemeldet — macht{" "}
-        <strong style={{ color: "var(--amber)" }}>{betrag} €</strong>. Jetzt fehlt nur noch der
-        Zehner pro Person.
+        Eure Tickets sind da.
+      </p>
+      <p
+        style={{
+          fontFamily: "'Lora', serif",
+          fontSize: "0.95rem",
+          color: "var(--fg-65)",
+          lineHeight: 1.6,
+          marginBottom: "2.5rem",
+        }}
+      >
+        {anzahl} {anzahl === 1 ? "Person" : "Personen"} ·{" "}
+        {BEZAHLWEG_LABEL[bezahlweg] ?? bezahlweg} ·{" "}
+        <strong style={{ color: "var(--amber)" }}>{betrag} €</strong> gesamt
       </p>
 
+      {/* SVG-Tickets — eine pro Person */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginBottom: "2.5rem" }}>
+        {personen.map((name, i) => (
+          <TicketSVG
+            key={ticket_nummern[i] ?? i}
+            name={name}
+            nummer={ticket_nummern[i] ?? i + 1}
+          />
+        ))}
+      </div>
+
+      {/* Zahlungsinfos */}
       {bezahlweg === "ueberweisung" && (
         <div className="erfolg-block">
           <span className="erfolg-label">Überweisung</span>
@@ -99,6 +119,7 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
         </div>
       )}
 
+      {/* Hinweis */}
       <p
         style={{
           fontFamily: "'Lora', serif",
@@ -109,7 +130,8 @@ export default function Erfolgsektion({ anzahl, bezahlweg }: ErfolgsektionProps)
           marginTop: "2rem",
         }}
       >
-        Wir melden uns mit eurem Ticket, sobald das Geld angekommen ist.{" "}
+        Eure Tickets schicken wir euch nochmal per Mail — als PDF zum Ausdrucken oder fürs Handy.
+        Bringt sie am 18. Juli mit, ein Ticket pro Person.
         Bei Fragen:{" "}
         <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
       </p>

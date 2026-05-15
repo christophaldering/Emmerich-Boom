@@ -123,11 +123,17 @@ components:
       required:
         - id
         - betrag_gesamt
+        - ticket_nummern
       properties:
         id:
           type: integer
         betrag_gesamt:
           type: integer
+        ticket_nummern:
+          type: array
+          items:
+            type: integer
+          description: Fortlaufende Einlass-Nummern, eine pro Person
     AnmeldungStats:
       type: object
       required:

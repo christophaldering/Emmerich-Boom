@@ -9,4 +9,6 @@
 export interface AnmeldungResult {
   id: number;
   betrag_gesamt: number;
+  /** Fortlaufende Einlass-Nummern, eine pro Person */
+  ticket_nummern: number[];
 }

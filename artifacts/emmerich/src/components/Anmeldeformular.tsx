@@ -3,7 +3,7 @@ import { PHASE2_CONFIG } from "@/config/phase2";
 import { useSubmitAnmeldung } from "@workspace/api-client-react";
 
 interface AnmeldeformularProps {
-  onSuccess: (data: { anzahl: number; bezahlweg: string }) => void;
+  onSuccess: (data: { anzahl: number; bezahlweg: string; personen: string[]; ticket_nummern: number[] }) => void;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -87,8 +87,13 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
         },
       },
       {
-        onSuccess: () => {
-          onSuccess({ anzahl: personenAnzahl, bezahlweg });
+        onSuccess: (responseData) => {
+          onSuccess({
+            anzahl:          personenAnzahl,
+            bezahlweg,
+            personen:        personen.map((p) => p.trim()),
+            ticket_nummern:  responseData.ticket_nummern ?? [],
+          });
         },
         onError: (err) => {
           const msg =
