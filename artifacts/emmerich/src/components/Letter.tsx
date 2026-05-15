@@ -125,7 +125,7 @@ export default function Letter() {
 
           <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
 
-          <p>Und jetzt das Wichtigste: <strong>Wir wollen jetzt erstmal wissen, wer dabei sein will</strong> — einfach kurz melden bis <strong>Ende April</strong>. Im Mai geht's dann in die konkrete Planung, und dann kommt auch die richtige Anmeldung — <em>10 EUR für Musik und Fingerfood.</em></p>
+          <p>Der Eintritt beträgt <em>10 EUR</em> — für Musik und Fingerfood.</p>
         </div>
       </div>
     </section>
