@@ -30,7 +30,8 @@ const sections = [
         E-Mail: christoph.aldering(AT)googlemail.com</p>
         <br />
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Welche Daten wir erheben</strong><br />
-        Für die Veranstaltungsorganisation werden folgende Angaben erfasst: Name, E-Mail-Adresse, Personenanzahl sowie optionale Angaben (Lieblingssong, persönliches Statement, Telefonnummer).</p>
+        In der ersten Phase (Interessensabfrage bis Ende April) werden folgende Angaben erfasst: Vor- oder Spitzname, ungefähre Personenanzahl, optionales Statement sowie ein optionaler Lieblingssong. E-Mail-Adressen oder Telefonnummern werden in dieser Phase nicht abgefragt.<br />
+        In der zweiten Phase (verbindliche Anmeldung ab Mai) werden zusätzlich Vor- und Nachname, E-Mail-Adresse sowie ggf. Telefonnummer erhoben.</p>
         <br />
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Zweck der Datenerhebung</strong><br />
         Die Angaben dienen ausschließlich der internen Planung und Organisation der Veranstaltung „Emmerich boomt!" und werden nicht an Dritte weitergegeben.</p>
