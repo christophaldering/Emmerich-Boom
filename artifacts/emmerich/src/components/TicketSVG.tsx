@@ -115,13 +115,13 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           x1="840" y1="12" x2="840" y2="308"
           stroke="#E8991A" strokeWidth="1" strokeDasharray="3,5" strokeOpacity="0.45"
         />
-        {/* Nummer + Label, um -45° gedreht, zentriert im Streifen */}
-        <g transform="rotate(-90, 870, 160)">
+        {/* Nummer + Label, vertikal, zentriert im Streifen */}
+        <g transform="rotate(-90, 858, 160)">
           <text
-            x="870" y="152"
+            x="858" y="148"
             fontFamily="'Lora', Georgia, serif"
-            fontSize="11"
-            letterSpacing="2.5"
+            fontSize="16"
+            letterSpacing="3"
             textAnchor="middle"
             fill="#E8991A"
             fillOpacity="0.55"
@@ -129,9 +129,9 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
             EINTRITT
           </text>
           <text
-            x="870" y="176"
+            x="858" y="180"
             fontFamily="'Playfair Display', Georgia, serif"
-            fontSize="22"
+            fontSize="52"
             fontWeight="500"
             textAnchor="middle"
             fill="#E8991A"
