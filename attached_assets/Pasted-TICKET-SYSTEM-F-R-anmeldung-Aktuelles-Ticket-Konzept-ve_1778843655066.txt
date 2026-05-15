@@ -1,0 +1,111 @@
+TICKET-SYSTEM FÜR /anmeldung
+
+Aktuelles Ticket-Konzept verwerfen und neu bauen. Design-Regeln aus den vorigen Prompts gelten weiter (nur Schwarz/Amber/Warm, nur Playfair/Lora, keine Tailwind-Farben).
+
+TICKET-FORMAT
+
+Pro Person ein eigenständiges Ticket im Querformat. Seitenverhältnis DIN A5 quer, damit beim Druck zwei Tickets nebeneinander oder vier untereinander auf eine DIN-A4-Seite passen.
+
+Konkrete Maße im SVG:
+- viewBox: "0 0 842 595" (DIN A5 quer in Punkten, also Verhältnis 1.414:1)
+- Auf der Erfolgsseite responsiv skaliert: max-width 100%, height: auto
+- Bei PDF-Generierung (später) als A5-quer-Seite
+
+TICKET-ANATOMIE (von links nach rechts)
+
+LINKER BLOCK — Poster-Streifen
+- Breite: 35% des Tickets (etwa 295 Punkte)
+- Inhalt: das vorhandene Poster-Bild von der Landingpage (gleicher Asset-Pfad — nicht neu rendern, nicht ersetzen)
+- Object-fit: cover, object-position: center
+- Sanfter linearer Fade-Gradient nach rechts: von voller Opazität bei 0%, leichte Abdunklung bei 70%, voll schwarz (#0A0704) bei 100%
+- Kein harter Schnitt, fließender Übergang ins Schwarz des Hauptteils
+
+MITTLERER BLOCK — Hauptdaten
+- Beginnt bei etwa 38% Breite (kleiner Abstand zum Fade-Ende)
+- Reihenfolge von oben nach unten:
+  1. Kleine Versalzeile in Amber, Lora, letter-spacing 3px, font-size 12px:
+     "EMMERICH BOOMT!"
+  2. Großer Name in Playfair Display 48px, font-weight 500, Farbe Amber #E8991A
+     Dynamisch: der jeweilige Personenname aus der Anmeldung
+  3. Kurze Trennlinie in Amber, 120px breit, Opazität 0.4
+  4. Datum: "Samstag, 18. Juli 2026" in Lora 16px, Warm-Farbe #F5E8C8
+  5. Einlass: "Einlass ab 19 Uhr" in Lora 16px, Warm-Farbe, Opazität 0.7
+  6. Ort: "Bölt / Kapaunenberg" in Lora 14px, Opazität 0.7
+  7. Ort Fortsetzung: "Emmerich am Rhein" in Lora 14px, Opazität 0.7
+
+RECHTER BLOCK — Abriss-Stub mit Nummer
+- Beginnt bei etwa 75% Breite
+- Visuell getrennt durch eine vertikale gestrichelte Linie (stroke-dasharray "2,4", Amber, Opazität 0.6)
+- Inhalt zentriert:
+  1. "EINTRITT" oben, Lora 12px, letter-spacing 2.5px, Amber
+  2. "№" Symbol in Playfair 28px, Amber, Opazität 0.6
+  3. Die laufende Nummer in Playfair 80px, font-weight 500, Amber — z.B. "042"
+     Dreistellig mit führenden Nullen (001, 002 ... 042 ... 142)
+  4. Unten "EB · 2026" in Lora 12px, letter-spacing 2px, Warm-Farbe, Opazität 0.5
+
+UMRANDUNG
+- Gesamtes Ticket: feiner Amber-Rahmen, stroke-width 1.5px, border-radius 6px
+- Hintergrund Schwarz #0A0704
+
+NUMMERIERUNG
+
+Neue Spalte in der Datenbank-Tabelle `anmeldungen`:
+- `ticket_nummern` (jsonb, Array of integer, Länge = personen_anzahl)
+
+Bei Insert in /api/anmeldung:
+- Server berechnet fortlaufende Nummern, beginnend bei 1
+- Aktuelle höchste vergebene Nummer aus DB ermitteln (max(ticket_nummern in allen Einträgen)) und ab dort weiterzählen
+- Für eine Anmeldung mit 3 Personen werden 3 fortlaufende Nummern vergeben (z.B. wenn 41 bereits vergeben: 42, 43, 44)
+- Die Nummern werden in der Reihenfolge der Personen-Namen aus dem Formular gespeichert
+
+Im Frontend bei Anzeige: Nummer dreistellig formatieren mit führenden Nullen via `String(n).padStart(3, '0')`.
+
+ERFOLGSSEITE — BISHERIGE TICKET-ANZEIGE ERSETZEN
+
+Die aktuelle Ticket-Anzeige auf /anmeldung (mit Codes wie "EB-001-A3K9", vertikalen Cards) komplett entfernen und durch das neue SVG-Ticket-Layout ersetzen.
+
+Für jede angemeldete Person ein eigenes Ticket-SVG rendern. Reihenfolge wie eingegeben (1. Person zuerst, dann 2., 3. usw.).
+
+Über den Tickets bleibt die kurze Zusammenfassung erhalten:
+"Eure Tickets sind da."
+"[X] Personen · [Bezahlweg lesbar] · [Betrag] € gesamt"
+
+Unter den Tickets eine kurze Notiz in Lora 14px, italic, Warm-Opazität 0.7:
+"Eure Tickets schicken wir euch nochmal per Mail — als PDF zum Ausdrucken oder fürs Handy. Bringt sie am 18. Juli mit, ein Ticket pro Person."
+
+Bei Bezahlweg "bar" stattdessen:
+"Eure Tickets bekommt ihr im Kapaunenberg, wenn ihr den Zehner pro Person abgebt. Farzin oder Revse tragen euch direkt ein."
+
+PDF-VORBEREITUNG (NICHT JETZT VERSENDEN)
+
+Eine Funktion `generateTicketPDF(anmeldungId)` in api-server vorbereiten, die die Ticket-SVGs als PDF rendert (mehrere Tickets pro Anmeldung in einer PDF-Datei, jedes auf einer eigenen Seite, A5 quer).
+
+Vorerst: Diese Funktion existiert, wird aber nicht automatisch aufgerufen. Mail-Versand kommt in einem späteren Prompt.
+
+Bibliothek empfehle ich `@react-pdf/renderer` oder alternativ `pdfkit` mit SVG-Einbettung. Wähle die robustere Option.
+
+WAS NICHT GEBAUT WIRD IN DIESEM PROMPT
+
+- Kein Mail-Versand
+- Keine Resend-Integration
+- Kein automatischer PDF-Anhang an Mails
+- Keine Bestätigungsmail nach Anmeldung
+- Keine Admin-Seite für Bezahlstatus
+
+Das alles kommt im nächsten Prompt, sobald Resend-Domain-Verifizierung steht.
+
+CHECKLISTE
+
+- [ ] Bisherige Ticket-Anzeige auf /anmeldung-Erfolgsseite komplett entfernt
+- [ ] Neue Datenbank-Spalte `ticket_nummern` (jsonb) in `anmeldungen`-Tabelle
+- [ ] Migration ausgeführt
+- [ ] Backend vergibt fortlaufende Nummern beim Insert
+- [ ] SVG-Ticket im A5-Querformat (viewBox 0 0 842 595)
+- [ ] Poster-Streifen links 35%, mit weichem Fade nach rechts
+- [ ] Name in Playfair 48px, Amber
+- [ ] Laufende Nummer dreistellig in Playfair 80px im rechten Block
+- [ ] Bar-Zahler bekommen abweichenden Hinweistext
+- [ ] `generateTicketPDF`-Funktion existiert (wird noch nicht aufgerufen)
+- [ ] Phase 1 (/) unangetastet
+
+Wenn fertig, schreibe wörtlich: "Ticket-System erledigt."
