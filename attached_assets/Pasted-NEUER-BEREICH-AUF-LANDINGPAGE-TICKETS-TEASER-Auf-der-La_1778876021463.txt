@@ -1,0 +1,87 @@
+NEUER BEREICH AUF LANDINGPAGE — TICKETS-TEASER
+
+Auf der Landingpage / wird ein neuer Bereich eingebaut: ein Foto der Tickets als Teaser dafür, dass die Anmeldung bald startet.
+
+POSITION
+
+Direkt NACH dem Phase-1-Erfolgs-Hinweis (der Block mit "127 Personen haben mit Begeisterung Interesse bekundet" oder ähnlich) und VOR der Fakten-Tabelle.
+
+Falls die Reihenfolge der Komponenten aktuell anders ist, hier nochmal die gesamte Soll-Reihenfolge der Landingpage von oben nach unten:
+
+1. Poster (full-bleed)
+2. Brief (mit fixiertem Eröffnungssatz)
+3. Phase-1-Erfolgs-Hinweis (127 Personen etc.)
+4. NEU: Tickets-Teaser (siehe unten)
+5. Fakten-Tabelle
+6. Countdown
+7. Pressnotiz
+8. Legal-Accordion
+
+INHALT DES TICKETS-TEASERS
+
+Bildquelle: ticket-teaser.jpg (liegt im Projekt, vermutlich unter artifacts/emmerich/public/ticket-teaser.jpg — falls nicht dort: bitte korrekten Pfad ermitteln)
+
+Aufbau vertikal zentriert, schwarzer Hintergrund (passt sich nahtlos in die Landingpage ein):
+
+OBEN (über dem Bild):
+
+Kleine Versalzeile in Lora 12px, Farbe Amber #E8991A, letter-spacing 3px, mittig:
+"DEMNÄCHST"
+
+Direkt darunter (etwa 12px Abstand) Headline in Playfair Display 32px, Farbe Warm #F5E8C8, mittig:
+"Die Tickets sind in der Mache."
+
+Etwa 24px Abstand zum Bild darunter.
+
+BILD:
+
+- Datei: ticket-teaser.jpg
+- max-width: 800px, zentriert
+- width: 90% auf Mobile, 100% bis 800px auf Desktop
+- height: auto (Seitenverhältnis behält das Original)
+- border-radius: 6px (sehr dezent)
+- Kein Schatten, kein Overlay, keine Filter — Bild soll natürlich wirken
+- Alt-Text: "Vorder- und Rückseite der Boomerparty-Tickets auf einem Holztisch"
+
+Etwa 24px Abstand zum Untertext darunter.
+
+UNTERHALB (unter dem Bild):
+
+Ein Satz in Lora 16px, kursiv, Farbe Warm-Opazität 0.7, mittig:
+"Mehr verraten wir noch nicht — bis bald."
+
+Vertikaler Abstand zum nächsten Bereich (Fakten-Tabelle): ca. 80px.
+
+LAYOUT-PRINZIPIEN
+
+- Schwarzer Hintergrund (#0A0704) wie der Rest der Landingpage
+- Innenabstand horizontal: padding-left/right 24px auf Mobile, 0 auf Desktop (Bild self-centered)
+- Vertikaler Außenabstand zum vorherigen und nächsten Bereich: ca. 80px oben/unten
+- Keine zusätzlichen Buttons, keine CTA, keine Verlinkung. Der Teaser ist rein passiv-informativ.
+
+WAS NICHT GEÄNDERT WIRD
+
+- Alle anderen Bereiche der Landingpage bleiben unangetastet
+- Phase 1 (/) sonst unverändert
+- /anmeldung bleibt unverändert
+- Datenbank unverändert
+- Keine neuen Buttons, keine Theme-Toggles, keine sonstigen Layout-Änderungen
+
+GRUNDPRINZIP
+
+Bitte ausschließlich diesen Teaser-Bereich hinzufügen. Nichts anderes anpassen. Wenn unklar ist, ob etwas zu ändern ist: nichts tun.
+
+CHECKLISTE
+
+- [ ] Neue Komponente "TicketsTeaser" (o.ä.) erstellt
+- [ ] Position: zwischen Phase-1-Erfolgs-Hinweis und Fakten-Tabelle
+- [ ] "DEMNÄCHST" in Lora 12px Versalien Amber mittig
+- [ ] "Die Tickets sind in der Mache." in Playfair 32px Warm mittig
+- [ ] Bild ticket-teaser.jpg eingebunden, max-width 800px, zentriert
+- [ ] "Mehr verraten wir noch nicht — bis bald." in Lora 16px kursiv Warm-Opazität 0.7 mittig
+- [ ] Schwarzer Hintergrund nahtlos
+- [ ] Keine Verlinkung zu /anmeldung
+- [ ] Phase 1 / sonst unverändert
+- [ ] /anmeldung unverändert
+
+Wenn fertig, schreibe wörtlich: "Tickets-Teaser eingebaut."

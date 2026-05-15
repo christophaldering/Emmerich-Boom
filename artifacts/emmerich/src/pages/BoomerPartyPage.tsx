@@ -14,6 +14,7 @@ import DruckMaterial from "@/components/DruckMaterial";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
+import TicketsTeaser from "@/components/TicketsTeaser";
 
 export default function BoomerPartyPage() {
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -30,6 +31,7 @@ export default function BoomerPartyPage() {
       <AnmeldungsZaehler refreshKey={refreshCounter} />
       <Letter />
       <Motto />
+      <TicketsTeaser />
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
