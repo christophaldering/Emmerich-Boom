@@ -120,19 +120,6 @@ export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_numm
         </div>
       )}
 
-      {bezahlweg === "bar" && (
-        <div className="erfolg-block">
-          <span className="erfolg-label">Bar</span>
-          <p style={{ margin: 0 }}>
-            Kommt einfach im Kapaunenberg vorbei und gebt den Zehner pro Person ab.
-            Farzin oder Revse tragen euch direkt aufs Ticket ein.
-          </p>
-          <p style={{ marginTop: "1rem", marginBottom: 0, color: "var(--fg-70)", fontStyle: "italic" }}>
-            Bitte bis spätestens {PHASE2_CONFIG.ANMELDEFRIST}.
-          </p>
-        </div>
-      )}
-
       {/* Hinweis */}
       <p
         style={{

@@ -1,0 +1,56 @@
+ZWEI KORREKTUREN — LANDINGPAGE-BANNER UND BAR-OPTION
+
+1. LANDINGPAGE — Banner-Streifen oben KOMPLETT entfernen
+
+Auf der Landingpage / befindet sich aktuell ganz oben ein dunkler Streifen mit folgendem Inhalt:
+- Links: kleines Sonnen-Icon "hell"
+- Mitte: Text "Phase-1-Eintrag zählt nicht mehr — verbindliche Anmeldung erforderlich"
+- Mitte-rechts: Button "Zur Anmeldung →"
+- Rechts: Toggle "hell"
+
+Diesen gesamten Banner-Streifen KOMPLETT entfernen. Auch das Theme-Toggle ("hell/dunkel"). Auch den "Zur Anmeldung"-Button. Nichts davon bleibt übrig.
+
+Die Landingpage beginnt direkt mit dem Poster ganz oben — kein Header-Streifen, keine Navigation, kein Banner, kein Toggle.
+
+Falls dafür Code-Bereiche entfernt werden müssen, in denen Theme-Logik oder Header-Komponenten stecken: komplett rausräumen. Keine Reste.
+
+2. /anmeldung — Bezahlweg-Option "Bar im Kapaunenberg" entfernen
+
+Im Anmeldeformular auf /anmeldung gibt es im Radio-Block "Wie wollt ihr zahlen?" drei Optionen:
+- Überweisung
+- PayPal
+- Bar im Kapaunenberg
+
+Die Option "Bar im Kapaunenberg" wird ENTFERNT. Es bleiben nur noch zwei Optionen:
+- Überweisung (Default)
+- PayPal
+
+Backend-Anpassung: Im Zod-Schema von /api/anmeldung das Enum für `bezahlweg` reduzieren auf `'ueberweisung' | 'paypal'`. Der Wert `'bar'` wird nicht mehr akzeptiert.
+
+Backend-Logik für Bestätigungsmail entsprechend anpassen: Der Bar-Block in der Mail-Template ist nicht mehr nötig. Nur Überweisungs- und PayPal-Block bleiben.
+
+Erfolgsseite auf /anmeldung: Der Bar-Block in der Erfolgsanzeige ist auch nicht mehr nötig. Nur Überweisungs- und PayPal-Block bleiben.
+
+WICHTIG: Bar-Zahler werden separat über eine spätere Admin-Funktion direkt im Kapaunenberg erfasst — nicht über das Online-Formular. Das Online-Formular ist ausschließlich für digitale Zahler.
+
+Datenbankspalte `bezahlweg` in der Tabelle `anmeldungen` darf weiterhin den Wert `'bar'` enthalten (für die spätere manuelle Erfassung), aber sie wird vom Online-Formular nicht mehr gesetzt.
+
+GEWÜNSCHTER ENDZUSTAND
+
+- Landingpage / ohne jeden oberen Banner, ohne Theme-Toggle, ohne Anmelde-Link. Beginnt mit Poster.
+- /anmeldung mit zwei Bezahlweg-Optionen (Überweisung, PayPal), ansonsten unverändert
+- Bestätigungsmail funktioniert für beide Bezahlweg-Varianten
+- Erfolgsseite zeigt bei Überweisung IBAN-Block, bei PayPal PayPal-Block
+- Phase 1 (`/`) ist sonst unverändert: Poster, Brief, Fakten, Countdown, Pressnotiz, Legal
+
+CHECKLISTE
+
+- [ ] Banner-Streifen oben auf / vollständig entfernt (inkl. Hell/Dunkel-Toggle und Zur-Anmeldung-Button)
+- [ ] Landingpage beginnt direkt mit Poster
+- [ ] Anmeldeformular auf /anmeldung: Bar-Option entfernt
+- [ ] Zod-Schema im Backend: bezahlweg ohne 'bar'
+- [ ] Bestätigungsmail-Template: Bar-Block entfernt
+- [ ] Erfolgsseite: Bar-Block entfernt
+- [ ] Datenbank-Spalte bezahlweg bleibt strukturell wie sie ist (für spätere Admin-Erfassung)
+
+Wenn fertig, schreibe wörtlich: "Banner raus, Bar-Option raus."

@@ -50,7 +50,7 @@ export interface BestaetigungsMailOptions {
   to:             string;
   personen:       string[];
   personen_anzahl: number;
-  bezahlweg:      "ueberweisung" | "paypal" | "bar";
+  bezahlweg:      "ueberweisung" | "paypal";
   betrag_gesamt:  number;
 }
 
@@ -62,7 +62,7 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function buildBezahlBlock(bezahlweg: "ueberweisung" | "paypal" | "bar", hauptname: string): { html: string; text: string } {
+function buildBezahlBlock(bezahlweg: "ueberweisung" | "paypal", hauptname: string): { html: string; text: string } {
   const vz = `Boomerparty + ${hauptname}`;
 
   if (bezahlweg === "ueberweisung") {
@@ -95,23 +95,13 @@ function buildBezahlBlock(bezahlweg: "ueberweisung" | "paypal" | "bar", hauptnam
     };
   }
 
-  // bar
   return {
-    html: `
-<div style="margin:24px 0;padding:16px 20px;border:1px solid #e8991a;border-radius:4px;background:#120c04;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;line-height:1.6;">
-  Kommt einfach im Kapaunenberg vorbei und gebt den Zehner pro Person ab. Farzin oder Revse tragen euch direkt aufs Ticket ein. Bitte bis spätestens ${ANMELDEFRIST}.
-</div>`,
-    text: `Kommt einfach im Kapaunenberg vorbei und gebt den Zehner pro Person ab. Farzin oder Revse tragen euch direkt aufs Ticket ein. Bitte bis spätestens ${ANMELDEFRIST}.`,
+    html: ``,
+    text: ``,
   };
 }
 
-function buildTicketHinweis(bezahlweg: "ueberweisung" | "paypal" | "bar"): { html: string; text: string } {
-  if (bezahlweg === "bar") {
-    return {
-      html: `<p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.65);line-height:1.7;">Eure Tickets bekommt ihr direkt im Kapaunenberg, wenn ihr den Zehner abgebt.</p>`,
-      text: "Eure Tickets bekommt ihr direkt im Kapaunenberg, wenn ihr den Zehner abgebt.",
-    };
-  }
+function buildTicketHinweis(bezahlweg: "ueberweisung" | "paypal"): { html: string; text: string } {
   return {
     html: `<p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.65);line-height:1.7;">Eure Tickets schicken wir euch im Juli per Mail — als PDF zum Ausdrucken oder fürs Handy.</p>`,
     text: "Eure Tickets schicken wir euch im Juli per Mail — als PDF zum Ausdrucken oder fürs Handy.",
