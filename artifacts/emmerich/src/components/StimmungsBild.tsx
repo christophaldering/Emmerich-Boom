@@ -1,15 +1,13 @@
 export default function StimmungsBild() {
   return (
     <section style={{ position: "relative", marginBottom: "0" }}>
-      <div style={{ position: "relative", overflow: "hidden", maxHeight: "60svh" }}>
+      <div style={{ position: "relative" }}>
         <img
           src="/images/stimmungsbild.jpeg"
           alt="70er, 80er, 90er — die Ära"
           style={{
             width: "100%",
-            height: "60svh",
-            objectFit: "cover",
-            objectPosition: "center 25%",
+            height: "auto",
             display: "block",
           }}
         />
@@ -18,7 +16,7 @@ export default function StimmungsBild() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to bottom, rgba(10,7,4,0.15) 0%, rgba(10,7,4,0.0) 40%, rgba(10,7,4,0.85) 100%)",
+              "linear-gradient(to bottom, rgba(10,7,4,0.0) 60%, rgba(10,7,4,0.9) 100%)",
           }}
         />
       </div>
