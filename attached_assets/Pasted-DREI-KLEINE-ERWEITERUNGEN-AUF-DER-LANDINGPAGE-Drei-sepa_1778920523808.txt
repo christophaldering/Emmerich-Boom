@@ -1,0 +1,92 @@
+DREI KLEINE ERWEITERUNGEN AUF DER LANDINGPAGE
+
+Drei separate kleine Features auf der Landingpage /. Phase 1 sonst und /anmeldung bleiben unangetastet.
+
+1. EASTER EGG — Klick auf Poster zeigt zufälliges Boomer-Zitat
+
+Das Poster-Bild auf der Landingpage wird klickbar. Beim Klick erscheint ein dezentes Pop-up mit einem zufällig ausgewählten Boomer-Zitat aus folgender Liste:
+
+1. "Früher war mehr Lametta."
+2. "Damals waren die Sommer länger."
+3. "Es gab eine Zeit, da hatte man nur einen Schlüsselbund."
+4. "Bei uns wurde noch gewählt — auf der Wählscheibe."
+5. "Eine Mark fünfzig für ein Eis. Mit Schokostreuseln."
+6. "Wir haben uns vor der Telefonzelle verabredet. Und es hat geklappt."
+7. "Discman, Walkman, Game Boy — alles in einer Hosentasche."
+8. "Mixtapes machen war eine Liebeserklärung."
+9. "Sonntags lief Tagesschau und dann tatsächlich Schluss."
+10. "Anrufbeantworter waren ein Hightech-Gerät."
+11. "Bevor's WhatsApp gab, gab's Telegramme."
+12. "Wir hatten drei Programme. Und es reichte."
+13. "Pläsierig — das Wort kennt heute keiner mehr."
+14. "Die Bravo war noch ein gedrucktes Magazin."
+15. "Wenn das Telefon klingelte, wusste niemand, wer dran war."
+
+Pop-up-Design:
+- Halbtransparenter dunkler Backdrop (#0A0704 mit 70% Opazität) über der ganzen Seite
+- In der Mitte ein kleines Kästchen mit schwarzem Hintergrund #0A0704, Amber-Rahmen 1.5px, border-radius 8px
+- Padding 32px
+- max-width 480px, zentriert
+- Zitat in Playfair Display 22px, italic, Farbe Warm #F5E8C8, mittig
+- Darunter (16px Abstand) ein Schließen-Hinweis in Lora 11px, Opazität 0.5: "Tippe irgendwo, um zu schließen."
+
+Verhalten:
+- Klick auf Poster → Pop-up öffnet sich mit zufälligem Zitat
+- Klick irgendwo auf den Backdrop (außerhalb der Box) → Pop-up schließt
+- Auch ESC-Taste schließt
+- Jeder Klick auf das Poster zeigt ein NEUES zufälliges Zitat (auch wenn das gleiche zweimal hintereinander kommen kann — keine Logik dagegen nötig)
+- Cursor wird beim Hover über dem Poster auf "pointer", damit man merkt, dass es klickbar ist
+- Mobile: Tap statt Klick, sonst gleich
+
+Wichtig: Das Easter Egg soll subtil bleiben. Kein "Klick mich!"-Hinweis, kein Tooltip, kein Tutorial. Wer es entdeckt, entdeckt es.
+
+2. FOOTER-ERGÄNZUNG — Made-By-Zeile und Datum
+
+Im unteren Bereich der Landingpage, direkt unter dem bestehenden Legal-Accordion (Impressum, Datenschutz, Kontakt), zwei zusätzliche Zeilen ergänzen — ganz unten, sehr unauffällig.
+
+Zeile 1, in Lora 10px, Farbe Warm-Opazität 0.4, mittig:
+"Gemacht in Emmerich. Mit Liebe und einem Bier."
+
+Zeile 2 direkt darunter (4px Abstand), in Lora 10px, Farbe Warm-Opazität 0.4, mittig:
+"Zuletzt geändert: [DATUM aus Config]"
+
+Das Datum wird aus einer Config-Variable gelesen, NICHT automatisch vom Build-System.
+
+Konfig erweitern (in artifacts/emmerich/src/config/phase2.ts oder gleichwertiger Stelle):
+
+LETZTE_AENDERUNG: "16. Mai 2026"
+
+Falls die Variable noch nicht existiert: anlegen. Wert für jetzt: "16. Mai 2026".
+
+3. FOOTER-LINK — Versteckte Programm-Seite andeuten
+
+Im Legal-Accordion (Impressum / Datenschutz / Kontakt) als zusätzlichen Eintrag aufnehmen:
+
+"Wie der Abend wird"
+
+Gleicher Stil wie die anderen Accordion-Titel, gleiche Schrift, gleiche Größe. Der Link wirkt wie ein normaler Footer-Eintrag. Beim Klick wird zur Route /programm navigiert (interner Link via React Router, kein page reload).
+
+WICHTIG: Es darf KEINEN Hinweis geben, dass diese Seite "humorvoll" oder "Easter Egg" ist. Die Beschriftung "Wie der Abend wird" soll neutral wirken, wie ein normaler Info-Punkt.
+
+Die Route /programm selbst wird im nächsten Prompt erstellt — für diesen Prompt nur den Link einbauen. Vorerst kann die Route mit einer einfachen Platzhalter-Komponente belegt sein ("wird gleich gebaut" reicht), falls noch nichts da ist.
+
+WAS NICHT GEÄNDERT WIRD
+
+- Bestehende Komponenten der Landingpage (Brief, Fakten, Countdown, Pressnotiz, Tickets-Teaser, Poster) bleiben unverändert
+- Bestehende Accordion-Einträge (Impressum, Datenschutz, Kontakt) bleiben unverändert
+- /anmeldung bleibt unverändert
+- Keine sonstigen Layout-Änderungen
+
+CHECKLISTE
+
+- [ ] Poster ist klickbar mit Cursor:pointer beim Hover
+- [ ] Klick auf Poster öffnet Pop-up mit zufälligem Zitat aus 15er-Liste
+- [ ] Pop-up schließt bei Klick auf Backdrop oder ESC
+- [ ] Footer: "Gemacht in Emmerich. Mit Liebe und einem Bier." in Lora 10px Warm-Opazität 0.4
+- [ ] Footer: "Zuletzt geändert: [Datum aus Config]" mit Wert "16. Mai 2026"
+- [ ] Legal-Accordion ergänzt um Eintrag "Wie der Abend wird"
+- [ ] Klick führt zu Route /programm (interner Link)
+- [ ] Phase 1 sonst unverändert
+- [ ] /anmeldung unverändert
+
+Wenn fertig, schreibe wörtlich: "Easter Egg und Footer erweitert."
