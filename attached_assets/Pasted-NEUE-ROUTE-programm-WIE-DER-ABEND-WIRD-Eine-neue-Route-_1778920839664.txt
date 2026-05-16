@@ -1,0 +1,126 @@
+NEUE ROUTE /programm — "WIE DER ABEND WIRD"
+
+Eine neue Route /programm wird angelegt. Versteckter Inhalt, augenzwinkernd, schwarzer Hintergrund wie Landingpage, gleiche Fonts und Farben.
+
+DESIGN-GRUNDLAGEN
+
+- Hintergrund: schwarz #0A0704
+- Headline-Schrift: Playfair Display
+- Body-Schrift: Lora
+- Akzentfarbe: Amber #E8991A
+- Textfarbe: Warm #F5E8C8
+
+SEITENAUFBAU
+
+Vertikal aufgebaut, zentriert, max-width 720px. Padding-Y: 80px oben und unten.
+
+OBEN (Headline-Block):
+
+Kleine Versalzeile in Lora 12px, Amber, letter-spacing 3px, mittig:
+"DER ABEND"
+
+Direkt darunter (8px Abstand) Headline in Playfair Display 42px, Warm-Farbe, mittig:
+"Wie der Abend wird"
+
+24px Abstand zur folgenden Zeile.
+
+Disclaimer-Zeile in Lora 14px, italic, Warm-Opazität 0.6, mittig:
+"Vorsichtig, nicht verbindlich — eher eine Prognose als ein Plan."
+
+64px Abstand zum nächsten Block.
+
+PROGRAMM-LISTE:
+
+Eine Liste von Zeit/Beschreibung-Paaren, vertikal angeordnet, jeweils mit ca. 40px Abstand zwischen den Paaren. Linksbündig.
+
+Pro Programmpunkt:
+
+Zeit-Zeile in Playfair Display 22px, Amber, font-weight 500
+Direkt darunter (8px Abstand) Beschreibungs-Text in Lora 15px, Warm-Farbe, Opazität 0.85
+
+Die Liste (wörtlich übernehmen):
+
+19:00 Uhr — Einlass
+Erste Begrüßungen. Erste "Du bist ja gar nicht so alt geworden!"-Sprüche.
+
+19:30 Uhr — Erste verlorene Brille
+Erfahrungsgemäß landet die erste Lesebrille gegen halb acht unauffindbar zwischen den Stühlen.
+
+20:00 Uhr — "Das hätte es früher nicht gegeben"
+Statistisch zu erwartender erster Spruch dieser Art. Wer ihn sagt, gibt eine Runde aus.
+
+20:30 Uhr — Erste Tanzversuche
+Vorsichtig, mit dem Getränk in der Hand, am Tisch.
+
+21:00 Uhr — ABBA-Block
+Der DJ traut sich.
+
+21:45 Uhr — Plötzlich erinnert sich jemand an die 80er
+Geschichten kommen heraus, die seit 30 Jahren niemand mehr erzählt hat.
+
+22:30 Uhr — Wie spät ist es eigentlich?
+Erste Verwirrung über die Uhrzeit. Niemand will gehen.
+
+23:30 Uhr — Die Tanzfläche füllt sich
+Hüftgelenke werden auf die Probe gestellt.
+
+00:30 Uhr — Letzter Tanz, dachten wir
+"Time of My Life" oder "Nothing Else Matters" — der DJ entscheidet kurzfristig. Es wird nicht der letzte sein.
+
+01:00 Uhr — Niemand redet mehr über die Uhrzeit
+Sie hat aufgehört, eine Rolle zu spielen.
+
+03:00 Uhr — Erste leise Beobachtung am Fenster
+Wird's draußen schon wieder hell?
+
+Irgendwann später — Heimweg
+Mit dem Versprechen: Das machen wir nochmal.
+
+64px Abstand zum nächsten Block.
+
+UNTEN (Abschluss):
+
+Eine kleine Trennlinie in Amber, 80px breit, Opazität 0.4, zentriert mittig.
+
+24px Abstand.
+
+Eine Schlusszeile in Lora 13px, italic, Warm-Opazität 0.5, mittig:
+"Alle Angaben ohne Gewähr. Außer dem Versprechen."
+
+64px Abstand.
+
+Ein kleiner Link "Zurück zur Startseite" in Lora 13px, Amber, mittig, mit Pfeil davor:
+"← Zurück"
+
+Klick führt zurück zu / (interner React-Router-Link).
+
+ROUTING
+
+In der React-Router-Konfiguration die neue Route /programm einrichten und die neue Komponente Programm anhängen.
+
+WAS NICHT GEÄNDERT WIRD
+
+- Landingpage / und alle ihre Komponenten bleiben unangetastet (außer dem Accordion-Eintrag, der aus dem vorigen Prompt schon den Link bringt)
+- /anmeldung bleibt unverändert
+- Datenbank unverändert
+- Keine neuen Datenmodelle oder Backend-Routen
+- Keine Mail-Versand-Logik
+
+GRUNDPRINZIP
+
+Nur die Programm-Seite bauen. Sonst nichts ändern. Wenn unklar ist, ob etwas zu ändern wäre: nichts tun.
+
+CHECKLISTE
+
+- [ ] Neue Komponente Programm.tsx erstellt
+- [ ] Route /programm in React Router eingerichtet
+- [ ] "DER ABEND" als Versalzeile oben
+- [ ] "Wie der Abend wird" als Headline in Playfair
+- [ ] Disclaimer "Vorsichtig, nicht verbindlich — eher eine Prognose als ein Plan." vorhanden
+- [ ] Alle 12 Programmpunkte wörtlich eingebaut, mit Zeitangabe in Amber/Playfair und Beschreibung in Lora
+- [ ] Abschlusszeile "Alle Angaben ohne Gewähr. Außer dem Versprechen."
+- [ ] Link "← Zurück" führt zur Startseite /
+- [ ] Schwarzer Hintergrund, gleiche Fonts und Farben wie Landingpage
+- [ ] Landingpage und /anmeldung unangetastet
+
+Wenn fertig, schreibe wörtlich: "Programm-Seite ist da."
