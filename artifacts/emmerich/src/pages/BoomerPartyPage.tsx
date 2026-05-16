@@ -15,6 +15,7 @@ import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
 import TicketsTeaser from "@/components/TicketsTeaser";
+import StimmungsBild from "@/components/StimmungsBild";
 
 export default function BoomerPartyPage() {
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -32,6 +33,7 @@ export default function BoomerPartyPage() {
       <TicketsTeaser />
       <Letter />
       <Motto />
+      <StimmungsBild />
       <Fakten />
       <Countdown />
       <Formular onSuccess={handleFormSuccess} />
