@@ -66,8 +66,10 @@ const sections = [
   },
 ];
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 function navigate(path: string) {
-  window.history.pushState({}, "", path);
+  window.history.pushState({}, "", `${BASE}${path}`);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
