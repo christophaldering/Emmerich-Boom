@@ -1,3 +1,5 @@
+import { PHASE2_CONFIG } from "@/config/phase2";
+
 export default function SiteFooter() {
   return (
     <>
@@ -193,13 +195,33 @@ export default function SiteFooter() {
           fontSize: "0.9rem",
           lineHeight: 2.0,
           color: "var(--fg-90)",
-          padding: "2.5rem 2rem 3rem",
+          padding: "2.5rem 2rem 2rem",
         }}
       >
         <p>Emmerich boomt! · BoomerParty · 18. Juli 2026 (Uhrzeit wird noch bekanntgegeben) · Bölt, Emmerich am Rhein</p>
         <p>Eine Veranstaltung des BoomerClub Emmerich · Geboren 2024 — an der Theke der Societät.</p>
         <p style={{ color: "var(--amber)", opacity: 0.85 }}>Von uns. Für uns. Wird Zeit. — Das BoomerParty-OrgaTeam</p>
       </footer>
+
+      {/* Made-by + Datum */}
+      <div style={{ textAlign: "center", padding: "0 1rem 2.5rem" }}>
+        <p style={{
+          fontFamily: "'Lora', serif",
+          fontSize: "10px",
+          color: "rgba(245,232,200,0.4)",
+          margin: "0 0 4px",
+        }}>
+          Gemacht in Emmerich. Mit Liebe und einem Bier.
+        </p>
+        <p style={{
+          fontFamily: "'Lora', serif",
+          fontSize: "10px",
+          color: "rgba(245,232,200,0.4)",
+          margin: 0,
+        }}>
+          Zuletzt geändert: {PHASE2_CONFIG.LETZTE_AENDERUNG}
+        </p>
+      </div>
     </>
   );
 }

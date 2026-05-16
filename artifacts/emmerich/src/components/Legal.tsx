@@ -66,6 +66,11 @@ const sections = [
   },
 ];
 
+function navigate(path: string) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
 export default function Legal() {
   const [open, setOpen] = useState<number | null>(null);
 
@@ -113,6 +118,15 @@ export default function Legal() {
           </div>
         </div>
       ))}
+
+      {/* Programm-Link */}
+      <button
+        className="legal-btn"
+        onClick={() => navigate("/programm")}
+        style={{ borderBottom: "none" }}
+      >
+        Wie der Abend wird
+      </button>
     </section>
   );
 }
