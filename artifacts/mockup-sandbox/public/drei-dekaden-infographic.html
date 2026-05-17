@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Die drei Dekaden - Infographic</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; }
+#container { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div id="container"></div>
+<script src="https://unpkg.com/@antv/infographic@latest/dist/infographic.min.js"></script>
+<script>
+const infographic = new AntVInfographic.Infographic({
+  container: '#container',
+  width: '100%',
+  height: '100%',
+});
+
+const dsl = `infographic list-row-horizontal-icon-arrow
+
+data
+  title Die drei Dekaden
+  desc 70er · 80er · 90er — die Ären, die den Abend prägen
+
+  lists
+  - time 70er
+    label ABBA gewinnt den Eurovision
+    desc 1974 — Waterloo. Vier Schweden verändern den Dancefloor für immer.
+    icon music note
+
+  - time 70er
+    label Disco und Schlaghose
+    desc Die Tanzfläche gehörte dem Groove. Der Stil gehörte den Beinen.
+    icon star four points
+
+  - time 70er
+    label Rockpalast — Nachts im Westen
+    desc WDR sendete live durch die Nacht. Das war Fernsehen.
+    icon television play
+
+  - time 70er
+    label Taschenrechner-Wunder
+    desc Rechnen mit 8 Ziffern in der Hosentasche. Kinder hielten es für Magie.
+    icon calculator variant
+
+  - time 80er
+    label Walkman revolutioniert den Schulweg
+    desc Sony, 1979. Plötzlich hatte jeder seinen eigenen Soundtrack.
+    icon headphones
+
+  - time 80er
+    label Neue Deutsche Welle
+    desc Nena, Peter Schilling — Deutschland klang plötzlich nach Zukunft.
+    icon microphone
+
+  - time 80er
+    label Commodore 64
+    desc 64 Kilobyte. Man konnte damit alles machen — wenn man wusste wie.
+    icon monitor
+
+  - time 80er
+    label Aerobic und Leggins
+    desc Jane Fonda machte Leggins zur Alltagskleidung. Dauerhaft.
+    icon run fast
+
+  - time 90er
+    label Grunge aus Seattle
+    desc Nirvana, Pearl Jam — auf einmal war zerrissen modern.
+    icon guitar electric
+
+  - time 90er
+    label Tamagotchi
+    desc 1996. Millionen Kinder pflegten ein Pixel-Huhn. Mit Hingabe.
+    icon heart
+
+  - time 90er
+    label Das Internet zu Hause
+    desc Das Modem pfiff. Die Leitung war besetzt. Die Welt wurde klein.
+    icon web
+
+  - time 90er
+    label Wer wird Millionär?
+    desc 1999. Günther Jauch fragte. Das ganze Land schaute zu.
+    icon television
+
+theme dark
+  palette #E8991A #F5E8C8 #c47a10
+`;
+
+document.fonts?.ready.then(() => {
+  infographic.render(dsl);
+}).catch(() => {
+  infographic.render(dsl);
+});
+</script>
+</body>
+</html>

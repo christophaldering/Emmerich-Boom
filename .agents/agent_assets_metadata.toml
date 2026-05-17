@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "tyRhnI9EQjMNMfCxxPV_q"
+uri = "file://exports/drei-dekaden-infographic.jpg"
+type = "image"
+title = "Die drei Dekaden — Infografik"
