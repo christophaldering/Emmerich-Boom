@@ -463,6 +463,19 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
               alt={`Ticket-Vorschau #${row.id}`}
               style={{ maxWidth: "100%", maxHeight: "80svh", borderRadius: "4px", boxShadow: "0 8px 40px rgba(0,0,0,0.7)" }}
             />
+            <a
+              href={previewUrl}
+              download={`ticket-vorschau-${row.id}.png`}
+              style={{
+                background: "transparent", border: `1px solid ${am(0.55)}`,
+                borderRadius: "3px", color: am(0.9),
+                fontFamily: "'Lora', serif", fontSize: "0.85rem",
+                padding: "0.4rem 1.1rem", textDecoration: "none",
+                cursor: "pointer",
+              }}
+            >
+              Herunterladen
+            </a>
             <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: "rgba(245,232,200,0.45)", margin: 0 }}>
               ESC oder Klick außen zum Schließen
             </p>
