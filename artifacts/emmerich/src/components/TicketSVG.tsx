@@ -10,9 +10,9 @@ interface TicketSVGProps {
 }
 
 function nameFontSize(name: string): number {
-  if (name.length > 24) return 32;
-  if (name.length > 18) return 38;
-  return 44;
+  if (name.length > 24) return 30;
+  if (name.length > 18) return 36;
+  return 42;
 }
 
 export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
@@ -32,14 +32,13 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
           <rect x="0" y="0" width="900" height="340" rx="6" ry="6" />
         </clipPath>
 
-        {/* Warm-Amber-Fade: Poster-Wärme nach rechts auslaufen lassen */}
+        {/* Gradient: poster fully visible ~0-270px, fades to black by ~460px */}
         <linearGradient id={`fade-${id}`} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
-          <stop offset="0%"   stopColor="#0A0704"       stopOpacity="0" />
-          <stop offset="28%"  stopColor="#0A0704"       stopOpacity="0" />
-          <stop offset="33%"  stopColor="rgb(200,120,20)" stopOpacity="0.30" />
-          <stop offset="44%"  stopColor="rgb(160,85,12)"  stopOpacity="0.50" />
-          <stop offset="58%"  stopColor="rgb(60,28,5)"    stopOpacity="0.82" />
-          <stop offset="72%"  stopColor="#0A0704"         stopOpacity="0.96" />
+          <stop offset="0%"   stopColor="#0A0704" stopOpacity="0" />
+          <stop offset="30%"  stopColor="#0A0704" stopOpacity="0" />
+          <stop offset="38%"  stopColor="rgb(190,110,18)" stopOpacity="0.35" />
+          <stop offset="50%"  stopColor="rgb(50,22,4)"    stopOpacity="0.88" />
+          <stop offset="62%"  stopColor="#0A0704"         stopOpacity="0.97" />
           <stop offset="100%" stopColor="#0A0704"         stopOpacity="1" />
         </linearGradient>
       </defs>
@@ -48,20 +47,20 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
         {/* Schwarzer Hintergrund */}
         <rect x="0" y="0" width="900" height="340" fill="#0A0704" />
 
-        {/* LINKER BLOCK — Poster */}
-        <rect x="0" y="0" width="300" height="340" fill="#2a1305" />
+        {/* LINKER BLOCK — Poster (340px breit, slice damit kein Letterboxing) */}
+        <rect x="0" y="0" width="340" height="340" fill="#2a1305" />
         <image
           href={POSTER_SRC}
-          x="0" y="0" width="300" height="340"
-          preserveAspectRatio="xMidYMid meet"
+          x="0" y="0" width="340" height="340"
+          preserveAspectRatio="xMidYMid slice"
         />
 
-        {/* Fließender Übergang Bild → schwarze Fläche */}
+        {/* Fließender Übergang Bild → schwarz */}
         <rect x="0" y="0" width="900" height="340" fill={`url(#fade-${id})`} />
 
         {/* 1 — "EMMERICH BOOMT!" */}
         <text
-          x="370" y="80"
+          x="370" y="78"
           fontFamily="'Lora', Georgia, serif"
           fontSize="13"
           letterSpacing="3"
@@ -71,9 +70,9 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
           EMMERICH BOOMT!
         </text>
 
-        {/* 2 — Name (dynamische Schriftgröße) */}
+        {/* 2 — Name */}
         <text
-          x="370" y="142"
+          x="370" y="138"
           fontFamily="'Playfair Display', Georgia, serif"
           fontSize={fontSize}
           fontWeight="500"
@@ -85,13 +84,13 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
 
         {/* 3 — Trennlinie */}
         <line
-          x1="370" y1="166" x2="490" y2="166"
+          x1="370" y1="162" x2="490" y2="162"
           stroke="#E8991A" strokeWidth="1.5" strokeOpacity="0.4"
         />
 
         {/* 4 — Datum + Einlass */}
         <text
-          x="370" y="208"
+          x="370" y="204"
           fontFamily="'Lora', Georgia, serif"
           fontSize="17"
           textAnchor="start"
@@ -102,7 +101,7 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
 
         {/* 5 — Ort */}
         <text
-          x="370" y="234"
+          x="370" y="230"
           fontFamily="'Lora', Georgia, serif"
           fontSize="15"
           textAnchor="start"
@@ -112,50 +111,55 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
           Bölt / Kapaunenberg · Emmerich am Rhein
         </text>
 
-        {/* 6 — Abreiß-Streifen rechts */}
+        {/* 6 — Abreiß-Streifen (x=760, Breite 140px) */}
         <line
-          x1="840" y1="12" x2="840" y2="308"
+          x1="760" y1="12" x2="760" y2="328"
           stroke="#E8991A" strokeWidth="1" strokeDasharray="3,5" strokeOpacity="0.45"
         />
-        <g transform="rotate(-90, 858, 160)">
-          <text
-            x="858" y="148"
-            fontFamily="'Lora', Georgia, serif"
-            fontSize="16"
-            letterSpacing="3"
-            textAnchor="middle"
-            fill="#E8991A"
-            fillOpacity="0.55"
-          >
-            EINTRITT
-          </text>
-          <text
-            x="858" y="180"
-            fontFamily="'Playfair Display', Georgia, serif"
-            fontSize="52"
-            fontWeight="500"
-            textAnchor="middle"
-            fill="#E8991A"
-          >
-            № {numStr}
-          </text>
-        </g>
 
-        {/* 7 — QR-Code (dezent, nur wenn code vorhanden) */}
+        {/* EINTRITT — horizontal, oben im Streifen */}
+        <text
+          x="830" y="40"
+          fontFamily="'Lora', Georgia, serif"
+          fontSize="10"
+          letterSpacing="2.5"
+          textAnchor="middle"
+          fill="#E8991A"
+          fillOpacity="0.55"
+        >
+          EINTRITT
+        </text>
+
+        {/* № — groß, Mitte-oben im Streifen */}
+        <text
+          x="830" y="118"
+          fontFamily="'Playfair Display', Georgia, serif"
+          fontSize="38"
+          fontWeight="500"
+          textAnchor="middle"
+          fill="#E8991A"
+        >
+          &#x2116;&nbsp;{numStr}
+        </text>
+
+        {/* QR-Code — unterer Streifenbereich, heller Hintergrund */}
         {code && (
-          <foreignObject x="754" y="250" width="68" height="68" opacity="0.55">
-            <div style={{ lineHeight: 0, fontSize: 0 }}>
-              <QRCodeCanvas value={code} size={68} bgColor="#0A0704" fgColor="#E8991A" level="H" />
-            </div>
-          </foreignObject>
+          <>
+            <rect x="779" y="158" width="102" height="102" rx="5" ry="5" fill="#FFF8EC" />
+            <foreignObject x="784" y="163" width="92" height="92">
+              <div style={{ lineHeight: 0, fontSize: 0 }}>
+                <QRCodeCanvas value={code} size={92} bgColor="#FFF8EC" fgColor="#1A0A02" level="H" />
+              </div>
+            </foreignObject>
+          </>
         )}
 
         {/* 8 — Rand-Zeile unten */}
         <text
-          x="450" y="322"
+          x="375" y="320"
           fontFamily="'Lora', Georgia, serif"
           fontSize="9"
-          textAnchor="middle"
+          textAnchor="start"
           fill="#F5E8C8"
           fillOpacity="0.5"
         >
