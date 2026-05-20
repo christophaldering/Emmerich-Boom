@@ -12,7 +12,8 @@ const router = Router();
 const SECRET = "emmerich-orga-stats-2026";
 
 function requireAdmin(req: Request, res: Response): boolean {
-  if (req.headers["x-admin-secret"] !== SECRET) {
+  const provided = req.headers["x-admin-secret"] ?? req.query["secret"];
+  if (provided !== SECRET) {
     res.status(403).json({ error: "Forbidden" });
     return false;
   }
