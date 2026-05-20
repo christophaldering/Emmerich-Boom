@@ -22,6 +22,7 @@ import type {
   AnmeldungStats,
   ApiError,
   HealthStatus,
+  InteressentenCount,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -101,6 +102,82 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Gibt die Gesamtzahl der Einträge in der interessenten-Tabelle zurück
+ * @summary Anzahl der Interessensbekundungen
+ */
+export const getGetInteressentenCountUrl = () => {
+  return `/api/interessenten/count`;
+};
+
+export const getInteressentenCount = async (
+  options?: RequestInit,
+): Promise<InteressentenCount> => {
+  return customFetch<InteressentenCount>(getGetInteressentenCountUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetInteressentenCountQueryKey = () => {
+  return [`/api/interessenten/count`] as const;
+};
+
+export const getGetInteressentenCountQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInteressentenCount>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getInteressentenCount>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetInteressentenCountQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getInteressentenCount>>
+  > = ({ signal }) => getInteressentenCount({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInteressentenCount>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetInteressentenCountQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInteressentenCount>>
+>;
+export type GetInteressentenCountQueryError = ErrorType<ApiError>;
+
+/**
+ * @summary Anzahl der Interessensbekundungen
+ */
+
+export function useGetInteressentenCount<
+  TData = Awaited<ReturnType<typeof getInteressentenCount>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getInteressentenCount>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetInteressentenCountQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

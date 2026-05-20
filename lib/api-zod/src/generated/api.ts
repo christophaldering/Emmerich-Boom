@@ -16,6 +16,14 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
+ * Gibt die Gesamtzahl der Einträge in der interessenten-Tabelle zurück
+ * @summary Anzahl der Interessensbekundungen
+ */
+export const GetInteressentenCountResponse = zod.object({
+  count: zod.number(),
+});
+
+/**
  * @summary Verbindliche Anmeldung einreichen
  */
 export const submitAnmeldungBodyPersonenAnzahlMax = 6;

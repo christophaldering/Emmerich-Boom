@@ -12,6 +12,8 @@ tags:
     description: Health operations
   - name: anmeldung
     description: Event registration
+  - name: interesse
+    description: Interessensbekundungen
 paths:
   /healthz:
     get:
@@ -26,6 +28,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /interessenten/count:
+    get:
+      operationId: getInteressentenCount
+      tags: [interesse]
+      summary: Anzahl der Interessensbekundungen
+      description: Gibt die Gesamtzahl der Einträge in der interessenten-Tabelle zurück
+      responses:
+        "200":
+          description: Anzahl
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteressentenCount"
+        "500":
+          description: Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /anmeldung:
     post:
       operationId: submitAnmeldung
@@ -139,6 +160,13 @@ components:
         - angemeldete_personen
       properties:
         angemeldete_personen:
+          type: integer
+    InteressentenCount:
+      type: object
+      required:
+        - count
+      properties:
+        count:
           type: integer
     ApiError:
       type: object

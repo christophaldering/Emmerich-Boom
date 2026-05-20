@@ -13,6 +13,7 @@ import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
 import StimmungsBild from "@/components/StimmungsBild";
 import AnmeldeAufruf from "@/components/AnmeldeAufruf";
+import Phase2Aufruf from "@/components/Phase2Aufruf";
 
 export default function BoomerPartyPage() {
   return (
@@ -20,6 +21,7 @@ export default function BoomerPartyPage() {
       <Poster />
       <AnmeldeAufruf />
       <Letter />
+      <Phase2Aufruf />
       <Motto />
       <StimmungsBild />
       <Fakten />

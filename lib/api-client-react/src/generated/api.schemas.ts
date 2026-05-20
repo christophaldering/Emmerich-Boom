@@ -50,6 +50,10 @@ export interface AnmeldungStats {
   angemeldete_personen: number;
 }
 
+export interface InteressentenCount {
+  count: number;
+}
+
 export type ApiErrorDetails = { [key: string]: unknown };
 
 export interface ApiError {

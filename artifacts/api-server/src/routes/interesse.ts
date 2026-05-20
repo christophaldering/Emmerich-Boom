@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
 import { interessenten } from "@workspace/db";
-import { desc, sql } from "drizzle-orm";
+import { count, desc, sql } from "drizzle-orm";
 import { generateKaiComment } from "./stimmung";
 
 const router = Router();
@@ -44,6 +44,11 @@ router.post("/interesse", async (req, res) => {
   res.json({ success: true, id: inserted[0]?.id ?? null });
 
   generateKaiComment().catch(() => {});
+});
+
+router.get("/interessenten/count", async (_req, res) => {
+  const result = await db.select({ count: count() }).from(interessenten);
+  res.json({ count: result[0]?.count ?? 0 });
 });
 
 router.get("/interesse", async (_req, res) => {
