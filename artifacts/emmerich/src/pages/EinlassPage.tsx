@@ -1,6 +1,67 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 
+// ── Web Audio Feedback ────────────────────────────────────────────────────────
+let _audioCtx: AudioContext | null = null;
+function getAudioCtx(): AudioContext {
+  if (!_audioCtx) _audioCtx = new AudioContext();
+  return _audioCtx;
+}
+
+function playSound(type: "success" | "error" | "duplicate"): void {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === "suspended") void ctx.resume();
+    const now = ctx.currentTime;
+
+    if (type === "success") {
+      // Three ascending sine tones: C5 → E5 → G5
+      ([
+        [523, 0.00],
+        [659, 0.13],
+        [784, 0.26],
+      ] as [number, number][]).forEach(([freq, delay]) => {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = "sine"; osc.frequency.value = freq;
+        const t = now + delay;
+        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
+        osc.start(t); osc.stop(t + 0.12);
+      });
+
+    } else if (type === "error") {
+      // Short sawtooth burst ~220 Hz
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sawtooth"; osc.frequency.value = 220;
+      gain.gain.setValueAtTime(0.38, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc.start(now); osc.stop(now + 0.40);
+
+    } else {
+      // Siren: LFO-modulated sine 600–1200 Hz over 1.5 s
+      const osc     = ctx.createOscillator();
+      const lfo     = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      const gain    = ctx.createGain();
+      lfo.connect(lfoGain); lfoGain.connect(osc.frequency);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine"; osc.frequency.value = 900;
+      lfo.type = "sine"; lfo.frequency.value = 4;
+      lfoGain.gain.value = 300;        // ±300 Hz → 600–1200 Hz range
+      gain.gain.setValueAtTime(0.40, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+      lfo.start(now); osc.start(now);
+      lfo.stop(now + 1.5); osc.stop(now + 1.55);
+    }
+  } catch {
+    // Ignore — audio not available in this context
+  }
+}
+
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const API = `${BASE}/api`;
 const ADMIN_PW = "#Boomer2026";
@@ -236,6 +297,7 @@ export default function EinlassPage() {
         setResult(r);
         setLoading(false);
         setRefreshTrigger(n => n + 1);
+        playSound(r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error");
       });
       return;
     }
@@ -397,6 +459,7 @@ function ManualEntry({ onScanned }: { onScanned: () => void }) {
     setResult(r);
     setLoading(false);
     onScanned();
+    playSound(r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error");
   };
 
   if (!open) return (
