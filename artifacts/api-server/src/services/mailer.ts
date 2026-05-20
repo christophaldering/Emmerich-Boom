@@ -226,11 +226,12 @@ interface TicketMailOptions {
 }
 
 export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
-  const transport = createGmailTransport();
-  if (!transport) {
-    throw new Error("GMAIL_APP_PASSWORD nicht gesetzt — Ticket-Mail kann nicht versendet werden");
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY nicht gesetzt — Ticket-Mail kann nicht versendet werden");
   }
 
+  const resend = new Resend(apiKey);
   const base = buildBaseUrl();
   // Link to the ticket download page for the first ticket of this Anmeldung
   const ticketPageUrl = `${base}/boomer-orga-intern/ticket/${encodeURIComponent(opts.tickets[0]!.code)}`;
@@ -239,19 +240,12 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 <html lang="de">
 <head><meta charset="utf-8"><title>Dein Ticket — EMMERICH BOOMT!</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:Georgia,'Times New Roman',serif;">
-  <div style="max-width:580px;margin:0 auto;padding:2.5rem 1.5rem;">
+  <div style="max-width:580px;margin:0 auto;">
 
-    <div style="text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,153,26,0.3);">
-      <div style="font-size:0.72rem;letter-spacing:0.3em;text-transform:uppercase;color:#e8991a;margin-bottom:0.6rem;">
-        Emmerich am Rhein \u00B7 18. Juli 2026
-      </div>
-      <div style="font-size:2.2rem;font-weight:bold;color:#f5e8c8;line-height:1.2;">
-        EMMERICH BOOMT!
-      </div>
-      <div style="font-size:0.95rem;color:rgba(245,232,200,0.65);margin-top:0.4rem;">
-        BoomerParty \u00B7 B\u00F6lt / Kapaunenberg
-      </div>
-    </div>
+    <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="580"
+      style="display:block;width:100%;height:auto;" />
+
+  <div style="padding:2.5rem 1.5rem;">
 
     <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:1.3rem;font-weight:bold;color:#f5e8c8;margin:0 0 1.4rem;line-height:1.35;">
       Es ist so weit \u2014 dein Ticket ist da!
@@ -294,6 +288,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
       <a href="https://www.emmerich-boomt.de" style="color:rgba(232,153,26,0.6);text-decoration:none;">www.emmerich-boomt.de</a>
     </div>
   </div>
+  </div>
 </body>
 </html>`;
 
@@ -316,13 +311,26 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     "Christoph Aldering f\u00FCr das Orga-Team \u201EEmmerich boomt!\u201C",
   ].join("\n");
 
-  await transport.sendMail({
-    from:    `"EMMERICH BOOMT!" <${GMAIL_SENDER}>`,
-    to:      opts.to,
+  const { error } = await resend.emails.send({
+    from:    `${ABSENDER_NAME} <${ABSENDER_MAIL}>`,
+    to:      [opts.to],
+    replyTo: ABSENDER_MAIL,
     subject: "Dein Ticket wartet \u2014 EMMERICH BOOMT! 18. Juli 2026",
     html,
     text,
+    attachments: [
+      {
+        filename:    "boomerpartyposter.jpeg",
+        content:     getPosterBuffer(),
+        contentType: "image/jpeg",
+        contentId:   POSTER_CID,
+      },
+    ],
   });
+
+  if (error) {
+    throw new Error(`Resend-Fehler: ${JSON.stringify(error)}`);
+  }
 
   console.info("[Mailer] Ticket-Mail versendet an", opts.to);
 }

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { db } from "@workspace/db";
-import { tickets, interessenten, anmeldungTicketsTable, scanLog } from "@workspace/db";
+import { tickets, interessenten, anmeldungTicketsTable, anmeldungenTable, scanLog } from "@workspace/db";
 import { eq, desc, isNotNull, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { renderTicketFrontPNG } from "../services/ticket-render.js";
@@ -110,6 +110,36 @@ router.get("/admin/tickets", async (req, res) => {
 router.get("/ticket/:code", async (req, res) => {
   const code = req.params.code.toUpperCase();
 
+  // Phase 2: check anmeldung_tickets first
+  const p2 = await db
+    .select({
+      id: anmeldungTicketsTable.id,
+      personName: anmeldungTicketsTable.person_name,
+      ticketCode: anmeldungTicketsTable.ticket_code,
+      usedAt: anmeldungTicketsTable.eingelassen_am,
+      createdAt: anmeldungTicketsTable.created_at,
+    })
+    .from(anmeldungTicketsTable)
+    .where(eq(anmeldungTicketsTable.ticket_code, code))
+    .limit(1);
+
+  if (p2.length > 0) {
+    const t = p2[0]!;
+    res.json({
+      id: t.id,
+      anmeldungId: null,
+      personName: t.personName,
+      ticketCode: t.ticketCode,
+      paymentMethod: null,
+      paidAt: null,
+      usedAt: t.usedAt ? t.usedAt.toISOString() : null,
+      createdAt: t.createdAt ? t.createdAt.toISOString() : new Date().toISOString(),
+      registrationName: null,
+    });
+    return;
+  }
+
+  // Legacy: check tickets table
   const rows = await db
     .select({
       id: tickets.id,
