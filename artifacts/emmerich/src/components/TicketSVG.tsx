@@ -144,7 +144,7 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
         {/* 7 — QR-Code (dezent, nur wenn code vorhanden) */}
         {code && (
           <foreignObject x="754" y="250" width="68" height="68" opacity="0.55">
-            <div xmlns="http://www.w3.org/1999/xhtml" style={{ lineHeight: 0, fontSize: 0 }}>
+            <div style={{ lineHeight: 0, fontSize: 0 }}>
               <QRCodeCanvas value={code} size={68} bgColor="#0A0704" fgColor="#E8991A" level="H" />
             </div>
           </foreignObject>

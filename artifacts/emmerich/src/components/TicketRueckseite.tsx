@@ -21,7 +21,7 @@ export default function TicketRueckseite() {
       </text>
 
       <foreignObject x="32" y="60" width="580" height="56">
-        <body xmlns="http://www.w3.org/1999/xhtml" style={{ margin: 0, padding: 0 }}>
+        <body style={{ margin: 0, padding: 0 }}>
           <p style={{
             fontFamily: "'Lora', Georgia, serif",
             fontSize: "12px",
