@@ -24,7 +24,7 @@ function createGmailTransport() {
 export async function sendDailyReport(html: string, text: string): Promise<void> {
   const transport = createGmailTransport();
   if (!transport) {
-    console.warn("[Mailer] GMAIL_APP_PASSWORD nicht gesetzt — E-Mail übersprungen");
+    logger.warn("GMAIL_APP_PASSWORD nicht gesetzt — Tagesbericht übersprungen");
     return;
   }
   await transport.sendMail({
@@ -34,7 +34,7 @@ export async function sendDailyReport(html: string, text: string): Promise<void>
     text,
     html,
   });
-  console.info("[Mailer] Tagesbericht versendet an", GMAIL_RECIPIENT);
+  logger.info({ to: GMAIL_RECIPIENT }, "Tagesbericht versendet");
 }
 
 // ─── Resend (Bestätigungsmail nach Anmeldung) ─────────────────────────────────
@@ -207,7 +207,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     throw new Error(`Resend-Fehler: ${JSON.stringify(error)}`);
   }
 
-  console.info("[Mailer] Bestätigungsmail versendet an", opts.to);
+  logger.info({ to: opts.to }, "Bestätigungsmail versendet");
 }
 
 // ─── Ticket-Mail (Download-Links statt Anhänge) ───────────────────────────────
@@ -333,5 +333,5 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     throw new Error(`Resend-Fehler: ${JSON.stringify(error)}`);
   }
 
-  console.info("[Mailer] Ticket-Mail versendet an", opts.to);
+  logger.info({ to: opts.to }, "Ticket-Mail versendet");
 }
