@@ -2,6 +2,8 @@ import { useReveal } from "@/hooks/useReveal";
 import {
   useGetInteressentenCount,
   useGetAnmeldungStats,
+  getGetInteressentenCountQueryKey,
+  getGetAnmeldungStatsQueryKey,
 } from "@workspace/api-client-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -13,8 +15,12 @@ function navigateTo(path: string) {
 
 export default function Phase2Aufruf() {
   const ref = useReveal();
-  const { data: interesData } = useGetInteressentenCount();
-  const { data: statsData } = useGetAnmeldungStats();
+  const { data: interesData } = useGetInteressentenCount({
+    query: { queryKey: getGetInteressentenCountQueryKey(), refetchInterval: 60000 },
+  });
+  const { data: statsData } = useGetAnmeldungStats({
+    query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 60000 },
+  });
 
   const count = interesData?.count ?? null;
   const angemeldete = statsData?.angemeldete_personen ?? null;
