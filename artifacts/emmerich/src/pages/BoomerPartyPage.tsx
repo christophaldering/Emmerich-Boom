@@ -14,6 +14,8 @@ import SiteFooter from "@/components/SiteFooter";
 import StimmungsBild from "@/components/StimmungsBild";
 import AnmeldeAufruf from "@/components/AnmeldeAufruf";
 import Phase2Aufruf from "@/components/Phase2Aufruf";
+import Formular from "@/components/Formular";
+import TicketsTeaser from "@/components/TicketsTeaser";
 
 export default function BoomerPartyPage() {
   return (
@@ -27,6 +29,8 @@ export default function BoomerPartyPage() {
       <StimmungsBild />
       <Fakten />
       <Countdown />
+      <TicketsTeaser />
+      <Formular />
       <Playlist />
       <KaI refreshSignal={0} />
       <BoomerClub />
