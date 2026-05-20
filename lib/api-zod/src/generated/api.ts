@@ -32,7 +32,7 @@ export const SubmitAnmeldungBody = zod.object({
     .min(1)
     .max(submitAnmeldungBodyPersonenAnzahlMax),
   personen: zod.array(zod.string().min(submitAnmeldungBodyPersonenItemMin)),
-  bezahlweg: zod.enum(["ueberweisung", "paypal"]),
+  bezahlweg: zod.enum(["ueberweisung", "paypal"]).optional(),
   song: zod.string().nullish(),
   statement: zod.string().max(submitAnmeldungBodyStatementMax).nullish(),
   verbindlich: zod.boolean().describe("Muss true sein"),

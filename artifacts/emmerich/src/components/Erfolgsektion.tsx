@@ -4,18 +4,11 @@ import TicketRueckseite from "@/components/TicketRueckseite";
 
 interface ErfolgsektionProps {
   anzahl: number;
-  bezahlweg: string;
   personen: string[];
   ticket_nummern: number[];
 }
 
-const BEZAHLWEG_LABEL: Record<string, string> = {
-  ueberweisung: "Überweisung",
-  paypal: "PayPal",
-  bar: "Bar",
-};
-
-export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_nummern }: ErfolgsektionProps) {
+export default function Erfolgsektion({ anzahl, personen, ticket_nummern }: ErfolgsektionProps) {
   const betrag = anzahl * PHASE2_CONFIG.PREIS_PRO_PERSON;
 
   return (
@@ -77,7 +70,6 @@ export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_numm
         }}
       >
         {anzahl} {anzahl === 1 ? "Person" : "Personen"} ·{" "}
-        {BEZAHLWEG_LABEL[bezahlweg] ?? bezahlweg} ·{" "}
         <strong style={{ color: "var(--amber)" }}>{betrag} €</strong> gesamt
       </p>
 
@@ -105,34 +97,12 @@ export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_numm
         ))}
       </div>
 
-      {/* Zahlungsinfos */}
-      {bezahlweg === "ueberweisung" && (
-        <div className="erfolg-block">
-          <span className="erfolg-label">Überweisung</span>
-          <p style={{ margin: 0 }}>
-            <strong>Kontoinhaber:</strong> {PHASE2_CONFIG.KONTOINHABER}<br />
-            <strong>IBAN:</strong> {PHASE2_CONFIG.IBAN}<br />
-            <strong>Bank:</strong> {PHASE2_CONFIG.BANK}<br />
-            <strong>Verwendungszweck:</strong> {PHASE2_CONFIG.VERWENDUNGSZWECK_VORLAGE}
-          </p>
-          <p style={{ marginTop: "1rem", marginBottom: 0, color: "var(--fg-70)", fontStyle: "italic" }}>
-            Bitte bis spätestens {PHASE2_CONFIG.ANMELDEFRIST}.
-          </p>
-        </div>
-      )}
-
-      {bezahlweg === "paypal" && (
-        <div className="erfolg-block">
-          <span className="erfolg-label">PayPal</span>
-          <p style={{ margin: 0 }}>
-            <strong>PayPal an:</strong> {PHASE2_CONFIG.PAYPAL_LINK}<br />
-            <strong>Verwendungszweck:</strong> {PHASE2_CONFIG.VERWENDUNGSZWECK_VORLAGE}
-          </p>
-          <p style={{ marginTop: "1rem", marginBottom: 0, color: "var(--fg-70)", fontStyle: "italic" }}>
-            Bitte bis spätestens {PHASE2_CONFIG.ANMELDEFRIST}.
-          </p>
-        </div>
-      )}
+      {/* Zahlungshinweis */}
+      <div className="erfolg-block">
+        <p style={{ margin: 0 }}>
+          Geschafft — deine Anmeldung ist da! Du kannst deinen Beitrag bequem per Banküberweisung oder PayPal zahlen. Die genauen Zahlungsdaten haben wir dir gerade per E-Mail geschickt — schau gleich mal in dein Postfach (und sicherheitshalber in den Spam-Ordner).
+        </p>
+      </div>
 
       {/* Hinweis */}
       <p
@@ -145,8 +115,7 @@ export default function Erfolgsektion({ anzahl, bezahlweg, personen, ticket_numm
           marginTop: "2rem",
         }}
       >
-        Eure Tickets schicken wir euch nochmal per Mail — als PDF zum Ausdrucken oder fürs Handy.
-        Bringt sie am 18. Juli mit, ein Ticket pro Person.
+        Bringt eure Tickets am 18. Juli mit, ein Ticket pro Person.
         Bei Fragen:{" "}
         <span style={{ color: "var(--fg-70)" }}>{PHASE2_CONFIG.KONTAKT_MAIL}</span>
       </p>

@@ -3,7 +3,7 @@ import { PHASE2_CONFIG } from "@/config/phase2";
 import { useSubmitAnmeldung } from "@workspace/api-client-react";
 
 interface AnmeldeformularProps {
-  onSuccess: (data: { anzahl: number; bezahlweg: string; personen: string[]; ticket_nummern: number[] }) => void;
+  onSuccess: (data: { anzahl: number; personen: string[]; ticket_nummern: number[] }) => void;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -41,7 +41,6 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
   const [personen, setPersonen_]      = useState<string[]>([""]);
   const [email, setEmail]             = useState("");
   const [telefon, setTelefon]         = useState("");
-  const [bezahlweg, setBezahlweg]     = useState<"ueberweisung" | "paypal">("ueberweisung");
   const [song, setSong]               = useState("");
   const [statement, setStatement]     = useState("");
   const [verbindlich, setVerbindlich] = useState(false);
@@ -80,7 +79,6 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
           telefon:         telefon.trim() || null,
           personen_anzahl: personenAnzahl,
           personen:        personen.map((p) => p.trim()),
-          bezahlweg,
           song:            song.trim() || null,
           statement:       statement.trim() || null,
           verbindlich:     true,
@@ -90,7 +88,6 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
         onSuccess: (responseData) => {
           onSuccess({
             anzahl:          personenAnzahl,
-            bezahlweg,
             personen:        personen.map((p) => p.trim()),
             ticket_nummern:  responseData.ticket_nummern ?? [],
           });
@@ -232,26 +229,6 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
               style={inputStyle}
             />
             <p style={hintStyle}>Falls am 18. Juli was Kurzfristiges ist.</p>
-          </div>
-
-          {/* Bezahlweg */}
-          <div>
-            <label style={{ ...labelStyle, marginBottom: "0.8rem" }}>Wie wollt ihr zahlen?</label>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-              {(["ueberweisung", "paypal"] as const).map((opt) => (
-                <label key={opt} className="af-radio-label">
-                  <input
-                    type="radio"
-                    name="bezahlweg"
-                    value={opt}
-                    checked={bezahlweg === opt}
-                    onChange={() => setBezahlweg(opt)}
-                  />
-                  {opt === "ueberweisung" && "Überweisung"}
-                  {opt === "paypal" && "PayPal"}
-                </label>
-              ))}
-            </div>
           </div>
 
           {/* Song */}

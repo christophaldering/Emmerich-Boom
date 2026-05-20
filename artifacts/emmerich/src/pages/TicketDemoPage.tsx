@@ -18,7 +18,6 @@ export default function TicketDemoPage() {
 
       <Erfolgsektion
         anzahl={3}
-        bezahlweg="ueberweisung"
         personen={["Christoph Aldering", "Erika Mustermann", "Hans-Werner Böhm"]}
         ticket_nummern={[1, 2, 3]}
       />

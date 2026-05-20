@@ -56,13 +56,12 @@ function AnmeldungDemnächst() {
 export default function AnmeldungPage() {
   const [erfolg, setErfolg] = useState<{
     anzahl: number;
-    bezahlweg: string;
     personen: string[];
     ticket_nummern: number[];
   } | null>(null);
   const erfolgsRef = useRef<HTMLDivElement>(null);
 
-  const handleSuccess = (data: { anzahl: number; bezahlweg: string; personen: string[]; ticket_nummern: number[] }) => {
+  const handleSuccess = (data: { anzahl: number; personen: string[]; ticket_nummern: number[] }) => {
     setErfolg(data);
     setTimeout(() => {
       erfolgsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -85,7 +84,6 @@ export default function AnmeldungPage() {
             <div ref={erfolgsRef}>
               <Erfolgsektion
                 anzahl={erfolg.anzahl}
-                bezahlweg={erfolg.bezahlweg}
                 personen={erfolg.personen}
                 ticket_nummern={erfolg.ticket_nummern}
               />

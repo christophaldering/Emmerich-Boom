@@ -17,7 +17,7 @@ export interface AnmeldungInput {
    */
   personen_anzahl: number;
   personen: string[];
-  bezahlweg: AnmeldungInputBezahlweg;
+  bezahlweg?: AnmeldungInputBezahlweg;
   /** @nullable */
   song?: string | null;
   /**

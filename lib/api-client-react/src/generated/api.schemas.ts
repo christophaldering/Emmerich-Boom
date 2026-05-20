@@ -15,7 +15,6 @@ export type AnmeldungInputBezahlweg =
 export const AnmeldungInputBezahlweg = {
   ueberweisung: "ueberweisung",
   paypal: "paypal",
-  bar: "bar",
 } as const;
 
 export interface AnmeldungInput {
@@ -28,7 +27,7 @@ export interface AnmeldungInput {
    */
   personen_anzahl: number;
   personen: string[];
-  bezahlweg: AnmeldungInputBezahlweg;
+  bezahlweg?: AnmeldungInputBezahlweg;
   /** @nullable */
   song?: string | null;
   /**
