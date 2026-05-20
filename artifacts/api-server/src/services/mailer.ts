@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { SERVER_CONFIG } from "../config.js";
@@ -62,7 +64,18 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const POSTER_URL = "https://www.emmerich-boomt.de/images/boomerpartyposter.jpeg";
+const POSTER_CID = "boomerpartyposter";
+
+function loadPosterBuffer(): Buffer {
+  const assetPath = fileURLToPath(new URL("../assets/boomerpartyposter.jpeg", import.meta.url));
+  return readFileSync(assetPath);
+}
+
+let _posterBuffer: Buffer | null = null;
+function getPosterBuffer(): Buffer {
+  if (!_posterBuffer) _posterBuffer = loadPosterBuffer();
+  return _posterBuffer;
+}
 
 export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -78,7 +91,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
 <div style="max-width:600px;margin:0 auto;">
 
-  <img src="${POSTER_URL}" alt="BoomerParty — Emmerich boomt!" width="600"
+  <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
     style="display:block;width:100%;max-height:300px;object-fit:cover;object-position:center top;" />
 
   <div style="padding:40px 32px 48px;">
@@ -179,6 +192,14 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     subject: "Sch\u00f6n, dass du dabei bist \u2013 nur noch ein kleiner Schritt \ud83c\udf89",
     html,
     text,
+    attachments: [
+      {
+        filename:    "boomerpartyposter.jpeg",
+        content:     getPosterBuffer(),
+        contentType: "image/jpeg",
+        contentId:   POSTER_CID,
+      },
+    ],
   });
 
   if (error) {
