@@ -131,8 +131,7 @@ function Aussen() {
 
         <div className="p-body" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.5rem, 1.15vw, 0.85rem)", color: FG, lineHeight: 1.75, opacity: 0.88 }}>
           <p style={{ margin: "0 0 0.7em" }}>
-            Rund <strong style={{ color: A }}>130 Leute</strong> aus Emmerich und Umgebung sind dabei.
-            Manche kommen zu den gemütlichen Treffen — die finden alle vier bis sechs Monate statt, etwa dreimal im Jahr.
+            Emmericher und Umgebung — manche kommen zu den gemütlichen Treffen, die alle vier bis sechs Monate stattfinden.
           </p>
           <p style={{ margin: 0 }}>
             Andere verfolgen einfach, was so passiert — direkt über WhatsApp. Beides ist vollkommen richtig. Passt doch.

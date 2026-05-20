@@ -190,7 +190,7 @@ export default function FlyerPrintPage() {
             </div>
             <div style={{ fontFamily: "Lora, Georgia, serif", fontSize: 10.5, color: "#1a0e04", lineHeight: 1.7 }}>
               <p style={{ margin: "0 0 8px" }}>
-                Rund <strong style={{ color: A2 }}>130 Leute</strong> aus Emmerich und Umgebung sind dabei. Manche kommen zu den gemütlichen Treffen — alle vier bis sechs Monate, etwa dreimal im Jahr.
+                Emmericher und Umgebung — manche kommen zu den gemütlichen Treffen, alle vier bis sechs Monate, etwa dreimal im Jahr.
               </p>
               <p style={{ margin: 0 }}>
                 Andere verfolgen einfach, was so passiert — direkt über WhatsApp. Beides ist vollkommen richtig. Passt doch.
