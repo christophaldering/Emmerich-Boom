@@ -62,51 +62,7 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function buildBezahlBlock(bezahlweg: "ueberweisung" | "paypal", hauptname: string): { html: string; text: string } {
-  const vz = `Boomerparty + ${hauptname}`;
-
-  if (bezahlweg === "ueberweisung") {
-    return {
-      html: `
-<div style="margin:24px 0;padding:16px 20px;border:1px solid #e8991a;border-radius:4px;background:#120c04;">
-  <p style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#e8991a;">Bitte überweist bis spätestens ${ANMELDEFRIST}:</p>
-  <table style="border-collapse:collapse;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">
-    <tr><td style="padding:3px 16px 3px 0;opacity:.6;">Kontoinhaber</td><td>${escHtml(KONTOINHABER)}</td></tr>
-    <tr><td style="padding:3px 16px 3px 0;opacity:.6;">IBAN</td><td><span style="font-family:Courier,Menlo,monospace;letter-spacing:.05em;">${escHtml(IBAN)}</span></td></tr>
-    <tr><td style="padding:3px 16px 3px 0;opacity:.6;">Bank</td><td>${escHtml(BANK)}</td></tr>
-    <tr><td style="padding:3px 16px 3px 0;opacity:.6;">Verwendungszweck</td><td><span style="font-family:Courier,Menlo,monospace;">${escHtml(vz)}</span></td></tr>
-  </table>
-</div>`,
-      text: `Bitte überweist bis spätestens ${ANMELDEFRIST}:\n\nKontoinhaber: ${KONTOINHABER}\nIBAN: ${IBAN}\nBank: ${BANK}\nVerwendungszweck: ${vz}`,
-    };
-  }
-
-  if (bezahlweg === "paypal") {
-    return {
-      html: `
-<div style="margin:24px 0;padding:16px 20px;border:1px solid #e8991a;border-radius:4px;background:#120c04;">
-  <p style="margin:0 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#e8991a;">Bitte sendet bis spätestens ${ANMELDEFRIST}:</p>
-  <table style="border-collapse:collapse;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">
-    <tr><td style="padding:3px 16px 3px 0;opacity:.6;">PayPal-Link</td><td><a href="${escHtml(PAYPAL_LINK)}" style="color:#e8991a;font-family:Courier,Menlo,monospace;">${escHtml(PAYPAL_LINK)}</a></td></tr>
-    <tr><td style="padding:3px 16px 3px 0;opacity:.6;">Verwendungszweck</td><td><span style="font-family:Courier,Menlo,monospace;">${escHtml(vz)}</span></td></tr>
-  </table>
-</div>`,
-      text: `Bitte sendet bis spätestens ${ANMELDEFRIST}:\n\nPayPal-Link: ${PAYPAL_LINK}\nVerwendungszweck: ${vz}`,
-    };
-  }
-
-  return {
-    html: ``,
-    text: ``,
-  };
-}
-
-function buildTicketHinweis(bezahlweg: "ueberweisung" | "paypal"): { html: string; text: string } {
-  return {
-    html: `<p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.65);line-height:1.7;">Eure Tickets schicken wir euch im Juli per Mail — als PDF zum Ausdrucken oder fürs Handy.</p>`,
-    text: "Eure Tickets schicken wir euch im Juli per Mail — als PDF zum Ausdrucken oder fürs Handy.",
-  };
-}
+const POSTER_URL = "https://www.emmerich-boomt.de/images/boomerpartyposter.jpeg";
 
 export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
@@ -115,80 +71,112 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
   }
 
   const resend = new Resend(apiKey);
-  const hauptname = opts.personen[0] ?? "Unbekannt";
-  const bezahlBlock = buildBezahlBlock(opts.bezahlweg, hauptname);
-  const ticketHinweis = buildTicketHinweis(opts.bezahlweg);
-
-  const personenListeHtml = opts.personen
-    .map(p => `<li style="padding:2px 0;font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;">${escHtml(p)}</li>`)
-    .join("");
-
-  const personenListeText = opts.personen.map(p => `- ${p}`).join("\n");
 
   const html = `<!DOCTYPE html>
 <html lang="de">
-<head><meta charset="utf-8"><title>Boomerparty — Anmeldung</title></head>
+<head><meta charset="utf-8"><title>Emmerich boomt! — Anmeldung</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
-<div style="max-width:600px;margin:0 auto;padding:40px 24px;">
+<div style="max-width:600px;margin:0 auto;">
 
-  <div style="margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid rgba(232,153,26,.25);">
-    <p style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#e8991a;">EMMERICH BOOMT!</p>
-    <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:bold;color:#f5e8c8;line-height:1.2;">Wir haben euch.</h1>
+  <img src="${POSTER_URL}" alt="BoomerParty — Emmerich boomt!" width="600"
+    style="display:block;width:100%;max-height:300px;object-fit:cover;object-position:center top;" />
+
+  <div style="padding:40px 32px 48px;">
+
+    <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
+      Schön, dass du dabei bist!
+    </h1>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Deine Anmeldung für \u201eEmmerich boomt!\u201c ist angekommen \u2013 wir freuen uns drauf. Damit dein Platz fix ist, fehlt nur noch eins: der Beitrag von 10&nbsp;\u20ac pro Person.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      Und jetzt kommt der Teil, bei dem wir uns selbst ein bisschen an die eigene Nase fassen: Wir wissen alle, wie das l\u00e4uft. Man nimmt sich vor, das \u201esp\u00e4ter\u201c zu machen \u2013 und dann kommt das Leben dazwischen, das Telefon klingelt, der Garten ruft, und schwupp ist die Woche rum. Drum, ganz im Geiste unserer Generation: Was man heute kann besorgen, das verschiebe nicht auf morgen. \u{1F609}
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      Am einfachsten gleich jetzt, solange du diese Mail noch offen hast:
+    </p>
+
+    <div style="margin:0 0 20px;padding:20px 24px;border:1px solid rgba(232,153,26,.4);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#e8991a;margin:0 0 14px;">Per \u00dcberweisung</p>
+      <table style="border-collapse:collapse;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;line-height:1.7;">
+        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;">Empf\u00e4nger</td><td>${escHtml(KONTOINHABER)}</td></tr>
+        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;">IBAN</td><td><span style="font-family:Courier,Menlo,monospace;letter-spacing:.04em;">${escHtml(IBAN)}</span></td></tr>
+        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;">Betrag</td><td>10&nbsp;\u20ac pro angemeldeter Person (also z.&nbsp;B. 30&nbsp;\u20ac f\u00fcr drei Personen)</td></tr>
+        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;vertical-align:top;">Verwendungszweck</td><td>Emmerich boomt + dein Name<br><span style="font-size:13px;color:rgba(245,232,200,.55);">(z.&nbsp;B. \u201eEmmerich boomt \u2013 Maria Mustermann, 3 Personen\u201c)</span></td></tr>
+      </table>
+    </div>
+
+    <div style="margin:0 0 32px;padding:20px 24px;border:1px solid rgba(232,153,26,.4);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#e8991a;margin:0 0 10px;">Oder per PayPal</p>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.9);margin:0 0 8px;line-height:1.6;">
+        Ganz bequem in unseren Sammel-Pool:<br>
+        <a href="${escHtml(PAYPAL_LINK)}" style="color:#e8991a;font-family:Courier,Menlo,monospace;font-size:13px;word-break:break-all;">${escHtml(PAYPAL_LINK)}</a>
+      </p>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(245,232,200,.55);margin:0;line-height:1.6;">
+        (Bitte 10&nbsp;\u20ac pro Person eintragen \u2013 bei drei Personen also 30&nbsp;\u20ac.)
+      </p>
+    </div>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Sobald dein Beitrag da ist, bekommst du von uns die Best\u00e4tigung mit deinem Ticket. Dann ist alles in trockenen T\u00fcchern und du musst an nichts mehr denken.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 32px;">
+      Bei Fragen \u2013 einfach auf diese Mail antworten.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:rgba(245,232,200,.8);line-height:1.8;margin:0;">
+      Bis bald auf dem B\u00f6lt,<br>
+      Christoph Aldering f\u00fcr das Orga-Team \u201eEmmerich boomt!\u201c
+    </p>
+
+    <div style="margin-top:40px;padding-top:20px;border-top:1px solid rgba(232,153,26,.15);text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:rgba(245,232,200,.35);">
+      <a href="https://www.emmerich-boomt.de" style="color:rgba(232,153,26,.5);text-decoration:none;">emmerich-boomt.de</a>
+    </div>
+
   </div>
-
-  <p style="font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.7;color:#f5e8c8;margin:0 0 20px;">Hallo ${escHtml(hauptname)},</p>
-  <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.7;color:rgba(245,232,200,.85);margin:0 0 24px;">danke! Wir haben eure Anmeldung für die Boomerparty.</p>
-
-  <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#e8991a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;">${opts.personen_anzahl} ${opts.personen_anzahl === 1 ? "Person" : "Person(en)"} angemeldet:</p>
-  <ul style="margin:0 0 8px;padding-left:20px;">
-    ${personenListeHtml}
-  </ul>
-  <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;margin:0 0 24px;">Macht zusammen <strong style="color:#e8991a;">${opts.betrag_gesamt}&nbsp;€</strong>.</p>
-
-  ${bezahlBlock.html}
-
-  ${ticketHinweis.html}
-
-  <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.55);line-height:1.7;margin:24px 0 0;font-style:italic;">Bei Fragen einfach auf diese Mail antworten.</p>
-
-  <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:rgba(245,232,200,.8);line-height:1.8;margin:28px 0 0;">Bis bald!<br><br>Christoph, Farzin &amp; Revse<br><span style="font-size:13px;color:rgba(245,232,200,.45);">— Orga BoomerParty 2026 —</span></p>
-
-  <div style="margin-top:40px;padding-top:20px;border-top:1px solid rgba(232,153,26,.15);text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:rgba(245,232,200,.35);">
-    <a href="https://www.emmerich-boomt.de" style="color:#e8991a;text-decoration:none;">emmerich-boomt.de</a>
-  </div>
-
 </div>
 </body>
 </html>`;
 
   const text = [
-    `Hallo ${hauptname},`,
+    "Sch\u00f6n, dass du dabei bist!",
     "",
-    "danke! Wir haben eure Anmeldung für die Boomerparty.",
+    "Deine Anmeldung f\u00fcr \u201eEmmerich boomt!\u201c ist angekommen \u2013 wir freuen uns drauf. Damit dein Platz fix ist, fehlt nur noch eins: der Beitrag von 10 \u20ac pro Person.",
     "",
-    `${opts.personen_anzahl} Person(en) angemeldet:`,
-    personenListeText,
+    "Und jetzt kommt der Teil, bei dem wir uns selbst ein bisschen an die eigene Nase fassen: Wir wissen alle, wie das l\u00e4uft. Man nimmt sich vor, das \u201esp\u00e4ter\u201c zu machen \u2013 und dann kommt das Leben dazwischen, das Telefon klingelt, der Garten ruft, und schwupp ist die Woche rum. Drum, ganz im Geiste unserer Generation: Was man heute kann besorgen, das verschiebe nicht auf morgen. \ud83d\ude09",
     "",
-    `Macht zusammen ${opts.betrag_gesamt} €.`,
+    "Am einfachsten gleich jetzt, solange du diese Mail noch offen hast:",
     "",
-    bezahlBlock.text,
+    "── Per \u00dcberweisung ──",
+    `Empf\u00e4nger: ${KONTOINHABER}`,
+    `IBAN: ${IBAN}`,
+    "Betrag: 10 \u20ac pro angemeldeter Person (also z. B. 30 \u20ac f\u00fcr drei Personen)",
+    "Verwendungszweck: Emmerich boomt + dein Name (z. B. \u201eEmmerich boomt \u2013 Maria Mustermann, 3 Personen\u201c)",
     "",
-    ticketHinweis.text,
+    "── Oder per PayPal ──",
+    "Ganz bequem in unseren Sammel-Pool:",
+    PAYPAL_LINK,
+    "(Bitte 10 \u20ac pro Person eintragen \u2013 bei drei Personen also 30 \u20ac.)",
     "",
-    "Bei Fragen einfach auf diese Mail antworten.",
+    "Sobald dein Beitrag da ist, bekommst du von uns die Best\u00e4tigung mit deinem Ticket. Dann ist alles in trockenen T\u00fcchern und du musst an nichts mehr denken.",
     "",
-    "Bis bald!",
+    "Bei Fragen \u2013 einfach auf diese Mail antworten.",
     "",
-    "Christoph, Farzin & Revse",
-    "— Orga BoomerParty 2026 —",
+    "Bis bald auf dem B\u00f6lt,",
+    "Christoph Aldering f\u00fcr das Orga-Team \u201eEmmerich boomt!\u201c",
+    "",
     "emmerich-boomt.de",
   ].join("\n");
 
   const { error } = await resend.emails.send({
-    from:     `${ABSENDER_NAME} <${ABSENDER_MAIL}>`,
-    to:       [opts.to],
-    replyTo:  ABSENDER_MAIL,
-    subject:  "Wir haben euch — Boomerparty 18. Juli",
+    from:    `${ABSENDER_NAME} <${ABSENDER_MAIL}>`,
+    to:      [opts.to],
+    replyTo: ABSENDER_MAIL,
+    subject: "Sch\u00f6n, dass du dabei bist \u2013 nur noch ein kleiner Schritt \ud83c\udf89",
     html,
     text,
   });
