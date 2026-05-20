@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { SERVER_CONFIG } from "../config.js";
+import { renderTicketFrontPNG } from "./ticket-render.js";
+import { generateTicketPDF } from "./pdf.js";
 
 // ─── Gmail (täglicher Bericht) ───────────────────────────────────────────────
 
@@ -230,33 +232,40 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     throw new Error("GMAIL_APP_PASSWORD nicht gesetzt — Ticket-Mail kann nicht versendet werden");
   }
 
+  const posterBuffer = getPosterBuffer();
+
+  const pngBuffers = await Promise.all(
+    opts.tickets.map(t =>
+      renderTicketFrontPNG({ name: t.name, nummer: t.nummer, code: t.code, posterBuffer })
+    )
+  );
+
+  const pdfBuffer = await generateTicketPDF(opts.tickets, { posterBuffer });
+
+  const ticketCids = opts.tickets.map(t => {
+    const safe = t.nummer.replace(/[^a-zA-Z0-9]/g, "-");
+    return `ticket-${safe}@emmerich-boomt`;
+  });
+
   const ticketBlocks = opts.tickets
     .map(
-      t => `
-      <div style="
-        background: #1a1108;
-        border: 1px solid #c47a0e;
-        border-left: 4px solid #e8991a;
-        border-radius: 0 6px 6px 0;
-        padding: 1.2rem 1.5rem;
-        margin-bottom: 1rem;
-        font-family: Georgia, 'Times New Roman', serif;
-      ">
-        <div style="font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: #e8991a; margin-bottom: 0.5rem;">
-          Ticket ${t.nummer}
-        </div>
-        <div style="font-size: 1.3rem; font-weight: bold; color: #f5e8c8; margin-bottom: 0.3rem;">
-          ${escHtml(t.name)}
-        </div>
-        <div style="font-size: 0.88rem; color: rgba(245,232,200,0.7); margin-bottom: 0.8rem;">
-          18. Juli 2026 · Beginn 20:00 Uhr<br>
-          Bölt / Kapaunenberg · Emmerich am Rhein
-        </div>
-        <div style="font-family: monospace; font-size: 1rem; letter-spacing: 0.15em; color: #e8991a; background: rgba(232,153,26,0.08); padding: 0.5rem 0.8rem; border-radius: 4px; display: inline-block;">
-          ${t.code}
-        </div>
-        <div style="font-size: 0.78rem; color: rgba(245,232,200,0.5); margin-top: 0.4rem; font-style: italic;">
-          Bitte diesen Code am Einlass vorzeigen
+      (t, i) => `
+      <div style="margin-bottom:1.5rem;">
+        <img src="cid:${ticketCids[i]}"
+          alt="Ticket ${escHtml(t.nummer)} — ${escHtml(t.name)}"
+          width="560"
+          style="display:block;width:100%;height:auto;border-radius:4px;" />
+        <div style="
+          margin-top:0.5rem;
+          padding:0.6rem 1rem;
+          background:#1a1108;
+          border-left:3px solid #e8991a;
+          font-family:Georgia,'Times New Roman',serif;
+          font-size:0.82rem;
+          color:rgba(245,232,200,0.6);
+        ">
+          Ticket ${escHtml(t.nummer)} · ${escHtml(t.name)} ·
+          Code: <span style="font-family:monospace;color:#e8991a;letter-spacing:0.1em;">${escHtml(t.code)}</span>
         </div>
       </div>`,
     )
@@ -271,13 +280,13 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 
     <div style="text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,153,26,0.3);">
       <div style="font-size:0.72rem;letter-spacing:0.3em;text-transform:uppercase;color:#e8991a;margin-bottom:0.6rem;">
-        Emmerich am Rhein · 18. Juli 2026
+        Emmerich am Rhein \u00B7 18. Juli 2026
       </div>
       <div style="font-size:2.2rem;font-weight:bold;color:#f5e8c8;line-height:1.2;">
         EMMERICH BOOMT!
       </div>
       <div style="font-size:0.95rem;color:rgba(245,232,200,0.65);margin-top:0.4rem;">
-        BoomerParty · Bölt / Kapaunenberg
+        BoomerParty \u00B7 B\u00F6lt / Kapaunenberg
       </div>
     </div>
 
@@ -285,20 +294,20 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
       ${mehrere ? "Eure Tickets sind da." : "Dein Ticket ist da."}
     </p>
     <p style="font-size:0.92rem;line-height:1.7;color:rgba(245,232,200,0.65);margin-bottom:1.8rem;">
-      ${opts.tickets.length} ${opts.tickets.length === 1 ? "Person" : "Personen"} ·
-      ${BEZAHLWEG_LABEL[opts.bezahlweg] ?? opts.bezahlweg} ·
-      ${opts.betrag} € gesamt
+      ${opts.tickets.length} ${opts.tickets.length === 1 ? "Person" : "Personen"} \u00B7
+      ${BEZAHLWEG_LABEL[opts.bezahlweg] ?? opts.bezahlweg} \u00B7
+      ${opts.betrag} \u20AC gesamt
     </p>
 
     ${ticketBlocks}
 
-    <p style="font-size:0.85rem;line-height:1.7;color:rgba(245,232,200,0.55);margin-top:2rem;font-style:italic;">
-      Bitte den Ticket-Code am Einlass vorzeigen — entweder auf dem Handy
-      oder ausgedruckt. Jedes Ticket gilt für genau eine Person.
+    <p style="font-size:0.85rem;line-height:1.7;color:rgba(245,232,200,0.55);margin-top:1.5rem;font-style:italic;">
+      Das druckbare PDF mit ${mehrere ? "allen Tickets" : "deinem Ticket"} (Vorder- und R\u00FCckseite) findest du im Anhang.
+      Jedes Ticket gilt f\u00FCr genau eine Person.
     </p>
 
     <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid rgba(232,153,26,0.2);font-size:0.82rem;color:rgba(245,232,200,0.4);text-align:center;">
-      EMMERICH BOOMT! · 18. Juli 2026 · Emmerich am Rhein<br>
+      EMMERICH BOOMT! \u00B7 18. Juli 2026 \u00B7 Emmerich am Rhein<br>
       <a href="https://www.emmerich-boomt.de" style="color:rgba(232,153,26,0.6);text-decoration:none;">www.emmerich-boomt.de</a>
     </div>
   </div>
@@ -306,22 +315,38 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 </html>`;
 
   const ticketText = [
-    "EMMERICH BOOMT! — Eure Tickets",
-    "18. Juli 2026 · Beginn 20:00 Uhr · Bölt / Kapaunenberg · Emmerich am Rhein",
+    "EMMERICH BOOMT! \u2014 Eure Tickets",
+    "18. Juli 2026 \u00B7 Beginn 20:00 Uhr \u00B7 B\u00F6lt / Kapaunenberg \u00B7 Emmerich am Rhein",
     "",
     ...opts.tickets.map(
-      t => `Ticket ${t.nummer} — ${t.name}\nCode: ${t.code}`,
+      t => `Ticket ${t.nummer} \u2014 ${t.name}\nCode: ${t.code}`,
     ),
     "",
+    "Das druckbare PDF mit Vorder- und R\u00FCckseite findest du im Anhang.",
     "Bitte den Code am Einlass vorzeigen.",
   ].join("\n");
+
+  const pngAttachments = opts.tickets.map((t, i) => ({
+    filename:    `Ticket-${t.nummer}-${t.name.replace(/\s+/g, "-")}.png`,
+    content:     pngBuffers[i]!,
+    contentType: "image/png" as const,
+    cid:         ticketCids[i]!,
+  }));
 
   await transport.sendMail({
     from:    `"EMMERICH BOOMT!" <${GMAIL_SENDER}>`,
     to:      opts.to,
-    subject: `${mehrere ? "Eure Tickets" : "Dein Ticket"} — EMMERICH BOOMT! 18. Juli 2026`,
+    subject: `${mehrere ? "Eure Tickets" : "Dein Ticket"} \u2014 EMMERICH BOOMT! 18. Juli 2026`,
     html,
     text:    ticketText,
+    attachments: [
+      ...pngAttachments,
+      {
+        filename:    "Tickets-EMMERICH-BOOMT.pdf",
+        content:     pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ],
   });
 
   console.info("[Mailer] Ticket-Mail versendet an", opts.to);
