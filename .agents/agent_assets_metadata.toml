@@ -12,3 +12,9 @@ id = "2e4Sh13GuD-RH8HiB0JH9"
 uri = "file://muster-ticket.pdf"
 type = "pdf"
 title = "Muster-Ticket (Boomerparty 2026)"
+
+[[outputs]]
+id = "ylMe4et4cGf0XN5rFWjbf"
+uri = "file://plakat-boomerparty-2026.pdf"
+type = "pdf"
+title = "Plakat Boomerparty 2026 (A3)"
