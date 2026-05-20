@@ -1,0 +1,32 @@
+HARDPROMPT — Landingpage mit verbindlicher Anmeldung verbinden
+KONTEXT: Die Anmeldeseite /anmeldung ist fertig und aktiv. Die Landingpage (/) zeigt noch das Interessenten-Formular (Formular.tsx) und verlinkt NICHT auf /anmeldung. Das soll geändert werden. Die Interessensphase ist beendet.
+ABSOLUT VERBOTEN — NICHT ANFASSEN:
+
+Die Playlist (alle 71 Songs) NICHT verändern.
+Die KaI-Zusammenfassung NICHT verändern.
+Die Community-Stimmen / „Bereits gemeldet"-Einträge NICHT verändern.
+Die Zahl „129" (Interesse bekundet) und „82 Anmeldungen" NICHT verändern.
+Den WhatsApp-Bereich, das Druckmaterial (Plakat/Flyer), das Impressum/Datenschutz/Kontakt NICHT verändern.
+Die /anmeldung-Seite selbst NICHT verändern — sie ist fertig.
+Die Bestätigungsmail NICHT anfassen.
+NICHT deployen / NICHT republishen / NICHT live schalten. Änderungen NUR in der Entwicklungs-/Vorschau-Version. Ich schalte selbst frei.
+
+AUFGABE:
+
+Füge auf der Landingpage (/) GANZ OBEN, direkt nach dem Poster und vor allem anderen, einen neuen, deutlich sichtbaren Bereich ein mit:
+
+Überschrift: „Jetzt verbindlich anmelden"
+Kurztext (wortwörtlich): „Die BoomerParty wird konkret. Sichere dir jetzt deinen Platz: 10 € pro Person, Anmeldung bis Ende Juni 2026."
+Einen großen, gut sichtbaren Button mit der Aufschrift „Jetzt anmelden", der auf die Seite /anmeldung führt.
+Gestaltung im bestehenden Stil der Seite (Schwarz/Amber, Playfair Display + Lora). KEINE neuen Farben.
+
+
+Wandle das bisherige Interessenten-Formular (Formular.tsx) um: Das aktive Formular wird ENTFERNT (keine Eingabefelder mehr, nicht absendbar). An seiner Stelle erscheint ein Abschlusstext (wortwörtlich): „Die Interessensphase ist beendet — 129 von euch waren schon dabei. Vielen Dank! Jetzt geht es ans verbindliche Anmelden — oben auf dieser Seite."
+
+Steuere das wenn möglich über PHASE2_CONFIG, sodass es umkehrbar bleibt.
+Die Song-Challenge / Playlist, die darunter oder daneben liegt, bleibt vollständig erhalten und sichtbar.
+
+
+Sonst NICHTS verändern.
+
+ABSCHLUSS: Bestätige am Ende wörtlich: „Neuer Anmelde-Bereich oben eingefügt, Button verlinkt auf /anmeldung. Interessensformular durch Abschlusstext ersetzt. Playlist, KaI, Community, Zahlen, WhatsApp, Impressum unverändert. Nichts deployed/live geschaltet." Und beschreibe mir kurz, wie ich die Änderung in der Vorschau ansehen kann, bevor ich sie selbst freischalte.
