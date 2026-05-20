@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const API = `${BASE}/api`;
@@ -18,6 +20,12 @@ interface TicketInfo {
 export default function TicketPage({ code }: { code: string }) {
   const [ticket, setTicket] = useState<TicketInfo | null>(null);
   const [error, setError] = useState(false);
+  const [pngLoading, setPngLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const captureFrontRef = useRef<HTMLDivElement>(null);
+  const captureBackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`${API}/ticket/${code}`)
@@ -27,6 +35,76 @@ export default function TicketPage({ code }: { code: string }) {
   }, [code]);
 
   const ticketUrl = `${window.location.origin}${BASE}/boomer-orga-intern/ticket/${code}`;
+
+  async function handlePngDownload() {
+    if (!cardRef.current || !ticket) return;
+    setPngLoading(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: "#0a0704",
+      });
+      canvas.toBlob(blob => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ticket-${ticket.ticketCode}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    } finally {
+      setPngLoading(false);
+    }
+  }
+
+  async function handlePdfDownload() {
+    if (!captureFrontRef.current || !captureBackRef.current || !ticket) return;
+    setPdfLoading(true);
+    try {
+      const [frontCanvas, backCanvas] = await Promise.all([
+        html2canvas(captureFrontRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#1a1208",
+        }),
+        html2canvas(captureBackRef.current, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#fffdf8",
+        }),
+      ]);
+
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = 210;
+      const pageH = 297;
+
+      const addCanvasToPage = (canvas: HTMLCanvasElement) => {
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const ratio = canvas.width / canvas.height;
+        const pageRatio = pageW / pageH;
+        let w = pageW;
+        let h = pageH;
+        if (ratio > pageRatio) {
+          h = pageW / ratio;
+        } else {
+          w = pageH * ratio;
+        }
+        const x = (pageW - w) / 2;
+        const y = (pageH - h) / 2;
+        pdf.addImage(imgData, "JPEG", x, y, w, h);
+      };
+
+      addCanvasToPage(frontCanvas);
+      pdf.addPage();
+      addCanvasToPage(backCanvas);
+
+      pdf.save(`ticket-${ticket.ticketCode}.pdf`);
+    } finally {
+      setPdfLoading(false);
+    }
+  }
 
   if (error) {
     return (
@@ -56,12 +134,44 @@ export default function TicketPage({ code }: { code: string }) {
     <>
       {/* ── SCREEN VIEW ── */}
       <div style={styles.wrapper} className="screen-only">
-        <div style={styles.card}>
+        <div ref={cardRef} style={styles.card}>
           <TicketFront ticket={ticket} ticketUrl={ticketUrl} />
         </div>
-        <button onClick={() => window.print()} style={styles.printBtn}>
-          Ticket drucken / als PDF speichern
-        </button>
+
+        <div style={styles.btnRow}>
+          <button
+            onClick={handlePngDownload}
+            disabled={pngLoading}
+            style={styles.printBtn}
+          >
+            {pngLoading ? "Wird erstellt…" : "Als Bild speichern"}
+          </button>
+          <button
+            onClick={handlePdfDownload}
+            disabled={pdfLoading}
+            style={styles.printBtn}
+          >
+            {pdfLoading ? "Wird erstellt…" : "Als PDF speichern"}
+          </button>
+          <button onClick={() => window.print()} style={styles.printBtn}>
+            Ticket drucken
+          </button>
+        </div>
+      </div>
+
+      {/* ── HIDDEN CAPTURE CONTAINERS for PDF (off-screen, in DOM) ── */}
+      <div style={captureContainerStyles.outer} aria-hidden="true">
+        {/* Front – dark background, ticket card centered on A4 */}
+        <div ref={captureFrontRef} style={captureContainerStyles.frontPage}>
+          <div style={captureContainerStyles.frontCard}>
+            <TicketFront ticket={ticket} ticketUrl={ticketUrl} />
+          </div>
+        </div>
+
+        {/* Back – cream background */}
+        <div ref={captureBackRef} style={captureContainerStyles.backPage}>
+          <TicketBack ticket={ticket} />
+        </div>
       </div>
 
       {/* ── PRINT VIEW ── hidden on screen, visible only when printing ── */}
@@ -257,6 +367,12 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: "hidden",
     boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
   },
+  btnRow: {
+    display: "flex",
+    gap: "0.75rem",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
   header: {
     background: "#e8991a",
     padding: "1.5rem 1.5rem 1rem",
@@ -361,6 +477,38 @@ const styles: Record<string, React.CSSProperties> = {
     fontStyle: "italic",
     fontSize: "1rem",
     cursor: "pointer",
+  },
+};
+
+const captureContainerStyles: Record<string, React.CSSProperties> = {
+  outer: {
+    position: "fixed",
+    left: "-9999px",
+    top: 0,
+    pointerEvents: "none",
+    zIndex: -1,
+  },
+  frontPage: {
+    width: "794px",
+    height: "1123px",
+    background: "#1a1208",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  frontCard: {
+    background: "#0a0704",
+    border: "2px solid #e8991a",
+    borderRadius: "8px",
+    width: "560px",
+    overflow: "hidden",
+  },
+  backPage: {
+    width: "794px",
+    height: "1123px",
+    background: "#fffdf8",
+    overflow: "hidden",
   },
 };
 
