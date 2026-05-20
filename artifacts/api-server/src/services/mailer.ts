@@ -81,6 +81,7 @@ function getPosterBuffer(): Buffer {
 export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
+    logger.error({ to: opts.to }, "RESEND_API_KEY nicht gesetzt — Bestätigungsmail kann nicht versendet werden");
     throw new Error("RESEND_API_KEY nicht gesetzt");
   }
 
@@ -229,6 +230,7 @@ interface TicketMailOptions {
 export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
+    logger.error({ to: opts.to }, "RESEND_API_KEY nicht gesetzt — Ticket-Mail kann nicht versendet werden");
     throw new Error("RESEND_API_KEY nicht gesetzt — Ticket-Mail kann nicht versendet werden");
   }
 
