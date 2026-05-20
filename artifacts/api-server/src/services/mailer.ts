@@ -92,7 +92,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
 <div style="max-width:600px;margin:0 auto;">
 
   <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
-    style="display:block;width:100%;max-height:300px;object-fit:cover;object-position:center top;" />
+    style="display:block;width:100%;height:auto;" />
 
   <div style="padding:40px 32px 48px;">
 
