@@ -46,7 +46,7 @@ export default function Poster() {
           objectFit: "contain",
           objectPosition: "center center",
           display: "block",
-          background: "var(--bg-page)",
+          background: "#2a1a06",
           cursor: "pointer",
         }}
       />
