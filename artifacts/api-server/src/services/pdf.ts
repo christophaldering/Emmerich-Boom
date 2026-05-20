@@ -46,6 +46,25 @@ let _loraBuffer: Buffer | null = null;
 let _playfairBuffer: Buffer | null = null;
 function getLoraBuffer(): Buffer    { return (_loraBuffer    ??= findFontBuffer("Lora.ttf")); }
 function getPlayfairBuffer(): Buffer { return (_playfairBuffer ??= findFontBuffer("PlayfairDisplay.ttf")); }
+// No separate Bold TTF — register same face; synthetic bold via fill+stroke (see boldHeading)
+function getPlayfairBoldBuffer(): Buffer { return getPlayfairBuffer(); }
+
+/** Draw text with fill+stroke (PDF text rendering mode 2) for synthetic bold. */
+function boldHeading(
+  doc: InstanceType<typeof PDFDocument>,
+  text: string,
+  x: number,
+  y: number,
+  opts: Record<string, unknown> = {}
+): void {
+  const d = doc as unknown as { _textRenderingMode: number };
+  const prev = d._textRenderingMode ?? 0;
+  d._textRenderingMode = 2;
+  doc.lineWidth(0.35);
+  doc.text(text, x, y, opts);
+  d._textRenderingMode = prev;
+  doc.lineWidth(1);
+}
 
 function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   const W = A5_W;
@@ -61,11 +80,8 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
 
   let y = PAD;
 
-  doc
-    .font("Playfair")
-    .fontSize(9)
-    .fillColor(AMBER)
-    .text("WAS DICH ERWARTET", PAD, y, { characterSpacing: 2.5 });
+  doc.font("Playfair-Bold").fontSize(9).fillColor(AMBER).strokeColor(AMBER);
+  boldHeading(doc, "WAS DICH ERWARTET", PAD, y, { characterSpacing: 2.5 });
 
   y += 16;
 
@@ -86,11 +102,8 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
 
   y += 10;
 
-  doc
-    .font("Playfair")
-    .fontSize(9)
-    .fillColor(AMBER)
-    .text("HAUSREGELN", PAD, y, { characterSpacing: 2.5 });
+  doc.font("Playfair-Bold").fontSize(9).fillColor(AMBER).strokeColor(AMBER);
+  boldHeading(doc, "HAUSREGELN", PAD, y, { characterSpacing: 2.5 });
 
   y += 15;
 
@@ -105,11 +118,8 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   for (const [para, text] of rules) {
     const beforeY = y;
 
-    doc
-      .font("Playfair")
-      .fontSize(8)
-      .fillColor(AMBER)
-      .text(para, PAD, y, { width: 22, lineBreak: false });
+    doc.font("Playfair-Bold").fontSize(8).fillColor(AMBER).strokeColor(AMBER);
+    boldHeading(doc, para, PAD, y, { width: 22, lineBreak: false });
 
     doc
       .font("Lora")
@@ -168,6 +178,7 @@ export async function generateTicketPDF(tickets: TicketData[], opts: GeneratePDF
 
     doc.registerFont("Lora", getLoraBuffer());
     doc.registerFont("Playfair", getPlayfairBuffer());
+    doc.registerFont("Playfair-Bold", getPlayfairBoldBuffer());
 
     for (let i = 0; i < tickets.length; i++) {
       const png = pngs[i]!;
