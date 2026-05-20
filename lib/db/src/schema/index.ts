@@ -23,4 +23,6 @@ export * from "./interessenten";
 export * from "./ki_cache";
 export * from "./ki_requests";
 export * from "./page_views";
+export * from "./scan_log";
+export * from "./ticket_nummer_counter";
 export * from "./tickets";
