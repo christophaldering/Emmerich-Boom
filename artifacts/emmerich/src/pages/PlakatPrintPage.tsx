@@ -34,8 +34,8 @@ export default function PlakatPrintPage() {
       const CH = img.naturalHeight;
 
       /* ── QR-Code-Maße vorab berechnen (formatabhängig in mm) ── */
-      const QR_URL   = "https://emmerich-boomt.replit.app";
-      const QR_LABEL = "emmerich-boomt.replit.app";
+      const QR_URL   = "https://www.emmerich-boomt.de";
+      const QR_LABEL = "www.emmerich-boomt.de";
 
       /* Physische QR-Größe je DIN-Format */
       const QR_MM_BY_FORMAT: Record<string, number> = {

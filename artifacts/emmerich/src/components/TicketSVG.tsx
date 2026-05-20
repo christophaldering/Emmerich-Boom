@@ -94,7 +94,7 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           textAnchor="start"
           fill="#F5E8C8"
         >
-          Samstag, 18. Juli 2026 · Einlass ab 19 Uhr
+          Samstag, 18. Juli 2026 · Beginn 20:00 Uhr
         </text>
 
         {/* 5 — Ort */}

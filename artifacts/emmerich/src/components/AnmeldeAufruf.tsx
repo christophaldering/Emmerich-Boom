@@ -68,7 +68,7 @@ export default function AnmeldeAufruf() {
           marginLeft: "auto",
           marginRight: "auto",
         }}>
-          Die BoomerParty wird konkret. Sichere dir jetzt deinen Platz: 10&nbsp;€ pro Person, Anmeldung bis Ende Juni 2026.
+          Die BoomerParty wird konkret. Sichere dir jetzt deinen Platz: 10&nbsp;€ pro Person, Anmeldung bis 30. Juni 2026.
         </p>
 
         <button

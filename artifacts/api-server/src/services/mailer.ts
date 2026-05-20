@@ -249,7 +249,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
           ${escHtml(t.name)}
         </div>
         <div style="font-size: 0.88rem; color: rgba(245,232,200,0.7); margin-bottom: 0.8rem;">
-          18. Juli 2026 · 19:00 Uhr<br>
+          18. Juli 2026 · Beginn 20:00 Uhr<br>
           Bölt / Kapaunenberg · Emmerich am Rhein
         </div>
         <div style="font-family: monospace; font-size: 1rem; letter-spacing: 0.15em; color: #e8991a; background: rgba(232,153,26,0.08); padding: 0.5rem 0.8rem; border-radius: 4px; display: inline-block;">
@@ -307,7 +307,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 
   const ticketText = [
     "EMMERICH BOOMT! — Eure Tickets",
-    "18. Juli 2026 · 19:00 Uhr · Bölt / Kapaunenberg · Emmerich am Rhein",
+    "18. Juli 2026 · Beginn 20:00 Uhr · Bölt / Kapaunenberg · Emmerich am Rhein",
     "",
     ...opts.tickets.map(
       t => `Ticket ${t.nummer} — ${t.name}\nCode: ${t.code}`,

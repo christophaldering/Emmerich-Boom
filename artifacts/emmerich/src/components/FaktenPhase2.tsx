@@ -56,7 +56,7 @@ export default function FaktenPhase2() {
       <div className="reveal d1">
         <div className="fakten2-row">
           <span className="fakten2-key">Wann</span>
-          <span className="fakten2-val">Samstag, 18. Juli 2026<small>ab 19:00 Uhr</small></span>
+          <span className="fakten2-val">Samstag, 18. Juli 2026<small>Beginn 20:00 Uhr</small></span>
         </div>
         <div className="fakten2-row">
           <span className="fakten2-key">Wo</span>

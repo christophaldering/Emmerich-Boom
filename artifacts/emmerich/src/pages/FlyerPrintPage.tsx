@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 
-const SITE_URL = "https://emmerich-boomt.replit.app";
+const SITE_URL = "https://www.emmerich-boomt.de";
 const WA_URL   = "https://chat.whatsapp.com/Ie7Jo01K44H8BREFq4XuIV?mode=gi_t";
 const A        = "#E8991A";
 const A2       = "#c97d10";
@@ -289,8 +289,8 @@ export default function FlyerPrintPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {([
-                ["1", "Jetzt: Interesse anmelden", "Einfach QR-Code scannen oder auf der Website melden — kein Aufwand, keine Kosten. Bis Ende April."],
-                ["2", "Im Mai: Verbindlich anmelden", "Dann kommt die konkrete Planung — und die richtige Anmeldung mit 10 EUR für Musik und Fingerfood. Dann gibt's auch das Ticket."],
+                ["1", "Jetzt verbindlich anmelden", "QR-Code scannen oder auf www.emmerich-boomt.de — 10 € pro Person, bis 30. Juni 2026."],
+                ["2", "Beitrag zahlen & Ticket erhalten", "Per Überweisung oder PayPal. Das Ticket kommt personifiziert per Mail."],
               ] as [string,string,string][]).map(([n, title, text]) => (
                 <div key={n} style={{ display: "flex", gap: 10, padding: "8px 10px", background: "#f5ede0", borderRadius: 4, border: "1px solid #e0c070" }}>
                   <span style={{ fontFamily: "Playfair Display, Georgia, serif", fontWeight: 900, fontSize: 26, color: A2, lineHeight: 1, flexShrink: 0, minWidth: 18, textAlign: "center" }}>{n}</span>
@@ -307,10 +307,10 @@ export default function FlyerPrintPage() {
               </div>
               <div>
                 <div style={{ fontFamily: "Playfair Display, Georgia, serif", fontStyle: "italic", fontSize: 13, color: A2, fontWeight: 700 }}>
-                  Jetzt Interesse anmelden
+                  Jetzt verbindlich anmelden
                 </div>
                 <div style={{ fontFamily: "Lora, Georgia, serif", fontSize: 9, color: "#3a2810", marginTop: 3 }}>
-                  emmerich-boomt.replit.app
+                  www.emmerich-boomt.de
                 </div>
               </div>
             </div>

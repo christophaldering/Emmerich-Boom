@@ -1,6 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
 
-const SITE_URL = "https://emmerich-boomt.replit.app";
+const SITE_URL = "https://www.emmerich-boomt.de";
 const WA_URL   = "https://chat.whatsapp.com/Ie7Jo01K44H8BREFq4XuIV?mode=gi_t";
 
 const A  = "#E8991A";
@@ -147,7 +147,7 @@ function Aussen() {
                 style={{ width: "clamp(30px, 6.5vw, 54px)", height: "auto", display: "block" }} />
             </div>
             <p className="p-url" style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "clamp(0.42rem, 0.95vw, 0.72rem)", color: A, margin: 0, lineHeight: 1.4, opacity: 0.9 }}>
-              emmerich-boomt.replit.app<br />
+              www.emmerich-boomt.de<br />
               <span style={{ opacity: 0.7, fontSize: "0.9em" }}>Zur Party-Website</span>
             </p>
           </div>
@@ -255,14 +255,14 @@ function Innen() {
           {([
             [
               "1",
-              "Jetzt: Interesse anmelden",
-              "Einfach QR-Code scannen oder auf der Website melden — kein Aufwand, keine Kosten. Bis Ende April.",
+              "Jetzt verbindlich anmelden",
+              "QR-Code scannen oder auf www.emmerich-boomt.de — 10 € pro Person, Anmeldung bis 30. Juni 2026.",
               "Schritt 1 von 2"
             ],
             [
               "2",
-              "Im Mai: Verbindlich anmelden",
-              "Dann kommt die konkrete Planung — und die richtige Anmeldung mit 10 EUR für Musik und Fingerfood. Dann gibt's auch das Ticket.",
+              "Beitrag zahlen & Ticket erhalten",
+              "Per Überweisung oder PayPal. Das personifizierte Ticket kommt direkt per Mail.",
               "Schritt 2 von 2"
             ],
           ] as [string, string, string, string][]).map(([n, title, text]) => (
@@ -287,7 +287,7 @@ function Innen() {
               Jetzt Interesse anmelden
             </div>
             <div className="p-qr-url" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.44rem, 0.95vw, 0.72rem)", color: FG, opacity: 0.6, marginTop: "0.25em" }}>
-              emmerich-boomt.replit.app
+              www.emmerich-boomt.de
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
-const SITE_URL = "https://emmerich-boomt.replit.app";
+const SITE_URL = "https://www.emmerich-boomt.de";
 
 const FORMATE = [
   { label: "A0", size: "A0", w: 841, h: 1189 },

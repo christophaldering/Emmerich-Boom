@@ -3,7 +3,7 @@
 
 export const SERVER_CONFIG = {
   PREIS_PRO_PERSON:        10,
-  ANMELDEFRIST:            "28. Juni 2026",
+  ANMELDEFRIST:            "30. Juni 2026",
   KONTOINHABER:            "Christoph Aldering",
   BANK:                    "DKB",
   IBAN:                    "DE85120300001312386293",

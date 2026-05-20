@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useReveal } from "@/hooks/useReveal";
 
 const PHASE1 = new Date('2026-04-30T23:59:59');
-const PHASE2 = new Date('2026-07-18T19:00:00');
+const PHASE2 = new Date('2026-07-18T20:00:00');
 
 function getTimeLeft(target: Date) {
   const diff = target.getTime() - Date.now();
