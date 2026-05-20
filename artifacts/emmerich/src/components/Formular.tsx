@@ -1,104 +1,9 @@
 import { useState } from "react";
-import { buildSortedPlaylist, getRevealInfo, formatTrackLabel, WishEntry, RevealInfo } from "@/lib/playlistArc";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 function navigateToAnmeldung() {
   window.history.pushState({}, "", `${BASE}/anmeldung`);
   window.dispatchEvent(new PopStateEvent("popstate"));
-}
-
-interface RevealCardProps {
-  reveal: RevealInfo;
-  submittedSong: string;
-  onScrollToPlaylist: () => void;
-}
-
-function RevealCard({ reveal, submittedSong, onScrollToPlaylist }: RevealCardProps) {
-  const phaseColors: Record<string, string> = {
-    "Ankommen":      "var(--fg-55)",
-    "Aufwärmen":     "#b8860b",
-    "Tanzfläche":    "var(--amber)",
-    "Stimmungshoch": "var(--amber2)",
-    "Finale":        "var(--amber)",
-  };
-  const phaseColor = phaseColors[reveal.phase.name] ?? "var(--amber)";
-
-  return (
-    <div style={{ textAlign: "center", padding: "1.5rem 0.5rem 2rem" }}>
-      <style>{`
-        @keyframes reveal-pop {
-          0%   { opacity: 0; transform: translateY(12px) scale(0.97); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .reveal-card { animation: reveal-pop 0.45s ease-out forwards; }
-        .reveal-scroll-btn:hover { background: var(--amber) !important; color: var(--black) !important; }
-      `}</style>
-
-      <div className="reveal-card">
-        <div style={{ fontSize: "2.4rem", marginBottom: "0.5rem" }}>✦</div>
-
-        <h3 style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.3rem, 4vw, 1.7rem)", color: "var(--warm)", marginBottom: "0.5rem", lineHeight: 1.3 }}>
-          Dein Song ist drin.
-        </h3>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "var(--fg-55)", marginBottom: "2rem", fontStyle: "italic" }}>
-          Das Orga-Team freut sich. Verbindlich anmelden nicht vergessen.
-        </p>
-
-        <div style={{ border: "1px solid var(--amber-30)", borderRadius: "6px", padding: "1.5rem 1.4rem", background: "var(--amber-05)", marginBottom: "1.8rem", textAlign: "left" }}>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--amber)", opacity: 0.7, marginBottom: "0.8rem" }}>
-            Die Song-Challenge
-          </p>
-
-          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.1rem, 3.5vw, 1.45rem)", color: "var(--warm)", marginBottom: "0.3rem", lineHeight: 1.3 }}>
-            Platz {reveal.position} von {reveal.total}
-          </p>
-
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", color: phaseColor, fontWeight: 600, marginBottom: "0.2rem" }}>
-            Phase: {reveal.phase.name}
-          </p>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: "var(--fg-55)", marginBottom: "1.3rem" }}>
-            {reveal.phase.description}
-          </p>
-
-          {(reveal.prev || reveal.next) && (
-            <div style={{ borderTop: "1px solid var(--fg-06)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-              {reveal.prev && (
-                <div style={{ fontFamily: "'Lora', serif", fontSize: "0.83rem", color: "var(--fg-55)", lineHeight: 1.5 }}>
-                  <span style={{ color: "var(--fg-35)", fontSize: "0.75rem", display: "block", marginBottom: "0.1rem" }}>Kurz davor</span>
-                  <span style={{ color: "var(--fg-75)" }}>{formatTrackLabel(reveal.prev)}</span>
-                </div>
-              )}
-              <div style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "var(--amber)", fontWeight: 600, lineHeight: 1.5, padding: "0.25rem 0.6rem", background: "var(--amber-10)", borderRadius: "3px", borderLeft: "2px solid var(--amber)" }}>
-                ♪ {submittedSong}
-              </div>
-              {reveal.next && (
-                <div style={{ fontFamily: "'Lora', serif", fontSize: "0.83rem", color: "var(--fg-55)", lineHeight: 1.5 }}>
-                  <span style={{ color: "var(--fg-35)", fontSize: "0.75rem", display: "block", marginBottom: "0.1rem" }}>Kurz danach</span>
-                  <span style={{ color: "var(--fg-75)" }}>{formatTrackLabel(reveal.next)}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        <button
-          onClick={onScrollToPlaylist}
-          className="reveal-scroll-btn"
-          style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--amber)", background: "transparent", border: "1px solid var(--amber)", borderRadius: "3px", padding: "0.75rem 1.6rem", cursor: "pointer", transition: "background 0.2s, color 0.2s" }}
-        >
-          Zur Playlist ↓
-        </button>
-
-        <div style={{ borderTop: "1px solid var(--amber-20)", paddingTop: "2rem", marginTop: "2rem", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
-          {["Von uns.", "Für uns.", "Wird Zeit."].map((line, i) => (
-            <span key={i} style={{ display: "block", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.4rem, 4.5vw, 2rem)", color: i === 1 ? "var(--amber)" : "var(--warm)", lineHeight: 1.4 }}>
-              {line}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 interface FormularProps {
@@ -107,11 +12,9 @@ interface FormularProps {
 
 export default function Formular({ onSuccess }: FormularProps) {
   const [submitted, setSubmitted] = useState(false);
-  const [reveal, setReveal] = useState<RevealInfo | null>(null);
-  const [submittedSong, setSubmittedSong] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: "", personen: "Nur ich", statement: "", song: "" });
+  const [form, setForm] = useState({ name: "", personen: "Nur ich", statement: "" });
 
   const inputStyle: React.CSSProperties = {
     background: "var(--fg-04)",
@@ -141,42 +44,8 @@ export default function Formular({ onSuccess }: FormularProps) {
       });
       const data = await res.json();
       if (data.success) {
-        const songText = form.song.trim();
-        setSubmittedSong(songText);
         setSubmitted(true);
-
-        let newId: number | null = data.id ?? null;
-
-        if (songText) {
-          const computeReveal = (freshData: WishEntry[], id: number | null) => {
-            const withSongs = freshData.filter((e) => e.song && e.song.trim() !== "");
-            const resolvedId = id ?? (() => {
-              const matched = freshData
-                .filter((e) => e.name === form.name && e.song === form.song)
-                .sort((a, b) => b.id - a.id);
-              return matched[0]?.id ?? null;
-            })();
-            const sorted = buildSortedPlaylist(withSongs);
-            if (resolvedId !== null) {
-              setReveal(getRevealInfo(songText, resolvedId, sorted));
-              onSuccess?.(resolvedId);
-            } else {
-              setReveal(getRevealInfo(songText, -1, sorted));
-              onSuccess?.(0);
-            }
-          };
-
-          try {
-            const freshRes = await fetch("/api/interesse", { cache: "no-store" });
-            const freshData: WishEntry[] = await freshRes.json();
-            computeReveal(freshData, newId);
-          } catch {
-            const tempEntry: WishEntry = { id: newId ?? -1, name: form.name, song: songText };
-            computeReveal([tempEntry], newId ?? -1);
-          }
-        } else {
-          onSuccess?.(0);
-        }
+        onSuccess?.(data.id ?? 0);
       } else if (data.duplicate) {
         setError(data.message);
       } else {
@@ -186,13 +55,6 @@ export default function Formular({ onSuccess }: FormularProps) {
       setError("Verbindungsfehler. Bitte nochmal versuchen.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleScrollToPlaylist = () => {
-    const el = document.getElementById("playlist");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -215,7 +77,7 @@ export default function Formular({ onSuccess }: FormularProps) {
             Bist du dabei?
           </h2>
           <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7 }}>
-            Statement hinterlassen, Musikwunsch platzieren — unverbindlich.
+            Statement hinterlassen — unverbindlich.
           </p>
         </div>
 
@@ -227,13 +89,7 @@ export default function Formular({ onSuccess }: FormularProps) {
           </span>
         </div>
 
-      {submitted && reveal ? (
-        <RevealCard
-          reveal={reveal}
-          submittedSong={submittedSong}
-          onScrollToPlaylist={handleScrollToPlaylist}
-        />
-      ) : submitted ? (
+      {submitted ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
           <div style={{ fontSize: "2rem", marginBottom: "1rem", color: "var(--amber)" }}>✦</div>
           <h3 style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.4rem", color: "var(--warm)", marginBottom: "0.75rem" }}>
@@ -280,19 +136,6 @@ export default function Formular({ onSuccess }: FormularProps) {
               <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "var(--fg-45)" }}>(optional, aber gerne)</em>
             </label>
             <textarea name="statement" rows={3} value={form.statement} onChange={handleChange} placeholder={'Warum du dabei bist, was du dir erhoffst, oder einfach: "Bin dabei!"'} className="formular-input" style={{ ...inputStyle, resize: "vertical" }} />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem" }}>
-              Dein Lieblingssong — der auf jeden Fall gespielt werden muss 🎵{" "}
-              <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "var(--amber)", opacity: 0.85 }}>schon jetzt angeben!</em>
-            </label>
-            <input type="text" name="song" value={form.song} onChange={handleChange} placeholder="z.B. ABBA – Dancing Queen, Nena – 99 Luftballons ..." className="formular-input" style={inputStyle} />
-            {form.song.trim().length > 2 && (
-              <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "var(--amber)", opacity: 0.75, marginTop: "0.45rem", lineHeight: 1.5 }}>
-                ✦ Abschicken — dann siehst du, wo dieser Song in der Playlist landet.
-              </p>
-            )}
           </div>
 
           {/* Warnbox + Anmelde-Button */}
