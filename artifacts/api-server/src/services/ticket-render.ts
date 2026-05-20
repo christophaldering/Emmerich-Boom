@@ -90,6 +90,9 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
     <clipPath id="clip_${uid}">
       <rect x="0" y="0" width="900" height="340" rx="6" ry="6" />
     </clipPath>
+    <clipPath id="clip_name_${uid}">
+      <rect x="370" y="90" width="460" height="70" />
+    </clipPath>
     <linearGradient id="fade_${uid}" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
       <stop offset="0%"   stop-color="#0A0704" stop-opacity="0" />
       <stop offset="28%"  stop-color="#0A0704" stop-opacity="0" />
@@ -115,7 +118,8 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
 
     <text x="370" y="142"
       font-family="'Playfair Display', Georgia, serif"
-      font-size="${fontSize}" font-weight="500" text-anchor="start" fill="#E8991A">${escXml(name)}</text>
+      font-size="${fontSize}" font-weight="500" text-anchor="start" fill="#E8991A"
+      clip-path="url(#clip_name_${uid})">${escXml(name)}</text>
 
     <line x1="370" y1="166" x2="490" y2="166"
       stroke="#E8991A" stroke-width="1.5" stroke-opacity="0.4" />

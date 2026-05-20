@@ -19,6 +19,7 @@ const WARM  = "#F5E8C8";
 
 const A5_W = 595;
 const A5_H = 420;
+const TICKET_H = Math.round(A5_W * 340 / 900);
 
 let _posterBuffer: Buffer | null = null;
 function getPosterBuffer(): Buffer {
@@ -141,7 +142,7 @@ export async function generateTicketPDF(tickets: TicketData[], opts: GeneratePDF
   );
 
   return new Promise<Buffer>((resolve, reject) => {
-    const doc = new PDFDocument({ size: [A5_W, A5_H], layout: "landscape", margin: 0, autoFirstPage: false });
+    const doc = new PDFDocument({ margin: 0, autoFirstPage: false });
     const chunks: Buffer[] = [];
 
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -151,11 +152,10 @@ export async function generateTicketPDF(tickets: TicketData[], opts: GeneratePDF
     for (let i = 0; i < tickets.length; i++) {
       const png = pngs[i]!;
 
-      doc.addPage({ size: [A5_W, A5_H], layout: "landscape", margin: 0 });
-      doc.rect(0, 0, A5_W, A5_H).fill(DARK);
-      doc.image(png, 0, 0, { fit: [A5_W, A5_H], align: "center", valign: "center" });
+      doc.addPage({ size: [A5_W, TICKET_H], margin: 0 });
+      doc.image(png, 0, 0, { width: A5_W });
 
-      doc.addPage({ size: [A5_W, A5_H], layout: "landscape", margin: 0 });
+      doc.addPage({ size: [A5_W, A5_H], margin: 0 });
       drawBackPage(doc);
     }
 
