@@ -253,11 +253,6 @@ export default function Formular({ onSuccess }: FormularProps) {
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
-          <div style={{ background: "var(--amber-08)", border: "1px solid var(--amber-30)", borderRadius: "4px", padding: "1rem 1.3rem", fontSize: "0.9rem", lineHeight: 1.75, color: "var(--fg-80)" }}>
-            <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Kein Ticket, kein Einlass.</strong>{" "}
-            Das hier ist unverbindlich — für einen Platz brauchst du die verbindliche Anmeldung oben.
-          </div>
-
           <div>
             <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem" }}>
               Vor- oder Spitzname{" "}
