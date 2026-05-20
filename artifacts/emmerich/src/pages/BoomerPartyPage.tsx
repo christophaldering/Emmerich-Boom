@@ -19,6 +19,7 @@ export default function BoomerPartyPage() {
   return (
     <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
       <Poster />
+      <Teilnehmer />
       <AnmeldeAufruf />
       <Letter />
       <Phase2Aufruf />
@@ -27,7 +28,6 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <Playlist />
-      <Teilnehmer />
       <KaI refreshSignal={0} />
       <BoomerClub />
       <DruckMaterial />
