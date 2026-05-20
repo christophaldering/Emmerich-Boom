@@ -690,6 +690,10 @@ importers:
         version: 7.1.1
 
   scripts:
+    dependencies:
+      resend:
+        specifier: ^6.12.3
+        version: 6.12.3
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
