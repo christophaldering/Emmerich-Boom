@@ -205,7 +205,7 @@ function EventimTicket({ ticket, ticketUrl }: { ticket: TicketInfo; ticketUrl: s
 
       {/* Abreiß-Streifen */}
       <div style={{ borderLeft: "1.5px dashed rgba(232,153,26,0.38)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "1.25rem 1rem", gap: "0.6rem", minWidth: "90px" }}>
-        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "0.55rem", letterSpacing: "0.2em", textTransform: "uppercase" as const, color: "#E8991A", opacity: 0.45, margin: 0, writingMode: "vertical-rl" as const, transform: "rotate(180deg)" }}>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "0.6rem", letterSpacing: "0.25em", textTransform: "uppercase" as const, color: "#E8991A", opacity: 0.9, margin: 0, writingMode: "vertical-rl" as const, transform: "rotate(180deg)" }}>
           EINTRITT
         </p>
         <QRCodeSVG value={ticketUrl} size={76} bgColor="#0A0704" fgColor="#E8991A" level="M" />
@@ -246,7 +246,7 @@ function EventimTicketCapture({ ticket, ticketUrl }: { ticket: TicketInfo; ticke
       </div>
 
       <div style={{ borderLeft: "1.5px dashed rgba(232,153,26,0.38)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", padding: "20px 14px" }}>
-        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "9px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#E8991A", opacity: 0.45, margin: 0, writingMode: "vertical-rl" as const, transform: "rotate(180deg)" }}>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" as const, color: "#E8991A", opacity: 0.9, margin: 0, writingMode: "vertical-rl" as const, transform: "rotate(180deg)" }}>
           EINTRITT
         </p>
         <QRCodeCanvas value={ticketUrl} size={68} bgColor="#0A0704" fgColor="#E8991A" level="M" />
