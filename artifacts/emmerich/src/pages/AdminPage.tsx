@@ -546,6 +546,26 @@ function defaultNames(baseName: string, count: number): string[] {
   return Array.from({ length: count }, (_, i) => i === 0 ? baseName : "");
 }
 
+function InteressentArchivCard({ reg }: { reg: Registration }) {
+  return (
+    <div style={{ border: `1px solid ${am(0.2)}`, borderRadius: "6px", padding: "0.75rem 1rem", marginBottom: "0.5rem", background: am(0.04) }}>
+      <div style={{ display: "flex", gap: "0.75rem", alignItems: "baseline", flexWrap: "wrap", marginBottom: reg.statement || reg.song ? "0.45rem" : 0 }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.97rem", color: A }}>{reg.name}</span>
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.55) }}>{reg.personen}</span>
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: fg(0.4), marginLeft: "auto" }}>{dateFmt(reg.createdAt)}</span>
+      </div>
+      {reg.statement && (
+        <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: fg(0.65), marginBottom: reg.song ? "0.25rem" : 0 }}>
+          „{reg.statement}"
+        </div>
+      )}
+      {reg.song && (
+        <div style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.45) }}>♪ {reg.song}</div>
+      )}
+    </div>
+  );
+}
+
 function TicketManager({ reg, tickets, onRefresh }: {
   reg: Registration;
   tickets: TicketRow[];
@@ -879,7 +899,7 @@ export default function AdminPage() {
           {registrations.length === 0
             ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Interessenten.</p>
             : registrations.map(r => (
-                <TicketManager key={r.id} reg={r} tickets={ticketRows} onRefresh={loadTickets} />
+                <InteressentArchivCard key={r.id} reg={r} />
               ))
           }
         </>
