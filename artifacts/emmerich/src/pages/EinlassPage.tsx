@@ -62,6 +62,17 @@ function playSound(type: "success" | "error" | "duplicate"): void {
   }
 }
 
+function vibrate(type: "success" | "error" | "duplicate"): void {
+  try {
+    if (!navigator.vibrate) return;
+    if (type === "success") navigator.vibrate(100);
+    else if (type === "error") navigator.vibrate(300);
+    else navigator.vibrate([100, 80, 100, 80, 200]);
+  } catch {
+    // Ignore — vibration not supported in this context
+  }
+}
+
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const API = `${BASE}/api`;
 const ADMIN_PW = "#Boomer2026";
@@ -297,7 +308,9 @@ export default function EinlassPage() {
         setResult(r);
         setLoading(false);
         setRefreshTrigger(n => n + 1);
-        playSound(r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error");
+        const feedbackType = r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error";
+        playSound(feedbackType);
+        vibrate(feedbackType);
       });
       return;
     }
@@ -459,7 +472,9 @@ function ManualEntry({ onScanned }: { onScanned: () => void }) {
     setResult(r);
     setLoading(false);
     onScanned();
-    playSound(r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error");
+    const feedbackType = r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error";
+    playSound(feedbackType);
+    vibrate(feedbackType);
   };
 
   if (!open) return (
