@@ -14,7 +14,7 @@ const sections = [
         Christoph Aldering (Anschrift s.o.)</p>
         <br />
         <p>Kontakt<br />
-        E-Mail: christoph.aldering(AT)googlemail.com</p>
+        E-Mail: boomerparty26(AT)emmerich-boomt.de</p>
         <br />
         <p>Hinweis<br />
         Diese Website dient ausschließlich der Ankündigung und Organisation einer privaten, nicht-kommerziellen Veranstaltung des BoomerClub Emmerich.</p>
@@ -27,7 +27,7 @@ const sections = [
       <div style={{ padding: "1.2rem 0 0.5rem", fontSize: "0.85rem", lineHeight: 1.9, color: "var(--fg-55)" }}>
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Verantwortlicher</strong><br />
         Christoph Aldering, Jakob-Troost-Straße 8, 46446 Emmerich am Rhein<br />
-        E-Mail: christoph.aldering(AT)googlemail.com</p>
+        E-Mail: boomerparty26(AT)emmerich-boomt.de</p>
         <br />
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Welche Daten wir erheben</strong><br />
         In der ersten Phase (Interessensabfrage bis Ende April) werden folgende Angaben erfasst: Vor- oder Spitzname, ungefähre Personenanzahl, optionales Statement sowie ein optionaler Lieblingssong. E-Mail-Adressen oder Telefonnummern werden in dieser Phase nicht abgefragt.<br />
@@ -56,7 +56,7 @@ const sections = [
     content: (
       <div style={{ padding: "1.2rem 0 0.5rem", fontSize: "0.85rem", lineHeight: 1.9, color: "var(--fg-55)" }}>
         <p>Fragen, Anregungen, Feedback — gerne direkt per E-Mail:<br />
-        christoph.aldering(AT)googlemail.com</p>
+        boomerparty26(AT)emmerich-boomt.de</p>
         <br />
         <p>Christoph Aldering<br />
         Jakob-Troost-Straße 8<br />
