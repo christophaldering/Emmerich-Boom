@@ -1,6 +1,7 @@
 import PDFDocument from "pdfkit";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { renderTicketFrontPNG } from "./ticket-render.js";
 
 export interface TicketData {
@@ -30,6 +31,22 @@ function getPosterBuffer(): Buffer {
   return _posterBuffer;
 }
 
+function findFontBuffer(filename: string): Buffer {
+  const candidates = [
+    path.resolve(__dirname, "assets", "fonts", filename),
+    path.resolve(__dirname, "..", "assets", "fonts", filename),
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) return readFileSync(p);
+  }
+  throw new Error(`Font not found: ${filename}. Searched: ${candidates.join(", ")}`);
+}
+
+let _loraBuffer: Buffer | null = null;
+let _playfairBuffer: Buffer | null = null;
+function getLoraBuffer(): Buffer    { return (_loraBuffer    ??= findFontBuffer("Lora.ttf")); }
+function getPlayfairBuffer(): Buffer { return (_playfairBuffer ??= findFontBuffer("PlayfairDisplay.ttf")); }
+
 function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   const W = A5_W;
   const H = A5_H;
@@ -45,7 +62,7 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   let y = PAD;
 
   doc
-    .font("Helvetica-Bold")
+    .font("Playfair")
     .fontSize(9)
     .fillColor(AMBER)
     .text("WAS DICH ERWARTET", PAD, y, { characterSpacing: 2.5 });
@@ -53,7 +70,7 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   y += 16;
 
   doc
-    .font("Helvetica")
+    .font("Lora")
     .fontSize(9)
     .fillColor(WARM)
     .text(
@@ -70,7 +87,7 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   y += 10;
 
   doc
-    .font("Helvetica-Bold")
+    .font("Playfair")
     .fontSize(9)
     .fillColor(AMBER)
     .text("HAUSREGELN", PAD, y, { characterSpacing: 2.5 });
@@ -89,13 +106,13 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
     const beforeY = y;
 
     doc
-      .font("Helvetica-Bold")
+      .font("Playfair")
       .fontSize(8)
       .fillColor(AMBER)
       .text(para, PAD, y, { width: 22, lineBreak: false });
 
     doc
-      .font("Helvetica")
+      .font("Lora")
       .fontSize(8)
       .fillColor(WARM)
       .text(text, PAD + 24, beforeY, { width: W - PAD * 2 - 24, lineGap: 1 });
@@ -111,7 +128,7 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   y += 8;
 
   doc
-    .font("Helvetica")
+    .font("Lora")
     .fontSize(8)
     .fillColor(WARM)
     .text(
@@ -123,7 +140,7 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   y = doc.y + 4;
 
   doc
-    .font("Helvetica")
+    .font("Lora")
     .fontSize(8)
     .fillColor(WARM, 0.65)
     .text(
@@ -148,6 +165,9 @@ export async function generateTicketPDF(tickets: TicketData[], opts: GeneratePDF
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
+
+    doc.registerFont("Lora", getLoraBuffer());
+    doc.registerFont("Playfair", getPlayfairBuffer());
 
     for (let i = 0; i < tickets.length; i++) {
       const png = pngs[i]!;
