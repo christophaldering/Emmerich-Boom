@@ -62,7 +62,8 @@ function playSound(type: "success" | "error" | "duplicate"): void {
   }
 }
 
-function vibrate(type: "success" | "error" | "duplicate"): void {
+function vibrate(type: "success" | "error" | "duplicate", enabled: boolean): void {
+  if (!enabled) return;
   try {
     if (!navigator.vibrate) return;
     if (type === "success") navigator.vibrate(100);
@@ -80,6 +81,7 @@ const PW_KEY = "emmerich_admin_auth";
 const SECRET = "emmerich-orga-stats-2026";
 const ADMIN_CODE = "Orga2026";
 const ADMIN_EINLASS_KEY = "emmerich_einlass_admin";
+const VIBRATION_KEY = "emmerich_vibration_feedback";
 
 type ScanResult =
   | { status: "ok"; personName: string; message: string }
@@ -264,11 +266,20 @@ function AdminModeToggle({ adminMode, onActivate }: { adminMode: boolean; onActi
 export default function EinlassPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
   const [adminMode, setAdminMode] = useState(() => sessionStorage.getItem(ADMIN_EINLASS_KEY) === "1");
+  const [vibrationEnabled, setVibrationEnabled] = useState(() => localStorage.getItem(VIBRATION_KEY) !== "0");
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [camError, setCamError] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const toggleVibration = () => {
+    setVibrationEnabled(prev => {
+      const next = !prev;
+      localStorage.setItem(VIBRATION_KEY, next ? "1" : "0");
+      return next;
+    });
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -310,7 +321,7 @@ export default function EinlassPage() {
         setRefreshTrigger(n => n + 1);
         const feedbackType = r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error";
         playSound(feedbackType);
-        vibrate(feedbackType);
+        vibrate(feedbackType, vibrationEnabled);
       });
       return;
     }
@@ -443,7 +454,30 @@ export default function EinlassPage() {
         )}
       </div>
 
-      <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} />
+      <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} vibrationEnabled={vibrationEnabled} />
+
+      {/* Vibrations-Toggle */}
+      <button
+        onClick={toggleVibration}
+        style={{
+          background: "transparent",
+          border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.5)" : "rgba(245,232,200,0.15)"}`,
+          borderRadius: "3px",
+          color: vibrationEnabled ? "rgba(232,153,26,0.8)" : "rgba(245,232,200,0.3)",
+          fontFamily: "'Lora', serif",
+          fontStyle: "italic",
+          fontSize: "0.78rem",
+          padding: "0.3rem 0.75rem",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.4rem",
+        }}
+        title="Vibrations-Feedback ein-/ausschalten"
+      >
+        <span style={{ fontSize: "0.9rem" }}>📳</span>
+        Vibration {vibrationEnabled ? "an" : "aus"}
+      </button>
 
       {/* Divider */}
       <div style={{ width: "100%", maxWidth: "480px", borderTop: "1px solid rgba(245,232,200,0.08)", marginTop: "0.5rem" }} />
@@ -458,7 +492,7 @@ export default function EinlassPage() {
   );
 }
 
-function ManualEntry({ onScanned }: { onScanned: () => void }) {
+function ManualEntry({ onScanned, vibrationEnabled }: { onScanned: () => void; vibrationEnabled: boolean }) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -474,7 +508,7 @@ function ManualEntry({ onScanned }: { onScanned: () => void }) {
     onScanned();
     const feedbackType = r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error";
     playSound(feedbackType);
-    vibrate(feedbackType);
+    vibrate(feedbackType, vibrationEnabled);
   };
 
   if (!open) return (
