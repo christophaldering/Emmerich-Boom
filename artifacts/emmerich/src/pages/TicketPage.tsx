@@ -314,7 +314,7 @@ function TicketBack({ ticket }: { ticket: TicketInfo }) {
           Wir freuen uns auf euch!
         </h2>
         <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", color: "#3a2e1e", lineHeight: 1.75, margin: "0 0 1.8rem" }}>
-          Liebes Geburtstagskind oder geladener Gast,<br />
+          Liebes {ticket.personName},<br />
           die Boomer-Party findet am <strong style={{ color: "#e8991a" }}>18. Juli 2026</strong> statt.
           Feiert mit uns an einem der schönsten Plätze Emmerichs — mit Musik, die man eigentlich schon vergessen haben sollte, Geschichten, die besser werden je später der Abend ist, und Gesellschaft, die man nicht kaufen kann.
         </p>
