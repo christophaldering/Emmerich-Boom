@@ -696,7 +696,7 @@ function visitOrdinal(n: number | null): string {
 type Tab = "anmeldungen" | "tickets" | "statistik";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "anmeldungen", label: "Anmeldungen" },
+  { id: "anmeldungen", label: "Interessenten" },
   { id: "tickets",     label: "Tickets" },
   { id: "statistik",   label: "Statistik" },
 ];
@@ -804,8 +804,24 @@ export default function AdminPage() {
       {/* ── Tab-Navigation ── */}
       <TabBar active={activeTab} onSelect={setActiveTab} />
 
-      {/* ── Tab: Anmeldungen ── */}
+      {/* ── Tab: Interessenten (Phase 1) ── */}
       {activeTab === "anmeldungen" && (
+        <>
+          <SectionTitle>Interessenten ({registrations.length})</SectionTitle>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.6), marginBottom: "1.25rem", marginTop: "-0.5rem" }}>
+            Unverbindliche Interessensbekundungen aus Phase 1 — zur Information.
+          </p>
+          {registrations.length === 0
+            ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Interessenten.</p>
+            : registrations.map(r => (
+                <TicketManager key={r.id} reg={r} tickets={ticketRows} onRefresh={loadTickets} />
+              ))
+          }
+        </>
+      )}
+
+      {/* ── Tab: Tickets (Phase 2) ── */}
+      {activeTab === "tickets" && (
         <>
           {/* Bezahlt-Zusammenfassung */}
           {anmeldungenRows.length > 0 && (() => {
@@ -858,22 +874,6 @@ export default function AdminPage() {
                 </table>
               </div>
             )
-          }
-        </>
-      )}
-
-      {/* ── Tab: Tickets ── */}
-      {activeTab === "tickets" && (
-        <>
-          <SectionTitle>Ticket-Verwaltung</SectionTitle>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.6), marginBottom: "1.25rem", marginTop: "-0.5rem" }}>
-            Zahlungsart bestätigen → Tickets werden sofort generiert → Druckansicht öffnen
-          </p>
-          {registrations.length === 0
-            ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Anmeldungen.</p>
-            : registrations.map(r => (
-                <TicketManager key={r.id} reg={r} tickets={ticketRows} onRefresh={loadTickets} />
-              ))
           }
         </>
       )}
