@@ -32,13 +32,13 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
           <rect x="0" y="0" width="900" height="340" rx="6" ry="6" />
         </clipPath>
 
-        {/* Gradient: poster fully visible ~0-270px, fades to black by ~460px */}
+        {/* Gradient: poster fully visible 0-190px (~21%), fade to black by ~350px (~39%) */}
         <linearGradient id={`fade-${id}`} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
           <stop offset="0%"   stopColor="#0A0704" stopOpacity="0" />
-          <stop offset="30%"  stopColor="#0A0704" stopOpacity="0" />
-          <stop offset="38%"  stopColor="rgb(190,110,18)" stopOpacity="0.35" />
-          <stop offset="50%"  stopColor="rgb(50,22,4)"    stopOpacity="0.88" />
-          <stop offset="62%"  stopColor="#0A0704"         stopOpacity="0.97" />
+          <stop offset="21%"  stopColor="#0A0704" stopOpacity="0" />
+          <stop offset="27%"  stopColor="rgb(190,110,18)" stopOpacity="0.35" />
+          <stop offset="38%"  stopColor="rgb(50,22,4)"    stopOpacity="0.88" />
+          <stop offset="48%"  stopColor="#0A0704"         stopOpacity="0.97" />
           <stop offset="100%" stopColor="#0A0704"         stopOpacity="1" />
         </linearGradient>
       </defs>
@@ -47,12 +47,15 @@ export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
         {/* Schwarzer Hintergrund */}
         <rect x="0" y="0" width="900" height="340" fill="#0A0704" />
 
-        {/* LINKER BLOCK — Poster (340px breit, slice damit kein Letterboxing) */}
-        <rect x="0" y="0" width="340" height="340" fill="#2a1305" />
+        {/* LINKER BLOCK — Poster
+            Poster-Maß: 1179 × 1774 px (Portrait, ratio ≈ 0.665)
+            Bei height=340: natürliche Breite = 340 × (1179/1774) ≈ 226 px
+            → Box auf genau diese Breite setzen, meet → kein Letterboxing, kein Crop */}
+        <rect x="0" y="0" width="226" height="340" fill="#2a1305" />
         <image
           href={POSTER_SRC}
-          x="0" y="0" width="340" height="340"
-          preserveAspectRatio="xMidYMid slice"
+          x="0" y="0" width="226" height="340"
+          preserveAspectRatio="xMidYMid meet"
         />
 
         {/* Fließender Übergang Bild → schwarz */}
