@@ -41,7 +41,7 @@ function RevealCard({ reveal, submittedSong, onScrollToPlaylist }: RevealCardPro
           Dein Song ist drin.
         </h3>
         <p style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "var(--fg-55)", marginBottom: "2rem", fontStyle: "italic" }}>
-          Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
+          Das Orga-Team freut sich. Verbindlich anmelden nicht vergessen.
         </p>
 
         <div style={{ border: "1px solid var(--amber-30)", borderRadius: "6px", padding: "1.5rem 1.4rem", background: "var(--amber-05)", marginBottom: "1.8rem", textAlign: "left" }}>
@@ -240,7 +240,8 @@ export default function Formular({ onSuccess }: FormularProps) {
             Klasse. Daumen hoch angekommen.
           </h3>
           <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7, marginBottom: "2rem" }}>
-            Das Orga-Team freut sich. Im Mai melden wir uns mit allen Details.
+            Das Orga-Team freut sich. Für einen Platz jetzt verbindlich anmelden unter{" "}
+            <a href="/anmeldung" style={{ color: "var(--amber)", textDecoration: "underline" }}>/anmeldung</a>.
           </p>
           <div style={{ borderTop: "1px solid var(--amber-20)", paddingTop: "2rem", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
             {["Von uns.", "Für uns.", "Wird Zeit."].map((line, i) => (
