@@ -6,7 +6,7 @@ export const SERVER_CONFIG = {
   ANMELDEFRIST:            "28. Juni 2026",
   KONTOINHABER:            "Christoph Aldering",
   BANK:                    "DKB",
-  IBAN:                    "PLATZHALTER_IBAN",
+  IBAN:                    "DE85120300001312386293",
   PAYPAL_LINK:             "PLATZHALTER_PAYPAL_LINK",
   ABSENDER_MAIL:           "boomerparty26@emmerich-boomt.de",
   ABSENDER_NAME:           "Boomerparty Emmerich",
