@@ -118,3 +118,14 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+## Environment Variables / Secrets
+
+All secrets are managed via Replit Secrets (never commit values).
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string — auto-provided by Replit |
+| `RESEND_API_KEY` | ✅ | Resend API key for transactional mails (Bestätigungsmail + Ticket-Mail). Domain `emmerich-boomt.de` is verified in Resend (eu-west-1, sending enabled). |
+| `GMAIL_APP_PASSWORD` | ⚠️ | Gmail app password for daily reports to `Christoph.aldering@googlemail.com`. Optional — reports are skipped if not set. |
+| `SESSION_SECRET` | ✅ | Express session secret |

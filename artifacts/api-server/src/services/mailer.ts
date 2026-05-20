@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { SERVER_CONFIG } from "../config.js";
+import { logger } from "../lib/logger.js";
 
 // ─── Gmail (täglicher Bericht) ───────────────────────────────────────────────
 
