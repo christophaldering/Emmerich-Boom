@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 const SECRET = "emmerich-orga-stats-2026";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -345,6 +346,21 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
   const [previewLoading, setPreviewLoading] = useState<"png" | "pdf" | null>(null);
   const [msg, setMsg] = useState("");
   const [previewMsg, setPreviewMsg] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const closePreview = useCallback(() => {
+    setPreviewUrl(prev => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!previewUrl) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") closePreview(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [previewUrl, closePreview]);
 
   const markBezahlt = async () => {
     setBzLoading(true); setMsg("");
@@ -381,14 +397,14 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
       const blob = await r.blob();
       const url = URL.createObjectURL(blob);
       if (format === "png") {
-        window.open(url, "_blank");
+        setPreviewUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; });
       } else {
         const a = document.createElement("a");
         a.href = url;
         a.download = `ticket-vorschau-${row.id}.pdf`;
         a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 30_000);
       }
-      setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } catch { setPreviewMsg("Verbindungsfehler"); }
     finally { setPreviewLoading(null); }
   };
@@ -417,7 +433,48 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
     whiteSpace: "nowrap",
   };
 
+  const modal = previewUrl
+    ? createPortal(
+        <div
+          onClick={closePreview}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "rgba(10,7,4,0.88)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "1.5rem",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ position: "relative", maxWidth: "min(700px, 95vw)", maxHeight: "90svh", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}
+          >
+            <button
+              onClick={closePreview}
+              style={{
+                position: "absolute", top: "-2rem", right: 0,
+                background: "transparent", border: "none",
+                color: "#f5e8c8", fontSize: "1.3rem", cursor: "pointer",
+                fontFamily: "'Lora', serif", lineHeight: 1, padding: "0 0.25rem",
+              }}
+              aria-label="Schließen"
+            >✕</button>
+            <img
+              src={previewUrl}
+              alt={`Ticket-Vorschau #${row.id}`}
+              style={{ maxWidth: "100%", maxHeight: "80svh", borderRadius: "4px", boxShadow: "0 8px 40px rgba(0,0,0,0.7)" }}
+            />
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: "rgba(245,232,200,0.45)", margin: 0 }}>
+              ESC oder Klick außen zum Schließen
+            </p>
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
+
   return (
+    <>
+    {modal}
     <tr style={{ background: bezahlt ? "rgba(46,204,113,0.04)" : "transparent" }}>
       {/* # */}
       <td style={{ ...tdStyle, fontFamily: "'Playfair Display', serif", fontWeight: 700, color: A, width: "2.5rem" }}>
@@ -525,6 +582,7 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
         )}
       </td>
     </tr>
+    </>
   );
 }
 
