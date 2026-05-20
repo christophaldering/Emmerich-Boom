@@ -128,9 +128,13 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
       Bei Fragen \u2013 einfach auf diese Mail antworten.
     </p>
 
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:rgba(245,232,200,.8);line-height:1.8;margin:0;">
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:rgba(245,232,200,.8);line-height:1.8;margin:0 0 24px;">
       Bis bald auf dem B\u00f6lt,<br>
       Christoph Aldering f\u00fcr das Orga-Team \u201eEmmerich boomt!\u201c
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;font-style:italic;color:rgba(245,232,200,.5);line-height:1.7;margin:0;">
+      P.S. Ich hab \u00fcbrigens nicht geplant, mit den eingenommenen Millionen nach S\u00fcdamerika auszuwandern. Eine Kassenpr\u00fcfung findet selbstverst\u00e4ndlich statt!
     </p>
 
   </div>
@@ -164,6 +168,8 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     "",
     "Bis bald auf dem B\u00f6lt,",
     "Christoph Aldering f\u00fcr das Orga-Team \u201eEmmerich boomt!\u201c",
+    "",
+    "P.S. Ich hab \u00fcbrigens nicht geplant, mit den eingenommenen Millionen nach S\u00fcdamerika auszuwandern. Eine Kassenpr\u00fcfung findet selbstverst\u00e4ndlich statt!",
   ].join("\n");
 
   const { error } = await resend.emails.send({
