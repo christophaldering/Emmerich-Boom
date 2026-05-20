@@ -133,10 +133,6 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
       Christoph Aldering f\u00fcr das Orga-Team \u201eEmmerich boomt!\u201c
     </p>
 
-    <div style="margin-top:40px;padding-top:20px;border-top:1px solid rgba(232,153,26,.15);text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:rgba(245,232,200,.35);">
-      <a href="https://www.emmerich-boomt.de" style="color:rgba(232,153,26,.5);text-decoration:none;">emmerich-boomt.de</a>
-    </div>
-
   </div>
 </div>
 </body>
@@ -151,13 +147,13 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     "",
     "Am einfachsten gleich jetzt, solange du diese Mail noch offen hast:",
     "",
-    "── Per \u00dcberweisung ──",
+    "Per \u00dcberweisung",
     `Empf\u00e4nger: ${KONTOINHABER}`,
     `IBAN: ${IBAN}`,
     "Betrag: 10 \u20ac pro angemeldeter Person (also z. B. 30 \u20ac f\u00fcr drei Personen)",
     "Verwendungszweck: Emmerich boomt + dein Name (z. B. \u201eEmmerich boomt \u2013 Maria Mustermann, 3 Personen\u201c)",
     "",
-    "── Oder per PayPal ──",
+    "Oder per PayPal",
     "Ganz bequem in unseren Sammel-Pool:",
     PAYPAL_LINK,
     "(Bitte 10 \u20ac pro Person eintragen \u2013 bei drei Personen also 30 \u20ac.)",
@@ -168,8 +164,6 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     "",
     "Bis bald auf dem B\u00f6lt,",
     "Christoph Aldering f\u00fcr das Orga-Team \u201eEmmerich boomt!\u201c",
-    "",
-    "emmerich-boomt.de",
   ].join("\n");
 
   const { error } = await resend.emails.send({
