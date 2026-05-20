@@ -897,7 +897,9 @@ export default function AdminPage() {
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
   const [anmeldungenRows, setAnmeldungenRows] = useState<AnmeldungRow[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(() =>
+    localStorage.getItem("emmerich_auto_refresh") !== "0"
+  );
   const [kaiState, setKaiState] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   const [kaiComment, setKaiComment] = useState<string | null>(null);
@@ -947,6 +949,10 @@ export default function AdminPage() {
   const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); }, [loadTickets, loadAnmeldungen]);
 
   useEffect(() => { if (authed) refreshAll(); }, [authed]);
+
+  useEffect(() => {
+    localStorage.setItem("emmerich_auto_refresh", autoRefresh ? "1" : "0");
+  }, [autoRefresh]);
 
   useEffect(() => {
     if (!authed || !autoRefresh) return;
