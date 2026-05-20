@@ -38,6 +38,7 @@ const hintStyle: React.CSSProperties = {
 
 export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
   const [personenAnzahl, setPersonen] = useState(1);
+  const [anzahlInput, setAnzahlInput] = useState("1");
   const [personen, setPersonen_]      = useState<string[]>([""]);
   const [email, setEmail]             = useState("");
   const [telefon, setTelefon]         = useState("");
@@ -53,6 +54,13 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
     setPersonen_((prev) =>
       Array.from({ length: n }, (_, i) => prev[i] ?? ""),
     );
+  };
+
+  const handleAnzahlBlur = (MAX: number) => {
+    const parsed = parseInt(anzahlInput);
+    const clamped = isNaN(parsed) ? 1 : Math.min(MAX, Math.max(1, parsed));
+    setAnzahlInput(String(clamped));
+    handlePersonenChange(clamped);
   };
 
   const handlePersonName = (i: number, val: string) => {
@@ -176,8 +184,9 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
               required
               min={1}
               max={MAX}
-              value={personenAnzahl}
-              onChange={(e) => handlePersonenChange(Math.min(MAX, Math.max(1, parseInt(e.target.value) || 1)))}
+              value={anzahlInput}
+              onChange={(e) => setAnzahlInput(e.target.value)}
+              onBlur={() => handleAnzahlBlur(MAX)}
               className="af-input"
               style={{ ...inputStyle, width: "120px" }}
             />
