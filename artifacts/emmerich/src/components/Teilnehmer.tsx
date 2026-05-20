@@ -64,10 +64,12 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
         .promo-hero { text-align:center; margin-bottom:2rem; max-width:700px; margin-left:auto; margin-right:auto; }
         .promo-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.78rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber); margin-bottom:0.8rem; opacity:0.85; }
-        .promo-count-row { display:flex; align-items:baseline; justify-content:center; gap:0.7rem; flex-wrap:wrap; }
-        .promo-count { font-family:'Playfair Display',serif; font-weight:800; font-size:clamp(4rem,14vw,7rem); color:var(--amber); line-height:1; text-shadow:0 0 40px rgba(205,155,65,0.25); }
-        .promo-count-label { font-family:'Lora',serif; font-style:italic; font-size:clamp(1rem,3vw,1.3rem); color:var(--fg-88); line-height:1.4; max-width:18ch; text-align:left; }
-        .promo-count-label strong { color:var(--warm); font-style:normal; font-weight:700; }
+        .promo-count-row { display:flex; align-items:center; justify-content:center; gap:2.5rem; flex-wrap:wrap; }
+        .promo-stat { display:flex; flex-direction:column; align-items:center; gap:0.25rem; }
+        .promo-count { font-family:'Playfair Display',serif; font-weight:800; font-size:clamp(4rem,14vw,7rem); line-height:1; text-shadow:0 0 40px rgba(205,155,65,0.25); }
+        .promo-count--amber { color:var(--amber); }
+        .promo-count--warm  { color:var(--warm); }
+        .promo-count-label { font-family:'Lora',serif; font-style:italic; font-size:clamp(0.8rem,2.5vw,1rem); color:var(--fg-65); line-height:1.3; text-align:center; }
 
         .tn-list { max-width:640px; margin:0 auto; border-top:1px solid var(--fg-08); }
 
@@ -87,17 +89,27 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
       <div className="promo-hero">
         <span className="promo-label">Interesse bekundet</span>
-        <div className="promo-count-row">
-          <span className="promo-count">{entries.length}</span>
-          <span className="promo-count-label">
-            {entries.length === 1
-              ? <>Boomer hat sich gemeldet.</>
-              : totalPersonen > entries.length
-                ? <>Boomer haben sich gemeldet — einige bringen jemanden mit. Macht insgesamt <strong>mindestens {totalPersonen} Personen</strong>.</>
-                : <>Boomer haben Interesse bekundet.</>
-            }
-          </span>
-        </div>
+        {totalPersonen > entries.length ? (
+          <div className="promo-count-row">
+            <div className="promo-stat">
+              <span className="promo-count promo-count--amber">{entries.length}</span>
+              <span className="promo-count-label">{entries.length === 1 ? "Boomer" : "Boomer"}</span>
+            </div>
+            <div className="promo-stat">
+              <span className="promo-count promo-count--warm">{totalPersonen}</span>
+              <span className="promo-count-label">Personen</span>
+            </div>
+          </div>
+        ) : (
+          <div className="promo-count-row">
+            <div className="promo-stat">
+              <span className="promo-count promo-count--amber">{entries.length}</span>
+              <span className="promo-count-label">
+                {entries.length === 1 ? "Boomer hat sich gemeldet" : "Boomer haben Interesse bekundet"}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="tn-list">
