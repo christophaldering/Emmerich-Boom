@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
-import { tickets, interessenten } from "@workspace/db";
+import { tickets, interessenten, anmeldungTicketsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -123,6 +123,7 @@ router.get("/ticket/:code", async (req, res) => {
 });
 
 // POST /api/ticket/:code/scan — mark ticket as used (entrance scan)
+// Checks anmeldung_tickets (Phase 2) first, then legacy tickets table
 router.post("/ticket/:code/scan", async (req, res) => {
   const secret = req.headers["x-admin-secret"];
   if (secret !== "emmerich-orga-stats-2026") {
@@ -132,19 +133,45 @@ router.post("/ticket/:code/scan", async (req, res) => {
 
   const code = req.params.code.toUpperCase();
 
-  const rows = await db
+  // ── Phase 2: anmeldung_tickets ──
+  const phase2Rows = await db
+    .select()
+    .from(anmeldungTicketsTable)
+    .where(eq(anmeldungTicketsTable.ticket_code, code))
+    .limit(1);
+
+  if (phase2Rows.length > 0) {
+    const t = phase2Rows[0]!;
+    if (t.eingelassen_am) {
+      res.json({
+        status: "already_used",
+        message: "Ticket bereits eingelöst",
+        usedAt: t.eingelassen_am,
+        personName: t.person_name,
+      });
+      return;
+    }
+    await db
+      .update(anmeldungTicketsTable)
+      .set({ eingelassen_am: new Date() })
+      .where(eq(anmeldungTicketsTable.ticket_code, code));
+    res.json({ status: "ok", message: "Willkommen!", personName: t.person_name });
+    return;
+  }
+
+  // ── Legacy: tickets table ──
+  const legacyRows = await db
     .select()
     .from(tickets)
     .where(eq(tickets.ticketCode, code))
     .limit(1);
 
-  if (rows.length === 0) {
+  if (legacyRows.length === 0) {
     res.status(404).json({ status: "invalid", message: "Unbekannter Code" });
     return;
   }
 
-  const ticket = rows[0];
-
+  const ticket = legacyRows[0]!;
   if (ticket.usedAt) {
     res.json({
       status: "already_used",
@@ -154,17 +181,11 @@ router.post("/ticket/:code/scan", async (req, res) => {
     });
     return;
   }
-
   await db
     .update(tickets)
     .set({ usedAt: new Date() })
     .where(eq(tickets.ticketCode, code));
-
-  res.json({
-    status: "ok",
-    message: "Willkommen!",
-    personName: ticket.personName,
-  });
+  res.json({ status: "ok", message: "Willkommen!", personName: ticket.personName });
 });
 
 export default router;

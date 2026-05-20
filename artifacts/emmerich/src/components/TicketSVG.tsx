@@ -1,9 +1,12 @@
+import { QRCodeCanvas } from "qrcode.react";
+
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const POSTER_SRC = `${BASE}/images/boomerpartyposter.jpeg`;
 
 interface TicketSVGProps {
   name: string;
   nummer: number;
+  code?: string;
 }
 
 function nameFontSize(name: string): number {
@@ -12,7 +15,7 @@ function nameFontSize(name: string): number {
   return 44;
 }
 
-export default function TicketSVG({ name, nummer }: TicketSVGProps) {
+export default function TicketSVG({ name, nummer, code }: TicketSVGProps) {
   const id = `t${nummer}`;
   const numStr = String(nummer).padStart(3, "0");
   const fontSize = nameFontSize(name);
@@ -138,7 +141,16 @@ export default function TicketSVG({ name, nummer }: TicketSVGProps) {
           </text>
         </g>
 
-        {/* 7 — Rand-Zeile unten */}
+        {/* 7 — QR-Code (dezent, nur wenn code vorhanden) */}
+        {code && (
+          <foreignObject x="754" y="250" width="68" height="68" opacity="0.55">
+            <div xmlns="http://www.w3.org/1999/xhtml" style={{ lineHeight: 0, fontSize: 0 }}>
+              <QRCodeCanvas value={code} size={68} bgColor="#0A0704" fgColor="#E8991A" level="H" />
+            </div>
+          </foreignObject>
+        )}
+
+        {/* 8 — Rand-Zeile unten */}
         <text
           x="450" y="322"
           fontFamily="'Lora', Georgia, serif"

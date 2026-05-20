@@ -20,6 +20,7 @@ export default function TicketDemoPage() {
         anzahl={3}
         personen={["Christoph Aldering", "Erika Mustermann", "Hans-Werner Böhm"]}
         ticket_nummern={[1, 2, 3]}
+        ticket_codes={["A1B2C3D4E5F6G7H8", "B2C3D4E5F6G7H8A1", "C3D4E5F6G7H8A1B2"]}
       />
     </div>
   );

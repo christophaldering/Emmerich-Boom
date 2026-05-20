@@ -7,8 +7,9 @@ export const anmeldungTicketsTable = pgTable("anmeldung_tickets", {
   person_name:    text("person_name").notNull(),
   ticket_nummer:  text("ticket_nummer").notNull().unique(),
   ticket_code:    text("ticket_code").notNull().unique(),
-  versendet_am:   timestamp("versendet_am"),
-  created_at:     timestamp("created_at").defaultNow(),
+  versendet_am:    timestamp("versendet_am"),
+  eingelassen_am:  timestamp("eingelassen_am"),
+  created_at:      timestamp("created_at").defaultNow(),
 });
 
 export type AnmeldungTicket = typeof anmeldungTicketsTable.$inferSelect;

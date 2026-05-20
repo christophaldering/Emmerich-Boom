@@ -6,9 +6,10 @@ interface ErfolgsektionProps {
   anzahl: number;
   personen: string[];
   ticket_nummern: number[];
+  ticket_codes?: string[];
 }
 
-export default function Erfolgsektion({ anzahl, personen, ticket_nummern }: ErfolgsektionProps) {
+export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket_codes }: ErfolgsektionProps) {
   const betrag = anzahl * PHASE2_CONFIG.PREIS_PRO_PERSON;
 
   return (
@@ -80,6 +81,7 @@ export default function Erfolgsektion({ anzahl, personen, ticket_nummern }: Erfo
             <TicketSVG
               name={name}
               nummer={ticket_nummern[i] ?? i + 1}
+              code={ticket_codes?.[i]}
             />
             <p style={{
               fontFamily: "'Lora', serif",
