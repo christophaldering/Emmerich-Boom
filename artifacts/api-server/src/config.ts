@@ -7,7 +7,7 @@ export const SERVER_CONFIG = {
   KONTOINHABER:            "Christoph Aldering",
   BANK:                    "DKB",
   IBAN:                    "DE85120300001312386293",
-  PAYPAL_LINK:             "PLATZHALTER_PAYPAL_LINK",
+  PAYPAL_LINK:             "https://www.paypal.com/pool/9pkJxWVmh2?sr=wccr",
   ABSENDER_MAIL:           "boomerparty26@emmerich-boomt.de",
   ABSENDER_NAME:           "Boomerparty Emmerich",
 } as const;
