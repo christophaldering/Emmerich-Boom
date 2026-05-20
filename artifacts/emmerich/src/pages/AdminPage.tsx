@@ -335,7 +335,9 @@ const BW_LABEL: Record<string, string> = { ueberweisung: "Überw.", paypal: "Pay
 function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: () => void }) {
   const [bzLoading, setBzLoading] = useState(false);
   const [tkLoading, setTkLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState<"png" | "pdf" | null>(null);
   const [msg, setMsg] = useState("");
+  const [previewMsg, setPreviewMsg] = useState("");
 
   const markBezahlt = async () => {
     setBzLoading(true); setMsg("");
@@ -360,6 +362,28 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
       else { setMsg(d.error ?? "Fehler"); }
     } catch { setMsg("Verbindungsfehler"); }
     finally { setTkLoading(false); }
+  };
+
+  const openVorschau = async (format: "png" | "pdf") => {
+    setPreviewLoading(format); setPreviewMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/ticket-vorschau?format=${format}`, {
+        headers: { "x-admin-secret": SECRET },
+      });
+      if (!r.ok) { setPreviewMsg("Vorschau fehlgeschlagen"); return; }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      if (format === "png") {
+        window.open(url, "_blank");
+      } else {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ticket-vorschau-${row.id}.pdf`;
+        a.click();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch { setPreviewMsg("Verbindungsfehler"); }
+    finally { setPreviewLoading(null); }
   };
 
   const personen = Array.isArray(row.personen) ? row.personen : [];
@@ -458,6 +482,27 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
           </button>
         )}
         {msg && versendet && <div style={{ color: "#2ecc71", fontSize: "0.73rem", marginTop: "0.2rem" }}>{msg}</div>}
+        <div style={{ display: "flex", gap: "0.3rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
+          <button onClick={() => openVorschau("png")} disabled={previewLoading !== null} style={{
+            ...btnBase,
+            background: "transparent",
+            border: `1px solid ${am(0.28)}`,
+            color: previewLoading === "png" ? fg(0.35) : fg(0.6),
+            fontSize: "0.71rem",
+          }}>
+            {previewLoading === "png" ? "…" : "Vorschau"}
+          </button>
+          <button onClick={() => openVorschau("pdf")} disabled={previewLoading !== null} style={{
+            ...btnBase,
+            background: "transparent",
+            border: `1px solid ${am(0.28)}`,
+            color: previewLoading === "pdf" ? fg(0.35) : fg(0.6),
+            fontSize: "0.71rem",
+          }}>
+            {previewLoading === "pdf" ? "…" : "PDF ↓"}
+          </button>
+        </div>
+        {previewMsg && <div style={{ color: "#e74c3c", fontSize: "0.73rem", marginTop: "0.2rem" }}>{previewMsg}</div>}
       </td>
     </tr>
   );

@@ -2,7 +2,11 @@ import { Router, type Request, type Response } from "express";
 import { db, anmeldungenTable, anmeldungTicketsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { sendTicketMail } from "../services/mailer";
+import { renderTicketFrontPNG } from "../services/ticket-render.js";
+import { generateTicketPDF } from "../services/pdf.js";
 
 const router = Router();
 const SECRET = "emmerich-orga-stats-2026";
@@ -157,6 +161,79 @@ router.post("/admin/anmeldungen/:id/tickets-versenden", async (req: Request, res
   } catch (err) {
     req.log.error(err, "tickets-versenden failed");
     res.status(500).json({ error: "Ticketversand fehlgeschlagen. Bitte Serverlogs prüfen." });
+  }
+});
+
+// GET /api/admin/anmeldungen/:id/ticket-vorschau?format=png|pdf
+// Renders a sample ticket for the given Anmeldung and returns PNG (inline) or PDF (download).
+// Uses existing tickets if present; otherwise falls back to a dummy entry from personen names.
+router.get("/admin/anmeldungen/:id/ticket-vorschau", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+
+  const format = req.query["format"] === "pdf" ? "pdf" : "png";
+
+  try {
+    const anmeldungen = await db
+      .select()
+      .from(anmeldungenTable)
+      .where(eq(anmeldungenTable.id, id))
+      .limit(1);
+
+    if (anmeldungen.length === 0) {
+      res.status(404).json({ error: "Anmeldung nicht gefunden" });
+      return;
+    }
+    const anmeldung = anmeldungen[0]!;
+
+    // Try to use existing tickets; fall back to dummy data from person names
+    const vorhandene = await db
+      .select()
+      .from(anmeldungTicketsTable)
+      .where(eq(anmeldungTicketsTable.anmeldung_id, id));
+
+    let tickets: { name: string; nummer: string; code: string }[];
+
+    if (vorhandene.length > 0) {
+      tickets = vorhandene.map(t => ({
+        name:   t.person_name,
+        nummer: t.ticket_nummer,
+        code:   t.ticket_code,
+      }));
+    } else {
+      const personenNames = parsePersonen(anmeldung.personen);
+      if (personenNames.length === 0) {
+        res.status(400).json({ error: "Keine Personennamen in der Anmeldung" });
+        return;
+      }
+      tickets = personenNames.map((name, i) => ({
+        name,
+        nummer: ticketNummer(id, i + 1),
+        code:   "MUSTERTICKET",
+      }));
+    }
+
+    const posterBuffer = (() => {
+      const p = fileURLToPath(new URL("../assets/boomerpartyposter.jpeg", import.meta.url));
+      return readFileSync(p);
+    })();
+
+    if (format === "png") {
+      const first = tickets[0]!;
+      const png = await renderTicketFrontPNG({ ...first, posterBuffer });
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Content-Disposition", `inline; filename="ticket-vorschau-${id}.png"`);
+      res.send(png);
+    } else {
+      const pdf = await generateTicketPDF(tickets, { posterBuffer });
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="ticket-vorschau-${id}.pdf"`);
+      res.send(pdf);
+    }
+  } catch (err) {
+    req.log.error(err, "ticket-vorschau failed");
+    res.status(500).json({ error: "Vorschau konnte nicht generiert werden." });
   }
 });
 
