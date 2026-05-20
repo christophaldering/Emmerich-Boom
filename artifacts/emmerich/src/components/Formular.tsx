@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { PHASE2_CONFIG } from "@/config/phase2";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 function navigateToAnmeldung() {
   window.history.pushState({}, "", `${BASE}/anmeldung`);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
+
+const GESCHLOSSEN = PHASE2_CONFIG.PHASE1_BEENDET;
 
 interface FormularProps {
   onSuccess?: (newId: number) => void;
@@ -26,6 +29,7 @@ export default function Formular({ onSuccess }: FormularProps) {
     fontFamily: "'Lora', serif",
     width: "100%",
     outline: "none",
+    ...(GESCHLOSSEN ? { opacity: 0.4, cursor: "not-allowed" } : {}),
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -81,13 +85,30 @@ export default function Formular({ onSuccess }: FormularProps) {
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
-          <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "0.05rem" }}>🔒</span>
-          <span>
-            <strong style={{ color: "var(--amber)", fontWeight: 600 }}>Kein richtiger Name nötig.</strong>{" "}
-            Ein Spitzname reicht völlig — keine E-Mail, keine Adresse, nichts Persönliches.
-          </span>
-        </div>
+        {/* Geschlossen-Box — ersetzt Warnbox wenn Phase 1 beendet */}
+        {GESCHLOSSEN ? (
+          <div style={{ background: "var(--amber-06)", border: "1px solid var(--amber-30)", borderLeft: "3px solid var(--amber)", borderRadius: "0 4px 4px 0", padding: "1.1rem 1.3rem", marginBottom: "2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)", margin: 0 }}>
+              <strong style={{ color: "var(--warm)" }}>Die Interessensphase ist abgeschlossen.</strong>{" "}
+              Du kannst dich jetzt direkt verbindlich anmelden und deinen Platz sichern.
+            </p>
+            <button
+              type="button"
+              onClick={navigateToAnmeldung}
+              style={{ alignSelf: "flex-start", fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "var(--amber)", background: "transparent", border: "1px solid var(--amber-55)", borderRadius: "3px", padding: "0.5rem 1.2rem", cursor: "pointer" }}
+            >
+              → Zur verbindlichen Anmeldung
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", background: "var(--amber-05)", border: "1px solid var(--amber-22)", borderRadius: "4px", padding: "0.9rem 1.1rem", marginBottom: "2rem", fontFamily: "'Lora', serif", fontSize: "0.95rem", lineHeight: 1.7, color: "var(--fg-85)" }}>
+            <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: "0.05rem" }}>🔒</span>
+            <span>
+              <strong style={{ color: "var(--amber)", fontWeight: 600 }}>Kein richtiger Name nötig.</strong>{" "}
+              Ein Spitzname reicht völlig — keine E-Mail, keine Adresse, nichts Persönliches.
+            </span>
+          </div>
+        )}
 
       {submitted ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
@@ -109,19 +130,19 @@ export default function Formular({ onSuccess }: FormularProps) {
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
-          <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem" }}>
+          <div style={GESCHLOSSEN ? { pointerEvents: "none" } : {}}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem", ...(GESCHLOSSEN ? { opacity: 0.45 } : {}) }}>
               Vor- oder Spitzname{" "}
               <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "var(--fg-45)" }}>(reicht völlig)</em>
             </label>
-            <input type="text" name="name" required value={form.name} onChange={handleChange} placeholder="z.B. Klaus, Uschi, Mausi ..." className="formular-input" style={inputStyle} />
+            <input type="text" name="name" required value={form.name} onChange={handleChange} placeholder="z.B. Klaus, Uschi, Mausi ..." className="formular-input" style={inputStyle} disabled={GESCHLOSSEN} />
           </div>
 
-          <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem" }}>
+          <div style={GESCHLOSSEN ? { pointerEvents: "none" } : {}}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem", ...(GESCHLOSSEN ? { opacity: 0.45 } : {}) }}>
               Ungefähr wie viele seid ihr?
             </label>
-            <select name="personen" value={form.personen} onChange={handleChange} className="formular-input" style={inputStyle}>
+            <select name="personen" value={form.personen} onChange={handleChange} className="formular-input" style={inputStyle} disabled={GESCHLOSSEN}>
               <option>Nur ich</option>
               <option>Wir zwei</option>
               <option>Wir drei</option>
@@ -130,30 +151,32 @@ export default function Formular({ onSuccess }: FormularProps) {
             </select>
           </div>
 
-          <div>
-            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem" }}>
+          <div style={GESCHLOSSEN ? { pointerEvents: "none" } : {}}>
+            <label style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "1rem", color: "var(--fg-80)", marginBottom: "0.5rem", ...(GESCHLOSSEN ? { opacity: 0.45 } : {}) }}>
               Kurzes Statement{" "}
               <em style={{ fontStyle: "italic", fontSize: "0.88rem", color: "var(--fg-45)" }}>(optional, aber gerne)</em>
             </label>
-            <textarea name="statement" rows={3} value={form.statement} onChange={handleChange} placeholder={'Warum du dabei bist, was du dir erhoffst, oder einfach: "Bin dabei!"'} className="formular-input" style={{ ...inputStyle, resize: "vertical" }} />
+            <textarea name="statement" rows={3} value={form.statement} onChange={handleChange} placeholder={'Warum du dabei bist, was du dir erhoffst, oder einfach: "Bin dabei!"'} className="formular-input" style={{ ...inputStyle, resize: "vertical" }} disabled={GESCHLOSSEN} />
           </div>
 
-          {/* Warnbox + Anmelde-Button */}
-          <div style={{ background: "var(--fg-03)", border: "1px solid var(--amber-30)", borderLeft: "3px solid var(--amber)", borderRadius: "0 4px 4px 0", padding: "1rem 1.2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", lineHeight: 1.7, color: "var(--fg-80)", margin: 0 }}>
-              🔔 <strong style={{ color: "var(--warm)" }}>Das ist keine Anmeldung.</strong> Eine Interessensbekundung sichert dir keinen Platz. Um wirklich dabei zu sein, direkt verbindlich anmelden.
-            </p>
-            <button
-              type="button"
-              onClick={navigateToAnmeldung}
-              style={{ alignSelf: "flex-start", fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "var(--amber)", background: "transparent", border: "1px solid var(--amber-55)", borderRadius: "3px", padding: "0.45rem 1.1rem", cursor: "pointer" }}
-            >
-              → Zur verbindlichen Anmeldung
-            </button>
-          </div>
+          {/* Warnbox — nur wenn Phase 1 noch offen */}
+          {!GESCHLOSSEN && (
+            <div style={{ background: "var(--fg-03)", border: "1px solid var(--amber-30)", borderLeft: "3px solid var(--amber)", borderRadius: "0 4px 4px 0", padding: "1rem 1.2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", lineHeight: 1.7, color: "var(--fg-80)", margin: 0 }}>
+                🔔 <strong style={{ color: "var(--warm)" }}>Das ist keine Anmeldung.</strong> Eine Interessensbekundung sichert dir keinen Platz. Um wirklich dabei zu sein, direkt verbindlich anmelden.
+              </p>
+              <button
+                type="button"
+                onClick={navigateToAnmeldung}
+                style={{ alignSelf: "flex-start", fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "var(--amber)", background: "transparent", border: "1px solid var(--amber-55)", borderRadius: "3px", padding: "0.45rem 1.1rem", cursor: "pointer" }}
+              >
+                → Zur verbindlichen Anmeldung
+              </button>
+            </div>
+          )}
 
-          <button type="submit" disabled={loading} className="submit-btn" style={{ width: "100%", padding: "1rem", background: "var(--amber)", border: "none", borderRadius: "3px", color: "var(--black)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", fontWeight: 700, cursor: "pointer", transition: "background 0.2s" }}>
-            {loading ? "Wird gespeichert …" : "Bitte bestätigen! 👍"}
+          <button type="submit" disabled={loading || GESCHLOSSEN} className="submit-btn" style={{ width: "100%", padding: "1rem", background: "var(--amber)", border: "none", borderRadius: "3px", color: "var(--black)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", fontWeight: 700, cursor: GESCHLOSSEN ? "not-allowed" : "pointer", transition: "background 0.2s" }}>
+            {GESCHLOSSEN ? "Interessensbekundung geschlossen" : loading ? "Wird gespeichert …" : "Bitte bestätigen! 👍"}
           </button>
 
           {error && (
