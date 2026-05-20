@@ -63,7 +63,7 @@ export default function Fakten() {
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Eintritt</span>
-          <span className="fakten-val">aktuell noch ohne Kosten<small>(verbindl. Anmeldung wird im Mai abgefragt, dann werden 10 EUR fällig)</small></span>
+          <span className="fakten-val">10 € pro Person<small>verbindliche Anmeldung bis Ende Juni 2026 — Zahlung per Überweisung oder PayPal</small></span>
         </div>
         <div className="fakten-row">
           <span className="fakten-key">Zugang</span>

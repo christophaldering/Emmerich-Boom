@@ -8,7 +8,7 @@ function navigateTo(path: string) {
 }
 
 export default function AnmeldeAufruf() {
-  if (!PHASE2_CONFIG.PHASE1_BEENDET) return null;
+  if (!PHASE2_CONFIG.ANMELDUNG_AKTIV) return null;
 
   return (
     <section style={{

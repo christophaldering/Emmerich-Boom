@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { buildSortedPlaylist, getRevealInfo, formatTrackLabel, WishEntry, RevealInfo } from "@/lib/playlistArc";
-import { PHASE2_CONFIG } from "@/config/phase2";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+function navigateToAnmeldung() {
+  window.history.pushState({}, "", `${BASE}/anmeldung`);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
 
 interface RevealCardProps {
   reveal: RevealInfo;
@@ -191,25 +196,6 @@ export default function Formular({ onSuccess }: FormularProps) {
     }
   };
 
-  if (PHASE2_CONFIG.PHASE1_BEENDET) {
-    return (
-      <section id="anmeldung" style={{ background: "var(--bg-section)", borderTop: "2px solid var(--amber-30)", borderBottom: "2px solid var(--amber-30)", padding: "3rem 0 4rem" }}>
-        <div style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem", textAlign: "center" }}>
-          <div style={{ fontSize: "1.8rem", color: "var(--amber)", marginBottom: "1.2rem" }}>✦</div>
-          <p style={{
-            fontFamily: "'Lora', Georgia, serif",
-            fontStyle: "italic",
-            fontSize: "1.05rem",
-            color: "var(--fg-75)",
-            lineHeight: 1.8,
-          }}>
-            Die Interessensphase ist beendet — 129 von euch waren schon dabei. Vielen Dank! Jetzt geht es ans verbindliche Anmelden — oben auf dieser Seite.
-          </p>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="anmeldung" style={{ background: "var(--bg-section)", borderTop: "2px solid var(--amber-30)", borderBottom: "2px solid var(--amber-30)", padding: "3rem 0 5rem" }}>
       <style>{`
@@ -223,13 +209,13 @@ export default function Formular({ onSuccess }: FormularProps) {
 
         <div style={{ marginBottom: "2.5rem" }}>
           <span style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.78rem", letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--amber)", marginBottom: "0.7rem" }}>
-            Jetzt anmelden
+            Interessensbekundung
           </span>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: "clamp(2.2rem, 7vw, 3.2rem)", color: "var(--warm)", lineHeight: 1.15, marginBottom: "0.6rem" }}>
             Bist du dabei?
           </h2>
           <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7 }}>
-            Melde dich bis Ende April — dann planen wir den Abend.
+            Statement hinterlassen, Musikwunsch platzieren — unverbindlich.
           </p>
         </div>
 
@@ -267,8 +253,8 @@ export default function Formular({ onSuccess }: FormularProps) {
       ) : (
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
           <div style={{ background: "var(--amber-08)", border: "1px solid var(--amber-30)", borderRadius: "4px", padding: "1rem 1.3rem", fontSize: "0.9rem", lineHeight: 1.75, color: "var(--fg-80)" }}>
-            <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Abgabe bis Ende April.</strong>{" "}
-            Danach wissen wir, wie viele wir werden — und wie der Abend stattfindet.
+            <strong style={{ color: "var(--amber)", fontFamily: "'Lora', serif", fontWeight: 600 }}>Kein Ticket, kein Einlass.</strong>{" "}
+            Das hier ist unverbindlich — für einen Platz brauchst du die verbindliche Anmeldung oben.
           </div>
 
           <div>
@@ -311,6 +297,20 @@ export default function Formular({ onSuccess }: FormularProps) {
                 ✦ Abschicken — dann siehst du, wo dieser Song in der Playlist landet.
               </p>
             )}
+          </div>
+
+          {/* Warnbox + Anmelde-Button */}
+          <div style={{ background: "var(--fg-03)", border: "1px solid var(--amber-30)", borderLeft: "3px solid var(--amber)", borderRadius: "0 4px 4px 0", padding: "1rem 1.2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", lineHeight: 1.7, color: "var(--fg-80)", margin: 0 }}>
+              🔔 <strong style={{ color: "var(--warm)" }}>Das ist keine Anmeldung.</strong> Eine Interessensbekundung sichert dir keinen Platz. Um wirklich dabei zu sein, direkt verbindlich anmelden.
+            </p>
+            <button
+              type="button"
+              onClick={navigateToAnmeldung}
+              style={{ alignSelf: "flex-start", fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "var(--amber)", background: "transparent", border: "1px solid var(--amber-55)", borderRadius: "3px", padding: "0.45rem 1.1rem", cursor: "pointer" }}
+            >
+              → Zur verbindlichen Anmeldung
+            </button>
           </div>
 
           <button type="submit" disabled={loading} className="submit-btn" style={{ width: "100%", padding: "1rem", background: "var(--amber)", border: "none", borderRadius: "3px", color: "var(--black)", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", fontWeight: 700, cursor: "pointer", transition: "background 0.2s" }}>

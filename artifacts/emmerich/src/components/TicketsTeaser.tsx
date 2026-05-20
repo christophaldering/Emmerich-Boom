@@ -24,7 +24,7 @@ export default function TicketsTeaser() {
           margin: "0 0 12px",
         }}
       >
-        DEMNÄCHST
+        TICKETS
       </p>
 
       {/* Headline */}
@@ -38,7 +38,7 @@ export default function TicketsTeaser() {
           lineHeight: 1.2,
         }}
       >
-        Die Tickets sind in der Mache.
+        So sehen sie aus — die Tickets.
       </h2>
 
       {/* Bild */}
@@ -64,7 +64,7 @@ export default function TicketsTeaser() {
           margin: "24px 0 0",
         }}
       >
-        Mehr verraten wir noch nicht — bis bald.
+        Sobald ihr bezahlt habt, kommen sie personifiziert per Mail.
       </p>
     </section>
   );
