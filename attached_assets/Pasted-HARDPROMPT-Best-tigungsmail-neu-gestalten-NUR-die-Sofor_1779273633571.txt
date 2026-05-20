@@ -1,0 +1,27 @@
+HARDPROMPT — Bestätigungsmail neu gestalten (NUR die Sofort-Bestätigung)
+KONTEXT: Es geht ausschließlich um die Bestätigungsmail, die SOFORT nach einer Anmeldung über POST /api/anmeldung verschickt wird (via Resend). Diese Mail wird inhaltlich und optisch neu gestaltet.
+ABSOLUT VERBOTEN:
+•	Die Ticket-Mail (die nach Zahlungseingang manuell ausgelöst wird, via Gmail SMTP) NICHT anfassen.
+•	KEINE dritte/neue Mail anlegen.
+•	Den Mailtext NICHT umformulieren, NICHT kürzen, NICHT „verbessern". Der Text unten wird WORTWÖRTLICH übernommen, Zeichen für Zeichen, inkl. Emoji, Kursiv-Beispiele und Zeilenumbrüche.
+•	IBAN und PayPal-Link NICHT neu eintippen — sie werden aus der bestehenden config.ts gezogen (dieselben Werte, die schon dort stehen).
+•	Die Seite NICHT live schalten/deployen.
+AUFGABE:
+1.	Ersetze den Inhalt der sofortigen Bestätigungsmail durch den unten stehenden Text (wortwörtlich).
+2.	Binde GANZ OBEN in der Mail das BoomerParty-Poster als Bild ein (das Poster der Landingpage, die drei Personen auf der Vespa). Finde dafür den korrekten, öffentlich erreichbaren Pfad der Bilddatei in diesem Projekt selbst heraus und verwende ihn. Das Bild über die volle Mailbreite, moderate Höhe, oben mittig. Falls kein öffentlich erreichbarer Bildpfad existiert, STOPP und sag mir das, bevor du etwas anderes einbaust.
+3.	Setze die IBAN an der Stelle [IBAN] aus config.ts ein, den PayPal-Pool-Link an der Stelle [PAYPAL] aus config.ts.
+4.	Gestalte die Mail sauber und gut lesbar (klare Absätze, die beiden Zahlwege deutlich abgesetzt). Dezentes, warmes Design — KEINE grellen Farben, keine bunten Buttons. Schlicht und freundlich.
+5.	Schicke nach dem Einbau EINE Testmail an christoph.aldering@googlemail.com und bestätige mir, ob Resend den Versand ohne Fehler gemeldet hat.
+MAILTEXT (wortwörtlich übernehmen):
+Betreff: Schön, dass du dabei bist – nur noch ein kleiner Schritt 🎉
+[POSTER-BILD HIER OBEN]
+Schön, dass du dabei bist!
+Deine Anmeldung für „Emmerich boomt!" ist angekommen – wir freuen uns drauf. Damit dein Platz fix ist, fehlt nur noch eins: der Beitrag von 10 € pro Person.
+Und jetzt kommt der Teil, bei dem wir uns selbst ein bisschen an die eigene Nase fassen: Wir wissen alle, wie das läuft. Man nimmt sich vor, das „später" zu machen – und dann kommt das Leben dazwischen, das Telefon klingelt, der Garten ruft, und schwupp ist die Woche rum. Drum, ganz im Geiste unserer Generation: Was man heute kann besorgen, das verschiebe nicht auf morgen. 😉
+Am einfachsten gleich jetzt, solange du diese Mail noch offen hast:
+Per Überweisung Empfänger: Christoph Aldering IBAN: [IBAN] Betrag: 10 € pro angemeldeter Person (also z. B. 30 € für drei Personen) Verwendungszweck: Emmerich boomt + dein Name (z. B. „Emmerich boomt – Maria Mustermann, 3 Personen")
+Oder per PayPal Ganz bequem in unseren Sammel-Pool: [PAYPAL] (Bitte 10 € pro Person eintragen – bei drei Personen also 30 €.)
+Sobald dein Beitrag da ist, bekommst du von uns die Bestätigung mit deinem Ticket. Dann ist alles in trockenen Tüchern und du musst an nichts mehr denken.
+Bei Fragen – einfach auf diese Mail antworten.
+Bis bald auf dem Bölt, Christoph Aldering für das Orga-Team „Emmerich boomt!"
+ABSCHLUSS: Bestätige am Ende wörtlich: „Nur die Sofort-Bestätigungsmail wurde geändert. Ticket-Mail unverändert, nichts live geschaltet. Poster-Bildpfad verwendet: [Pfad]. Testmail an [Adresse] versendet, Resend-Status: [Status]."
