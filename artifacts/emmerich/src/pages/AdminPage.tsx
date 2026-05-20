@@ -488,17 +488,19 @@ function TicketManager({ reg, tickets, onRefresh }: {
 }) {
   const myTickets = tickets.filter(t => t.anmeldungId === reg.id);
   const personCount = parsePersonenCount(reg.personen);
+  const isGroup = personCount > 1;
+
+  // For groups: collect extra names before generating
+  const [groupNames, setGroupNames] = useState<string[]>(() =>
+    Array.from({ length: personCount }, (_, i) => i === 0 ? reg.name : "")
+  );
+  const [groupPay, setGroupPay] = useState("bar");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [regenOpen, setRegenOpen] = useState(false);
   const [regenNames, setRegenNames] = useState<string[]>([]);
   const [regenPay, setRegenPay] = useState("bar");
-
-  function autoNames(): string[] {
-    return Array.from({ length: personCount }, (_, i) =>
-      i === 0 ? reg.name : "Begleitung"
-    );
-  }
+  const [copied, setCopied] = useState<number | null>(null);
 
   const generate = async (payMethod: string, names: string[]) => {
     setLoading(true); setMsg("");
@@ -515,75 +517,132 @@ function TicketManager({ reg, tickets, onRefresh }: {
     finally { setLoading(false); }
   };
 
+  const copyLink = (code: string, id: number) => {
+    const url = `${window.location.origin}${BASE}/boomer-orga-intern/ticket/${code}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(id);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  };
+
   const ticketBase = `${window.location.origin}${BASE}/boomer-orga-intern/ticket/`;
+  const groupNamesValid = groupNames.every(n => n.trim().length > 0);
 
   return (
     <div style={{ border: `1px solid ${am(0.25)}`, borderRadius: "6px", overflow: "hidden", marginBottom: "0.6rem" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1rem", background: am(0.06) }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1rem", color: A }}>{reg.name}</span>
-          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.6) }}>{reg.personen}</span>
-          {myTickets.length > 0 && (
-            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: "#2ecc71", background: "rgba(46,204,113,0.12)", padding: "0.15rem 0.5rem", borderRadius: "20px" }}>
-              {myTickets.length} Ticket{myTickets.length > 1 ? "s" : ""} · {PAY_LABELS[myTickets[0].paymentMethod ?? ""] ?? "—"}
-            </span>
-          )}
-        </div>
+      <div style={{ padding: "0.75rem 1rem", background: am(0.06), display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1rem", color: A }}>{reg.name}</span>
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.6) }}>{reg.personen}</span>
+        {myTickets.length > 0 && (
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: "#2ecc71", background: "rgba(46,204,113,0.12)", padding: "0.15rem 0.5rem", borderRadius: "20px" }}>
+            {myTickets.length} Ticket{myTickets.length > 1 ? "s" : ""} · {PAY_LABELS[myTickets[0].paymentMethod ?? ""] ?? "—"}
+          </span>
+        )}
       </div>
 
-      {/* No tickets yet: one-click payment confirmation → auto-generate */}
+      {/* No tickets yet */}
       {myTickets.length === 0 && (
         <div style={{ padding: "0.85rem 1rem", borderTop: `1px solid ${am(0.12)}` }}>
-          <p style={{ fontSize: "0.78rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.55rem", letterSpacing: "0.06em" }}>
-            Zahlung eingegangen per:
-          </p>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-            {PAY_OPTIONS.map(o => (
-              <button key={o.value} onClick={() => generate(o.value, autoNames())} disabled={loading}
-                style={{ background: A, border: "none", borderRadius: "4px", color: BG, padding: "0.5rem 1.1rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.6 : 1 }}>
-                {loading ? "…" : o.label}
+
+          {/* SINGLE person: one-click per payment method */}
+          {!isGroup && (
+            <>
+              <p style={{ fontSize: "0.78rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.55rem", letterSpacing: "0.06em" }}>
+                Zahlung eingegangen per:
+              </p>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                {PAY_OPTIONS.map(o => (
+                  <button key={o.value} onClick={() => generate(o.value, [reg.name])} disabled={loading}
+                    style={{ background: A, border: "none", borderRadius: "4px", color: BG, padding: "0.5rem 1.1rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.6 : 1 }}>
+                    {loading ? "…" : o.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* GROUP: collect names first, then generate */}
+          {isGroup && (
+            <>
+              <p style={{ fontSize: "0.78rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.6rem", letterSpacing: "0.06em" }}>
+                Namen aller {personCount} Personen (für personifizierte Tickets):
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginBottom: "0.8rem" }}>
+                {groupNames.map((n, i) => (
+                  <div key={i} style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                    <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.5), width: "1.2rem", flexShrink: 0, textAlign: "right" }}>{i + 1}.</span>
+                    <input
+                      value={n}
+                      onChange={e => setGroupNames(prev => prev.map((v, j) => j === i ? e.target.value : v))}
+                      placeholder={i === 0 ? reg.name : `Name Person ${i + 1}`}
+                      style={{ flex: 1, background: "rgba(245,232,200,0.06)", border: `1px solid ${n.trim() ? am(0.3) : "rgba(231,76,60,0.5)"}`, borderRadius: "3px", color: FG, padding: "0.4rem 0.6rem", fontSize: "0.88rem", fontFamily: "'Lora', serif", outline: "none" }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginBottom: "0.7rem" }}>
+                <p style={{ fontSize: "0.78rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.4rem", letterSpacing: "0.06em" }}>Zahlungsart:</p>
+                <div style={{ display: "flex", gap: "0.4rem" }}>
+                  {PAY_OPTIONS.map(o => (
+                    <button key={o.value} onClick={() => setGroupPay(o.value)}
+                      style={{ background: groupPay === o.value ? A : "transparent", border: `1px solid ${A}`, borderRadius: "3px", color: groupPay === o.value ? BG : A, padding: "0.35rem 0.8rem", fontFamily: "'Lora', serif", fontSize: "0.88rem", cursor: "pointer" }}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={() => generate(groupPay, groupNames.map(n => n.trim()))}
+                disabled={loading || !groupNamesValid}
+                style={{ background: groupNamesValid ? A : am(0.35), border: "none", borderRadius: "4px", color: BG, padding: "0.5rem 1.3rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", fontWeight: 700, cursor: (loading || !groupNamesValid) ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}>
+                {loading ? "Generiere…" : !groupNamesValid ? "Bitte alle Namen ausfüllen" : "Tickets generieren"}
               </button>
-            ))}
-          </div>
+            </>
+          )}
+
           {msg && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: "#e74c3c", marginTop: "0.5rem" }}>{msg}</p>}
         </div>
       )}
 
-      {/* Tickets exist: show list */}
+      {/* Tickets exist: show list with copy-link */}
       {myTickets.length > 0 && (
         <div style={{ padding: "0.75rem 1rem" }}>
           {myTickets.map(t => (
-            <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+            <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.45rem", flexWrap: "wrap" }}>
               <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.85), minWidth: "120px" }}>{t.personName}</span>
-              <code style={{ fontFamily: "monospace", fontSize: "0.8rem", color: A, letterSpacing: "0.08em" }}>{t.ticketCode}</code>
+              <code style={{ fontFamily: "monospace", fontSize: "0.78rem", color: A, letterSpacing: "0.08em" }}>{t.ticketCode}</code>
               {t.usedAt
-                ? <span style={{ fontSize: "0.78rem", color: "#e8991a", fontFamily: "'Lora', serif" }}>✓ Eingelöst {new Date(t.usedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr</span>
-                : <span style={{ fontSize: "0.78rem", color: "#2ecc71", fontFamily: "'Lora', serif" }}>Noch nicht eingelöst</span>
+                ? <span style={{ fontSize: "0.75rem", color: "#e8991a", fontFamily: "'Lora', serif" }}>✓ Eingelöst {new Date(t.usedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr</span>
+                : <span style={{ fontSize: "0.75rem", color: "#2ecc71", fontFamily: "'Lora', serif" }}>Nicht eingelöst</span>
               }
               <a href={`${ticketBase}${t.ticketCode}`} target="_blank" rel="noreferrer"
-                style={{ fontSize: "0.78rem", color: A, fontFamily: "'Lora', serif", fontStyle: "italic", textDecoration: "underline" }}>
-                Ansehen / Drucken
+                style={{ fontSize: "0.75rem", color: A, fontFamily: "'Lora', serif", fontStyle: "italic", textDecoration: "underline" }}>
+                Öffnen / Drucken
               </a>
+              <button onClick={() => copyLink(t.ticketCode, t.id)}
+                style={{ fontSize: "0.72rem", background: "transparent", border: `1px solid ${am(0.35)}`, borderRadius: "3px", color: copied === t.id ? "#2ecc71" : fg(0.55), padding: "0.15rem 0.5rem", fontFamily: "'Lora', serif", cursor: "pointer" }}>
+                {copied === t.id ? "✓ Kopiert" : "Link kopieren"}
+              </button>
             </div>
           ))}
 
           {/* Re-generate (collapsible) */}
-          <div style={{ marginTop: "0.75rem", borderTop: `1px solid ${am(0.12)}`, paddingTop: "0.65rem" }}>
+          <div style={{ marginTop: "0.75rem", borderTop: `1px solid ${am(0.12)}`, paddingTop: "0.6rem" }}>
             <button onClick={() => {
               setRegenOpen(o => !o);
               setRegenNames(myTickets.map(t => t.personName));
               setRegenPay(myTickets[0]?.paymentMethod ?? "bar");
             }}
-              style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "3px", color: fg(0.55), padding: "0.3rem 0.8rem", fontFamily: "'Lora', serif", fontSize: "0.8rem", cursor: "pointer" }}>
+              style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "3px", color: fg(0.5), padding: "0.28rem 0.75rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", cursor: "pointer" }}>
               {regenOpen ? "▲ Abbrechen" : "Tickets neu generieren …"}
             </button>
 
             {regenOpen && (
               <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                 <div>
-                  <p style={{ fontSize: "0.75rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.35rem", letterSpacing: "0.06em" }}>Namen</p>
+                  <p style={{ fontSize: "0.75rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.35rem" }}>Namen</p>
                   {regenNames.map((n, i) => (
                     <div key={i} style={{ display: "flex", gap: "0.4rem", alignItems: "center", marginBottom: "0.3rem" }}>
                       <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.5), width: "1.2rem", flexShrink: 0 }}>{i + 1}.</span>
@@ -593,7 +652,7 @@ function TicketManager({ reg, tickets, onRefresh }: {
                   ))}
                 </div>
                 <div>
-                  <p style={{ fontSize: "0.75rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.35rem", letterSpacing: "0.06em" }}>Zahlungsart</p>
+                  <p style={{ fontSize: "0.75rem", color: fg(0.55), fontFamily: "'Lora', serif", margin: "0 0 0.35rem" }}>Zahlungsart</p>
                   <div style={{ display: "flex", gap: "0.4rem" }}>
                     {PAY_OPTIONS.map(o => (
                       <button key={o.value} onClick={() => setRegenPay(o.value)}
@@ -603,7 +662,7 @@ function TicketManager({ reg, tickets, onRefresh }: {
                     ))}
                   </div>
                 </div>
-                <button onClick={() => generate(regenPay, regenNames.map(n => n.trim() || "Begleitung"))} disabled={loading}
+                <button onClick={() => generate(regenPay, regenNames.map(n => n.trim() || "—"))} disabled={loading}
                   style={{ alignSelf: "flex-start", background: A, border: "none", borderRadius: "4px", color: BG, padding: "0.5rem 1.2rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1 }}>
                   {loading ? "Generiere…" : "Neu generieren"}
                 </button>
