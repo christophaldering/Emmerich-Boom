@@ -76,7 +76,7 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
     type: "png",
     margin: 1,
     color: { dark: "#E8991A", light: "#0A0704" },
-    width: 68,
+    width: 96,
   });
   const qrDataUrl = `data:image/png;base64,${qrPngBuffer.toString("base64")}`;
 
@@ -145,7 +145,7 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
         font-size="52" font-weight="500" text-anchor="middle" fill="#E8991A">&#x2116; ${escXml(numStr)}</text>
     </g>
 
-    <image href="${qrDataUrl}" x="754" y="250" width="68" height="68" opacity="0.55" />
+    <image href="${qrDataUrl}" x="740" y="232" width="96" height="96" opacity="1" />
 
     <text x="450" y="322"
       font-family="'Lora', Georgia, serif"
