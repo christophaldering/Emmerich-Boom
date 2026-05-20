@@ -236,12 +236,25 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 
   const resend = new Resend(apiKey);
   const base = buildBaseUrl();
-  // Link to the ticket download page for the first ticket of this Anmeldung
-  const ticketPageUrl = `${base}/boomer-orga-intern/ticket/${encodeURIComponent(opts.tickets[0]!.code)}`;
+
+  const ticketLinks = opts.tickets.map(t => ({
+    name: t.name,
+    url: `${base}/boomer-orga-intern/ticket/${encodeURIComponent(t.code)}`,
+  }));
+  const mehrereTickets = ticketLinks.length > 1;
+
+  const ticketButtonsHtml = ticketLinks.map(t =>
+    `<div style="text-align:center;margin:0 0 0.9rem;">
+      <a href="${escHtml(t.url)}"
+        style="display:inline-block;padding:0.75rem 2rem;background:#e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:1rem;font-weight:bold;color:#0a0704;text-decoration:none;letter-spacing:0.04em;">
+        &#8594; ${mehrereTickets ? `Ticket: ${escHtml(t.name)}` : "Ticket herunterladen"}
+      </a>
+    </div>`
+  ).join("\n");
 
   const html = `<!DOCTYPE html>
 <html lang="de">
-<head><meta charset="utf-8"><title>Dein Ticket — EMMERICH BOOMT!</title></head>
+<head><meta charset="utf-8"><title>${mehrereTickets ? "Eure Tickets" : "Dein Ticket"} \u2014 EMMERICH BOOMT!</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:580px;margin:0 auto;">
 
@@ -251,7 +264,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   <div style="padding:2.5rem 1.5rem;">
 
     <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:1.3rem;font-weight:bold;color:#f5e8c8;margin:0 0 1.4rem;line-height:1.35;">
-      Es ist so weit \u2014 dein Ticket ist da!
+      Es ist so weit \u2014 ${mehrereTickets ? "eure Tickets sind da!" : "dein Ticket ist da!"}
     </h2>
 
     <p style="font-size:0.97rem;line-height:1.8;color:rgba(245,232,200,0.88);margin:0 0 1.2rem;">
@@ -259,14 +272,14 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     </p>
 
     <p style="font-size:0.97rem;line-height:1.8;color:rgba(245,232,200,0.88);margin:0 0 1.4rem;">
-      Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:
+      ${mehrereTickets
+        ? `Hier sind die Download-Links f\u00FCr alle ${ticketLinks.length} Tickets \u2014 bitte leitet sie an die jeweilige Person weiter:`
+        : "Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:"
+      }
     </p>
 
-    <div style="text-align:center;margin:0 0 1.8rem;">
-      <a href="${escHtml(ticketPageUrl)}"
-        style="display:inline-block;padding:0.75rem 2rem;background:#e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:1rem;font-weight:bold;color:#0a0704;text-decoration:none;letter-spacing:0.04em;">
-        &#8594; Ticket herunterladen
-      </a>
+    <div style="margin:0 0 1.8rem;">
+      ${ticketButtonsHtml}
     </div>
 
     <p style="font-size:0.9rem;line-height:1.7;color:rgba(245,232,200,0.6);margin:0 0 1.8rem;font-style:italic;">
@@ -295,14 +308,24 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 </body>
 </html>`;
 
+  const ticketLinksText = mehrereTickets
+    ? [
+        `Hier sind die Download-Links f\u00FCr alle ${ticketLinks.length} Tickets \u2014 bitte leitet sie an die jeweilige Person weiter:`,
+        "",
+        ...ticketLinks.map(t => `\u2192 Ticket ${t.name}: ${t.url}`),
+      ]
+    : [
+        "Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:",
+        "",
+        `\u2192 Ticket herunterladen: ${ticketLinks[0]!.url}`,
+      ];
+
   const text = [
-    "Es ist so weit \u2014 dein Ticket ist da!",
+    `Es ist so weit \u2014 ${mehrereTickets ? "eure Tickets sind da!" : "dein Ticket ist da!"}`,
     "",
     "In dem Moment, wo wir diese Mail abschicken, freuen wir uns jedes Mal ein kleines bisschen mit. Weil dahinter ein echter Mensch steckt, der sich gedacht hat: Ja, ich bin dabei. Und das ist das Sch\u00F6nste an so einer Veranstaltung.",
     "",
-    "Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:",
-    "",
-    `\u2192 Ticket herunterladen: ${ticketPageUrl}`,
+    ...ticketLinksText,
     "",
     "Den QR-Code bitte am Einlass bereithalten.",
     "",
@@ -318,7 +341,9 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     from:    `${ABSENDER_NAME} <${ABSENDER_MAIL}>`,
     to:      [opts.to],
     replyTo: ABSENDER_MAIL,
-    subject: "Dein Ticket wartet \u2014 EMMERICH BOOMT! 18. Juli 2026",
+    subject: mehrereTickets
+      ? "Eure Tickets warten \u2014 EMMERICH BOOMT! 18. Juli 2026"
+      : "Dein Ticket wartet \u2014 EMMERICH BOOMT! 18. Juli 2026",
     html,
     text,
     attachments: [
