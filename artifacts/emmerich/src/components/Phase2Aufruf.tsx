@@ -1,5 +1,8 @@
 import { useReveal } from "@/hooks/useReveal";
-import { useGetInteressentenCount } from "@workspace/api-client-react";
+import {
+  useGetInteressentenCount,
+  useGetAnmeldungStats,
+} from "@workspace/api-client-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -10,8 +13,11 @@ function navigateTo(path: string) {
 
 export default function Phase2Aufruf() {
   const ref = useReveal();
-  const { data } = useGetInteressentenCount();
-  const count = data?.count ?? null;
+  const { data: interesData } = useGetInteressentenCount();
+  const { data: statsData } = useGetAnmeldungStats();
+
+  const count = interesData?.count ?? null;
+  const angemeldete = statsData?.angemeldete_personen ?? null;
 
   return (
     <section
@@ -27,6 +33,17 @@ export default function Phase2Aufruf() {
           max-width: 640px;
           margin: 0 auto;
         }
+        .p2a-counts-row {
+          display: flex;
+          gap: 3.5rem;
+          align-items: flex-end;
+          flex-wrap: wrap;
+          margin-bottom: 2.2rem;
+        }
+        .p2a-count-block {
+          display: flex;
+          flex-direction: column;
+        }
         .p2a-count {
           font-family: 'Playfair Display', Georgia, serif;
           font-weight: 800;
@@ -36,14 +53,25 @@ export default function Phase2Aufruf() {
           color: var(--amber);
           margin: 0 0 0.2rem;
         }
+        .p2a-count--secondary {
+          font-size: clamp(3rem, 10vw, 5.5rem);
+          opacity: 0.85;
+        }
         .p2a-label {
           font-family: 'Lora', Georgia, serif;
-          font-size: clamp(0.85rem, 2vw, 0.95rem);
+          font-size: clamp(0.75rem, 2vw, 0.88rem);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--amber);
           opacity: 0.7;
-          margin-bottom: 2.2rem;
+        }
+        .p2a-separator {
+          width: 1px;
+          height: 5rem;
+          background: var(--amber);
+          opacity: 0.25;
+          align-self: center;
+          flex-shrink: 0;
         }
         .p2a-text {
           font-family: 'Lora', Georgia, serif;
@@ -89,10 +117,25 @@ export default function Phase2Aufruf() {
       `}</style>
 
       <div className="p2a-inner">
-        {count !== null && (
+        {(count !== null || angemeldete !== null) && (
           <div className="reveal d1" style={{ animationDelay: "0s" }}>
-            <div className="p2a-count">{count}</div>
-            <div className="p2a-label">Interessensbekundungen</div>
+            <div className="p2a-counts-row">
+              {count !== null && (
+                <div className="p2a-count-block">
+                  <div className="p2a-count">{count}</div>
+                  <div className="p2a-label">Phase&nbsp;1 · Interessiert</div>
+                </div>
+              )}
+              {count !== null && angemeldete !== null && (
+                <div className="p2a-separator" />
+              )}
+              {angemeldete !== null && (
+                <div className="p2a-count-block">
+                  <div className="p2a-count p2a-count--secondary">{angemeldete}</div>
+                  <div className="p2a-label">Phase&nbsp;2 · Angemeldet</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
