@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { db } from "@workspace/db";
-import { tickets, interessenten, anmeldungTicketsTable } from "@workspace/db";
+import { tickets, interessenten, anmeldungTicketsTable, scanLog } from "@workspace/db";
 import { eq, desc, isNotNull, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { renderTicketFrontPNG } from "../services/ticket-render.js";
@@ -156,6 +156,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
   if (phase2Rows.length > 0) {
     const t = phase2Rows[0]!;
     if (t.eingelassen_am) {
+      await db.insert(scanLog).values({ ticket_code: code, result: "already_used", person_name: t.person_name }).catch(() => {});
       res.json({
         status: "already_used",
         message: "Ticket bereits eingelöst",
@@ -168,6 +169,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
       .update(anmeldungTicketsTable)
       .set({ eingelassen_am: new Date() })
       .where(eq(anmeldungTicketsTable.ticket_code, code));
+    await db.insert(scanLog).values({ ticket_code: code, result: "ok", person_name: t.person_name }).catch(() => {});
     res.json({ status: "ok", message: "Willkommen!", personName: t.person_name });
     return;
   }
@@ -180,12 +182,14 @@ router.post("/ticket/:code/scan", async (req, res) => {
     .limit(1);
 
   if (legacyRows.length === 0) {
+    await db.insert(scanLog).values({ ticket_code: code, result: "invalid", person_name: null }).catch(() => {});
     res.status(404).json({ status: "invalid", message: "Unbekannter Code" });
     return;
   }
 
   const ticket = legacyRows[0]!;
   if (ticket.usedAt) {
+    await db.insert(scanLog).values({ ticket_code: code, result: "already_used", person_name: ticket.personName }).catch(() => {});
     res.json({
       status: "already_used",
       message: "Ticket bereits eingelöst",
@@ -198,6 +202,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
     .update(tickets)
     .set({ usedAt: new Date() })
     .where(eq(tickets.ticketCode, code));
+  await db.insert(scanLog).values({ ticket_code: code, result: "ok", person_name: ticket.personName }).catch(() => {});
   res.json({ status: "ok", message: "Willkommen!", personName: ticket.personName });
 });
 

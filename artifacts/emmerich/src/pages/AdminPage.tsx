@@ -863,11 +863,25 @@ function visitOrdinal(n: number | null): string {
   return `${n}.`;
 }
 
-type Tab = "anmeldungen" | "tickets" | "statistik";
+interface MonitorTicket {
+  id: number; ticket_code: string; ticket_nummer: string;
+  person_name: string; eingelassen_am: string | null; anmeldung_id: number;
+}
+interface MonitorLog {
+  id: number; ticket_code: string; result: string;
+  person_name: string | null; scanned_at: string;
+}
+interface MonitorData {
+  tickets_total: number; eingelassen_count: number;
+  eingelassen: MonitorTicket[]; nicht_da: MonitorTicket[]; scan_log: MonitorLog[];
+}
+
+type Tab = "anmeldungen" | "tickets" | "einlass" | "statistik";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "anmeldungen", label: "Interessenten" },
   { id: "tickets",     label: "Tickets" },
+  { id: "einlass",     label: "Einlass" },
   { id: "statistik",   label: "Statistik" },
 ];
 
@@ -896,7 +910,9 @@ export default function AdminPage() {
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
   const [anmeldungenRows, setAnmeldungenRows] = useState<AnmeldungRow[]>([]);
-  const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
+  const [monitorData, setMonitorData] = useState<MonitorData | null>(null);
+  const [einlassPending, setEinlassPending] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>(() => (localStorage.getItem("emmerich_admin_tab") as Tab) ?? "anmeldungen");
   const [autoRefresh, setAutoRefresh] = useState(() =>
     localStorage.getItem("emmerich_auto_refresh") !== "0"
   );
@@ -946,7 +962,24 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
-  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); }, [loadTickets, loadAnmeldungen]);
+  const loadMonitor = useCallback(() => {
+    fetch(`${BASE}/api/admin/einlass-monitor`, { headers: { "x-admin-secret": SECRET } })
+      .then(r => r.json())
+      .then(data => { if (data.tickets_total !== undefined) setMonitorData(data as MonitorData); })
+      .catch(() => {});
+  }, []);
+
+  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); }, [loadTickets, loadAnmeldungen, loadMonitor]);
+
+  const handleFreischalten = useCallback(async (code: string) => {
+    setEinlassPending(code);
+    await fetch(`${BASE}/api/ticket/${code}/freischalten`, {
+      method: "POST",
+      headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+    }).catch(() => {});
+    setEinlassPending(null);
+    loadMonitor();
+  }, [loadMonitor]);
 
   useEffect(() => { if (authed) refreshAll(); }, [authed]);
 
@@ -993,7 +1026,7 @@ export default function AdminPage() {
       </p>}
 
       {/* ── Tab-Navigation ── */}
-      <TabBar active={activeTab} onSelect={setActiveTab} />
+      <TabBar active={activeTab} onSelect={t => { setActiveTab(t); localStorage.setItem("emmerich_admin_tab", t); }} />
 
       {/* ── Tab: Interessenten (Phase 1) ── */}
       {activeTab === "anmeldungen" && (
@@ -1068,6 +1101,96 @@ export default function AdminPage() {
           }
         </>
       )}
+
+      {/* ── Tab: Einlass-Monitor ── */}
+      {activeTab === "einlass" && (() => {
+        const fmtTime = (iso: string) =>
+          new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        const resultColor = (r: string) =>
+          r === "ok" ? "#2ecc71" : r === "already_used" ? "#e8991a" : "#e74c3c";
+        const resultLabel = (r: string) =>
+          r === "ok" ? "✓ Einlass" : r === "already_used" ? "⚠ Doppelt" : "✗ Ungültig";
+        return (
+          <>
+            {/* Summary */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "2rem" }}>
+              <StatCard n={monitorData?.tickets_total ?? "…"}  label="Tickets gesamt" />
+              <StatCard n={monitorData ? `${monitorData.eingelassen_count} / ${monitorData.tickets_total}` : "…"} label="Eingelassen" />
+              <StatCard n={monitorData?.nicht_da.length ?? "…"} label="Noch nicht da" />
+              <StatCard n={monitorData ? monitorData.scan_log.filter(l => l.result === "invalid").length : "…"} label="Unbekannte Codes" />
+            </div>
+
+            {/* Eingelassen */}
+            <SectionTitle>Eingelassen ({monitorData?.eingelassen_count ?? 0})</SectionTitle>
+            {(!monitorData || monitorData.eingelassen.length === 0)
+              ? <p style={{ color: fg(0.45), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", marginBottom: "1.5rem" }}>Noch niemand eingelassen.</p>
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginBottom: "1.75rem" }}>
+                  {[...monitorData.eingelassen].sort((a, b) => new Date(b.eingelassen_am!).getTime() - new Date(a.eingelassen_am!).getTime()).map(t => (
+                    <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", background: am(0.05), border: `1px solid ${am(0.15)}`, borderRadius: "4px", padding: "0.45rem 0.75rem" }}>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.72rem", color: fg(0.4), minWidth: "5.5rem", flexShrink: 0 }}>{fmtTime(t.eingelassen_am!)}</span>
+                      <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: FG, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.person_name}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.7rem", color: am(0.7), flexShrink: 0 }}>{t.ticket_nummer}</span>
+                      <button
+                        onClick={() => void handleFreischalten(t.ticket_code)}
+                        disabled={einlassPending === t.ticket_code}
+                        style={{ background: "transparent", border: `1px solid ${am(0.4)}`, borderRadius: "3px", color: A, fontFamily: "'Lora', serif", fontSize: "0.72rem", padding: "0.2rem 0.55rem", cursor: "pointer", flexShrink: 0, opacity: einlassPending === t.ticket_code ? 0.5 : 1, whiteSpace: "nowrap" }}
+                      >
+                        {einlassPending === t.ticket_code ? "…" : "Freischalten"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
+
+            {/* Noch nicht da */}
+            <SectionTitle>Noch nicht da ({monitorData?.nicht_da.length ?? 0})</SectionTitle>
+            {(!monitorData || monitorData.nicht_da.length === 0)
+              ? <p style={{ color: fg(0.45), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", marginBottom: "1.5rem" }}>Alle sind da!</p>
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginBottom: "1.75rem" }}>
+                  {monitorData.nicht_da.map(t => (
+                    <div key={t.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", background: fg(0.02), border: `1px solid ${fg(0.07)}`, borderRadius: "4px", padding: "0.45rem 0.75rem" }}>
+                      <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.65), flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.person_name}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.7rem", color: fg(0.35), flexShrink: 0 }}>{t.ticket_nummer}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            }
+
+            {/* Scan-Protokoll */}
+            <SectionTitle>Scan-Protokoll (letzte {monitorData?.scan_log.length ?? 0})</SectionTitle>
+            {(!monitorData || monitorData.scan_log.length === 0)
+              ? <p style={{ color: fg(0.45), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", marginBottom: "1.5rem" }}>Noch keine Scans.</p>
+              : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+                    <thead>
+                      <tr style={{ borderBottom: `2px solid ${am(0.25)}` }}>
+                        {(["Zeit", "Ergebnis", "Name", "Code"] as const).map(h => (
+                          <th key={h} style={{ padding: "0.35rem 0.6rem", fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.78rem", color: A, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {monitorData.scan_log.map(entry => (
+                        <tr key={entry.id} style={{ borderBottom: `1px solid ${fg(0.05)}` }}>
+                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "monospace", color: fg(0.45), whiteSpace: "nowrap" }}>{fmtTime(entry.scanned_at)}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "'Lora', serif", fontWeight: 700, color: resultColor(entry.result), whiteSpace: "nowrap" }}>{resultLabel(entry.result)}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "'Lora', serif", color: fg(0.8), maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.person_name ?? "—"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "monospace", fontSize: "0.7rem", color: fg(0.35) }}>{entry.ticket_code}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            }
+          </>
+        );
+      })()}
 
       {/* ── Tab: Statistik ── */}
       {activeTab === "statistik" && (

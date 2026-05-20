@@ -79,8 +79,6 @@ const API = `${BASE}/api`;
 const ADMIN_PW = "#Boomer2026";
 const PW_KEY = "emmerich_admin_auth";
 const SECRET = "emmerich-orga-stats-2026";
-const ADMIN_CODE = "Orga2026";
-const ADMIN_EINLASS_KEY = "emmerich_einlass_admin";
 const VIBRATION_KEY = "emmerich_vibration_feedback";
 
 type ScanResult =
@@ -130,22 +128,10 @@ async function sendScan(code: string): Promise<ScanResult> {
   }
 }
 
-async function sendFreischalten(code: string): Promise<{ success: boolean; personName?: string; error?: string }> {
-  try {
-    const r = await fetch(`${API}/ticket/${code}/freischalten`, {
-      method: "POST",
-      headers: { "x-admin-secret": SECRET },
-    });
-    return await r.json();
-  } catch {
-    return { success: false, error: "Verbindungsfehler" };
-  }
-}
 
-function EingelassenTabelle({ adminMode, refreshTrigger }: { adminMode: boolean; refreshTrigger: number }) {
+function EingelassenTabelle({ refreshTrigger }: { refreshTrigger: number }) {
   const [rows, setRows] = useState<EingelassenRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [freischaltenPending, setFreischaltenPending] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -163,13 +149,6 @@ function EingelassenTabelle({ adminMode, refreshTrigger }: { adminMode: boolean;
     const id = setInterval(() => { void load(); }, 30_000);
     return () => clearInterval(id);
   }, [load]);
-
-  const handleFreischalten = async (code: string) => {
-    setFreischaltenPending(code);
-    await sendFreischalten(code);
-    setFreischaltenPending(null);
-    await load();
-  };
 
   if (rows.length === 0 && !loading) return (
     <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "rgba(245,232,200,0.35)", textAlign: "center", marginTop: "0.5rem" }}>
@@ -202,26 +181,6 @@ function EingelassenTabelle({ adminMode, refreshTrigger }: { adminMode: boolean;
                 #{row.ticket_nummer}
               </span>
             )}
-            {adminMode && (
-              <button
-                onClick={() => handleFreischalten(row.ticket_code)}
-                disabled={freischaltenPending === row.ticket_code}
-                style={{
-                  background: "transparent",
-                  border: "1px solid rgba(232,153,26,0.4)",
-                  borderRadius: "3px",
-                  color: "rgba(232,153,26,0.7)",
-                  fontFamily: "'Lora', serif",
-                  fontSize: "0.72rem",
-                  padding: "0.2rem 0.5rem",
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {freischaltenPending === row.ticket_code ? "…" : "Freischalten"}
-              </button>
-            )}
           </div>
         ))}
       </div>
@@ -229,43 +188,9 @@ function EingelassenTabelle({ adminMode, refreshTrigger }: { adminMode: boolean;
   );
 }
 
-function AdminModeToggle({ adminMode, onActivate }: { adminMode: boolean; onActivate: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(false);
-
-  if (adminMode) return (
-    <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(232,153,26,0.5)", textAlign: "center", margin: 0 }}>
-      Admin-Modus aktiv
-    </p>
-  );
-
-  if (!open) return (
-    <button onClick={() => setOpen(true)} style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.2)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", cursor: "pointer" }}>
-      Admin
-    </button>
-  );
-
-  return (
-    <form onSubmit={e => {
-      e.preventDefault();
-      if (input === ADMIN_CODE) { sessionStorage.setItem(ADMIN_EINLASS_KEY, "1"); onActivate(); setOpen(false); }
-      else { setError(true); setInput(""); }
-    }} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", alignItems: "center", width: "100%", maxWidth: "360px" }}>
-      <input type="password" value={input} onChange={e => { setInput(e.target.value); setError(false); }} placeholder="Admin-Code" autoFocus
-        style={{ width: "100%", background: "rgba(245,232,200,0.07)", border: `1px solid ${error ? "#e8991a" : "rgba(245,232,200,0.15)"}`, borderRadius: "3px", color: "#f5e8c8", padding: "0.5rem 0.75rem", fontSize: "0.9rem", fontFamily: "'Lora', serif", outline: "none", boxSizing: "border-box" }} />
-      {error && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", color: "#e8991a", margin: 0 }}>Falscher Code.</p>}
-      <div style={{ display: "flex", gap: "0.5rem" }}>
-        <button type="button" onClick={() => { setOpen(false); setInput(""); setError(false); }} style={{ background: "transparent", border: "1px solid rgba(245,232,200,0.2)", borderRadius: "3px", color: "rgba(245,232,200,0.4)", padding: "0.35rem 0.75rem", fontFamily: "'Lora', serif", fontSize: "0.8rem", cursor: "pointer" }}>Abbrechen</button>
-        <button type="submit" style={{ background: "transparent", border: "1px solid rgba(232,153,26,0.5)", borderRadius: "3px", color: "#e8991a", padding: "0.35rem 0.75rem", fontFamily: "'Lora', serif", fontSize: "0.8rem", cursor: "pointer" }}>OK</button>
-      </div>
-    </form>
-  );
-}
 
 export default function EinlassPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
-  const [adminMode, setAdminMode] = useState(() => sessionStorage.getItem(ADMIN_EINLASS_KEY) === "1");
   const [vibrationEnabled, setVibrationEnabled] = useState(() => localStorage.getItem(VIBRATION_KEY) !== "0");
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -483,10 +408,7 @@ export default function EinlassPage() {
       <div style={{ width: "100%", maxWidth: "480px", borderTop: "1px solid rgba(245,232,200,0.08)", marginTop: "0.5rem" }} />
 
       {/* Eingelassen-Tabelle */}
-      <EingelassenTabelle adminMode={adminMode} refreshTrigger={refreshTrigger} />
-
-      {/* Admin-Modus-Aktivierung */}
-      <AdminModeToggle adminMode={adminMode} onActivate={() => setAdminMode(true)} />
+      <EingelassenTabelle refreshTrigger={refreshTrigger} />
 
     </div>
   );

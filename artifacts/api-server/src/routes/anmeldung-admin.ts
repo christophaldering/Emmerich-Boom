@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { db, anmeldungenTable, anmeldungTicketsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { db, anmeldungenTable, anmeldungTicketsTable, scanLog } from "@workspace/db";
+import { eq, sql, desc } from "drizzle-orm";
 import crypto from "crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -258,6 +258,44 @@ router.get("/admin/anmeldungen/:id/ticket-vorschau", async (req: Request, res: R
   } catch (err) {
     req.log.error(err, "ticket-vorschau failed");
     res.status(500).json({ error: "Vorschau konnte nicht generiert werden." });
+  }
+});
+
+// GET /api/admin/einlass-monitor — live status of all tickets + scan log
+router.get("/admin/einlass-monitor", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  try {
+    const allTickets = await db
+      .select({
+        id:             anmeldungTicketsTable.id,
+        ticket_code:    anmeldungTicketsTable.ticket_code,
+        ticket_nummer:  anmeldungTicketsTable.ticket_nummer,
+        person_name:    anmeldungTicketsTable.person_name,
+        eingelassen_am: anmeldungTicketsTable.eingelassen_am,
+        anmeldung_id:   anmeldungTicketsTable.anmeldung_id,
+      })
+      .from(anmeldungTicketsTable)
+      .orderBy(anmeldungTicketsTable.ticket_nummer);
+
+    const logEntries = await db
+      .select()
+      .from(scanLog)
+      .orderBy(desc(scanLog.scanned_at))
+      .limit(100);
+
+    const eingelassen = allTickets.filter(t => t.eingelassen_am !== null);
+    const nicht_da    = allTickets.filter(t => t.eingelassen_am === null);
+
+    res.json({
+      tickets_total:    allTickets.length,
+      eingelassen_count: eingelassen.length,
+      eingelassen,
+      nicht_da,
+      scan_log: logEntries,
+    });
+  } catch (err) {
+    req.log.error(err, "einlass-monitor failed");
+    res.status(500).json({ error: "Fehler beim Laden" });
   }
 });
 
