@@ -312,6 +312,12 @@ interface TicketRow {
   registrationName: string | null;
 }
 
+interface AnmeldungTicketInfo {
+  ticket_nummer: string;
+  ticket_code: string;
+  person_name: string;
+}
+
 interface AnmeldungRow {
   id: number;
   email: string;
@@ -326,6 +332,7 @@ interface AnmeldungRow {
   ticket_versendet_am: string | null;
   created_at: string;
   ticket_count: number;
+  tickets: AnmeldungTicketInfo[];
 }
 
 const BW_LABEL: Record<string, string> = { ueberweisung: "Überw.", paypal: "PayPal" };
@@ -420,6 +427,9 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
       {/* E-Mail + Namen */}
       <td style={{ ...tdStyle, minWidth: "160px" }}>
         <div style={{ color: FG, marginBottom: "0.2rem" }}>{row.email}</div>
+        {row.telefon && (
+          <div style={{ color: fg(0.6), fontSize: "0.78rem", marginBottom: "0.15rem" }}>📞 {row.telefon}</div>
+        )}
         <div style={{ color: fg(0.65), fontSize: "0.78rem" }}>{personen.join(", ")}</div>
         {row.song && <div style={{ color: fg(0.5), fontSize: "0.75rem", marginTop: "0.15rem" }}>♪ {row.song}</div>}
       </td>
@@ -503,6 +513,16 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
           </button>
         </div>
         {previewMsg && <div style={{ color: "#e74c3c", fontSize: "0.73rem", marginTop: "0.2rem" }}>{previewMsg}</div>}
+        {row.tickets.length > 0 && (
+          <div style={{ marginTop: "0.5rem", borderTop: `1px solid ${am(0.15)}`, paddingTop: "0.4rem", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+            {row.tickets.map(t => (
+              <div key={t.ticket_nummer} style={{ display: "flex", gap: "0.4rem", alignItems: "baseline" }}>
+                <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.5), flexShrink: 0 }}>{t.ticket_nummer}</span>
+                <code style={{ fontSize: "0.7rem", color: fg(0.75), background: am(0.06), borderRadius: "2px", padding: "0 0.25rem", letterSpacing: "0.04em", fontFamily: "monospace" }}>{t.ticket_code}</code>
+              </div>
+            ))}
+          </div>
+        )}
       </td>
     </tr>
   );

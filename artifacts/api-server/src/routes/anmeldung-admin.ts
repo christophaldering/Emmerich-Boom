@@ -32,7 +32,7 @@ function parsePersonen(raw: unknown): string[] {
   return raw.filter((s): s is string => typeof s === "string");
 }
 
-// GET /api/admin/anmeldungen — alle Phase-2-Anmeldungen mit Ticket-Zähler
+// GET /api/admin/anmeldungen — alle Phase-2-Anmeldungen mit Tickets
 router.get("/admin/anmeldungen", async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
   try {
@@ -50,14 +50,37 @@ router.get("/admin/anmeldungen", async (req: Request, res: Response) => {
         bezahlt_am:           anmeldungenTable.bezahlt_am,
         ticket_versendet_am:  anmeldungenTable.ticket_versendet_am,
         created_at:           anmeldungenTable.created_at,
-        ticket_count: sql<number>`(
-          SELECT COUNT(*) FROM anmeldung_tickets
-          WHERE anmeldung_tickets.anmeldung_id = ${anmeldungenTable.id}
-        )`,
       })
       .from(anmeldungenTable)
       .orderBy(anmeldungenTable.created_at);
-    res.json(rows);
+
+    const ticketRows = await db
+      .select({
+        anmeldung_id:   anmeldungTicketsTable.anmeldung_id,
+        ticket_nummer:  anmeldungTicketsTable.ticket_nummer,
+        ticket_code:    anmeldungTicketsTable.ticket_code,
+        person_name:    anmeldungTicketsTable.person_name,
+      })
+      .from(anmeldungTicketsTable);
+
+    const ticketsByAnmeldung = new Map<number, typeof ticketRows>();
+    for (const t of ticketRows) {
+      const list = ticketsByAnmeldung.get(t.anmeldung_id) ?? [];
+      list.push(t);
+      ticketsByAnmeldung.set(t.anmeldung_id, list);
+    }
+
+    const result = rows.map(r => ({
+      ...r,
+      ticket_count: ticketsByAnmeldung.get(r.id)?.length ?? 0,
+      tickets: (ticketsByAnmeldung.get(r.id) ?? []).map(t => ({
+        ticket_nummer: t.ticket_nummer,
+        ticket_code:   t.ticket_code,
+        person_name:   t.person_name,
+      })),
+    }));
+
+    res.json(result);
   } catch (err) {
     req.log.error(err, "admin/anmeldungen list failed");
     res.status(500).json({ error: "Datenbankfehler" });
