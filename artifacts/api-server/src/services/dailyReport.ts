@@ -1,7 +1,19 @@
 import { db } from "@workspace/db";
-import { pageViews, interessenten } from "@workspace/db";
-import { desc, gte } from "drizzle-orm";
+import { pageViews, interessenten, anmeldungenTable } from "@workspace/db";
+import { desc } from "drizzle-orm";
 import { sendDailyReport } from "./mailer.js";
+
+const ADMIN_SECRET = "emmerich-orga-stats-2026";
+
+function buildBaseUrl(): string {
+  const domains = process.env["REPLIT_DOMAINS"];
+  if (domains) return `https://${domains.split(",")[0]!.trim()}`;
+  return "http://localhost:80";
+}
+
+function ticketLink(anmeldungId: number): string {
+  return `${buildBaseUrl()}/api/admin/anmeldungen/${anmeldungId}/ticket-vorschau?format=pdf&secret=${ADMIN_SECRET}`;
+}
 
 function fmt(sec: number): string {
   if (sec < 60) return `${sec}s`;
@@ -58,6 +70,10 @@ export async function buildAndSendDailyReport(): Promise<void> {
   const weekAnmeldungen  = allAnmeldungen.filter(a => a.createdAt && a.createdAt >= weekStart);
   const gesamtPersonen   = allAnmeldungen.reduce((s, a) => s + (parseInt(a.personen) || 1), 0);
 
+  const allPhase2 = await db.select().from(anmeldungenTable).orderBy(desc(anmeldungenTable.created_at));
+  const todayPhase2 = allPhase2.filter(a => a.created_at && a.created_at >= todayStart);
+  const weekPhase2  = allPhase2.filter(a => a.created_at && a.created_at >= weekStart);
+
   const todayRef = byReferrer(today);
   const allRef   = byReferrer(all);
   const devices  = byDevice(all);
@@ -85,8 +101,9 @@ export async function buildAndSendDailyReport(): Promise<void> {
   .bigcard{flex:1;min-width:110px;background:#faf7f2;border:1px solid #e8d9b8;border-radius:8px;padding:14px 16px;}
   .biglabel{font-size:12px;color:#9a8060;margin-top:4px;}
   .footer{background:#0a0704;padding:16px 32px;font-size:11px;color:rgba(245,232,200,.4);text-align:center;}
-  .anm-item{border-bottom:1px solid #e8d9b8;padding:8px 0;font-size:13px;}
+  .anm-item{border-bottom:1px solid #e8d9b8;padding:8px 0;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
   .anm-item:last-child{border:none;}
+  .ticket-link{display:inline-block;padding:3px 10px;border:1px solid #c97d10;border-radius:4px;color:#c97d10;text-decoration:none;font-size:11px;white-space:nowrap;}
 </style></head>
 <body><div class="wrap">
   <div class="hdr">Emmerich boomt — Tagesbericht<small>${dateStr}</small></div>
@@ -122,16 +139,31 @@ export async function buildAndSendDailyReport(): Promise<void> {
       <table>${refRows(allRef)}</table>
     </div>
 
+    ${todayPhase2.length > 0 ? `
+    <div class="section">
+      <h3>Neue Anmeldungen heute (${todayPhase2.length})</h3>
+      ${todayPhase2.map(a => {
+        const names = (Array.isArray(a.personen) ? a.personen as string[] : []).join(", ") || a.email;
+        return `<div class="anm-item"><span><strong>${a.email}</strong> · ${a.personen_anzahl} Person(en)${names && names !== a.email ? ` · ${names}` : ""} · ${a.betrag_gesamt} €</span><a href="${ticketLink(a.id)}" class="ticket-link">Ticket PDF →</a></div>`;
+      }).join("")}
+    </div>` : ""}
+
     ${todayAnmeldungen.length > 0 ? `
     <div class="section">
-      <h3>Neue Anmeldungen heute</h3>
-      ${todayAnmeldungen.map(a => `<div class="anm-item"><strong>${a.name}</strong> · ${a.personen} Person(en)${a.statement ? ` · „${a.statement}"` : ""}</div>`).join("")}
+      <h3>Interessenten-Formular heute</h3>
+      ${todayAnmeldungen.map(a => `<div class="anm-item"><span><strong>${a.name}</strong> · ${a.personen} Person(en)${a.statement ? ` · „${a.statement}"` : ""}</span></div>`).join("")}
+    </div>` : ""}
+
+    ${weekPhase2.length > 0 ? `
+    <div class="section">
+      <h3>Anmeldungen diese Woche (${weekPhase2.length})</h3>
+      ${weekPhase2.map(a => `<div class="anm-item"><span><strong>${a.email}</strong> · ${a.personen_anzahl} Person(en) · ${a.betrag_gesamt} €${a.song ? ` · 🎵 ${a.song}` : ""}</span><a href="${ticketLink(a.id)}" class="ticket-link">Ticket PDF →</a></div>`).join("")}
     </div>` : ""}
 
     ${weekAnmeldungen.length > 0 ? `
     <div class="section">
-      <h3>Anmeldungen diese Woche (${weekAnmeldungen.length})</h3>
-      ${weekAnmeldungen.map(a => `<div class="anm-item"><strong>${a.name}</strong> · ${a.personen} Person(en)${a.song ? ` · 🎵 ${a.song}` : ""}</div>`).join("")}
+      <h3>Interessenten diese Woche (${weekAnmeldungen.length})</h3>
+      ${weekAnmeldungen.map(a => `<div class="anm-item"><span><strong>${a.name}</strong> · ${a.personen} Person(en)${a.song ? ` · 🎵 ${a.song}` : ""}</span></div>`).join("")}
     </div>` : ""}
 
   </div>
@@ -147,9 +179,12 @@ export async function buildAndSendDailyReport(): Promise<void> {
     "",
     `Anmeldungen heute: ${todayAnmeldungen.length}  |  Gesamt: ${allAnmeldungen.length}  |  Personen: ${gesamtPersonen}`,
     "",
-    todayAnmeldungen.length > 0
-      ? `Neue heute:\n${todayAnmeldungen.map(a => `  - ${a.name} (${a.personen} Person(en))`).join("\n")}`
+    todayPhase2.length > 0
+      ? `Neue Anmeldungen heute:\n${todayPhase2.map(a => `  - ${a.email} (${a.personen_anzahl} Person(en), ${a.betrag_gesamt} €)\n    Ticket: ${ticketLink(a.id)}`).join("\n")}`
       : "Keine neuen Anmeldungen heute.",
+    todayAnmeldungen.length > 0
+      ? `Interessenten-Formular heute:\n${todayAnmeldungen.map(a => `  - ${a.name} (${a.personen} Person(en))`).join("\n")}`
+      : "",
     "",
     `Geräte: ${Object.entries(devices).map(([k, n]) => `${k} ${n}`).join(", ")}`,
     "",
