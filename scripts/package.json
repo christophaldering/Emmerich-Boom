@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "send-test-email": "tsx ./src/send-test-email.ts",
+    "generate-muster-ticket": "tsx ./src/generate-muster-ticket.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

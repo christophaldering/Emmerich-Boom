@@ -6,3 +6,9 @@ id = "tyRhnI9EQjMNMfCxxPV_q"
 uri = "file://exports/drei-dekaden-infographic.jpg"
 type = "image"
 title = "Die drei Dekaden — Infografik"
+
+[[outputs]]
+id = "2e4Sh13GuD-RH8HiB0JH9"
+uri = "file://muster-ticket.pdf"
+type = "pdf"
+title = "Muster-Ticket (Boomerparty 2026)"
