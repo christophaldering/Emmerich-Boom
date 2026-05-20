@@ -159,8 +159,8 @@ export default function TicketPage({ code }: { code: string }) {
       {/* ── PRINT VIEW ── */}
       <div className="print-only">
         <div className="print-page print-landscape">
-          <div style={{ width: "260mm", border: "1.5px solid #E8991A", borderRadius: "6px", overflow: "hidden" }}>
-            <EventimTicketCapture ticket={ticket} ticketUrl={ticketUrl} />
+          <div style={{ width: "260mm", border: "1.5px solid #b37a14", borderRadius: "6px", overflow: "hidden" }}>
+            <EventimTicketPrint ticket={ticket} ticketUrl={ticketUrl} />
           </div>
         </div>
         <div className="print-page print-portrait">
@@ -258,6 +258,50 @@ function EventimTicketCapture({ ticket, ticketUrl }: { ticket: TicketInfo; ticke
   );
 }
 
+function EventimTicketPrint({ ticket, ticketUrl }: { ticket: TicketInfo; ticketUrl: string }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr 108px", height: "290px", background: "#ffffff" }}>
+      {/* Poster — bleibt farbig, braucht keine Tinte gespart */}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <img src={POSTER_SRC} alt="" crossOrigin="anonymous"
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 55%, #ffffff 100%)" }} />
+      </div>
+
+      {/* Mitte — weiß mit dunkler Schrift */}
+      <div style={{ padding: "32px 24px 32px 32px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "7px", background: "#ffffff" }}>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "10px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#b37a14", margin: 0 }}>
+          EINTRITTSTICKET · EMMERICH BOOMT!
+        </p>
+        <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontStyle: "italic", fontSize: "36px", fontWeight: 700, color: "#1a1208", margin: 0, lineHeight: 1.1 }}>
+          {ticket.personName}
+        </p>
+        <div style={{ width: "44px", height: "1.5px", background: "#b37a14", margin: "5px 0" }} />
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "14px", color: "#1a1208", margin: 0, lineHeight: 1.6 }}>
+          Samstag, 18. Juli 2026 · Beginn 20:00 Uhr
+        </p>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "12px", color: "#3a2e1e", margin: 0, opacity: 0.75 }}>
+          Bölt / Kapaunenberg · Emmerich am Rhein
+        </p>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "9px", color: "#3a2e1e", margin: "8px 0 0", opacity: 0.45, fontStyle: "italic" }}>
+          Dieses Ticket ist personenbezogen und nicht übertragbar.
+        </p>
+      </div>
+
+      {/* Abreiß-Streifen — weiß, QR schwarz auf weiß */}
+      <div style={{ borderLeft: "1.5px dashed rgba(179,122,20,0.5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", padding: "20px 14px", background: "#ffffff" }}>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "8px", letterSpacing: "3px", textTransform: "uppercase" as const, color: "#b37a14", margin: 0, writingMode: "vertical-rl" as const, transform: "rotate(180deg)" }}>
+          EINTRITT
+        </p>
+        <QRCodeCanvas value={ticketUrl} size={68} bgColor="#ffffff" fgColor="#1a1208" level="M" />
+        <p style={{ fontFamily: "monospace", fontSize: "7px", color: "#1a1208", margin: 0, letterSpacing: "0.05em", textAlign: "center" as const, wordBreak: "break-all" as const, opacity: 0.6 }}>
+          {ticket.ticketCode}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function TicketBack({ ticket }: { ticket: TicketInfo }) {
   return (
     <div style={{ width: "100%", height: "100%", background: "#fffdf8", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
@@ -326,7 +370,7 @@ const printStyles = `
     .print-landscape {
       width: 297mm;
       height: 210mm;
-      background: #1a1208;
+      background: #ffffff;
     }
     .print-portrait {
       width: 210mm;
