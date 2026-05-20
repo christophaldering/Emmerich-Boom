@@ -1,5 +1,6 @@
 export const PHASE2_CONFIG = {
   ANMELDUNG_AKTIV: true,
+  PHASE1_BEENDET: true,
 
   ANMELDEFRIST: "Sonntag, 28. Juni 2026",
   ANMELDEFRIST_KURZ: "28.06.2026",

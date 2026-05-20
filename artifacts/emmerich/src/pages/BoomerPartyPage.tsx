@@ -16,6 +16,7 @@ import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
 import TicketsTeaser from "@/components/TicketsTeaser";
 import StimmungsBild from "@/components/StimmungsBild";
+import AnmeldeAufruf from "@/components/AnmeldeAufruf";
 
 export default function BoomerPartyPage() {
   const [refreshCounter, setRefreshCounter] = useState(0);
@@ -29,6 +30,7 @@ export default function BoomerPartyPage() {
   return (
     <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
       <Poster />
+      <AnmeldeAufruf />
       <AnmeldungsZaehler refreshKey={refreshCounter} />
       <TicketsTeaser />
       <Letter />

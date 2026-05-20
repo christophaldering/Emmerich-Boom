@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { buildSortedPlaylist, getRevealInfo, formatTrackLabel, WishEntry, RevealInfo } from "@/lib/playlistArc";
+import { PHASE2_CONFIG } from "@/config/phase2";
 
 interface RevealCardProps {
   reveal: RevealInfo;
@@ -189,6 +190,25 @@ export default function Formular({ onSuccess }: FormularProps) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
+
+  if (PHASE2_CONFIG.PHASE1_BEENDET) {
+    return (
+      <section id="anmeldung" style={{ background: "var(--bg-section)", borderTop: "2px solid var(--amber-30)", borderBottom: "2px solid var(--amber-30)", padding: "3rem 0 4rem" }}>
+        <div style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem", textAlign: "center" }}>
+          <div style={{ fontSize: "1.8rem", color: "var(--amber)", marginBottom: "1.2rem" }}>✦</div>
+          <p style={{
+            fontFamily: "'Lora', Georgia, serif",
+            fontStyle: "italic",
+            fontSize: "1.05rem",
+            color: "var(--fg-75)",
+            lineHeight: 1.8,
+          }}>
+            Die Interessensphase ist beendet — 129 von euch waren schon dabei. Vielen Dank! Jetzt geht es ans verbindliche Anmelden — oben auf dieser Seite.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="anmeldung" style={{ background: "var(--bg-section)", borderTop: "2px solid var(--amber-30)", borderBottom: "2px solid var(--amber-30)", padding: "3rem 0 5rem" }}>
