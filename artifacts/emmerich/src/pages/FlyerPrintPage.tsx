@@ -202,7 +202,7 @@ export default function FlyerPrintPage() {
                   <QRCodeCanvas value={SITE_URL} size={52} bgColor="#fff" fgColor={BG} level="M" />
                 </div>
                 <div style={{ fontFamily: "Lora, Georgia, serif", fontStyle: "italic", fontSize: 9, color: A2, lineHeight: 1.4 }}>
-                  emmerich-boomt.replit.app<br />
+                  www.emmerich-boomt.de<br />
                   <span style={{ color: "#5a3a10", fontSize: 8 }}>Zur Party-Website</span>
                 </div>
               </div>

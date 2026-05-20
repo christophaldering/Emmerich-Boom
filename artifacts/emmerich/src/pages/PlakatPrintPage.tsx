@@ -33,51 +33,38 @@ export default function PlakatPrintPage() {
       const CW = img.naturalWidth;
       const CH = img.naturalHeight;
 
-      /* ── QR-Code-Maße vorab berechnen (formatabhängig in mm) ── */
+      /* ── QR-Code als Overlay rechts unten ── */
       const QR_URL   = "https://www.emmerich-boomt.de";
       const QR_LABEL = "www.emmerich-boomt.de";
 
-      /* Physische QR-Größe je DIN-Format */
+      /* QR-Größe je DIN-Format — dezent, nicht zu groß */
       const QR_MM_BY_FORMAT: Record<string, number> = {
-        A0: 80, A1: 60, A2: 45, A3: 32, A4: 24, A5: 18,
+        A0: 55, A1: 40, A2: 28, A3: 20, A4: 15, A5: 11,
       };
-      const QR_SIZE_MM  = QR_MM_BY_FORMAT[format.label] ?? 32;
-      const QR_PAD_MM   = 7;
-      const FONT_MM     = Math.round(QR_SIZE_MM * 0.18);
-      const TEXT_GAP_MM = 3;
-      /* Gesamthöhe des Streifens in mm */
-      const STRIP_H_MM  = QR_PAD_MM + QR_SIZE_MM + TEXT_GAP_MM + FONT_MM + QR_PAD_MM;
+      const QR_SIZE_MM   = QR_MM_BY_FORMAT[format.label] ?? 20;
+      const QR_MARGIN_MM = 6;   // Abstand von der Kante
+      const QR_IPAD_MM   = 3;   // inneres Padding im weißen Kästchen
+      const FONT_MM      = Math.round(QR_SIZE_MM * 0.16);
+      const TEXT_GAP_MM  = 2;
 
-      /* Pixel-per-mm aus der nativen Bildbreite */
+      /* Pixel-per-mm */
       const pxPerMm  = CW / format.w;
-      const QR_SIZE  = Math.round(QR_SIZE_MM  * pxPerMm);
-      const QR_PAD   = Math.round(QR_PAD_MM   * pxPerMm);
-      const FONT_PX  = Math.round(FONT_MM     * pxPerMm);
-      const TEXT_GAP = Math.round(TEXT_GAP_MM * pxPerMm);
-      const STRIP_H  = Math.round(STRIP_H_MM  * pxPerMm);
+      const QR_SIZE  = Math.round(QR_SIZE_MM   * pxPerMm);
+      const MARGIN   = Math.round(QR_MARGIN_MM * pxPerMm);
+      const IPAD     = Math.round(QR_IPAD_MM   * pxPerMm);
+      const FONT_PX  = Math.max(10, Math.round(FONT_MM * pxPerMm));
+      const TEXT_GAP = Math.round(TEXT_GAP_MM  * pxPerMm);
 
-      /* Canvas: Plakat + weißer Streifen darunter */
+      /* Canvas: exakt Plakat-Größe, kein Streifen */
       const canvas = document.createElement("canvas");
       canvas.width  = CW;
-      canvas.height = CH + STRIP_H;
+      canvas.height = CH;
       const ctx = canvas.getContext("2d")!;
-
-      /* Weißer Hintergrund (Plakat + Streifen) */
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, CW, CH + STRIP_H);
 
       /* Plakat */
       ctx.drawImage(img, 0, 0, CW, CH);
 
-      /* Dünne Trennlinie zwischen Plakat und Streifen */
-      ctx.strokeStyle = "#cccccc";
-      ctx.lineWidth   = Math.max(1, Math.round(pxPerMm * 0.3));
-      ctx.beginPath();
-      ctx.moveTo(0, CH);
-      ctx.lineTo(CW, CH);
-      ctx.stroke();
-
-      /* QR-Code generieren (höhere interne Auflösung für Schärfe) */
+      /* QR-Code generieren */
       const qrDataUrl = await QRCode.toDataURL(QR_URL, {
         margin: 1,
         width: Math.max(512, QR_SIZE * 2),
@@ -89,29 +76,35 @@ export default function PlakatPrintPage() {
         qrImg.src = qrDataUrl;
       });
 
-      /* QR-Code zentriert im Streifen */
-      const QR_X = Math.round((CW - QR_SIZE) / 2);
-      const QR_Y = CH + QR_PAD;
-      ctx.drawImage(qrImg, QR_X, QR_Y, QR_SIZE, QR_SIZE);
+      /* Weißes Kästchen rechts unten */
+      const BOX_W = IPAD * 2 + QR_SIZE;
+      const BOX_H = IPAD * 2 + QR_SIZE + TEXT_GAP + FONT_PX;
+      const BOX_X = CW - MARGIN - BOX_W;
+      const BOX_Y = CH - MARGIN - BOX_H;
 
-      /* URL-Label unter dem QR-Code */
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(BOX_X, BOX_Y, BOX_W, BOX_H);
+
+      /* QR-Code im Kästchen */
+      ctx.drawImage(qrImg, BOX_X + IPAD, BOX_Y + IPAD, QR_SIZE, QR_SIZE);
+
+      /* URL-Label */
       ctx.fillStyle    = "#111111";
       ctx.font         = `bold ${FONT_PX}px sans-serif`;
       ctx.textAlign    = "center";
       ctx.textBaseline = "top";
-      ctx.fillText(QR_LABEL, CW / 2, QR_Y + QR_SIZE + TEXT_GAP);
+      ctx.fillText(QR_LABEL, BOX_X + BOX_W / 2, BOX_Y + IPAD + QR_SIZE + TEXT_GAP);
       ctx.textAlign    = "left";
       ctx.textBaseline = "alphabetic";
 
-      /* PDF mit erweiterter Seitenhöhe (Plakat + Streifen) */
-      const TOTAL_H_MM = format.h + STRIP_H_MM;
+      /* PDF in Originalformat (kein extra Streifen) */
       const imgData = canvas.toDataURL("image/jpeg", 0.97);
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
-        format: [format.w, TOTAL_H_MM],
+        format: [format.w, format.h],
       });
-      pdf.addImage(imgData, "JPEG", 0, 0, format.w, TOTAL_H_MM);
+      pdf.addImage(imgData, "JPEG", 0, 0, format.w, format.h);
 
       const blob = pdf.output("blob");
       const url  = URL.createObjectURL(blob);

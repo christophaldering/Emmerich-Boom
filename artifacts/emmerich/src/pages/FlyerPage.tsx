@@ -283,7 +283,7 @@ function Innen() {
           </div>
           <div>
             <div className="p-qr-label" style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(0.6rem, 1.4vw, 1rem)", color: A, fontWeight: 700 }}>
-              Jetzt Interesse anmelden
+              Jetzt verbindlich anmelden
             </div>
             <div className="p-qr-url" style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.44rem, 0.95vw, 0.72rem)", color: FG, opacity: 0.6, marginTop: "0.25em" }}>
               www.emmerich-boomt.de
