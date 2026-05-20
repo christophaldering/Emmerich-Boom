@@ -125,7 +125,7 @@ export default function Letter() {
 
           <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
 
-          <p>Und jetzt das Wichtigste: Die Anmeldung ist nun freigeschaltet — <strong>10&nbsp;€ pro Person</strong>, Anmeldung bis <strong>Ende Juni 2026</strong>. Wer schon weiß, dass er dabei ist: direkt verbindlich anmelden und Platz sichern. Wer zusätzlich ein Statement hinterlassen und einen Musikwunsch platzieren möchte, gerne — aber: <em>ein Ticket gibt's nur mit der verbindlichen Anmeldung.</em></p>
+          <p>Und jetzt das Wichtigste: Die Anmeldung ist freigeschaltet — <strong>10&nbsp;€ pro Person</strong>, Anmeldung bis <strong>Ende Juni 2026</strong>. Wer dabei sein möchte: direkt verbindlich anmelden und Platz sichern.</p>
         </div>
       </div>
     </section>

@@ -86,15 +86,15 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
       `}</style>
 
       <div className="promo-hero">
-        <span className="promo-label">bereits gemeldet</span>
+        <span className="promo-label">Interesse bekundet</span>
         <div className="promo-count-row">
           <span className="promo-count">{entries.length}</span>
           <span className="promo-count-label">
             {entries.length === 1
-              ? <>Anmeldung — und das ist ein guter Anfang.</>
+              ? <>Boomer hat sich gemeldet.</>
               : totalPersonen > entries.length
-                ? <>Anmeldungen — einige bringen jemanden mit. Macht insgesamt <strong>mindestens {totalPersonen} Personen</strong>.</>
-                : <>Anmeldungen mit Boomer-Feeling dabei.</>
+                ? <>Boomer haben sich gemeldet — einige bringen jemanden mit. Macht insgesamt <strong>mindestens {totalPersonen} Personen</strong>.</>
+                : <>Boomer haben Interesse bekundet.</>
             }
           </span>
         </div>

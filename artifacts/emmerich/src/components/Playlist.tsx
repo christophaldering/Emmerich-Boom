@@ -163,9 +163,6 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
           <button className="pl-dl-btn" onClick={handleDownload} disabled={downloading}>
             {downloading ? "Wird geladen …" : `↓ Playlist herunterladen (${allTracks.length} Songs)`}
           </button>
-          <p className="pl-cta">
-            Dein Song fehlt? Beim <a href="#anmeldung">Anmelden</a> eintragen — dann siehst du sofort, wo er landet.
-          </p>
         </div>
       </div>
     </section>
