@@ -225,11 +225,6 @@ interface TicketMailOptions {
   betrag:    number;
 }
 
-const BEZAHLWEG_LABEL: Record<string, string> = {
-  ueberweisung: "Überweisung",
-  paypal:       "PayPal",
-};
-
 export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   const transport = createGmailTransport();
   if (!transport) {
@@ -237,33 +232,12 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   }
 
   const base = buildBaseUrl();
-  // One PDF link covers all tickets of the same Anmeldung (endpoint looks up by code)
-  const pdfUrl = `${base}/api/ticket/${encodeURIComponent(opts.tickets[0]!.code)}/download/pdf`;
-
-  const ticketBlocks = opts.tickets
-    .map(t => {
-      const pngUrl = `${base}/api/ticket/${encodeURIComponent(t.code)}/download/png`;
-      return `
-      <div style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:#120c04;border:1px solid rgba(232,153,26,0.25);border-left:3px solid #e8991a;border-radius:0 4px 4px 0;">
-        <p style="font-family:Georgia,'Times New Roman',serif;font-size:1rem;font-weight:bold;color:#f5e8c8;margin:0 0 0.3rem;">
-          ${escHtml(t.name)}
-        </p>
-        <p style="font-family:Courier,Menlo,monospace;font-size:0.82rem;color:#e8991a;letter-spacing:0.12em;margin:0 0 1rem;">
-          Ticket ${escHtml(t.nummer)} &nbsp;&middot;&nbsp; Code: ${escHtml(t.code)}
-        </p>
-        <a href="${escHtml(pngUrl)}"
-          style="display:inline-block;margin-right:0.75rem;padding:0.5rem 1.1rem;background:transparent;border:1px solid #e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:0.85rem;color:#e8991a;text-decoration:none;">
-          &#8595; Ticket als Bild (PNG)
-        </a>
-      </div>`;
-    })
-    .join("");
-
-  const mehrere = opts.tickets.length > 1;
+  // Link to the ticket download page for the first ticket of this Anmeldung
+  const ticketPageUrl = `${base}/boomer-orga-intern/ticket/${encodeURIComponent(opts.tickets[0]!.code)}`;
 
   const html = `<!DOCTYPE html>
 <html lang="de">
-<head><meta charset="utf-8"><title>Euer Ticket — EMMERICH BOOMT!</title></head>
+<head><meta charset="utf-8"><title>Dein Ticket — EMMERICH BOOMT!</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:580px;margin:0 auto;padding:2.5rem 1.5rem;">
 
@@ -279,32 +253,43 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
       </div>
     </div>
 
-    <p style="font-size:1.05rem;line-height:1.8;color:rgba(245,232,200,0.9);margin-bottom:0.5rem;">
-      ${mehrere ? "Eure Tickets sind da." : "Dein Ticket ist da."}
-    </p>
-    <p style="font-size:0.92rem;line-height:1.7;color:rgba(245,232,200,0.65);margin-bottom:1.8rem;">
-      ${opts.tickets.length} ${opts.tickets.length === 1 ? "Person" : "Personen"} \u00B7
-      ${BEZAHLWEG_LABEL[opts.bezahlweg] ?? opts.bezahlweg} \u00B7
-      ${opts.betrag}\u00A0\u20AC gesamt
+    <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:1.3rem;font-weight:bold;color:#f5e8c8;margin:0 0 1.4rem;line-height:1.35;">
+      Es ist so weit \u2014 dein Ticket ist da!
+    </h2>
+
+    <p style="font-size:0.97rem;line-height:1.8;color:rgba(245,232,200,0.88);margin:0 0 1.2rem;">
+      In dem Moment, wo wir diese Mail abschicken, freuen wir uns jedes Mal ein kleines bisschen mit. Weil dahinter ein echter Mensch steckt, der sich gedacht hat: <em>Ja, ich bin dabei.</em> Und das ist das Sch\u00F6nste an so einer Veranstaltung.
     </p>
 
-    ${ticketBlocks}
+    <p style="font-size:0.97rem;line-height:1.8;color:rgba(245,232,200,0.88);margin:0 0 1.4rem;">
+      Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:
+    </p>
 
-    <div style="margin:1.5rem 0 2rem;padding:1.25rem 1.5rem;background:#120c04;border:1px solid rgba(232,153,26,0.25);border-radius:4px;text-align:center;">
-      <p style="font-family:Georgia,'Times New Roman',serif;font-size:0.9rem;color:rgba(245,232,200,0.8);margin:0 0 0.9rem;line-height:1.6;">
-        ${mehrere ? "Alle Tickets" : "Dein Ticket"} als druckbares PDF (Vorder- &amp; R\u00FCckseite):
-      </p>
-      <a href="${escHtml(pdfUrl)}"
-        style="display:inline-block;padding:0.65rem 1.6rem;background:#e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:0.95rem;font-weight:bold;color:#0a0704;text-decoration:none;letter-spacing:0.04em;">
-        &#8595;&nbsp; PDF herunterladen
+    <div style="text-align:center;margin:0 0 1.8rem;">
+      <a href="${escHtml(ticketPageUrl)}"
+        style="display:inline-block;padding:0.75rem 2rem;background:#e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:1rem;font-weight:bold;color:#0a0704;text-decoration:none;letter-spacing:0.04em;">
+        &#8594; Ticket herunterladen
       </a>
     </div>
 
-    <p style="font-size:0.82rem;line-height:1.7;color:rgba(245,232,200,0.4);font-style:italic;margin-bottom:1.5rem;">
-      Bitte den QR-Code am Einlass vorzeigen. Jedes Ticket gilt f\u00FCr genau eine Person.
+    <p style="font-size:0.9rem;line-height:1.7;color:rgba(245,232,200,0.6);margin:0 0 1.8rem;font-style:italic;">
+      Den QR-Code bitte am Einlass bereithalten.
     </p>
 
-    <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid rgba(232,153,26,0.2);font-size:0.82rem;color:rgba(245,232,200,0.4);text-align:center;">
+    <p style="font-size:0.97rem;line-height:1.8;color:rgba(245,232,200,0.88);margin:0 0 1.8rem;">
+      <strong>Und eine kleine Bitte:</strong> K\u00F6nntest du kurz auf diese Mail antworten und uns wissen lassen, dass das Ticket bei dir angekommen ist? Ein \u201EHat geklappt!\u201C reicht v\u00F6llig \u2014 damit wir wissen, dass alles glatt gelaufen ist.
+    </p>
+
+    <p style="font-size:0.97rem;line-height:1.8;color:rgba(245,232,200,0.88);margin:0 0 2rem;">
+      Wir sehen uns am 18. Juli auf dem B\u00F6lt. Es wird sch\u00F6n.
+    </p>
+
+    <p style="font-size:0.95rem;line-height:1.8;color:rgba(245,232,200,0.75);margin:0 0 2.5rem;">
+      Herzliche Gr\u00FC\u00DFe,<br>
+      Christoph Aldering f\u00FCr das Orga-Team \u201EEmmerich boomt!\u201C
+    </p>
+
+    <div style="padding-top:1.5rem;border-top:1px solid rgba(232,153,26,0.2);font-size:0.82rem;color:rgba(245,232,200,0.4);text-align:center;">
       EMMERICH BOOMT! \u00B7 18. Juli 2026 \u00B7 Emmerich am Rhein<br>
       <a href="https://www.emmerich-boomt.de" style="color:rgba(232,153,26,0.6);text-decoration:none;">www.emmerich-boomt.de</a>
     </div>
@@ -312,32 +297,31 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 </body>
 </html>`;
 
-  const ticketLines = opts.tickets.map(t => {
-    const pngUrl = `${base}/api/ticket/${encodeURIComponent(t.code)}/download/png`;
-    return [
-      `Ticket ${t.nummer} \u2014 ${t.name}`,
-      `Code: ${t.code}`,
-      `PNG herunterladen: ${pngUrl}`,
-    ].join("\n");
-  });
-
-  const ticketText = [
-    "EMMERICH BOOMT! \u2014 Eure Tickets",
-    "18. Juli 2026 \u00B7 Beginn 20:00 Uhr \u00B7 B\u00F6lt / Kapaunenberg \u00B7 Emmerich am Rhein",
+  const text = [
+    "Es ist so weit \u2014 dein Ticket ist da!",
     "",
-    ...ticketLines,
+    "In dem Moment, wo wir diese Mail abschicken, freuen wir uns jedes Mal ein kleines bisschen mit. Weil dahinter ein echter Mensch steckt, der sich gedacht hat: Ja, ich bin dabei. Und das ist das Sch\u00F6nste an so einer Veranstaltung.",
     "",
-    `PDF (alle Tickets, druckbar): ${pdfUrl}`,
+    "Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:",
     "",
-    "Bitte den QR-Code am Einlass vorzeigen. Jedes Ticket gilt f\u00FCr genau eine Person.",
+    `\u2192 Ticket herunterladen: ${ticketPageUrl}`,
+    "",
+    "Den QR-Code bitte am Einlass bereithalten.",
+    "",
+    "Und eine kleine Bitte: K\u00F6nntest du kurz auf diese Mail antworten und uns wissen lassen, dass das Ticket bei dir angekommen ist? Ein \u201EHat geklappt!\u201C reicht v\u00F6llig \u2014 damit wir wissen, dass alles glatt gelaufen ist.",
+    "",
+    "Wir sehen uns am 18. Juli auf dem B\u00F6lt. Es wird sch\u00F6n.",
+    "",
+    "Herzliche Gr\u00FC\u00DFe,",
+    "Christoph Aldering f\u00FCr das Orga-Team \u201EEmmerich boomt!\u201C",
   ].join("\n");
 
   await transport.sendMail({
     from:    `"EMMERICH BOOMT!" <${GMAIL_SENDER}>`,
     to:      opts.to,
-    subject: `${mehrere ? "Eure Tickets" : "Dein Ticket"} \u2014 EMMERICH BOOMT! 18. Juli 2026`,
+    subject: "Dein Ticket wartet \u2014 EMMERICH BOOMT! 18. Juli 2026",
     html,
-    text:    ticketText,
+    text,
   });
 
   console.info("[Mailer] Ticket-Mail versendet an", opts.to);
