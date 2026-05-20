@@ -3,8 +3,6 @@ import { fileURLToPath } from "node:url";
 import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { SERVER_CONFIG } from "../config.js";
-import { renderTicketFrontPNG } from "./ticket-render.js";
-import { generateTicketPDF } from "./pdf.js";
 
 // ─── Gmail (täglicher Bericht) ───────────────────────────────────────────────
 
@@ -211,7 +209,13 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
   console.info("[Mailer] Bestätigungsmail versendet an", opts.to);
 }
 
-// ─── Gmail Ticket-Mail (Legacy) ───────────────────────────────────────────────
+// ─── Ticket-Mail (Download-Links statt Anhänge) ───────────────────────────────
+
+function buildBaseUrl(): string {
+  const domains = process.env["REPLIT_DOMAINS"];
+  if (domains) return `https://${domains.split(",")[0]!.trim()}`;
+  return "http://localhost:80";
+}
 
 interface TicketMailOptions {
   to:        string;
@@ -232,50 +236,35 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     throw new Error("GMAIL_APP_PASSWORD nicht gesetzt — Ticket-Mail kann nicht versendet werden");
   }
 
-  const posterBuffer = getPosterBuffer();
-
-  const pngBuffers = await Promise.all(
-    opts.tickets.map(t =>
-      renderTicketFrontPNG({ name: t.name, nummer: t.nummer, code: t.code, posterBuffer })
-    )
-  );
-
-  const pdfBuffer = await generateTicketPDF(opts.tickets, { posterBuffer });
-
-  const ticketCids = opts.tickets.map(t => {
-    const safe = t.nummer.replace(/[^a-zA-Z0-9]/g, "-");
-    return `ticket-${safe}@emmerich-boomt`;
-  });
+  const base = buildBaseUrl();
+  // One PDF link covers all tickets of the same Anmeldung (endpoint looks up by code)
+  const pdfUrl = `${base}/api/ticket/${encodeURIComponent(opts.tickets[0]!.code)}/download/pdf`;
 
   const ticketBlocks = opts.tickets
-    .map(
-      (t, i) => `
-      <div style="margin-bottom:1.5rem;">
-        <img src="cid:${ticketCids[i]}"
-          alt="Ticket ${escHtml(t.nummer)} — ${escHtml(t.name)}"
-          width="560"
-          style="display:block;width:100%;height:auto;border-radius:4px;" />
-        <div style="
-          margin-top:0.5rem;
-          padding:0.6rem 1rem;
-          background:#1a1108;
-          border-left:3px solid #e8991a;
-          font-family:Georgia,'Times New Roman',serif;
-          font-size:0.82rem;
-          color:rgba(245,232,200,0.6);
-        ">
-          Ticket ${escHtml(t.nummer)} · ${escHtml(t.name)} ·
-          Code: <span style="font-family:monospace;color:#e8991a;letter-spacing:0.1em;">${escHtml(t.code)}</span>
-        </div>
-      </div>`,
-    )
+    .map(t => {
+      const pngUrl = `${base}/api/ticket/${encodeURIComponent(t.code)}/download/png`;
+      return `
+      <div style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:#120c04;border:1px solid rgba(232,153,26,0.25);border-left:3px solid #e8991a;border-radius:0 4px 4px 0;">
+        <p style="font-family:Georgia,'Times New Roman',serif;font-size:1rem;font-weight:bold;color:#f5e8c8;margin:0 0 0.3rem;">
+          ${escHtml(t.name)}
+        </p>
+        <p style="font-family:Courier,Menlo,monospace;font-size:0.82rem;color:#e8991a;letter-spacing:0.12em;margin:0 0 1rem;">
+          Ticket ${escHtml(t.nummer)} &nbsp;&middot;&nbsp; Code: ${escHtml(t.code)}
+        </p>
+        <a href="${escHtml(pngUrl)}"
+          style="display:inline-block;margin-right:0.75rem;padding:0.5rem 1.1rem;background:transparent;border:1px solid #e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:0.85rem;color:#e8991a;text-decoration:none;">
+          &#8595; Ticket als Bild (PNG)
+        </a>
+      </div>`;
+    })
     .join("");
 
   const mehrere = opts.tickets.length > 1;
+
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="utf-8"><title>Euer Ticket — EMMERICH BOOMT!</title></head>
-<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:'Playfair Display',Georgia,'Times New Roman',serif;">
+<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:580px;margin:0 auto;padding:2.5rem 1.5rem;">
 
     <div style="text-align:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(232,153,26,0.3);">
@@ -296,14 +285,23 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     <p style="font-size:0.92rem;line-height:1.7;color:rgba(245,232,200,0.65);margin-bottom:1.8rem;">
       ${opts.tickets.length} ${opts.tickets.length === 1 ? "Person" : "Personen"} \u00B7
       ${BEZAHLWEG_LABEL[opts.bezahlweg] ?? opts.bezahlweg} \u00B7
-      ${opts.betrag} \u20AC gesamt
+      ${opts.betrag}\u00A0\u20AC gesamt
     </p>
 
     ${ticketBlocks}
 
-    <p style="font-size:0.85rem;line-height:1.7;color:rgba(245,232,200,0.55);margin-top:1.5rem;font-style:italic;">
-      Das druckbare PDF mit ${mehrere ? "allen Tickets" : "deinem Ticket"} (Vorder- und R\u00FCckseite) findest du im Anhang.
-      Jedes Ticket gilt f\u00FCr genau eine Person.
+    <div style="margin:1.5rem 0 2rem;padding:1.25rem 1.5rem;background:#120c04;border:1px solid rgba(232,153,26,0.25);border-radius:4px;text-align:center;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:0.9rem;color:rgba(245,232,200,0.8);margin:0 0 0.9rem;line-height:1.6;">
+        ${mehrere ? "Alle Tickets" : "Dein Ticket"} als druckbares PDF (Vorder- &amp; R\u00FCckseite):
+      </p>
+      <a href="${escHtml(pdfUrl)}"
+        style="display:inline-block;padding:0.65rem 1.6rem;background:#e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:0.95rem;font-weight:bold;color:#0a0704;text-decoration:none;letter-spacing:0.04em;">
+        &#8595;&nbsp; PDF herunterladen
+      </a>
+    </div>
+
+    <p style="font-size:0.82rem;line-height:1.7;color:rgba(245,232,200,0.4);font-style:italic;margin-bottom:1.5rem;">
+      Bitte den QR-Code am Einlass vorzeigen. Jedes Ticket gilt f\u00FCr genau eine Person.
     </p>
 
     <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid rgba(232,153,26,0.2);font-size:0.82rem;color:rgba(245,232,200,0.4);text-align:center;">
@@ -314,24 +312,25 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 </body>
 </html>`;
 
+  const ticketLines = opts.tickets.map(t => {
+    const pngUrl = `${base}/api/ticket/${encodeURIComponent(t.code)}/download/png`;
+    return [
+      `Ticket ${t.nummer} \u2014 ${t.name}`,
+      `Code: ${t.code}`,
+      `PNG herunterladen: ${pngUrl}`,
+    ].join("\n");
+  });
+
   const ticketText = [
     "EMMERICH BOOMT! \u2014 Eure Tickets",
     "18. Juli 2026 \u00B7 Beginn 20:00 Uhr \u00B7 B\u00F6lt / Kapaunenberg \u00B7 Emmerich am Rhein",
     "",
-    ...opts.tickets.map(
-      t => `Ticket ${t.nummer} \u2014 ${t.name}\nCode: ${t.code}`,
-    ),
+    ...ticketLines,
     "",
-    "Das druckbare PDF mit Vorder- und R\u00FCckseite findest du im Anhang.",
-    "Bitte den Code am Einlass vorzeigen.",
+    `PDF (alle Tickets, druckbar): ${pdfUrl}`,
+    "",
+    "Bitte den QR-Code am Einlass vorzeigen. Jedes Ticket gilt f\u00FCr genau eine Person.",
   ].join("\n");
-
-  const pngAttachments = opts.tickets.map((t, i) => ({
-    filename:    `Ticket-${t.nummer}-${t.name.replace(/\s+/g, "-")}.png`,
-    content:     pngBuffers[i]!,
-    contentType: "image/png" as const,
-    cid:         ticketCids[i]!,
-  }));
 
   await transport.sendMail({
     from:    `"EMMERICH BOOMT!" <${GMAIL_SENDER}>`,
@@ -339,14 +338,6 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     subject: `${mehrere ? "Eure Tickets" : "Dein Ticket"} \u2014 EMMERICH BOOMT! 18. Juli 2026`,
     html,
     text:    ticketText,
-    attachments: [
-      ...pngAttachments,
-      {
-        filename:    "Tickets-EMMERICH-BOOMT.pdf",
-        content:     pdfBuffer,
-        contentType: "application/pdf",
-      },
-    ],
   });
 
   console.info("[Mailer] Ticket-Mail versendet an", opts.to);

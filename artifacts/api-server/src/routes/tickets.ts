@@ -1,9 +1,22 @@
 import { Router } from "express";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { db } from "@workspace/db";
 import { tickets, interessenten, anmeldungTicketsTable } from "@workspace/db";
 import { eq, desc, isNotNull, sql } from "drizzle-orm";
 import crypto from "crypto";
+import { renderTicketFrontPNG } from "../services/ticket-render.js";
+import { generateTicketPDF } from "../services/pdf.js";
+
+let _poster: Buffer | null = null;
+function getPoster(): Buffer {
+  if (!_poster) {
+    const p = fileURLToPath(new URL("../assets/boomerpartyposter.jpeg", import.meta.url));
+    _poster = readFileSync(p);
+  }
+  return _poster;
+}
 
 const router = Router();
 
@@ -227,6 +240,95 @@ router.get("/admin/eingelassen", async (req, res) => {
   });
 
   res.json(combined);
+});
+
+// GET /api/ticket/:code/download/png — public: renders ticket front as PNG
+router.get("/ticket/:code/download/png", async (req, res) => {
+  const code = req.params.code!.toUpperCase();
+
+  // Phase 2
+  const p2 = await db
+    .select({ name: anmeldungTicketsTable.person_name, nummer: anmeldungTicketsTable.ticket_nummer, code: anmeldungTicketsTable.ticket_code })
+    .from(anmeldungTicketsTable)
+    .where(eq(anmeldungTicketsTable.ticket_code, code))
+    .limit(1);
+
+  let ticket: { name: string; nummer: string; code: string } | null = null;
+  if (p2.length > 0) {
+    ticket = p2[0]!;
+  } else {
+    const leg = await db
+      .select({ name: tickets.personName, nummer: tickets.ticketCode, code: tickets.ticketCode })
+      .from(tickets)
+      .where(eq(tickets.ticketCode, code))
+      .limit(1);
+    if (leg.length > 0) ticket = leg[0]!;
+  }
+
+  if (!ticket) { res.status(404).json({ error: "Ticket nicht gefunden" }); return; }
+
+  try {
+    const png = await renderTicketFrontPNG({ ...ticket, posterBuffer: getPoster() });
+    const safeName = ticket.name.replace(/[^a-zA-Z0-9äöüÄÖÜß\-_]/g, "-");
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Content-Disposition", `attachment; filename="Ticket-${ticket.nummer}-${safeName}.png"`);
+    res.send(png);
+  } catch (err) {
+    req.log.error(err, "ticket download png failed");
+    res.status(500).json({ error: "Render fehlgeschlagen" });
+  }
+});
+
+// GET /api/ticket/:code/download/pdf — public: renders combined PDF for all tickets in the same anmeldung
+router.get("/ticket/:code/download/pdf", async (req, res) => {
+  const code = req.params.code!.toUpperCase();
+
+  let ticketList: { name: string; nummer: string; code: string }[] = [];
+
+  // Phase 2
+  const p2row = await db
+    .select({ anmeldungId: anmeldungTicketsTable.anmeldung_id })
+    .from(anmeldungTicketsTable)
+    .where(eq(anmeldungTicketsTable.ticket_code, code))
+    .limit(1);
+
+  if (p2row.length > 0) {
+    const rows = await db
+      .select({ name: anmeldungTicketsTable.person_name, nummer: anmeldungTicketsTable.ticket_nummer, code: anmeldungTicketsTable.ticket_code })
+      .from(anmeldungTicketsTable)
+      .where(eq(anmeldungTicketsTable.anmeldung_id, p2row[0]!.anmeldungId));
+    ticketList = rows;
+  } else {
+    const legRow = await db
+      .select({ anmeldungId: tickets.anmeldungId, personName: tickets.personName, ticketCode: tickets.ticketCode })
+      .from(tickets)
+      .where(eq(tickets.ticketCode, code))
+      .limit(1);
+
+    const legAnmeldungId = legRow[0]?.anmeldungId;
+    if (legAnmeldungId != null) {
+      const rows = await db
+        .select({ name: tickets.personName, nummer: tickets.ticketCode, code: tickets.ticketCode })
+        .from(tickets)
+        .where(eq(tickets.anmeldungId, legAnmeldungId));
+      ticketList = rows;
+    } else if (legRow.length > 0) {
+      // Fallback: single ticket with no anmeldungId grouping
+      ticketList = [{ name: legRow[0]!.personName, nummer: legRow[0]!.ticketCode, code: legRow[0]!.ticketCode }];
+    }
+  }
+
+  if (ticketList.length === 0) { res.status(404).json({ error: "Ticket nicht gefunden" }); return; }
+
+  try {
+    const pdf = await generateTicketPDF(ticketList, { posterBuffer: getPoster() });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="Tickets-EMMERICH-BOOMT.pdf"`);
+    res.send(pdf);
+  } catch (err) {
+    req.log.error(err, "ticket download pdf failed");
+    res.status(500).json({ error: "Render fehlgeschlagen" });
+  }
 });
 
 // POST /api/ticket/:code/freischalten — reset check-in (admin only)
