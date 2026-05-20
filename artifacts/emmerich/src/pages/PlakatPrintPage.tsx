@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { jsPDF } from "jspdf";
-import QRCode from "qrcode";
+import { QRCodeCanvas } from "qrcode.react";
 
 const A  = "#E8991A";
 const BG = "#0a0704";
 const FG = "#f5e8c8";
 const POSTER_SRC = "/images/boomerpartyposter.jpeg";
+const QR_URL = "https://www.emmerich-boomt.de";
 
 const FORMATE = [
   { label: "A0", w: 841,  h: 1189 },
@@ -19,11 +20,13 @@ const FORMATE = [
 export default function PlakatPrintPage() {
   const [format, setFormat]         = useState(FORMATE[1]);
   const [state, setState]           = useState<"idle" | "generating" | "done">("idle");
+  const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   async function handleGenerate() {
     setState("generating");
     try {
       const img = new Image();
+      img.crossOrigin = "anonymous";
       await new Promise<void>((resolve, reject) => {
         img.onload  = () => resolve();
         img.onerror = () => reject(new Error("Bild konnte nicht geladen werden"));
@@ -34,7 +37,6 @@ export default function PlakatPrintPage() {
       const CH = img.naturalHeight;
 
       /* ── QR-Code als Overlay rechts unten ── */
-      const QR_URL   = "https://www.emmerich-boomt.de";
       const QR_LABEL = "www.emmerich-boomt.de";
 
       /* QR-Größe je DIN-Format — dezent, nicht zu groß */
@@ -64,17 +66,11 @@ export default function PlakatPrintPage() {
       /* Plakat */
       ctx.drawImage(img, 0, 0, CW, CH);
 
-      /* QR-Code generieren */
-      const qrDataUrl = await QRCode.toDataURL(QR_URL, {
-        margin: 1,
-        width: Math.max(512, QR_SIZE * 2),
-        color: { dark: "#000000", light: "#ffffff" },
-      });
-      const qrImg = new Image();
-      await new Promise<void>((resolve) => {
-        qrImg.onload = () => resolve();
-        qrImg.src = qrDataUrl;
-      });
+      /* QR-Code direkt vom hidden QRCodeCanvas-Element lesen */
+      const qrSourceCanvas = qrCanvasRef.current;
+      if (!qrSourceCanvas) {
+        throw new Error("QR-Canvas nicht verfügbar");
+      }
 
       /* Weißes Kästchen rechts unten */
       const BOX_W = IPAD * 2 + QR_SIZE;
@@ -85,8 +81,8 @@ export default function PlakatPrintPage() {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(BOX_X, BOX_Y, BOX_W, BOX_H);
 
-      /* QR-Code im Kästchen */
-      ctx.drawImage(qrImg, BOX_X + IPAD, BOX_Y + IPAD, QR_SIZE, QR_SIZE);
+      /* QR-Code aus dem hidden canvas skaliert einzeichnen */
+      ctx.drawImage(qrSourceCanvas, BOX_X + IPAD, BOX_Y + IPAD, QR_SIZE, QR_SIZE);
 
       /* URL-Label */
       ctx.fillStyle    = "#111111";
@@ -117,7 +113,6 @@ export default function PlakatPrintPage() {
     } catch (e) {
       console.error("PDF error:", e);
       setState("idle");
-      alert("PDF konnte nicht erstellt werden.");
     }
   }
 
@@ -132,6 +127,18 @@ export default function PlakatPrintPage() {
       padding: "2rem 1.5rem",
       gap: "2rem",
     }}>
+
+      {/* Hidden QR canvas — rendered off-screen so the ref is always available */}
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px", pointerEvents: "none" }}>
+        <QRCodeCanvas
+          value={QR_URL}
+          size={512}
+          marginSize={1}
+          fgColor="#000000"
+          bgColor="#ffffff"
+          ref={qrCanvasRef}
+        />
+      </div>
 
       {/* Header */}
       <div style={{ textAlign: "center" }}>
