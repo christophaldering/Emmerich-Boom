@@ -65,10 +65,14 @@ function getFontStyleBlock(): string {
   return _fontStyleBlock;
 }
 
-export async function renderTicketFrontSVG(data: TicketRenderData): Promise<string> {
-  const { name, nummer, code, posterBuffer } = data;
+/**
+ * Builds SVG layers WITHOUT the poster image and WITHOUT a solid background rect.
+ * The gradient is transparent on the left (where the poster will be composited beneath)
+ * and opaque dark on the right. QR code and all text are included.
+ */
+async function buildSvgLayers(data: Omit<TicketRenderData, "posterBuffer">): Promise<string> {
+  const { name, nummer, code } = data;
 
-  const posterDataUrl = `data:image/jpeg;base64,${posterBuffer.toString("base64")}`;
   const numStr = extractNumStr(nummer);
   const fontSize = nameFontSize(name);
 
@@ -93,6 +97,7 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
     <clipPath id="clip_name_${uid}">
       <rect x="370" y="90" width="460" height="70" />
     </clipPath>
+    <!-- Gradient: transparent 0-28% (poster shows through), fades to solid dark by 72% -->
     <linearGradient id="fade_${uid}" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
       <stop offset="0%"   stop-color="#0A0704" stop-opacity="0" />
       <stop offset="28%"  stop-color="#0A0704" stop-opacity="0" />
@@ -105,11 +110,10 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
   </defs>
 
   <g clip-path="url(#clip_${uid})">
-    <rect x="0" y="0" width="900" height="340" fill="#0A0704" />
+    <!-- No solid background rect here — dark base is added via sharp.create() -->
+    <!-- No poster image here — poster is composited as a separate sharp layer -->
 
-    <rect x="0" y="0" width="300" height="340" fill="#2a1305" />
-    <image href="${posterDataUrl}" x="0" y="0" width="300" height="340" preserveAspectRatio="xMidYMid slice" />
-
+    <!-- Gradient overlay: transparent left (poster visible), opaque dark right -->
     <rect x="0" y="0" width="900" height="340" fill="url(#fade_${uid})" />
 
     <text x="370" y="80"
@@ -158,10 +162,41 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
 </svg>`;
 }
 
+/** @deprecated kept for any external callers — internally we use buildSvgLayers + composite */
+export async function renderTicketFrontSVG(data: TicketRenderData): Promise<string> {
+  return buildSvgLayers(data);
+}
+
 export async function renderTicketFrontPNG(data: TicketRenderData): Promise<Buffer> {
-  const svg = await renderTicketFrontSVG(data);
-  return sharp(Buffer.from(svg, "utf-8"))
+  const { posterBuffer } = data;
+
+  // 1. Render SVG layers (gradient + text/QR) — transparent where gradient is transparent
+  const svgLayers = await buildSvgLayers(data);
+  const svgPng = await sharp(Buffer.from(svgLayers, "utf-8"))
     .resize(1800, 680)
+    .png()
+    .toBuffer();
+
+  // 2. Resize poster to left-column dimensions.
+  //    In the SVG viewBox (900×340), the poster occupies x=0..300 (1/3 of width).
+  //    In the output image (1800×680), that's 600px wide × 680px tall.
+  const posterPng = await sharp(posterBuffer)
+    .resize(600, 680, { fit: "cover", position: "top" })
+    .png()
+    .toBuffer();
+
+  // 3. Composite layers:
+  //    - Dark base fills the whole canvas (#0A0704)
+  //    - Poster placed at left (x=0, y=0), 600×680
+  //    - SVG overlay on top (gradient makes left side transparent → poster shows,
+  //      right side opaque dark → covers poster with solid dark)
+  return sharp({
+    create: { width: 1800, height: 680, channels: 3, background: { r: 10, g: 7, b: 4 } },
+  })
+    .composite([
+      { input: posterPng, top: 0, left: 0 },
+      { input: svgPng,    top: 0, left: 0 },
+    ])
     .png()
     .toBuffer();
 }

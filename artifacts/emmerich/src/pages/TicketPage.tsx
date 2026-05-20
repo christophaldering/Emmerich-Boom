@@ -140,9 +140,9 @@ export default function TicketPage({ code }: { code: string }) {
           <button onClick={handlePdfDownload} disabled={pdfLoading} style={sc.btn}>
             {pdfLoading ? "Wird erstellt…" : "Als PDF speichern"}
           </button>
-          <button onClick={() => window.print()} style={sc.btn}>
-            Drucken
-          </button>
+          <a href={`${API}/ticket/${code}/download/pdf`} target="_blank" rel="noopener noreferrer" style={{ ...sc.btn, textDecoration: "none", display: "inline-block", textAlign: "center" as const }}>
+            Drucken / PDF
+          </a>
         </div>
       </div>
 
