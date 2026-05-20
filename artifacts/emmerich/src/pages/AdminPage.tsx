@@ -870,6 +870,7 @@ export default function AdminPage() {
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
   const [anmeldungenRows, setAnmeldungenRows] = useState<AnmeldungRow[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("anmeldungen");
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [kaiState, setKaiState] = useState<"idle" | "loading" | "done" | "error">("idle");
 
   const [kaiComment, setKaiComment] = useState<string | null>(null);
@@ -916,7 +917,15 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => { if (authed) { load(); loadTickets(); loadAnmeldungen(); } }, [authed]);
+  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); }, [loadTickets, loadAnmeldungen]);
+
+  useEffect(() => { if (authed) refreshAll(); }, [authed]);
+
+  useEffect(() => {
+    if (!authed || !autoRefresh) return;
+    const id = setInterval(() => refreshAll(), 30_000);
+    return () => clearInterval(id);
+  }, [authed, autoRefresh, refreshAll]);
 
   if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
   if (error) return <div style={{ background: BG, color: FG, minHeight: "100svh", padding: "3rem 1.5rem", fontFamily: "'Lora', serif" }}><p style={{ color: A, marginTop: "4rem" }}>⚠ {error}</p></div>;
@@ -937,12 +946,18 @@ export default function AdminPage() {
           <a href={`${BASE}/boomer-orga-intern/einlass`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Einlass-Scanner
           </a>
-          <button onClick={() => { load(); loadTickets(); loadAnmeldungen(); }} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
+          <button onClick={refreshAll} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Aktualisieren
+          </button>
+          <button onClick={() => setAutoRefresh(v => !v)} title={autoRefresh ? "Auto-Refresh deaktivieren" : "Auto-Refresh aktivieren"}
+            style={{ background: autoRefresh ? am(0.15) : "transparent", border: `1px solid ${am(autoRefresh ? 0.6 : 0.3)}`, borderRadius: "3px", color: am(autoRefresh ? 1 : 0.5), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.45rem 0.75rem" }}>
+            ⟳ 30s
           </button>
         </div>
       </div>
-      {lastLoaded && <p style={{ fontSize: "0.85rem", color: fg(0.55), marginBottom: "1.5rem", fontFamily: "'Lora', serif" }}>Stand: {lastLoaded.toLocaleString("de-DE")}</p>}
+      {lastLoaded && <p style={{ fontSize: "0.85rem", color: fg(0.55), marginBottom: "1.5rem", fontFamily: "'Lora', serif" }}>
+        Stand: {lastLoaded.toLocaleString("de-DE")}{autoRefresh ? " · Auto-Refresh aktiv" : ""}
+      </p>}
 
       {/* ── Tab-Navigation ── */}
       <TabBar active={activeTab} onSelect={setActiveTab} />
