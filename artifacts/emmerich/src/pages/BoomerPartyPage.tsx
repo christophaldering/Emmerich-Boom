@@ -14,7 +14,6 @@ import DruckMaterial from "@/components/DruckMaterial";
 import PressNote from "@/components/PressNote";
 import Legal from "@/components/Legal";
 import SiteFooter from "@/components/SiteFooter";
-import TicketsTeaser from "@/components/TicketsTeaser";
 import StimmungsBild from "@/components/StimmungsBild";
 import AnmeldeAufruf from "@/components/AnmeldeAufruf";
 
@@ -32,7 +31,6 @@ export default function BoomerPartyPage() {
       <Poster />
       <AnmeldeAufruf />
       <AnmeldungsZaehler refreshKey={refreshCounter} />
-      <TicketsTeaser />
       <Letter />
       <Motto />
       <StimmungsBild />
