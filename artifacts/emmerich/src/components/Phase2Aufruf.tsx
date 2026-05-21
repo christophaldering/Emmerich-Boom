@@ -150,6 +150,18 @@ export default function Phase2Aufruf() {
           border-radius: 1px;
           transition: left 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
+        .p2a-bar-marker-label {
+          position: absolute;
+          top: 14px;
+          transform: translateX(-50%);
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.68rem;
+          letter-spacing: 0.04em;
+          color: rgba(245,232,200,0.35);
+          white-space: nowrap;
+          pointer-events: none;
+          transition: left 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
         .p2a-bar-meta {
           display: flex;
           justify-content: space-between;
@@ -210,10 +222,14 @@ export default function Phase2Aufruf() {
 
               return (
                 <div className="p2a-bar-wrap">
-                  <div className="p2a-bar-track">
+                  {/* Etwas Abstand nach oben damit die Marker-Beschriftung Platz hat */}
+                  <div className="p2a-bar-track" style={{ marginBottom: "1.4rem" }}>
                     <div className="p2a-bar-fill" style={{ width: `${fillW}%` }} />
-                    {/* Marker bei der ursprünglichen Interessenten-Zahl */}
+                    {/* Marker + Beschriftung bei der ursprünglichen Interessenten-Zahl */}
                     <div className="p2a-bar-marker" style={{ left: `calc(${markW}% - 1px)` }} />
+                    <div className="p2a-bar-marker-label" style={{ left: `${markW}%` }}>
+                      {count} Interessierte
+                    </div>
                     {/* Glühender Spike wenn Überlauf */}
                     {overflow && (
                       <div className="p2a-bar-overflow" style={{ left: `calc(${markW}% - 1px)` }} />
