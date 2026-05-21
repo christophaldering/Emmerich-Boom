@@ -16,6 +16,7 @@ import AnmeldeAufruf from "@/components/AnmeldeAufruf";
 import Phase2Aufruf from "@/components/Phase2Aufruf";
 import Formular from "@/components/Formular";
 import TicketsTeaser from "@/components/TicketsTeaser";
+import Stempel from "@/components/Stempel";
 
 export default function BoomerPartyPage() {
   return (
@@ -30,6 +31,7 @@ export default function BoomerPartyPage() {
       <Fakten />
       <Countdown />
       <TicketsTeaser />
+      <Stempel />
       <Formular />
       <Playlist />
       <KaI refreshSignal={0} />
