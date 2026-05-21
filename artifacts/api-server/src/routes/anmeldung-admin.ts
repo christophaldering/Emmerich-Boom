@@ -24,10 +24,6 @@ function generateCode(): string {
   return crypto.randomBytes(8).toString("hex").toUpperCase();
 }
 
-function ticketNummer(anmeldungId: number, index: number): string {
-  return `EB-${String(anmeldungId).padStart(3, "0")}-${index}`;
-}
-
 function parsePersonen(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter((s): s is string => typeof s === "string");
@@ -145,16 +141,27 @@ router.post("/admin/anmeldungen/:id/tickets-versenden", async (req: Request, res
       .where(eq(anmeldungTicketsTable.anmeldung_id, id));
 
     if (vorhandene.length === 0) {
-      const values = personenNames.map((name, i) => ({
-        anmeldung_id:   id,
-        person_name:    name,
-        ticket_nummer:  ticketNummer(id, i + 1),
-        ticket_code:    generateCode(),
-      }));
-      vorhandene = await db
-        .insert(anmeldungTicketsTable)
-        .values(values)
-        .returning();
+      vorhandene = await db.transaction(async (tx) => {
+        // Ticket-Nummern-Zähler (id=2) atomisch sperren und inkrementieren
+        await tx.execute(sql`
+          INSERT INTO ticket_nummer_counter (id, next_nummer) VALUES (2, 1)
+          ON CONFLICT (id) DO NOTHING
+        `);
+        const result = await tx.execute(sql`
+          SELECT next_nummer FROM ticket_nummer_counter WHERE id = 2 FOR UPDATE
+        `);
+        const startNum = result.rows[0]!["next_nummer"] as number;
+        await tx.execute(sql`
+          UPDATE ticket_nummer_counter SET next_nummer = ${startNum + personenNames.length} WHERE id = 2
+        `);
+        const values = personenNames.map((name, i) => ({
+          anmeldung_id:  id,
+          person_name:   name,
+          ticket_nummer: String(startNum + i),
+          ticket_code:   generateCode(),
+        }));
+        return await tx.insert(anmeldungTicketsTable).values(values).returning();
+      });
     }
 
     // Mail versenden
@@ -233,7 +240,7 @@ router.get("/admin/anmeldungen/:id/ticket-vorschau", async (req: Request, res: R
       }
       tickets = personenNames.map((name, i) => ({
         name,
-        nummer: ticketNummer(id, i + 1),
+        nummer: String(i + 1),
         code:   "MUSTERTICKET",
       }));
     }
@@ -258,6 +265,30 @@ router.get("/admin/anmeldungen/:id/ticket-vorschau", async (req: Request, res: R
   } catch (err) {
     req.log.error(err, "ticket-vorschau failed");
     res.status(500).json({ error: "Vorschau konnte nicht generiert werden." });
+  }
+});
+
+// GET /api/admin/alle-tickets — alle generierten Tickets, sortiert nach ID
+router.get("/admin/alle-tickets", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  try {
+    const tickets = await db
+      .select({
+        id:             anmeldungTicketsTable.id,
+        anmeldung_id:   anmeldungTicketsTable.anmeldung_id,
+        person_name:    anmeldungTicketsTable.person_name,
+        ticket_nummer:  anmeldungTicketsTable.ticket_nummer,
+        ticket_code:    anmeldungTicketsTable.ticket_code,
+        versendet_am:   anmeldungTicketsTable.versendet_am,
+        eingelassen_am: anmeldungTicketsTable.eingelassen_am,
+        created_at:     anmeldungTicketsTable.created_at,
+      })
+      .from(anmeldungTicketsTable)
+      .orderBy(anmeldungTicketsTable.id);
+    res.json(tickets);
+  } catch (err) {
+    req.log.error(err, "alle-tickets failed");
+    res.status(500).json({ error: "Fehler beim Laden der Tickets" });
   }
 });
 

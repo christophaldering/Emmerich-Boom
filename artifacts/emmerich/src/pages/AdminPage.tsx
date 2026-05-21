@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { QRCodeSVG } from "qrcode.react";
 
 const SECRET = "emmerich-orga-stats-2026";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -863,6 +864,17 @@ function visitOrdinal(n: number | null): string {
   return `${n}.`;
 }
 
+interface AlleTicketsEntry {
+  id: number;
+  anmeldung_id: number;
+  person_name: string;
+  ticket_nummer: string;
+  ticket_code: string;
+  versendet_am: string | null;
+  eingelassen_am: string | null;
+  created_at: string;
+}
+
 interface MonitorTicket {
   id: number; ticket_code: string; ticket_nummer: string;
   person_name: string; eingelassen_am: string | null; anmeldung_id: number;
@@ -910,6 +922,7 @@ export default function AdminPage() {
   const [lastLoaded, setLastLoaded] = useState<Date | null>(null);
   const [ticketRows, setTicketRows] = useState<TicketRow[]>([]);
   const [anmeldungenRows, setAnmeldungenRows] = useState<AnmeldungRow[]>([]);
+  const [alleTickets, setAlleTickets] = useState<AlleTicketsEntry[]>([]);
   const [monitorData, setMonitorData] = useState<MonitorData | null>(null);
   const [einlassPending, setEinlassPending] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>(() => (localStorage.getItem("emmerich_admin_tab") as Tab) ?? "anmeldungen");
@@ -969,7 +982,14 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
-  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); }, [loadTickets, loadAnmeldungen, loadMonitor]);
+  const loadAlleTickets = useCallback(() => {
+    fetch(`${BASE}/api/admin/alle-tickets`, { headers: { "x-admin-secret": SECRET } })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setAlleTickets(data as AlleTicketsEntry[]); })
+      .catch(() => {});
+  }, []);
+
+  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets]);
 
   const handleFreischalten = useCallback(async (code: string) => {
     setEinlassPending(code);
@@ -1096,6 +1116,88 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )
+          }
+
+          {/* ── Ticket-Übersicht ── */}
+          <SectionTitle>Generierte Tickets ({alleTickets.length})</SectionTitle>
+          {alleTickets.length === 0
+            ? <p style={{ color: fg(0.55), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem" }}>Noch keine Tickets generiert.</p>
+            : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {alleTickets.map(t => {
+                  const qrValue = `${window.location.origin}${BASE}/boomer-orga-intern/ticket/${t.ticket_code}`;
+                  const numDisplay = (() => {
+                    const n = parseInt(t.ticket_nummer, 10);
+                    return isNaN(n) ? t.ticket_nummer : String(n).padStart(3, "0");
+                  })();
+                  return (
+                    <div key={t.id} style={{
+                      display: "flex", alignItems: "center", gap: "0.85rem",
+                      background: t.eingelassen_am ? "rgba(46,204,113,0.05)" : am(0.04),
+                      border: `1px solid ${t.eingelassen_am ? "rgba(46,204,113,0.2)" : am(0.18)}`,
+                      borderRadius: "5px", padding: "0.6rem 0.85rem",
+                      flexWrap: "wrap",
+                    }}>
+                      {/* Nummer */}
+                      <div style={{
+                        fontFamily: "'Playfair Display', serif", fontWeight: 700,
+                        fontSize: "1.05rem", color: A, minWidth: "3rem", flexShrink: 0,
+                      }}>
+                        #{numDisplay}
+                      </div>
+
+                      {/* QR-Code */}
+                      <div style={{ flexShrink: 0, background: "#fff", borderRadius: "3px", padding: "3px" }}>
+                        <QRCodeSVG value={qrValue} size={52} level="M" />
+                      </div>
+
+                      {/* Name + Code */}
+                      <div style={{ flex: 1, minWidth: "120px" }}>
+                        <div style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", color: FG, marginBottom: "0.2rem" }}>
+                          {t.person_name}
+                        </div>
+                        <code style={{ fontFamily: "monospace", fontSize: "0.7rem", color: fg(0.5), letterSpacing: "0.05em" }}>
+                          {t.ticket_code}
+                        </code>
+                      </div>
+
+                      {/* Status-Badges */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flexShrink: 0 }}>
+                        <span style={{
+                          fontFamily: "'Lora', serif", fontSize: "0.75rem",
+                          color: t.versendet_am ? "#2ecc71" : fg(0.4),
+                          whiteSpace: "nowrap",
+                        }}>
+                          {t.versendet_am ? `✉ ${dateFmt(t.versendet_am)}` : "– nicht versendet"}
+                        </span>
+                        <span style={{
+                          fontFamily: "'Lora', serif", fontSize: "0.75rem",
+                          color: t.eingelassen_am ? "#2ecc71" : fg(0.4),
+                          whiteSpace: "nowrap",
+                        }}>
+                          {t.eingelassen_am ? `✓ Eingelassen ${new Date(t.eingelassen_am).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}` : "– noch nicht da"}
+                        </span>
+                      </div>
+
+                      {/* Download */}
+                      <a
+                        href={`${BASE}/api/ticket/${t.ticket_code}/download/pdf`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          fontFamily: "'Lora', serif", fontSize: "0.78rem",
+                          color: am(0.75), textDecoration: "none",
+                          border: `1px solid ${am(0.3)}`, borderRadius: "3px",
+                          padding: "0.25rem 0.6rem", flexShrink: 0, whiteSpace: "nowrap",
+                        }}
+                      >
+                        PDF ↓
+                      </a>
+                    </div>
+                  );
+                })}
               </div>
             )
           }
