@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { interessenten, kiRequests } from "@workspace/db";
-import { desc, gte, count } from "drizzle-orm";
+import { interessenten, kiRequests, anmeldungenTable } from "@workspace/db";
+import { desc, gte, count, isNotNull } from "drizzle-orm";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router = Router();
@@ -9,17 +9,21 @@ const router = Router();
 const DAILY_LIMIT = parseInt(process.env.KI_DAILY_LIMIT ?? "30");
 
 interface TeilnehmerEntry { name: string; personen: string | null; statement: string | null; song: string | null; }
+interface Phase2Entry { name: string; personenAnzahl: number; song: string | null; }
 
 const PERSONEN_COUNT: Record<string, number> = {
   "Nur ich": 1, "Wir zwei": 2, "Wir drei": 3,
   "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
 };
 
-function buildKaiPrompt(teilnehmer: TeilnehmerEntry[]): string {
-  const anmeldungen = teilnehmer.length;
-  const totalPersonen = teilnehmer.reduce(
+function buildKaiPrompt(teilnehmer: TeilnehmerEntry[], phase2: Phase2Entry[]): string {
+  const anmeldungenPhase1 = teilnehmer.length;
+  const totalPersonenPhase1 = teilnehmer.reduce(
     (sum, t) => sum + (PERSONEN_COUNT[t.personen ?? ""] ?? 1), 0
   );
+  const totalPersonenPhase2 = phase2.reduce((sum, a) => sum + a.personenAnzahl, 0);
+  const totalAnmeldungen = anmeldungenPhase1 + phase2.length;
+  const totalPersonen = totalPersonenPhase1 + totalPersonenPhase2;
 
   const personenBlock = teilnehmer.map((t) => {
     const anzahl = PERSONEN_COUNT[t.personen ?? ""] ?? 1;
@@ -29,9 +33,23 @@ function buildKaiPrompt(teilnehmer: TeilnehmerEntry[]): string {
     return `• ${t.name} (${wer}) — ${song} — ${stmt}`;
   }).join("\n");
 
-  const personenHinweis = totalPersonen > anmeldungen
-    ? `Es gibt ${anmeldungen} Anmeldungen, aber da einige Leute mit Begleitung kommen, sind insgesamt mindestens ${totalPersonen} Personen dabei.`
-    : `Es gibt ${anmeldungen} Anmeldungen — alle kommen alleine, also ${anmeldungen} Personen.`;
+  const phase2Block = phase2.length > 0
+    ? phase2.map((a) => {
+        const wer = a.personenAnzahl > 1 ? `kommt zu ${a.personenAnzahl}` : "kommt alleine";
+        const song = a.song ? `Musikwunsch: „${a.song}"` : "kein Musikwunsch";
+        return `• ${a.name} (${wer}) — ${song}`;
+      }).join("\n")
+    : "";
+
+  const personenHinweis = phase2.length > 0
+    ? `Es gibt ${anmeldungenPhase1} Interessenten aus Phase 1 und ${phase2.length} verbindliche Anmeldungen aus Phase 2 — zusammen ${totalAnmeldungen} Anmeldungen und mindestens ${totalPersonen} Personen.`
+    : totalPersonen > anmeldungenPhase1
+      ? `Es gibt ${anmeldungenPhase1} Anmeldungen, aber da einige Leute mit Begleitung kommen, sind insgesamt mindestens ${totalPersonen} Personen dabei.`
+      : `Es gibt ${anmeldungenPhase1} Anmeldungen — alle kommen alleine, also ${anmeldungenPhase1} Personen.`;
+
+  const phase2Section = phase2.length > 0
+    ? `\nVerbindliche Anmeldungen (Phase 2) — ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen:\n${phase2Block}\n`
+    : "";
 
   return `Du bist KaI — das KI-System des Entwicklerteams hinter emmerich-boomt.de.
 
@@ -41,9 +59,9 @@ Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und 
 
 ${personenHinweis}
 
-Anmeldeliste — jede Zeile gehört zu genau einer Anmeldung:
+Interessenten (Phase 1) — jede Zeile gehört zu genau einer Anmeldung:
 ${personenBlock}
-
+${phase2Section}
 WICHTIG: Jede Zeile oben gehört exakt zu einer Anmeldung. Musikwunsch und Statement in einer Zeile gehören dieser einen Person — nie einer anderen. Keine Verwechslungen.
 
 Schreib jetzt einen Kommentar. Regeln:
@@ -51,6 +69,7 @@ Schreib jetzt einen Kommentar. Regeln:
 - Vornamen erlaubt — herzlich, nie bloßstellend
 - Wenn du einen Song oder ein Statement erwähnst, nenn immer den dazugehörigen Namen
 - Erwähne sowohl die Anzahl der Anmeldungen als auch die Gesamtzahl der Personen, wenn sie voneinander abweichen
+- Differenziere zwischen Phase-1-Interessenten und Phase-2-Buchungen, wenn beide vorhanden sind
 - Geh auf Einzelheiten ein, die es wert sind — aber nur wenn du sicher bist, wer was gesagt oder gewünscht hat
 - Warmherzig, leicht formell, dann doch witzig
 - Kein erklärender Intro-Satz — direkt beginnen
@@ -81,10 +100,28 @@ export async function generateKaiComment(): Promise<void> {
 
     if (alleEintraege.length === 0) return;
 
+    const anmeldungRows = await db
+      .select({
+        personen: anmeldungenTable.personen,
+        personen_anzahl: anmeldungenTable.personen_anzahl,
+        song: anmeldungenTable.song,
+      })
+      .from(anmeldungenTable)
+      .where(isNotNull(anmeldungenTable.song))
+      .orderBy(desc(anmeldungenTable.created_at));
+
+    const phase2Eintraege: Phase2Entry[] = anmeldungRows
+      .filter((r) => r.song && r.song.trim() !== "")
+      .map((r) => {
+        const personen = r.personen as Array<{ name?: string }> | null;
+        const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : "Angemeldete Person";
+        return { name: firstName, personenAnzahl: r.personen_anzahl, song: r.song };
+      });
+
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 512,
-      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege) }],
+      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege, phase2Eintraege) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";
@@ -119,10 +156,28 @@ router.post("/stimmung/regenerate", async (req, res) => {
       return;
     }
 
+    const anmeldungRowsRegen = await db
+      .select({
+        personen: anmeldungenTable.personen,
+        personen_anzahl: anmeldungenTable.personen_anzahl,
+        song: anmeldungenTable.song,
+      })
+      .from(anmeldungenTable)
+      .where(isNotNull(anmeldungenTable.song))
+      .orderBy(desc(anmeldungenTable.created_at));
+
+    const phase2EintraegeRegen: Phase2Entry[] = anmeldungRowsRegen
+      .filter((r) => r.song && r.song.trim() !== "")
+      .map((r) => {
+        const personen = r.personen as Array<{ name?: string }> | null;
+        const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : "Angemeldete Person";
+        return { name: firstName, personenAnzahl: r.personen_anzahl, song: r.song };
+      });
+
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 512,
-      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege) }],
+      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege, phase2EintraegeRegen) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";

@@ -6,7 +6,7 @@ interface KaiResponse {
 }
 
 interface Teilnehmer {
-  id: number;
+  id: string | number;
   name: string;
   personen: string;
   song: string | null;
@@ -17,14 +17,19 @@ interface KaIProps {
   refreshSignal?: number;
 }
 
+function isPhase1(t: Teilnehmer): boolean {
+  return typeof t.id !== "string" || !t.id.startsWith("a");
+}
+
 function buildKaiIntro(liste: Teilnehmer[]): string {
-  const n = liste.length;
+  const phase1 = liste.filter(isPhase1);
+  const n = phase1.length;
   if (n === 0) {
     return "KaI wartet auf die ersten Anmeldungen.";
   }
 
-  const namen = liste.map((t) => t.name);
-  const songs = liste.filter((t) => t.song).map((t) => t.song as string);
+  const namen = phase1.map((t) => t.name);
+  const songs = phase1.filter((t) => t.song).map((t) => t.song as string);
   const songHint = songs.length > 0 ? `\u201e${songs[Math.floor(songs.length / 2)]}\u201c` : null;
 
   let nameStr: string;
