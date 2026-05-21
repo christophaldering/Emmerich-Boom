@@ -121,27 +121,58 @@ export default function Phase2Aufruf() {
           height: 6px;
           border-radius: 3px;
           background: rgba(232,153,26,0.14);
-          overflow: hidden;
         }
         .p2a-bar-fill {
           position: absolute;
           inset: 0 auto 0 0;
+          height: 100%;
           border-radius: 3px;
           background: var(--amber);
-          transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+          transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+          max-width: 100%;
+        }
+        .p2a-bar-overflow {
+          position: absolute;
+          top: -3px;
+          height: 12px;
+          width: 3px;
+          border-radius: 2px;
+          background: var(--amber);
+          box-shadow: 0 0 6px 2px rgba(232,153,26,0.55);
+          transition: left 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .p2a-bar-marker {
+          position: absolute;
+          top: -4px;
+          width: 2px;
+          height: 14px;
+          background: rgba(245,232,200,0.35);
+          border-radius: 1px;
+          transition: left 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .p2a-bar-meta {
           display: flex;
           justify-content: space-between;
           align-items: baseline;
-          margin-top: 0.45rem;
+          margin-top: 0.5rem;
+          gap: 0.5rem;
         }
         .p2a-bar-pct {
           font-family: 'Lora', Georgia, serif;
           font-size: 0.78rem;
           letter-spacing: 0.06em;
           color: var(--amber);
-          opacity: 0.6;
+          opacity: 0.65;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .p2a-bar-comment {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.78rem;
+          font-style: italic;
+          color: var(--amber);
+          opacity: 0.55;
+          text-align: right;
         }
       `}</style>
 
@@ -155,21 +186,48 @@ export default function Phase2Aufruf() {
                 → <strong>{angemeldete}</strong> davon bereits angemeldet
               </p>
             )}
-            {count !== null && count > 0 && angemeldete !== null && (
-              <div className="p2a-bar-wrap">
-                <div className="p2a-bar-track">
-                  <div
-                    className="p2a-bar-fill"
-                    style={{ width: `${Math.min(100, Math.round((angemeldete / count) * 100))}%` }}
-                  />
+            {count !== null && count > 0 && angemeldete !== null && (() => {
+              const pct = Math.round((angemeldete / count) * 100);
+              // Wenn mehr angemeldet als Interessenten: Track-Basis wächst mit
+              const trackMax = Math.max(count, angemeldete);
+              // Füllbreite relativ zu trackMax (Interessenten-Marker liegt bei count/trackMax)
+              const fillW  = Math.round((angemeldete / trackMax) * 100);
+              const markW  = Math.round((count       / trackMax) * 100);
+              const overflow = angemeldete > count;
+
+              const comment =
+                pct < 20  ? "Wir fangen an — jede Anmeldung zählt!" :
+                pct < 40  ? "Gut! Der Funke springt über." :
+                pct < 60  ? "Wir kommen in Fahrt — bitte weitersagen!" :
+                pct < 75  ? "Da fehlen noch einige — aber wir sind zuversichtlich." :
+                pct < 90  ? "Wir nähern uns — gleich da!" :
+                pct < 100 ? "Fast! Noch ein paar Boomer fehlen." :
+                pct === 100 ? "Genau so viele wie ursprünglich gemeldet — Respekt." :
+                pct < 115 ? "Wow — mehr als ursprünglich gemeldet. Das hätten wir nicht erwartet!" :
+                pct < 130 ? "Jetzt wird's richtig voll. Ihr seid der Wahnsinn." :
+                pct < 150 ? "Wir sind baff. Einfach baff." :
+                "Das ist kein Boomerparty mehr — das ist eine Bewegung. 🕺";
+
+              return (
+                <div className="p2a-bar-wrap">
+                  <div className="p2a-bar-track">
+                    <div className="p2a-bar-fill" style={{ width: `${fillW}%` }} />
+                    {/* Marker bei der ursprünglichen Interessenten-Zahl */}
+                    <div className="p2a-bar-marker" style={{ left: `calc(${markW}% - 1px)` }} />
+                    {/* Glühender Spike wenn Überlauf */}
+                    {overflow && (
+                      <div className="p2a-bar-overflow" style={{ left: `calc(${markW}% - 1px)` }} />
+                    )}
+                  </div>
+                  <div className="p2a-bar-meta">
+                    <span className="p2a-bar-pct">
+                      {pct}&thinsp;% angemeldet
+                    </span>
+                    <span className="p2a-bar-comment">{comment}</span>
+                  </div>
                 </div>
-                <div className="p2a-bar-meta">
-                  <span className="p2a-bar-pct">
-                    {Math.min(100, Math.round((angemeldete / count) * 100))}&thinsp;% angemeldet
-                  </span>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         )}
 
