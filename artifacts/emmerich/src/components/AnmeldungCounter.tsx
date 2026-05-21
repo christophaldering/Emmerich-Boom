@@ -18,12 +18,12 @@ const numStyle: React.CSSProperties = {
 
 // ─── Fortschrittsbalken ───────────────────────────────────────────────────────
 
-interface BarProps {
+export interface BarProps {
   angemeldete: number;
   basis: number;
 }
 
-function AnmeldungBar({ angemeldete, basis }: BarProps) {
+export function AnmeldungBar({ angemeldete, basis }: BarProps) {
   const [mounted, setMounted] = useState(false);
   const raf = useRef<number | null>(null);
 

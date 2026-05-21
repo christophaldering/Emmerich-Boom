@@ -1,6 +1,9 @@
 import { PHASE2_CONFIG } from "@/config/phase2";
 import TicketSVG from "@/components/TicketSVG";
 import TicketRueckseite from "@/components/TicketRueckseite";
+import { AnmeldungBar } from "@/components/AnmeldungCounter";
+import { useGetInteressentenCount, getGetInteressentenCountQueryKey } from "@workspace/api-client-react";
+import { INTERESSENTEN_OFFSET } from "@/lib/config";
 
 interface ErfolgsektionProps {
   anzahl: number;
@@ -11,6 +14,12 @@ interface ErfolgsektionProps {
 
 export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket_codes }: ErfolgsektionProps) {
   const betrag = anzahl * PHASE2_CONFIG.PREIS_PRO_PERSON;
+
+  const { data: interesData } = useGetInteressentenCount({
+    query: { queryKey: getGetInteressentenCountQueryKey() },
+  });
+  const basis = (interesData?.count ?? 0) + INTERESSENTEN_OFFSET;
+  const angemeldete = ticket_nummern.length > 0 ? Math.max(...ticket_nummern) : 0;
 
   return (
     <section
@@ -105,6 +114,46 @@ export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket
           Geschafft — deine Anmeldung ist da! Du kannst deinen Beitrag bequem per Banküberweisung oder PayPal zahlen. Die genauen Zahlungsdaten haben wir dir gerade per E-Mail geschickt — schau gleich mal in dein Postfach (und sicherheitshalber in den Spam-Ordner).
         </p>
       </div>
+
+      {/* Fortschrittsbalken */}
+      {angemeldete > 0 && (
+        <div
+          style={{
+            marginTop: "2rem",
+            padding: "1.2rem 1.4rem",
+            background: "rgba(10,7,4,0.6)",
+            border: "1px solid rgba(232,153,26,0.2)",
+            borderRadius: "6px",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'Lora', serif",
+              fontSize: "0.9rem",
+              color: "var(--fg-65)",
+              lineHeight: 1.6,
+              margin: "0 0 0.75rem",
+            }}
+          >
+            {basis > 0 ? (
+              <>
+                Ihr seid jetzt{" "}
+                <strong style={{ color: "var(--amber)", fontWeight: 600 }}>{angemeldete}</strong>{" "}
+                von{" "}
+                <strong style={{ color: "var(--fg-85)", fontWeight: 600 }}>{basis}</strong>{" "}
+                Interessenten dabei.
+              </>
+            ) : (
+              <>
+                Insgesamt{" "}
+                <strong style={{ color: "var(--amber)", fontWeight: 600 }}>{angemeldete}</strong>{" "}
+                {angemeldete === 1 ? "Person" : "Personen"} angemeldet.
+              </>
+            )}
+          </p>
+          <AnmeldungBar angemeldete={angemeldete} basis={basis > 0 ? basis : angemeldete} />
+        </div>
+      )}
 
       {/* Hinweis */}
       <p
