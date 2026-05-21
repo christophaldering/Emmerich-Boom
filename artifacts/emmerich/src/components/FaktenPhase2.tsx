@@ -36,6 +36,14 @@ export default function FaktenPhase2() {
           color: var(--fg-80);
           margin-left: 0.5rem;
         }
+        .fakten2-val-text {
+          font-family: 'Lora', serif;
+          font-weight: 400;
+          font-style: italic;
+          font-size: 0.95rem;
+          color: var(--fg-80);
+          line-height: 1.75;
+        }
       `}</style>
 
       <p
@@ -69,6 +77,18 @@ export default function FaktenPhase2() {
         <div className="fakten2-row">
           <span className="fakten2-key">Zugang</span>
           <span className="fakten2-val">Nur mit Anmeldung</span>
+        </div>
+        <div className="fakten2-row">
+          <span className="fakten2-key">Stempel</span>
+          <span className="fakten2-val-text">
+            Am Einlass gibt's einen auf den Handrücken — <em>Boomer Club Emmerich</em>. Kein Armband,
+            kein Sticker, dafür mit Charme und Wiedererkennungswert bis in den nächsten Morgen.{" "}
+            Ob die Tinte vollständig unbedenklich ist? Wahrscheinlich. Wir gehen davon aus.{" "}
+            Wer auf Nummer sicher gehen möchte: Allergiker, Hypochonder und alle, deren Handrücken
+            gerade anderweitig verplant ist — einfach kurz am Einlass melden. Wir sind
+            lösungsorientiert. Ärmel gehen auch. Und die Louis Vuitton kriegt auf Wunsch ebenfalls
+            einen Stempel. Wir diskriminieren keine Accessoires.
+          </span>
         </div>
         <div className="fakten2-row">
           <span className="fakten2-key">Anmeldeschluss</span>
