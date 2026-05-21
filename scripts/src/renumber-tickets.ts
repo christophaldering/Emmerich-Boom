@@ -1,6 +1,6 @@
 import { db } from "@workspace/db";
 import { anmeldungTicketsTable, ticketNummerCounter } from "@workspace/db";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 
 /**
  * Nummeriert alle Tickets in anmeldung_tickets sequenziell neu (1, 2, 3 …),
@@ -46,12 +46,25 @@ async function main() {
         .where(eq(anmeldungTicketsTable.id, t.id));
     }
 
-    // Counter (id=2) auf höchsten vergebenen Wert setzen
+    // Counter (id=2) auf höchsten vergebenen Wert setzen — Upsert, damit
+    // das Script auch dann korrekt arbeitet wenn id=2 noch nicht existiert.
     const neuerCounterWert = tickets.length + 1;
-    await tx
-      .update(ticketNummerCounter)
-      .set({ next_nummer: neuerCounterWert })
+    await tx.execute(
+      sql`INSERT INTO ticket_nummer_counter (id, next_nummer)
+          VALUES (2, ${neuerCounterWert})
+          ON CONFLICT (id) DO UPDATE SET next_nummer = ${neuerCounterWert}`,
+    );
+
+    // Sicherstellen dass der Wert wirklich gesetzt wurde
+    const check = await tx
+      .select({ next_nummer: ticketNummerCounter.next_nummer })
+      .from(ticketNummerCounter)
       .where(eq(ticketNummerCounter.id, 2));
+    if (!check[0] || check[0].next_nummer !== neuerCounterWert) {
+      throw new Error(
+        `Counter-Upsert fehlgeschlagen: erwartet ${neuerCounterWert}, gelesen ${check[0]?.next_nummer ?? "—"}`,
+      );
+    }
 
     console.log(`\nCounter (id=2) gesetzt auf: ${neuerCounterWert} (nächstes Ticket bekommt #${neuerCounterWert})`);
   });
