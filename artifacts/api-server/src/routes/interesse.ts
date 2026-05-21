@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
-import { interessenten } from "@workspace/db";
-import { count, desc, sql } from "drizzle-orm";
+import { interessenten, anmeldungenTable } from "@workspace/db";
+import { count, desc, isNotNull, ne, sql } from "drizzle-orm";
 import { generateKaiComment } from "./stimmung";
 
 const router = Router();
@@ -63,7 +63,42 @@ router.get("/interesse", async (_req, res) => {
     })
     .from(interessenten)
     .orderBy(desc(interessenten.createdAt));
-  res.json(rows);
+
+  const anmeldungRows = await db
+    .select({
+      id: anmeldungenTable.id,
+      email: anmeldungenTable.email,
+      personen: anmeldungenTable.personen,
+      song: anmeldungenTable.song,
+      createdAt: anmeldungenTable.created_at,
+    })
+    .from(anmeldungenTable)
+    .where(isNotNull(anmeldungenTable.song))
+    .orderBy(desc(anmeldungenTable.created_at));
+
+  const anmeldungWishes = anmeldungRows
+    .filter((r) => r.song && r.song.trim() !== "")
+    .map((r) => {
+      const personen = r.personen as Array<{ name?: string }> | null;
+      const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : r.email;
+      return {
+        id: `a${r.id}`,
+        name: firstName,
+        song: r.song,
+        createdAt: r.createdAt,
+      };
+    });
+
+  const allRows = [
+    ...rows,
+    ...anmeldungWishes,
+  ].sort((a, b) => {
+    const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  res.json(allRows);
 });
 
 export default router;

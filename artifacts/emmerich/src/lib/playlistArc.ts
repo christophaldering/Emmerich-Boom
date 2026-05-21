@@ -96,7 +96,7 @@ export function estimateEnergy(songText: string): number {
   return 68;
 }
 
-export type WishEntry = { id: number; name: string; song: string | null };
+export type WishEntry = { id: number | string; name: string; song: string | null };
 
 function parseSong(raw: string): { artist: string; title: string } {
   const emDash = raw.indexOf(" – ");
