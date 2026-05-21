@@ -14,6 +14,7 @@ import SiteFooter from "@/components/SiteFooter";
 import StimmungsBild from "@/components/StimmungsBild";
 import AnmeldeAufruf from "@/components/AnmeldeAufruf";
 import Phase2Aufruf from "@/components/Phase2Aufruf";
+import AnmeldungFortschritt from "@/components/AnmeldungFortschritt";
 import Formular from "@/components/Formular";
 import TicketsTeaser from "@/components/TicketsTeaser";
 import Stempel from "@/components/Stempel";
@@ -26,6 +27,7 @@ export default function BoomerPartyPage() {
       <AnmeldeAufruf />
       <Letter />
       <Phase2Aufruf />
+      <AnmeldungFortschritt />
       <Motto />
       <StimmungsBild />
       <Fakten />
