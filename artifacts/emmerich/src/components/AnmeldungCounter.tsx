@@ -4,6 +4,7 @@ import {
   getGetAnmeldungStatsQueryKey,
   getGetInteressentenCountQueryKey,
 } from "@workspace/api-client-react";
+import { INTERESSENTEN_OFFSET } from "@/lib/config";
 
 const numStyle: React.CSSProperties = {
   fontFamily: "'Playfair Display', Georgia, serif",
@@ -23,7 +24,7 @@ export default function AnmeldungCounter() {
   });
 
   const angemeldete = statsData?.angemeldete_personen ?? 0;
-  const interessenten = interesData?.count ?? 0;
+  const interessenten = (interesData?.count ?? 0) + INTERESSENTEN_OFFSET;
 
   if (angemeldete < 1 && interessenten < 1) return null;
 

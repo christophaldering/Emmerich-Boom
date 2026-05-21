@@ -1,0 +1,1 @@
+export const INTERESSENTEN_OFFSET = 47;

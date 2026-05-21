@@ -5,6 +5,7 @@ import {
   getGetInteressentenCountQueryKey,
   getGetAnmeldungStatsQueryKey,
 } from "@workspace/api-client-react";
+import { INTERESSENTEN_OFFSET } from "@/lib/config";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -22,7 +23,7 @@ export default function Phase2Aufruf() {
     query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 60000 },
   });
 
-  const count = interesData?.count ?? null;
+  const count = interesData?.count != null ? interesData.count + INTERESSENTEN_OFFSET : null;
   const angemeldete = statsData?.angemeldete_personen ?? null;
 
   return (
