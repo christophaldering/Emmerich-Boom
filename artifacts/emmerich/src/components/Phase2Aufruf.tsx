@@ -39,45 +39,38 @@ export default function Phase2Aufruf() {
           max-width: 640px;
           margin: 0 auto;
         }
-        .p2a-counts-row {
-          display: flex;
-          gap: 3.5rem;
-          align-items: flex-end;
-          flex-wrap: wrap;
+        .p2a-hero-block {
           margin-bottom: 2.2rem;
-        }
-        .p2a-count-block {
-          display: flex;
-          flex-direction: column;
         }
         .p2a-count {
           font-family: 'Playfair Display', Georgia, serif;
           font-weight: 800;
           font-style: italic;
-          font-size: clamp(4rem, 14vw, 8rem);
+          font-size: clamp(5rem, 18vw, 10rem);
           line-height: 1;
           color: var(--amber);
-          margin: 0 0 0.2rem;
+          margin: 0 0 0.35rem;
         }
-        .p2a-count--secondary {
-          font-size: clamp(3rem, 10vw, 5.5rem);
-          opacity: 0.85;
-        }
-        .p2a-label {
+        .p2a-count-label {
           font-family: 'Lora', Georgia, serif;
           font-size: clamp(0.75rem, 2vw, 0.88rem);
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: var(--amber);
           opacity: 0.7;
+          margin-bottom: 0.9rem;
         }
-        .p2a-separator {
-          width: 1px;
-          height: 5rem;
-          background: var(--amber);
-          opacity: 0.25;
-          align-self: center;
-          flex-shrink: 0;
+        .p2a-secondary {
+          font-family: 'Lora', Georgia, serif;
+          font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+          color: var(--amber);
+          opacity: 0.72;
+          margin: 0;
+          line-height: 1.5;
+        }
+        .p2a-secondary strong {
+          font-weight: 700;
+          opacity: 1;
         }
         .p2a-text {
           font-family: 'Lora', Georgia, serif;
@@ -123,25 +116,15 @@ export default function Phase2Aufruf() {
       `}</style>
 
       <div className="p2a-inner">
-        {(count !== null || angemeldete !== null) && (
-          <div className="reveal d1" style={{ animationDelay: "0s" }}>
-            <div className="p2a-counts-row">
-              {count !== null && (
-                <div className="p2a-count-block">
-                  <div className="p2a-count">{count}</div>
-                  <div className="p2a-label">Phase&nbsp;1 · Interessiert</div>
-                </div>
-              )}
-              {count !== null && angemeldete !== null && (
-                <div className="p2a-separator" />
-              )}
-              {angemeldete !== null && (
-                <div className="p2a-count-block">
-                  <div className="p2a-count p2a-count--secondary">{angemeldete}</div>
-                  <div className="p2a-label">Phase&nbsp;2 · Angemeldet</div>
-                </div>
-              )}
-            </div>
+        {count !== null && (
+          <div className="p2a-hero-block reveal d1" style={{ animationDelay: "0s" }}>
+            <div className="p2a-count">{count}</div>
+            <div className="p2a-count-label">Personen haben Interesse signalisiert</div>
+            {angemeldete !== null && (
+              <p className="p2a-secondary">
+                → <strong>{angemeldete}</strong> davon bereits angemeldet
+              </p>
+            )}
           </div>
         )}
 
