@@ -66,10 +66,9 @@ function boldHeading(
   doc.lineWidth(1);
 }
 
-function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
+function drawBackPage(doc: InstanceType<typeof PDFDocument>, H: number): void {
   const W = A5_W;
-  const H = A5_H;
-  const PAD = 28;
+  const PAD = 20;
 
   doc.rect(0, 0, W, H).fill(DARK);
 
@@ -80,32 +79,32 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
 
   let y = PAD;
 
-  doc.font("Playfair-Bold").fontSize(9).fillColor(AMBER).strokeColor(AMBER);
-  boldHeading(doc, "WAS DICH ERWARTET", PAD, y, { characterSpacing: 2.5 });
+  doc.font("Playfair-Bold").fontSize(8.5).fillColor(AMBER).strokeColor(AMBER);
+  boldHeading(doc, "WAS DICH ERWARTET", PAD, y, { characterSpacing: 2 });
 
-  y += 16;
+  y += 12;
 
   doc
     .font("Lora")
-    .fontSize(9)
+    .fontSize(7.5)
     .fillColor(WARM)
     .text(
       "Ein Abend, an dem niemand sein Handy braucht, um sich zu erinnern, wie alles war. " +
       "Niemand sagt \u201ewir m\u00FCssen los\u201c, bevor es 23 Uhr ist. Und niemand bestellt einen Aperol Spritz.",
-      PAD, y, { width: W - PAD * 2, lineGap: 1.5 }
+      PAD, y, { width: W - PAD * 2, lineGap: 1 }
     );
 
-  y = doc.y + 10;
+  y = doc.y + 8;
 
   doc.moveTo(PAD, y).lineTo(W - PAD, y)
     .lineWidth(0.8).strokeColor(AMBER, 0.25).stroke();
 
-  y += 10;
+  y += 8;
 
-  doc.font("Playfair-Bold").fontSize(9).fillColor(AMBER).strokeColor(AMBER);
-  boldHeading(doc, "HAUSREGELN", PAD, y, { characterSpacing: 2.5 });
+  doc.font("Playfair-Bold").fontSize(8.5).fillColor(AMBER).strokeColor(AMBER);
+  boldHeading(doc, "HAUSREGELN", PAD, y, { characterSpacing: 2 });
 
-  y += 15;
+  y += 12;
 
   const rules: [string, string][] = [
     ["\u00A7 1", "Mitbringen erw\u00FCnscht: gute Laune, ein paar Geschichten, der Song, den du auf der Anmeldung genannt hast."],
@@ -118,16 +117,16 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   for (const [para, text] of rules) {
     const beforeY = y;
 
-    doc.font("Playfair-Bold").fontSize(8).fillColor(AMBER).strokeColor(AMBER);
+    doc.font("Playfair-Bold").fontSize(7.5).fillColor(AMBER).strokeColor(AMBER);
     boldHeading(doc, para, PAD, y, { width: 22, lineBreak: false });
 
     doc
       .font("Lora")
-      .fontSize(8)
+      .fontSize(7.5)
       .fillColor(WARM)
-      .text(text, PAD + 24, beforeY, { width: W - PAD * 2 - 24, lineGap: 1 });
+      .text(text, PAD + 24, beforeY, { width: W - PAD * 2 - 24, lineGap: 0.8 });
 
-    y = doc.y + 4;
+    y = doc.y + 3;
   }
 
   y += 4;
@@ -135,11 +134,11 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
   doc.moveTo(PAD, y).lineTo(W - PAD, y)
     .lineWidth(1).strokeColor(AMBER, 0.4).stroke();
 
-  y += 8;
+  y += 6;
 
   doc
     .font("Lora")
-    .fontSize(8)
+    .fontSize(7.5)
     .fillColor(WARM)
     .text(
       "Veranstalter: BoomerClub Emmerich \u00B7 Ein loser Zusammenschluss von Menschen, " +
@@ -147,11 +146,11 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>): void {
       PAD, y, { width: W - PAD * 2, lineGap: 1 }
     );
 
-  y = doc.y + 4;
+  y = doc.y + 3;
 
   doc
     .font("Lora")
-    .fontSize(8)
+    .fontSize(7.5)
     .fillColor(WARM, 0.65)
     .text(
       "Kontakt: boomerparty26@emmerich-boomt.de \u00B7 www.emmerich-boomt.de",
@@ -186,8 +185,8 @@ export async function generateTicketPDF(tickets: TicketData[], opts: GeneratePDF
       doc.addPage({ size: [A5_W, TICKET_H], margin: 0 });
       doc.image(png, 0, 0, { width: A5_W });
 
-      doc.addPage({ size: [A5_W, A5_H], margin: 0 });
-      drawBackPage(doc);
+      doc.addPage({ size: [A5_W, TICKET_H], margin: 0 });
+      drawBackPage(doc, TICKET_H);
     }
 
     doc.end();
