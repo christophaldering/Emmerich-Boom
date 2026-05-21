@@ -78,7 +78,9 @@ export default function AnmeldungFortschritt() {
     return () => observer.disconnect();
   }, []);
 
-  const displayCount = useCounter(angemeldete, 800, visible);
+  const animatedCount = useCounter(angemeldete, 800, visible);
+  // Vor der Animation immer den echten Wert zeigen — nie "0 von 129" anzeigen
+  const displayCount = visible ? animatedCount : angemeldete;
 
   if (angemeldete < 1) return null;
 
