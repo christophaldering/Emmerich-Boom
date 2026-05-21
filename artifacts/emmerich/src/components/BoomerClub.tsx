@@ -81,7 +81,7 @@ export default function BoomerClub() {
         <h3 className="boomerclub-heading">Der Boomerclub Emmerich</h3>
         <p className="boomerclub-text">
           2024 entstand der Boomerclub an der Theke der Societät — in bester Bierlaune, wie es sich gehört.
-          Seitdem sind rund <strong style={{ color: "var(--warm)" }}>130 Leute</strong> dabei.
+          Seitdem sind rund <strong style={{ color: "var(--warm)" }}>190 Leute</strong> dabei.
           Manche kommen zu den gemütlichen Treffen — die finden alle vier bis sechs Monate statt, etwa dreimal im Jahr. Andere verfolgen einfach, was so passiert — direkt über WhatsApp. Beides ist vollkommen richtig.
           Passt doch.
         </p>
