@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
+import {
+  useGetAnmeldungStats,
+  getGetAnmeldungStatsQueryKey,
+} from "@workspace/api-client-react";
 
 const SECRET = "emmerich-orga-stats-2026";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -897,6 +901,74 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "statistik",   label: "Statistik" },
 ];
 
+const ADMIN_BASIS = 129;
+
+function AdminFortschritt() {
+  const { data } = useGetAnmeldungStats({
+    query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 30_000 },
+  });
+
+  const angemeldet = data?.angemeldete_personen ?? 0;
+  if (angemeldet < 1) return null;
+
+  const trackMax = Math.max(ADMIN_BASIS, angemeldet);
+  const fillPct  = Math.min((angemeldet / trackMax) * 100, 100);
+  const overflow = angemeldet > ADMIN_BASIS;
+  const pct      = Math.round((angemeldet / ADMIN_BASIS) * 100);
+  const rest     = ADMIN_BASIS - angemeldet;
+
+  return (
+    <div style={{
+      background: am(0.05),
+      border: `1px solid ${am(0.2)}`,
+      borderRadius: "6px",
+      padding: "0.85rem 1.1rem",
+      marginBottom: "1.5rem",
+    }}>
+      {/* Top row: numbers */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
+        <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1.5rem", color: A, lineHeight: 1 }}>
+          {angemeldet}
+        </span>
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.6) }}>
+          von {ADMIN_BASIS} Interessenten · <span style={{ color: overflow ? "#2ecc71" : FG, fontWeight: overflow ? 600 : 400 }}>{pct} %</span>
+        </span>
+        <span style={{ marginLeft: "auto", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: overflow ? "#2ecc71" : fg(0.55), whiteSpace: "nowrap" }}>
+          {overflow
+            ? `+${angemeldet - ADMIN_BASIS} über Basis`
+            : rest === 0
+              ? "Basis erreicht"
+              : `${rest} Platz${rest !== 1 ? "e" : ""} offen`}
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ position: "relative", height: "8px", borderRadius: "4px", background: am(0.18) }}>
+        {/* Fill */}
+        <div style={{
+          position: "absolute", inset: "0 auto 0 0",
+          width: `${fillPct}%`,
+          borderRadius: "4px",
+          background: overflow
+            ? "linear-gradient(90deg, #c87010 0%, #E8991A 55%, #2ecc71 100%)"
+            : "linear-gradient(90deg, #c87010 0%, #E8991A 60%, #f5b840 100%)",
+        }} />
+        {/* Basis marker when overflow */}
+        {overflow && (
+          <div style={{
+            position: "absolute",
+            top: "-3px", bottom: "-3px",
+            left: `${(ADMIN_BASIS / trackMax) * 100}%`,
+            width: "2px",
+            background: "rgba(245,232,200,0.4)",
+            borderRadius: "1px",
+          }} />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TabBar({ active, onSelect }: { active: Tab; onSelect: (t: Tab) => void }) {
   return (
     <div style={{ display: "flex", gap: "0.25rem", borderBottom: `1px solid ${am(0.25)}`, marginBottom: "2rem" }}>
@@ -1047,6 +1119,9 @@ export default function AdminPage() {
       {lastLoaded && <p style={{ fontSize: "0.85rem", color: fg(0.55), marginBottom: "1.5rem", fontFamily: "'Lora', serif" }}>
         Stand: {lastLoaded.toLocaleString("de-DE")}{autoRefresh ? " · Auto-Refresh aktiv" : ""}
       </p>}
+
+      {/* ── Fortschrittsbalken ── */}
+      <AdminFortschritt />
 
       {/* ── Tab-Navigation ── */}
       <TabBar active={activeTab} onSelect={t => { setActiveTab(t); localStorage.setItem("emmerich_admin_tab", t); }} />
