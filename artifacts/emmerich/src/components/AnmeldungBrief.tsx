@@ -19,7 +19,7 @@ export default function AnmeldungBrief() {
           marginBottom: "2rem",
         }}
       >
-        118 Daumen hoch. Wir sind ehrlich gesagt baff.
+        129 Daumen hoch. Wir sind ehrlich gesagt baff.
       </h2>
 
       <div className="reveal d2">
