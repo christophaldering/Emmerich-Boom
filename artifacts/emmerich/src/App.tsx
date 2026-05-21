@@ -3,6 +3,7 @@ import BoomerPartyPage from "@/pages/BoomerPartyPage";
 import AdminPage from "@/pages/AdminPage";
 import TicketUebersichtPage from "@/pages/TicketUebersichtPage";
 import TicketPage from "@/pages/TicketPage";
+import AnmeldungTicketsPage from "@/pages/AnmeldungTicketsPage";
 import EinlassPage from "@/pages/EinlassPage";
 import PlakatPage from "@/pages/PlakatPage";
 import PlakatPrintPage from "@/pages/PlakatPrintPage";
@@ -31,6 +32,8 @@ function getRoute(): { page: string; param?: string } {
   if (clean === "anmeldung") return { page: "anmeldung" };
   if (clean === "ticket-demo") return { page: "ticket-demo" };
   if (clean === "programm") return { page: "programm" };
+  const ticketOverviewMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})/alle$`));
+  if (ticketOverviewMatch) return { page: "anmeldung-tickets", param: ticketOverviewMatch[1].toUpperCase() };
   const ticketMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})$`));
   if (ticketMatch) return { page: "ticket", param: ticketMatch[1].toUpperCase() };
   return { page: "main" };
@@ -54,6 +57,7 @@ export default function App() {
   if (route.page === "flyer") return <FlyerPage />;
   if (route.page === "flyer-print") return <FlyerPrintPage />;
   if (route.page === "ticket" && route.param) return <TicketPage code={route.param} />;
+  if (route.page === "anmeldung-tickets" && route.param) return <AnmeldungTicketsPage code={route.param} />;
   if (route.page === "anmeldung") return <AnmeldungPage />;
   if (route.page === "ticket-demo") return <TicketDemoPage />;
   if (route.page === "programm") return <ProgrammPage />;

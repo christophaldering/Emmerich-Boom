@@ -263,6 +263,10 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     url: `${base}/boomer-orga-intern/ticket/${encodeURIComponent(t.code)}`,
   }));
   const mehrereTickets = ticketLinks.length > 1;
+  const firstCode = opts.tickets[0]?.code;
+  const uebersichtUrl = firstCode != null && opts.tickets.length > 0
+    ? `${base}/boomer-orga-intern/ticket/${encodeURIComponent(firstCode)}/alle`
+    : null;
 
   const ticketButtonsHtml = ticketLinks.map(t =>
     `<div style="text-align:center;margin:0 0 0.9rem;">
@@ -299,6 +303,17 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
       }
     </p>
 
+    ${uebersichtUrl ? `<div style="text-align:center;margin:0 0 1.4rem;">
+      <a href="${escHtml(uebersichtUrl)}"
+        style="display:inline-block;padding:0.75rem 2rem;background:#e8991a;border-radius:3px;font-family:Georgia,'Times New Roman',serif;font-size:1rem;font-weight:bold;color:#0a0704;text-decoration:none;letter-spacing:0.04em;">
+        &#8594; ${mehrereTickets ? "Alle Tickets auf einen Blick" : "Ticket aufrufen"}
+      </a>
+    </div>` : ""}
+
+    ${mehrereTickets && uebersichtUrl ? `<p style="font-size:0.87rem;line-height:1.7;color:rgba(245,232,200,0.55);margin:0 0 1.2rem;text-align:center;font-style:italic;">
+      Oder einzeln:
+    </p>` : ""}
+
     <div style="margin:0 0 1.8rem;">
       ${ticketButtonsHtml}
     </div>
@@ -333,12 +348,13 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     ? [
         `Hier sind die Download-Links f\u00FCr alle ${ticketLinks.length} Tickets \u2014 bitte leitet sie an die jeweilige Person weiter:`,
         "",
+        ...(uebersichtUrl ? [`\u2192 Alle Tickets auf einen Blick: ${uebersichtUrl}`, ""] : []),
         ...ticketLinks.map(t => `\u2192 Ticket ${t.name}: ${t.url}`),
       ]
     : [
         "Dein Ticket kannst du hier herunterladen \u2014 als PDF zum Drucken oder als Bild f\u00FCrs Handy \u2014 sollte einfach funktionieren:",
         "",
-        `\u2192 Ticket herunterladen: ${ticketLinks[0]!.url}`,
+        ...(uebersichtUrl ? [`\u2192 Ticket aufrufen: ${uebersichtUrl}`] : [`\u2192 Ticket herunterladen: ${ticketLinks[0]!.url}`]),
       ];
 
   const text = [

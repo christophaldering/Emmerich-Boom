@@ -411,4 +411,85 @@ router.post("/ticket/:code/freischalten", async (req, res) => {
   res.json({ success: true, personName: legacyRows[0]!.personName });
 });
 
+// GET /api/ticket/:code/overview — public: alle Tickets der gleichen Anmeldung
+// Zugriff erfordert einen gültigen Ticket-Code (16-Hex, nicht erratbar).
+// Gleiche Sicherheitslogik wie /ticket/:code/download/pdf.
+router.get("/ticket/:code/overview", async (req, res) => {
+  const code = req.params.code!.toUpperCase();
+
+  // Phase 2: anmeldung_tickets
+  const p2row = await db
+    .select({ anmeldungId: anmeldungTicketsTable.anmeldung_id })
+    .from(anmeldungTicketsTable)
+    .where(eq(anmeldungTicketsTable.ticket_code, code))
+    .limit(1);
+
+  if (p2row.length > 0) {
+    const anmeldungId = p2row[0]!.anmeldungId;
+    const rows = await db
+      .select({
+        name:   anmeldungTicketsTable.person_name,
+        nummer: anmeldungTicketsTable.ticket_nummer,
+        code:   anmeldungTicketsTable.ticket_code,
+        usedAt: anmeldungTicketsTable.eingelassen_am,
+      })
+      .from(anmeldungTicketsTable)
+      .where(eq(anmeldungTicketsTable.anmeldung_id, anmeldungId))
+      .orderBy(anmeldungTicketsTable.ticket_nummer);
+    res.json({
+      tickets: rows.map(t => ({
+        name:   t.name,
+        nummer: t.nummer,
+        code:   t.code,
+        usedAt: t.usedAt ? t.usedAt.toISOString() : null,
+      })),
+    });
+    return;
+  }
+
+  // Legacy: tickets table
+  const legRow = await db
+    .select({ anmeldungId: tickets.anmeldungId })
+    .from(tickets)
+    .where(eq(tickets.ticketCode, code))
+    .limit(1);
+
+  if (legRow.length === 0) {
+    res.status(404).json({ error: "Ticket nicht gefunden" });
+    return;
+  }
+
+  const legAnmeldungId = legRow[0]!.anmeldungId;
+  if (legAnmeldungId != null) {
+    const rows = await db
+      .select({ name: tickets.personName, nummer: tickets.ticketCode, code: tickets.ticketCode, usedAt: tickets.usedAt })
+      .from(tickets)
+      .where(eq(tickets.anmeldungId, legAnmeldungId))
+      .orderBy(tickets.createdAt);
+    res.json({
+      tickets: rows.map(t => ({
+        name:   t.name,
+        nummer: t.nummer,
+        code:   t.code,
+        usedAt: t.usedAt ? t.usedAt.toISOString() : null,
+      })),
+    });
+  } else {
+    // Single legacy ticket with no anmeldungId grouping
+    const single = await db
+      .select({ name: tickets.personName, nummer: tickets.ticketCode, code: tickets.ticketCode, usedAt: tickets.usedAt })
+      .from(tickets)
+      .where(eq(tickets.ticketCode, code))
+      .limit(1);
+    res.json({
+      tickets: single.map(t => ({
+        name:   t.name,
+        nummer: t.nummer,
+        code:   t.code,
+        usedAt: t.usedAt ? t.usedAt.toISOString() : null,
+      })),
+    });
+  }
+});
+
 export default router;
