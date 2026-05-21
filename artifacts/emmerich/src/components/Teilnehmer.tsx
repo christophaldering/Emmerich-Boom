@@ -93,11 +93,11 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           <div className="promo-count-row">
             <div className="promo-stat">
               <span className="promo-count promo-count--amber">{entries.length}</span>
-              <span className="promo-count-label">{entries.length === 1 ? "Boomer" : "Boomer"}</span>
+              <span className="promo-count-label">{entries.length === 1 ? "Boomer hat" : "Boomer haben"}</span>
             </div>
             <div className="promo-stat">
               <span className="promo-count promo-count--warm">{totalPersonen}</span>
-              <span className="promo-count-label">Personen</span>
+              <span className="promo-count-label">Personen angemeldet</span>
             </div>
           </div>
         ) : (
