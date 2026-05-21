@@ -1029,6 +1029,9 @@ export default function AdminPage() {
           Emmerich boomt — Orga
         </h1>
         <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+          <a href={`${BASE}/boomer-orga-intern/tickets`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
+            Ticket-Übersicht
+          </a>
           <a href={`${BASE}/boomer-orga-intern/einlass`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Einlass-Scanner
           </a>

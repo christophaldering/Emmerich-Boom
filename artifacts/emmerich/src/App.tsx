@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import BoomerPartyPage from "@/pages/BoomerPartyPage";
 import AdminPage from "@/pages/AdminPage";
+import TicketUebersichtPage from "@/pages/TicketUebersichtPage";
 import TicketPage from "@/pages/TicketPage";
 import EinlassPage from "@/pages/EinlassPage";
 import PlakatPage from "@/pages/PlakatPage";
@@ -22,6 +23,7 @@ function getRoute(): { page: string; param?: string } {
 
   if (clean === ADMIN_SLUG) return { page: "admin" };
   if (clean === `${ADMIN_SLUG}/einlass`) return { page: "einlass" };
+  if (clean === `${ADMIN_SLUG}/tickets`) return { page: "ticket-uebersicht" };
   if (clean === "plakat") return { page: "plakat" };
   if (clean === "plakat-print") return { page: "plakat-print" };
   if (clean === "flyer") return { page: "flyer" };
@@ -45,6 +47,7 @@ export default function App() {
   }, []);
 
   if (route.page === "admin") return <AdminPage />;
+  if (route.page === "ticket-uebersicht") return <TicketUebersichtPage />;
   if (route.page === "einlass") return <EinlassPage />;
   if (route.page === "plakat") return <PlakatPage />;
   if (route.page === "plakat-print") return <PlakatPrintPage />;

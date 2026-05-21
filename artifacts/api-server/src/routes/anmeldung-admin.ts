@@ -142,7 +142,9 @@ router.post("/admin/anmeldungen/:id/tickets-versenden", async (req: Request, res
 
     if (vorhandene.length === 0) {
       vorhandene = await db.transaction(async (tx) => {
-        // Ticket-Nummern-Zähler (id=2) atomisch sperren und inkrementieren
+        // Ticket-Nummern-Zähler (id=2) atomisch sperren und inkrementieren.
+        // id=1 ist der Anmeldungs-Zähler (reserviert ticket_nummern-Arrays bei Anmeldungseingang).
+        // id=2 ist der unabhängige Zähler für die globale, bei Ticket-Generierung vergebene Laufnummer.
         await tx.execute(sql`
           INSERT INTO ticket_nummer_counter (id, next_nummer) VALUES (2, 1)
           ON CONFLICT (id) DO NOTHING
@@ -284,7 +286,8 @@ router.get("/admin/alle-tickets", async (req: Request, res: Response) => {
         created_at:     anmeldungTicketsTable.created_at,
       })
       .from(anmeldungTicketsTable)
-      .orderBy(anmeldungTicketsTable.id);
+      // Numerische Sortierung; CASE-Fallback für Legacy-Format "EB-{id}-{idx}"
+      .orderBy(sql`CASE WHEN ticket_nummer ~ '^[0-9]+$' THEN ticket_nummer::int ELSE 0 END ASC, id ASC`);
     res.json(tickets);
   } catch (err) {
     req.log.error(err, "alle-tickets failed");
