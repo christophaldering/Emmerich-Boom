@@ -66,9 +66,9 @@ function boldHeading(
   doc.lineWidth(1);
 }
 
-function drawBackPage(doc: InstanceType<typeof PDFDocument>, H: number): void {
+function drawBackPage(doc: InstanceType<typeof PDFDocument>, H: number, name: string): void {
   const W = A5_W;
-  const PAD = 20;
+  const PAD = 28;
 
   doc.rect(0, 0, W, H).fill(DARK);
 
@@ -79,8 +79,28 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>, H: number): void {
 
   let y = PAD;
 
-  doc.font("Playfair-Bold").fontSize(8.5).fillColor(AMBER).strokeColor(AMBER);
-  boldHeading(doc, "WAS DICH ERWARTET", PAD, y, { characterSpacing: 2 });
+  doc
+    .font("Playfair")
+    .fontSize(7)
+    .fillColor(AMBER)
+    .text("GEGR\u00DCNDET 2024 \u2013 AN DER THEKE DER NOSTALGIE", PAD, y, {
+      width: W - PAD * 2,
+      align: "center",
+      characterSpacing: 1.8,
+    });
+
+  y = doc.y + 10;
+
+  doc.font("Playfair-Bold").fontSize(22).fillColor(WARM).strokeColor(WARM);
+  boldHeading(doc, "Wir freuen uns auf euch!", PAD, y, {
+    width: W - PAD * 2,
+    align: "center",
+  });
+
+  y = doc.y + 12;
+
+  doc.moveTo(PAD + 40, y).lineTo(W - PAD - 40, y)
+    .lineWidth(0.8).strokeColor(AMBER, 0.35).stroke();
 
   y += 12;
 
@@ -89,72 +109,69 @@ function drawBackPage(doc: InstanceType<typeof PDFDocument>, H: number): void {
     .fontSize(7.5)
     .fillColor(WARM)
     .text(
-      "Ein Abend, an dem niemand sein Handy braucht, um sich zu erinnern, wie alles war. " +
-      "Niemand sagt \u201ewir m\u00FCssen los\u201c, bevor es 23 Uhr ist. Und niemand bestellt einen Aperol Spritz.",
-      PAD, y, { width: W - PAD * 2, lineGap: 1 }
+      `Liebes ${name},`,
+      PAD, y, { width: W - PAD * 2, align: "center" }
     );
 
-  y = doc.y + 8;
+  y = doc.y + 4;
 
-  doc.moveTo(PAD, y).lineTo(W - PAD, y)
-    .lineWidth(0.8).strokeColor(AMBER, 0.25).stroke();
+  doc
+    .font("Lora")
+    .fontSize(7.5)
+    .fillColor(WARM)
+    .text(
+      "dein Ticket f\u00FCr die BoomerParty ist reserviert. Wir erwarten dich zu einem Abend, " +
+      "an dem gute Musik, alte Freunde und ein Glas zu viel v\u00F6llig in Ordnung sind. " +
+      "Bring deinen QR-Code mit \u2013 wir scannen dich rein.",
+      PAD, y, { width: W - PAD * 2, align: "center", lineGap: 1.5 }
+    );
 
-  y += 8;
+  y = doc.y + 14;
 
-  doc.font("Playfair-Bold").fontSize(8.5).fillColor(AMBER).strokeColor(AMBER);
-  boldHeading(doc, "HAUSREGELN", PAD, y, { characterSpacing: 2 });
+  const colW = (W - PAD * 2 - 16) / 2;
+  const col2X = PAD + colW + 16;
 
-  y += 12;
-
-  const rules: [string, string][] = [
-    ["\u00A7 1", "Mitbringen erw\u00FCnscht: gute Laune, ein paar Geschichten, der Song, den du auf der Anmeldung genannt hast."],
-    ["\u00A7 2", "Mitbringen unerw\u00FCnscht: Kinder unter 25, sofern nicht vollj\u00E4hrig."],
-    ["\u00A7 3", "Die Veranstalter haften nicht f\u00FCr: Heiserkeit am n\u00E4chsten Morgen, peinliche Tanzeinlagen, pl\u00F6tzliche Erinnerungen an die 80er."],
-    ["\u00A7 4", "Der Spruch \u201eDas h\u00E4tte es fr\u00FCher nicht gegeben\u201c gilt als Begr\u00FC\u00DFung."],
-    ["\u00A7 5", "Tickets sind personalisiert. Ein Tausch innerhalb des Haushalts ist erlaubt, ein Verkauf bei eBay verboten und vermutlich auch nicht lohnend."],
+  const leftItems: [string, string][] = [
+    ["DATUM", "18. Juli 2026, ab 19:00 Uhr"],
+    ["ORT", "B\u00F6lt\u2009/\u2009Kapaunenberg, Emmerich am Rhein"],
+  ];
+  const rightItems: [string, string][] = [
+    ["EINTRITT", "Auf Einladung"],
+    ["ZUGANG", "Ab 25 Jahren"],
   ];
 
-  for (const [para, text] of rules) {
-    const beforeY = y;
+  const colStartY = y;
 
-    doc.font("Playfair-Bold").fontSize(7.5).fillColor(AMBER).strokeColor(AMBER);
-    boldHeading(doc, para, PAD, y, { width: 22, lineBreak: false });
-
-    doc
-      .font("Lora")
-      .fontSize(7.5)
-      .fillColor(WARM)
-      .text(text, PAD + 24, beforeY, { width: W - PAD * 2 - 24, lineGap: 0.8 });
-
-    y = doc.y + 3;
+  for (const [label, value] of leftItems) {
+    doc.font("Playfair-Bold").fontSize(6.5).fillColor(AMBER).strokeColor(AMBER);
+    boldHeading(doc, label, PAD, y, { characterSpacing: 1.4, width: colW });
+    y = doc.y + 1;
+    doc.font("Lora").fontSize(7.5).fillColor(WARM).text(value, PAD, y, { width: colW, lineGap: 0.8 });
+    y = doc.y + 6;
   }
 
-  y += 4;
+  y = colStartY;
 
-  doc.moveTo(PAD, y).lineTo(W - PAD, y)
-    .lineWidth(1).strokeColor(AMBER, 0.4).stroke();
+  for (const [label, value] of rightItems) {
+    doc.font("Playfair-Bold").fontSize(6.5).fillColor(AMBER).strokeColor(AMBER);
+    boldHeading(doc, label, col2X, y, { characterSpacing: 1.4, width: colW });
+    y = doc.y + 1;
+    doc.font("Lora").fontSize(7.5).fillColor(WARM).text(value, col2X, y, { width: colW, lineGap: 0.8 });
+    y = doc.y + 6;
+  }
 
-  y += 6;
+  const footerY = H - PAD - 14;
 
-  doc
-    .font("Lora")
-    .fontSize(7.5)
-    .fillColor(WARM)
-    .text(
-      "Veranstalter: BoomerClub Emmerich \u00B7 Ein loser Zusammenschluss von Menschen, " +
-      "die sich seit Karneval 2024 an der Theke der Soziet\u00E4t kennen.",
-      PAD, y, { width: W - PAD * 2, lineGap: 1 }
-    );
-
-  y = doc.y + 3;
+  doc.moveTo(PAD, footerY).lineTo(W - PAD, footerY)
+    .lineWidth(0.8).strokeColor(AMBER, 0.3).stroke();
 
   doc
     .font("Lora")
-    .fontSize(7.5)
-    .fillColor(WARM, 0.65)
+    .fontSize(6.5)
+    .fillColor(WARM, 0.55)
     .text(
-      "Kontakt: boomerparty26@emmerich-boomt.de \u00B7 www.emmerich-boomt.de",
-      PAD, y, { width: W - PAD * 2 }
+      "Dieses Ticket ist personalisiert und nicht \u00FCbertragbar. Der QR-Code wird am Einlass gescannt.",
+      PAD, footerY + 5, { width: W - PAD * 2, align: "center" }
     );
 }
 
@@ -186,7 +203,7 @@ export async function generateTicketPDF(tickets: TicketData[], opts: GeneratePDF
       doc.image(png, 0, 0, { width: A5_W });
 
       doc.addPage({ size: [A5_W, TICKET_H], margin: 0 });
-      drawBackPage(doc, TICKET_H);
+      drawBackPage(doc, TICKET_H, tickets[i]!.name);
     }
 
     doc.end();
