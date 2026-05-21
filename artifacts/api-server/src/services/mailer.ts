@@ -65,6 +65,12 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+function formatIban(iban: string): string {
+  const clean = iban.replace(/\s/g, "");
+  const groups = clean.match(/.{1,4}/g) ?? [clean];
+  return groups.join(" ");
+}
+
 const POSTER_CID = "boomerpartyposter";
 
 function loadPosterBuffer(): Buffer {
@@ -115,13 +121,28 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     </p>
 
     <div style="margin:0 0 20px;padding:20px 24px;border:1px solid rgba(232,153,26,.4);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
-      <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#e8991a;margin:0 0 14px;">Per \u00dcberweisung</p>
-      <table style="border-collapse:collapse;width:100%;table-layout:fixed;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;line-height:1.7;">
-        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;width:140px;">Empf\u00e4nger</td><td style="word-break:break-word;overflow-wrap:anywhere;">${escHtml(KONTOINHABER)}</td></tr>
-        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;width:140px;">IBAN</td><td style="word-break:break-word;overflow-wrap:anywhere;"><span style="font-family:Courier,Menlo,monospace;letter-spacing:.04em;">${escHtml(IBAN)}</span></td></tr>
-        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;width:140px;">Betrag</td><td style="word-break:break-word;overflow-wrap:anywhere;">10&nbsp;\u20ac pro angemeldeter Person (also z.&nbsp;B. 30&nbsp;\u20ac f\u00fcr drei Personen)</td></tr>
-        <tr><td style="padding:2px 20px 2px 0;color:rgba(245,232,200,.55);white-space:nowrap;width:140px;vertical-align:top;">Verwendungszweck</td><td style="word-break:break-word;overflow-wrap:anywhere;">Emmerich boomt + dein Name<br><span style="font-size:13px;color:rgba(245,232,200,.55);">(z.&nbsp;B. \u201eEmmerich boomt \u2013 Maria Mustermann, 3 Personen\u201c)</span></td></tr>
-      </table>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#e8991a;margin:0 0 16px;">Per \u00dcberweisung</p>
+
+      <div style="margin:0 0 12px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Empf\u00e4nger</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;">${escHtml(KONTOINHABER)}</div>
+      </div>
+
+      <div style="margin:0 0 12px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">IBAN</div>
+        <div style="font-family:Courier,Menlo,monospace;font-size:15px;letter-spacing:.04em;color:#f5e8c8;line-height:1.5;word-break:break-all;">${formatIban(IBAN)}</div>
+      </div>
+
+      <div style="margin:0 0 12px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Betrag</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;">${opts.betrag_gesamt}&nbsp;\u20ac (${opts.personen_anzahl}&nbsp;${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10&nbsp;\u20ac)</div>
+      </div>
+
+      <div style="margin:0;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Verwendungszweck</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:#f5e8c8;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;">Emmerich boomt + dein Name</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(245,232,200,.55);line-height:1.5;margin-top:2px;">(z.&nbsp;B. \u201eEmmerich boomt \u2013 Maria Mustermann, 3 Personen\u201c)</div>
+      </div>
     </div>
 
     <div style="margin:0 0 32px;padding:20px 24px;border:1px solid rgba(232,153,26,.4);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
@@ -169,7 +190,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     "Per \u00dcberweisung",
     `Empf\u00e4nger: ${KONTOINHABER}`,
     `IBAN: ${IBAN}`,
-    "Betrag: 10 \u20ac pro angemeldeter Person (also z. B. 30 \u20ac f\u00fcr drei Personen)",
+    `Betrag: ${opts.betrag_gesamt} \u20ac (${opts.personen_anzahl} ${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10 \u20ac)`,
     "Verwendungszweck: Emmerich boomt + dein Name (z. B. \u201eEmmerich boomt \u2013 Maria Mustermann, 3 Personen\u201c)",
     "",
     "Oder per PayPal",
