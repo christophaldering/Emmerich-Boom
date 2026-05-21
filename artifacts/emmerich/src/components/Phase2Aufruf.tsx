@@ -113,6 +113,36 @@ export default function Phase2Aufruf() {
           opacity: 0.45;
           margin-bottom: 2.4rem;
         }
+        .p2a-bar-wrap {
+          margin-top: 1.1rem;
+        }
+        .p2a-bar-track {
+          position: relative;
+          height: 6px;
+          border-radius: 3px;
+          background: rgba(232,153,26,0.14);
+          overflow: hidden;
+        }
+        .p2a-bar-fill {
+          position: absolute;
+          inset: 0 auto 0 0;
+          border-radius: 3px;
+          background: var(--amber);
+          transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .p2a-bar-meta {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          margin-top: 0.45rem;
+        }
+        .p2a-bar-pct {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.78rem;
+          letter-spacing: 0.06em;
+          color: var(--amber);
+          opacity: 0.6;
+        }
       `}</style>
 
       <div className="p2a-inner">
@@ -124,6 +154,21 @@ export default function Phase2Aufruf() {
               <p className="p2a-secondary">
                 → <strong>{angemeldete}</strong> davon bereits angemeldet
               </p>
+            )}
+            {count !== null && count > 0 && angemeldete !== null && (
+              <div className="p2a-bar-wrap">
+                <div className="p2a-bar-track">
+                  <div
+                    className="p2a-bar-fill"
+                    style={{ width: `${Math.min(100, Math.round((angemeldete / count) * 100))}%` }}
+                  />
+                </div>
+                <div className="p2a-bar-meta">
+                  <span className="p2a-bar-pct">
+                    {Math.min(100, Math.round((angemeldete / count) * 100))}&thinsp;% angemeldet
+                  </span>
+                </div>
+              </div>
             )}
           </div>
         )}
