@@ -8,6 +8,7 @@
     "send-test-email": "tsx ./src/send-test-email.ts",
     "generate-muster-ticket": "tsx ./src/generate-muster-ticket.ts",
     "generate-plakat": "tsx ./src/generate-plakat.ts",
+    "renumber-tickets": "tsx src/renumber-tickets.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -16,6 +17,8 @@
   },
   "dependencies": {
     "@types/pdfkit": "^0.17.6",
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:",
     "pdfkit": "^0.18.0",
     "resend": "^6.12.3"
   }
