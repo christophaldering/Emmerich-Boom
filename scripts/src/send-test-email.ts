@@ -141,8 +141,10 @@ const bestaetigungHtml = `<!DOCTYPE html>
     </div>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Sobald dein Beitrag da ist, bekommst du von uns die Bestätigung mit deinem Ticket.
-      Dann ist alles in trockenen Tüchern und du musst an nichts mehr denken.
+      Sobald dein Beitrag da ist, bekommst du von uns die Bestätigung mit deinem Ticket
+      (dieser Prozessschritt ist tatsächlich noch ganz manuell, deswegen kann es eine kleine
+      Verzögerung geben – wir bitten um Verständnis). Dann ist alles in trockenen Tüchern
+      und du musst an nichts mehr denken.
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 32px;">

@@ -157,7 +157,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     </div>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Sobald dein Beitrag da ist, bekommst du von uns die Best\u00e4tigung mit deinem Ticket. Dann ist alles in trockenen T\u00fcchern und du musst an nichts mehr denken.
+      Sobald dein Beitrag da ist, bekommst du von uns die Best\u00e4tigung mit deinem Ticket (dieser Prozess\u00ADschritt ist tats\u00e4chlich noch ganz manuell, deswegen kann es eine kleine Verz\u00f6gerung geben \u2013 wir bitten um Verst\u00e4ndnis). Dann ist alles in trockenen T\u00fcchern und du musst an nichts mehr denken.
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 32px;">
@@ -198,7 +198,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
     PAYPAL_LINK,
     "(Bitte 10 \u20ac pro Person eintragen \u2013 bei drei Personen also 30 \u20ac.)",
     "",
-    "Sobald dein Beitrag da ist, bekommst du von uns die Best\u00e4tigung mit deinem Ticket. Dann ist alles in trockenen T\u00fcchern und du musst an nichts mehr denken.",
+    "Sobald dein Beitrag da ist, bekommst du von uns die Best\u00e4tigung mit deinem Ticket (dieser Prozessschritt ist tats\u00e4chlich noch ganz manuell, deswegen kann es eine kleine Verz\u00f6gerung geben \u2013 wir bitten um Verst\u00e4ndnis). Dann ist alles in trockenen T\u00fcchern und du musst an nichts mehr denken.",
     "",
     "Bei Fragen \u2013 einfach auf diese Mail antworten.",
     "",
