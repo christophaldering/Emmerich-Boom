@@ -69,8 +69,8 @@ export default function Stempel() {
           >
             Am Einlass gibt's einen auf den Handrücken —&nbsp;
             <span style={{ color: "var(--amber)" }}>Boomer Club Emmerich</span>.
-            Kein Armband, kein Sticker, dafür mit Charme und Wiedererkennungswert
-            bis in den nächsten Morgen.
+            Kein Plastikarmband, kein QR-Code-Sticker. Dafür etwas, worauf man
+            noch drei Tage später zeigt. Und das auch tut.
           </p>
 
           <p
@@ -85,11 +85,27 @@ export default function Stempel() {
               marginTop: "0.85rem",
             }}
           >
-            Ob die Tinte vollständig unbedenklich ist? Wahrscheinlich. Wir gehen
-            davon aus. Wer auf Nummer sicher gehen möchte: Allergiker, Hypochonder
-            und alle, deren Handrücken gerade anderweitig verplant ist — einfach
-            kurz am Einlass melden. Wir sind lösungsorientiert. Ärmel gehen auch.
-            Und die Louis&nbsp;Vuitton kriegt auf Wunsch ebenfalls einen Stempel.
+            Ob die Tinte vollständig unbedenklich ist? Wir gehen stark davon aus.
+            Wer empfindlich reagiert oder dessen Handrücken bereits anderweitig
+            verplant ist: einfach melden — Ärmel geht, Unterarm geht, Stirn
+            theoretisch auch. Wir finden was.
+          </p>
+
+          <p
+            className="reveal d4"
+            style={{
+              fontFamily: "'Lora', serif",
+              fontStyle: "italic",
+              fontSize: "0.98rem",
+              color: "var(--fg-80)",
+              lineHeight: 1.8,
+              maxWidth: "420px",
+              marginTop: "0.85rem",
+            }}
+          >
+            Und wer seine Handtasche mitbringt: die kriegt auf Wunsch ebenfalls
+            einen Stempel. Das ist kein Gag —&nbsp;
+            <span style={{ color: "var(--amber)" }}>das ist bereits passiert und dokumentiert</span>.
             Wir diskriminieren keine Accessoires.
           </p>
         </div>
