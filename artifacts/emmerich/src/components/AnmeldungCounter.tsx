@@ -5,6 +5,15 @@ import {
   getGetInteressentenCountQueryKey,
 } from "@workspace/api-client-react";
 
+const numStyle: React.CSSProperties = {
+  fontFamily: "'Playfair Display', Georgia, serif",
+  fontWeight: 800,
+  fontSize: "1.65em",
+  lineHeight: 1,
+  display: "inline-block",
+  verticalAlign: "baseline",
+};
+
 export default function AnmeldungCounter() {
   const { data: statsData } = useGetAnmeldungStats({
     query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 60000 },
@@ -20,47 +29,54 @@ export default function AnmeldungCounter() {
 
   return (
     <div style={{ padding: "2.5rem 2rem 0", maxWidth: "640px", margin: "0 auto" }}>
-      <p
+      <div
         style={{
-          fontFamily: "'Lora', Georgia, serif",
-          fontSize: "clamp(1rem, 2.5vw, 1.15rem)",
-          lineHeight: 1.85,
-          color: "var(--fg-80)",
-          margin: 0,
+          borderLeft: "3px solid rgba(232,153,26,0.45)",
+          paddingLeft: "1.1rem",
         }}
       >
-        {interessenten > 0 && angemeldete > 0 ? (
-          <>
-            Von den{" "}
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, color: "var(--amber)", fontSize: "1.1em" }}>
-              {interessenten}
-            </span>{" "}
-            Interessenten haben sich bereits{" "}
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, color: "var(--warm)", fontSize: "1.1em" }}>
-              {angemeldete}
-            </span>{" "}
-            Personen verbindlich angemeldet — da geht noch was.{" "}
-            Gebt es gerne in euren Netzwerken weiter: die Anmeldung ist freigeschaltet.
-          </>
-        ) : angemeldete > 0 ? (
-          <>
-            Bereits{" "}
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, color: "var(--amber)", fontSize: "1.1em" }}>
-              {angemeldete}
-            </span>{" "}
-            {angemeldete === 1 ? "Person hat" : "Personen haben"} sich verbindlich angemeldet.{" "}
-            Gebt es gerne weiter: die Anmeldung ist freigeschaltet.
-          </>
-        ) : (
-          <>
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, color: "var(--amber)", fontSize: "1.1em" }}>
-              {interessenten}
-            </span>{" "}
-            {interessenten === 1 ? "Person hat" : "Personen haben"} Interesse signalisiert.{" "}
-            Gebt es gerne weiter — die verbindliche Anmeldung ist freigeschaltet.
-          </>
-        )}
-      </p>
+        <p
+          style={{
+            fontFamily: "'Lora', Georgia, serif",
+            fontSize: "clamp(1.05rem, 2.8vw, 1.25rem)",
+            lineHeight: 1.95,
+            color: "var(--fg-88)",
+            margin: 0,
+          }}
+        >
+          {interessenten > 0 && angemeldete > 0 ? (
+            <>
+              Von den{" "}
+              <span style={{ ...numStyle, color: "var(--amber)" }}>
+                {interessenten}
+              </span>{" "}
+              Interessenten haben sich bereits{" "}
+              <span style={{ ...numStyle, color: "var(--warm)" }}>
+                {angemeldete}
+              </span>{" "}
+              Personen verbindlich angemeldet — da geht noch was.{" "}
+              Gebt es gerne in euren Netzwerken weiter: die Anmeldung ist freigeschaltet.
+            </>
+          ) : angemeldete > 0 ? (
+            <>
+              Bereits{" "}
+              <span style={{ ...numStyle, color: "var(--amber)" }}>
+                {angemeldete}
+              </span>{" "}
+              {angemeldete === 1 ? "Person hat" : "Personen haben"} sich verbindlich angemeldet.{" "}
+              Gebt es gerne weiter: die Anmeldung ist freigeschaltet.
+            </>
+          ) : (
+            <>
+              <span style={{ ...numStyle, color: "var(--amber)" }}>
+                {interessenten}
+              </span>{" "}
+              {interessenten === 1 ? "Person hat" : "Personen haben"} Interesse signalisiert.{" "}
+              Gebt es gerne weiter — die verbindliche Anmeldung ist freigeschaltet.
+            </>
+          )}
+        </p>
+      </div>
     </div>
   );
 }
