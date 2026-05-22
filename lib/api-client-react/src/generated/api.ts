@@ -22,6 +22,7 @@ import type {
   AnmeldungStats,
   ApiError,
   HealthStatus,
+  InteresseResponse,
   InteressentenCount,
 } from "./api.schemas";
 
@@ -102,6 +103,82 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Liefert Phase-1-Stats (nur interessenten-Tabelle) sowie eine gemischte Eintrags-Liste für die Anzeige
+ * @summary Interessensbekundungen und Songwünsche abrufen
+ */
+export const getGetInteresseUrl = () => {
+  return `/api/interesse`;
+};
+
+export const getInteresse = async (
+  options?: RequestInit,
+): Promise<InteresseResponse> => {
+  return customFetch<InteresseResponse>(getGetInteresseUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetInteresseQueryKey = () => {
+  return [`/api/interesse`] as const;
+};
+
+export const getGetInteresseQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInteresse>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getInteresse>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetInteresseQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getInteresse>>> = ({
+    signal,
+  }) => getInteresse({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInteresse>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetInteresseQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInteresse>>
+>;
+export type GetInteresseQueryError = ErrorType<ApiError>;
+
+/**
+ * @summary Interessensbekundungen und Songwünsche abrufen
+ */
+
+export function useGetInteresse<
+  TData = Awaited<ReturnType<typeof getInteresse>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getInteresse>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetInteresseQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

@@ -28,6 +28,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /interesse:
+    get:
+      operationId: getInteresse
+      tags: [interesse]
+      summary: Interessensbekundungen und Songwünsche abrufen
+      description: Liefert Phase-1-Stats (nur interessenten-Tabelle) sowie eine gemischte Eintrags-Liste für die Anzeige
+      responses:
+        "200":
+          description: Interesse-Daten
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InteresseResponse"
+        "500":
+          description: Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /interessenten/count:
     get:
       operationId: getInteressentenCount
@@ -168,6 +187,48 @@ components:
       properties:
         count:
           type: integer
+    InteresseStats:
+      type: object
+      required:
+        - boomer
+        - personen
+      properties:
+        boomer:
+          type: integer
+          description: Anzahl Phase-1-Interessenten
+        personen:
+          type: integer
+          description: Summe der angemeldeten Personen aus Phase-1
+    InteresseEntry:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        personen:
+          type: ["string", "null"]
+        statement:
+          type: ["string", "null"]
+        song:
+          type: ["string", "null"]
+        createdAt:
+          type: ["string", "null"]
+    InteresseResponse:
+      type: object
+      required:
+        - stats
+        - entries
+      properties:
+        stats:
+          $ref: "#/components/schemas/InteresseStats"
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/InteresseEntry"
     ApiError:
       type: object
       required:

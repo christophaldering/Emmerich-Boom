@@ -54,6 +54,31 @@ export interface InteressentenCount {
   count: number;
 }
 
+export interface InteresseStats {
+  /** Anzahl Phase-1-Interessenten */
+  boomer: number;
+  /** Summe der angemeldeten Personen aus Phase-1 */
+  personen: number;
+}
+
+export interface InteresseEntry {
+  id: string;
+  name: string;
+  /** @nullable */
+  personen?: string | null;
+  /** @nullable */
+  statement?: string | null;
+  /** @nullable */
+  song?: string | null;
+  /** @nullable */
+  createdAt?: string | null;
+}
+
+export interface InteresseResponse {
+  stats: InteresseStats;
+  entries: InteresseEntry[];
+}
+
 export type ApiErrorDetails = { [key: string]: unknown };
 
 export interface ApiError {

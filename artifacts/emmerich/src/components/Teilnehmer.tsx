@@ -2,12 +2,22 @@ import { useState, useEffect } from "react";
 import { toInitials } from "../utils/toInitials";
 
 type Entry = {
-  id: number;
+  id: string | number;
   name: string;
-  personen: string;
-  song: string | null;
-  statement: string | null;
-  createdAt: string | null;
+  personen?: string | null;
+  song?: string | null;
+  statement?: string | null;
+  createdAt?: string | null;
+};
+
+type InteresseStats = {
+  boomer: number;
+  personen: number;
+};
+
+type InteresseResponse = {
+  stats: InteresseStats;
+  entries: Entry[];
 };
 
 const PERSONEN_SHORT: Record<string, string> = {
@@ -18,11 +28,6 @@ const PERSONEN_SHORT: Record<string, string> = {
   "Fünf oder mehr":       "5+ Personen",
 };
 
-const PERSONEN_COUNT: Record<string, number> = {
-  "Nur ich": 1, "Wir zwei": 2, "Wir drei": 3,
-  "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
-};
-
 
 interface TeilnehmerProps {
   refreshKey?: number;
@@ -31,13 +36,18 @@ interface TeilnehmerProps {
 
 export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [stats, setStats]     = useState<InteresseStats>({ boomer: 0, personen: 0 });
   const [loaded, setLoaded]   = useState(false);
   const [showAll, setShowAll] = useState(false);
 
   const fetchEntries = () => {
     fetch("/api/interesse", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data: Entry[]) => { setEntries(data); setLoaded(true); })
+      .then((data: InteresseResponse) => {
+        setStats(data.stats);
+        setEntries(data.entries);
+        setLoaded(true);
+      })
       .catch(() => setLoaded(true));
   };
 
@@ -49,11 +59,10 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
   useEffect(() => { if (refreshKey > 0) fetchEntries(); }, [refreshKey]);
 
-  if (!loaded || entries.length === 0) return null;
+  if (!loaded || stats.boomer === 0) return null;
 
-  const totalPersonen = entries.reduce(
-    (sum, e) => sum + (PERSONEN_COUNT[e.personen] ?? 1), 0
-  );
+  const totalPersonen = stats.personen;
+  const boomerCount   = stats.boomer;
 
   const SHOW_LIMIT = 8;
   const visible = showAll ? entries : entries.slice(0, SHOW_LIMIT);
@@ -91,11 +100,11 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
       <div className="promo-hero">
         <span className="promo-label">Interesse bekundet</span>
-        {totalPersonen > entries.length ? (
+        {totalPersonen > boomerCount ? (
           <div className="promo-count-row">
             <div className="promo-stat">
-              <span className="promo-count promo-count--amber">{entries.length}</span>
-              <span className="promo-count-label">{entries.length === 1 ? "Boomer hat" : "Boomer haben"}</span>
+              <span className="promo-count promo-count--amber">{boomerCount}</span>
+              <span className="promo-count-label">{boomerCount === 1 ? "Boomer hat" : "Boomer haben"}</span>
             </div>
             <div className="promo-stat">
               <span className="promo-count promo-count--warm">{totalPersonen}</span>
@@ -105,9 +114,9 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         ) : (
           <div className="promo-count-row">
             <div className="promo-stat">
-              <span className="promo-count promo-count--amber">{entries.length}</span>
+              <span className="promo-count promo-count--amber">{boomerCount}</span>
               <span className="promo-count-label">
-                {entries.length === 1 ? "Boomer hat sich gemeldet" : "Boomer haben Interesse bekundet"}
+                {boomerCount === 1 ? "Boomer hat sich gemeldet" : "Boomer haben Interesse bekundet"}
               </span>
             </div>
           </div>
@@ -116,7 +125,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
       <div className="tn-list">
         {visible.map((e) => {
-          const persons  = PERSONEN_SHORT[e.personen] ?? "1 Person";
+          const persons  = e.personen ? (PERSONEN_SHORT[e.personen] ?? e.personen) : null;
           const hasStmt  = !!e.statement;
           const hasSong  = !!e.song;
 

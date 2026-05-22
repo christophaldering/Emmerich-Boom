@@ -51,30 +51,45 @@ router.get("/interessenten/count", async (_req, res) => {
   res.json({ count: result[0]?.count ?? 0 });
 });
 
-router.get("/interesse", async (_req, res) => {
-  const rows = await db
-    .select({
-      id: interessenten.id,
-      name: interessenten.name,
-      personen: interessenten.personen,
-      statement: interessenten.statement,
-      song: interessenten.song,
-      createdAt: interessenten.createdAt,
-    })
-    .from(interessenten)
-    .orderBy(desc(interessenten.createdAt));
+const PERSONEN_COUNT: Record<string, number> = {
+  "Nur ich": 1,
+  "Wir zwei": 2,
+  "Wir drei": 3,
+  "Vier auf einen Streich": 4,
+  "Fünf oder mehr": 5,
+};
 
-  const anmeldungRows = await db
-    .select({
-      id: anmeldungenTable.id,
-      email: anmeldungenTable.email,
-      personen: anmeldungenTable.personen,
-      song: anmeldungenTable.song,
-      createdAt: anmeldungenTable.created_at,
-    })
-    .from(anmeldungenTable)
-    .where(isNotNull(anmeldungenTable.song))
-    .orderBy(desc(anmeldungenTable.created_at));
+router.get("/interesse", async (_req, res) => {
+  const [rows, anmeldungRows] = await Promise.all([
+    db
+      .select({
+        id: interessenten.id,
+        name: interessenten.name,
+        personen: interessenten.personen,
+        statement: interessenten.statement,
+        song: interessenten.song,
+        createdAt: interessenten.createdAt,
+      })
+      .from(interessenten)
+      .orderBy(desc(interessenten.createdAt)),
+    db
+      .select({
+        id: anmeldungenTable.id,
+        email: anmeldungenTable.email,
+        personen: anmeldungenTable.personen,
+        song: anmeldungenTable.song,
+        createdAt: anmeldungenTable.created_at,
+      })
+      .from(anmeldungenTable)
+      .where(isNotNull(anmeldungenTable.song))
+      .orderBy(desc(anmeldungenTable.created_at)),
+  ]);
+
+  const phase1Boomer = rows.length;
+  const phase1Personen = rows.reduce(
+    (sum, r) => sum + (PERSONEN_COUNT[r.personen ?? ""] ?? 1),
+    0,
+  );
 
   const anmeldungWishes = anmeldungRows
     .filter((r) => r.song && r.song.trim() !== "")
@@ -89,7 +104,7 @@ router.get("/interesse", async (_req, res) => {
       };
     });
 
-  const allRows = [
+  const entries = [
     ...rows,
     ...anmeldungWishes,
   ].sort((a, b) => {
@@ -98,7 +113,10 @@ router.get("/interesse", async (_req, res) => {
     return bTime - aTime;
   });
 
-  res.json(allRows);
+  res.json({
+    stats: { boomer: phase1Boomer, personen: phase1Personen },
+    entries,
+  });
 });
 
 export default router;

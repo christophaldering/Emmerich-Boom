@@ -13,4 +13,7 @@ export * from "./anmeldungStats";
 export * from "./apiError";
 export * from "./apiErrorDetails";
 export * from "./healthStatus";
+export * from "./interesseEntry";
 export * from "./interessentenCount";
+export * from "./interesseResponse";
+export * from "./interesseStats";

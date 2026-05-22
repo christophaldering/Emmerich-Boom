@@ -16,6 +16,29 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
+ * Liefert Phase-1-Stats (nur interessenten-Tabelle) sowie eine gemischte Eintrags-Liste für die Anzeige
+ * @summary Interessensbekundungen und Songwünsche abrufen
+ */
+export const GetInteresseResponse = zod.object({
+  stats: zod.object({
+    boomer: zod.number().describe("Anzahl Phase-1-Interessenten"),
+    personen: zod
+      .number()
+      .describe("Summe der angemeldeten Personen aus Phase-1"),
+  }),
+  entries: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      personen: zod.string().nullish(),
+      statement: zod.string().nullish(),
+      song: zod.string().nullish(),
+      createdAt: zod.string().nullish(),
+    }),
+  ),
+});
+
+/**
  * Gibt die Gesamtzahl der Einträge in der interessenten-Tabelle zurück
  * @summary Anzahl der Interessensbekundungen
  */
