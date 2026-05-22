@@ -6,6 +6,7 @@ import {
   buildPlaylistText,
   Track,
 } from "@/lib/playlistArc";
+import { toInitials } from "@/utils/toInitials";
 
 interface PlaylistProps {
   refreshKey?: number;
@@ -144,7 +145,7 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
 
                 >
                   <span className="pl-num">{i + 1}</span>
-                  <span className="pl-who">{t.wishBy ?? ""}</span>
+                  <span className="pl-who">{t.wishBy ? t.wishBy.split(" & ").map(toInitials).join(" & ") : ""}</span>
                   <span className="pl-note">♪</span>
                   <span className="pl-song-text">
                     <strong>{t.artist}</strong>

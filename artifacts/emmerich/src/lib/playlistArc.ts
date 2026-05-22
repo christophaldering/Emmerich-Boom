@@ -1,3 +1,5 @@
+import { toInitials } from "../utils/toInitials";
+
 export type Track = {
   key: string;
   label: string;
@@ -193,7 +195,8 @@ export function buildPlaylistText(tracks: Track[]): string {
     }
     const num = String(i + 1).padStart(2, " ");
     const songLabel = formatTrackLabel(t);
-    const song = t.wishBy ? `${songLabel}  (Wunsch von ${t.wishBy})` : songLabel;
+    const wishByAnon = t.wishBy ? t.wishBy.split(" & ").map(toInitials).join(" & ") : null;
+    const song = wishByAnon ? `${songLabel}  (Wunsch von ${wishByAnon})` : songLabel;
     lines.push(`${num}.  ${song}`);
   });
 
