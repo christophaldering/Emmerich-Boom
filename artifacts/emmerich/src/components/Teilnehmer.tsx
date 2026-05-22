@@ -22,6 +22,17 @@ const PERSONEN_COUNT: Record<string, number> = {
   "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
 };
 
+function toInitials(raw: string): string {
+  let s = raw.trim();
+  if (s.includes("@")) {
+    s = s.split("@")[0];
+  }
+  s = s.replace(/\d+$/, "");
+  const segments = s.split(/[.\-_\s]+/).filter(Boolean);
+  const initials = segments.slice(0, 3).map((seg) => seg[0].toUpperCase());
+  return initials.join(".") + ".";
+}
+
 interface TeilnehmerProps {
   refreshKey?: number;
 }
@@ -121,7 +132,7 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
           return (
             <div key={e.id} className="tn-row">
               <div className="tn-row-header">
-                <span className="tn-row-name">{e.name}</span>
+                <span className="tn-row-name">{toInitials(e.name)}</span>
                 <span className="tn-row-persons">{persons}</span>
               </div>
               {hasStmt && (
