@@ -19,8 +19,8 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
   const fetchWishes = () => {
     return fetch("/api/interesse", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data: WishEntry[]) => {
-        const filtered = data.filter((e) => e.song && e.song.trim() !== "");
+      .then((data: { entries: WishEntry[] }) => {
+        const filtered = (data.entries ?? []).filter((e) => e.song && e.song.trim() !== "");
         setWishes(filtered);
         return filtered;
       })
