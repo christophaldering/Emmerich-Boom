@@ -12,6 +12,7 @@ interface Teilnehmer {
   personen: string;
   song: string | null;
   statement: string | null;
+  display_name?: string | null;
 }
 
 interface KaIProps {
@@ -29,7 +30,7 @@ function buildKaiIntro(liste: Teilnehmer[]): string {
     return "KaI wartet auf die ersten Anmeldungen.";
   }
 
-  const namen = phase1.map((t) => toInitials(t.name));
+  const namen = phase1.map((t) => t.display_name ?? toInitials(t.name));
   const songs = phase1.filter((t) => t.song).map((t) => t.song as string);
   const songHint = songs.length > 0 ? `\u201e${songs[Math.floor(songs.length / 2)]}\u201c` : null;
 
