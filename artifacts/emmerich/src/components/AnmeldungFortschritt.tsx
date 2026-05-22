@@ -6,6 +6,14 @@ import {
 
 const BASIS = 129;
 
+function getTrackMax(angemeldete: number): number {
+  const milestones = [129, 150, 200, 250, 300, 400, 500];
+  for (const m of milestones) {
+    if (angemeldete <= m) return m;
+  }
+  return Math.ceil(angemeldete / 100) * 100;
+}
+
 function getComment(angemeldet: number): string {
   if (angemeldet <= 24)
     return "Erste Anmeldungen sind eingegangen. Die anderen lesen die Mail gerade zum dritten Mal.";
@@ -79,15 +87,15 @@ export default function AnmeldungFortschritt() {
   }, []);
 
   const animatedCount = useCounter(angemeldete, 800, visible);
-  // Vor der Animation immer den echten Wert zeigen — nie "0 von 129" anzeigen
   const displayCount = visible ? animatedCount : angemeldete;
 
   if (angemeldete < 1) return null;
 
-  const trackMax = Math.max(BASIS, angemeldete);
+  const trackMax = getTrackMax(angemeldete);
   const fillPct = (angemeldete / trackMax) * 100;
   const markerPct = (BASIS / trackMax) * 100;
   const overflow = angemeldete > BASIS;
+  const pct = Math.round((angemeldete / BASIS) * 100);
 
   return (
     <section
@@ -125,19 +133,42 @@ export default function AnmeldungFortschritt() {
           className="af-reveal af-reveal-d1"
           style={{ marginBottom: "0.4rem" }}
         >
-          <p
+          {/* Label row with percentage */}
+          <div
             style={{
-              fontFamily: "'Lora', Georgia, serif",
-              fontSize: "clamp(0.72rem, 1.8vw, 0.82rem)",
-              letterSpacing: "0.13em",
-              textTransform: "uppercase",
-              color: "var(--amber)",
-              opacity: 0.6,
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
               margin: "0 0 0.9rem",
             }}
           >
-            Anmeldungen
-          </p>
+            <p
+              style={{
+                fontFamily: "'Lora', Georgia, serif",
+                fontSize: "clamp(0.72rem, 1.8vw, 0.82rem)",
+                letterSpacing: "0.13em",
+                textTransform: "uppercase",
+                color: "var(--amber)",
+                opacity: 0.6,
+                margin: 0,
+              }}
+            >
+              Anmeldungen
+            </p>
+            <span
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: 700,
+                fontSize: "clamp(0.82rem, 2vw, 0.95rem)",
+                color: "var(--amber)",
+                opacity: 0.75,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {pct} %
+            </span>
+          </div>
+
           <p
             style={{
               fontFamily: "'Lora', Georgia, serif",
@@ -177,7 +208,7 @@ export default function AnmeldungFortschritt() {
         {/* Bar */}
         <div
           className="af-reveal af-reveal-d2"
-          style={{ marginTop: "1.8rem", paddingBottom: "2rem", position: "relative" }}
+          style={{ marginTop: "1.8rem", paddingBottom: "2.4rem", position: "relative" }}
         >
           {/* Track */}
           <div
@@ -203,83 +234,89 @@ export default function AnmeldungFortschritt() {
               }}
             />
 
-            {/* Glow dot at fill edge */}
-            {!overflow && (
+            {/* 129-marker tick (only when overflow) */}
+            {overflow && (
               <div
                 style={{
                   position: "absolute",
-                  top: "50%",
-                  left: visible ? `${Math.min(fillPct, 100)}%` : "0%",
-                  transform: "translate(-50%, -50%)",
-                  width: "14px",
-                  height: "14px",
-                  borderRadius: "50%",
-                  background: "#f5b840",
-                  animation: "af-glow-pulse 2s ease-in-out infinite",
+                  top: "-5px",
+                  left: `calc(${markerPct}% - 1px)`,
+                  width: "2px",
+                  height: "20px",
+                  background: "rgba(245,232,200,0.45)",
+                  borderRadius: "1px",
                   transition: "left 1.2s cubic-bezier(0.22,1,0.36,1)",
-                  pointerEvents: "none",
                 }}
               />
             )}
 
-            {/* 129-marker (visible when overflow) */}
-            {overflow && (
-              <>
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "-5px",
-                    left: `calc(${markerPct}% - 1px)`,
-                    width: "2px",
-                    height: "20px",
-                    background: "rgba(245,232,200,0.45)",
-                    borderRadius: "1px",
-                    transition: "left 1.2s cubic-bezier(0.22,1,0.36,1)",
-                  }}
-                />
-                {/* Overflow fill beyond 100% track — shown as glow bar extension */}
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: "0 auto 0 0",
-                    width: "100%",
-                    borderRadius: "5px",
-                    background:
-                      "linear-gradient(90deg, #c87010 0%, #E8991A 55%, #f5b840 100%)",
-                    boxShadow: "0 0 6px 1px rgba(232,153,26,0.25)",
-                  }}
-                />
-                {/* Glow spike at right edge */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    right: "-4px",
-                    transform: "translateY(-50%)",
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "50%",
-                    background: "#f5b840",
-                    animation: "af-glow-pulse 1.5s ease-in-out infinite",
-                    pointerEvents: "none",
-                  }}
-                />
-              </>
-            )}
+            {/* Floating count label above glow dot */}
+            <div
+              style={{
+                position: "absolute",
+                top: "-26px",
+                left: visible ? `${fillPct}%` : "0%",
+                transform: "translateX(-50%)",
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: 700,
+                fontSize: "0.78rem",
+                color: "#f5b840",
+                letterSpacing: "0.03em",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                transition: "left 1.2s cubic-bezier(0.22,1,0.36,1)",
+              }}
+            >
+              {displayCount}
+            </div>
+
+            {/* Glow dot at fill edge */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: visible ? `${fillPct}%` : "0%",
+                transform: "translate(-50%, -50%)",
+                width: "14px",
+                height: "14px",
+                borderRadius: "50%",
+                background: "#f5b840",
+                animation: "af-glow-pulse 2s ease-in-out infinite",
+                transition: "left 1.2s cubic-bezier(0.22,1,0.36,1)",
+                pointerEvents: "none",
+              }}
+            />
           </div>
 
-          {/* Marker label */}
+          {/* Edge labels: 0 left, trackMax right */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: "6px",
+              fontFamily: "'Lora', Georgia, serif",
+              fontSize: "0.68rem",
+              letterSpacing: "0.04em",
+              color: "var(--amber)",
+              opacity: 0.45,
+            }}
+          >
+            <span>0</span>
+            <span>{trackMax}</span>
+          </div>
+
+          {/* 129-marker label (only when overflow, below the edge labels row) */}
           {overflow && (
             <div
               style={{
                 position: "absolute",
-                top: "18px",
+                top: "28px",
                 left: `${markerPct}%`,
                 transform: "translateX(-50%)",
                 fontFamily: "'Lora', Georgia, serif",
-                fontSize: "0.66rem",
+                fontSize: "0.63rem",
                 letterSpacing: "0.04em",
-                color: "rgba(245,232,200,0.4)",
+                color: "rgba(245,232,200,0.38)",
                 whiteSpace: "nowrap",
                 pointerEvents: "none",
               }}
