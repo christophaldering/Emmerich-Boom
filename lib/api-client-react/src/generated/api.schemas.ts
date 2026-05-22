@@ -84,6 +84,43 @@ export interface InteresseResponse {
   entries: InteresseEntry[];
 }
 
+export interface DisplayNameEntry {
+  id: number;
+  source_type: string;
+  source_id: string;
+  raw_name: string;
+  song: string;
+  suggested_name: string;
+  /** @nullable */
+  approved_name?: string | null;
+  status: string;
+  /** @nullable */
+  updated_at?: string | null;
+}
+
+export type DisplayNamePatchStatus =
+  (typeof DisplayNamePatchStatus)[keyof typeof DisplayNamePatchStatus];
+
+export const DisplayNamePatchStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface DisplayNamePatch {
+  status?: DisplayNamePatchStatus;
+  /** @nullable */
+  approved_name?: string | null;
+}
+
+export interface DisplayNamesSyncResult {
+  synced: number;
+}
+
+export interface OkResult {
+  ok: boolean;
+}
+
 export type ApiErrorDetails = { [key: string]: unknown };
 
 export interface ApiError {

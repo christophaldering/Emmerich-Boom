@@ -21,9 +21,13 @@ import type {
   AnmeldungResult,
   AnmeldungStats,
   ApiError,
+  DisplayNameEntry,
+  DisplayNamePatch,
+  DisplayNamesSyncResult,
   HealthStatus,
   InteresseResponse,
   InteressentenCount,
+  OkResult,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -347,6 +351,250 @@ export const useSubmitAnmeldung = <
   TContext
 > => {
   return useMutation(getSubmitAnmeldungMutationOptions(options));
+};
+
+/**
+ * Legt für alle Interessenten/Anmeldungen mit Song fehlende display_names-Zeilen an
+ * @summary Neue Songwunsch-Namen einlesen
+ */
+export const getSyncDisplayNamesUrl = () => {
+  return `/api/admin/display-names/sync`;
+};
+
+export const syncDisplayNames = async (
+  options?: RequestInit,
+): Promise<DisplayNamesSyncResult> => {
+  return customFetch<DisplayNamesSyncResult>(getSyncDisplayNamesUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getSyncDisplayNamesMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof syncDisplayNames>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof syncDisplayNames>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["syncDisplayNames"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof syncDisplayNames>>,
+    void
+  > = () => {
+    return syncDisplayNames(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SyncDisplayNamesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof syncDisplayNames>>
+>;
+
+export type SyncDisplayNamesMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Neue Songwunsch-Namen einlesen
+ */
+export const useSyncDisplayNames = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof syncDisplayNames>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof syncDisplayNames>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getSyncDisplayNamesMutationOptions(options));
+};
+
+/**
+ * @summary Alle Anzeigenamen-Einträge abrufen
+ */
+export const getListDisplayNamesUrl = () => {
+  return `/api/admin/display-names`;
+};
+
+export const listDisplayNames = async (
+  options?: RequestInit,
+): Promise<DisplayNameEntry[]> => {
+  return customFetch<DisplayNameEntry[]>(getListDisplayNamesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListDisplayNamesQueryKey = () => {
+  return [`/api/admin/display-names`] as const;
+};
+
+export const getListDisplayNamesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDisplayNames>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDisplayNames>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListDisplayNamesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listDisplayNames>>
+  > = ({ signal }) => listDisplayNames({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDisplayNames>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListDisplayNamesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDisplayNames>>
+>;
+export type ListDisplayNamesQueryError = ErrorType<ApiError>;
+
+/**
+ * @summary Alle Anzeigenamen-Einträge abrufen
+ */
+
+export function useListDisplayNames<
+  TData = Awaited<ReturnType<typeof listDisplayNames>>,
+  TError = ErrorType<ApiError>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listDisplayNames>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListDisplayNamesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Anzeigenamen-Eintrag aktualisieren
+ */
+export const getUpdateDisplayNameUrl = (id: number) => {
+  return `/api/admin/display-names/${id}`;
+};
+
+export const updateDisplayName = async (
+  id: number,
+  displayNamePatch: DisplayNamePatch,
+  options?: RequestInit,
+): Promise<OkResult> => {
+  return customFetch<OkResult>(getUpdateDisplayNameUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(displayNamePatch),
+  });
+};
+
+export const getUpdateDisplayNameMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDisplayName>>,
+    TError,
+    { id: number; data: BodyType<DisplayNamePatch> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDisplayName>>,
+  TError,
+  { id: number; data: BodyType<DisplayNamePatch> },
+  TContext
+> => {
+  const mutationKey = ["updateDisplayName"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDisplayName>>,
+    { id: number; data: BodyType<DisplayNamePatch> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateDisplayName(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDisplayNameMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDisplayName>>
+>;
+export type UpdateDisplayNameMutationBody = BodyType<DisplayNamePatch>;
+export type UpdateDisplayNameMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Anzeigenamen-Eintrag aktualisieren
+ */
+export const useUpdateDisplayName = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDisplayName>>,
+    TError,
+    { id: number; data: BodyType<DisplayNamePatch> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDisplayName>>,
+  TError,
+  { id: number; data: BodyType<DisplayNamePatch> },
+  TContext
+> => {
+  return useMutation(getUpdateDisplayNameMutationOptions(options));
 };
 
 /**

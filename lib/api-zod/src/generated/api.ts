@@ -76,6 +76,58 @@ export const SubmitAnmeldungBody = zod.object({
 });
 
 /**
+ * Legt für alle Interessenten/Anmeldungen mit Song fehlende display_names-Zeilen an
+ * @summary Neue Songwunsch-Namen einlesen
+ */
+export const SyncDisplayNamesHeader = zod.object({
+  "x-admin-secret": zod.string(),
+});
+
+export const SyncDisplayNamesResponse = zod.object({
+  synced: zod.number(),
+});
+
+/**
+ * @summary Alle Anzeigenamen-Einträge abrufen
+ */
+export const ListDisplayNamesHeader = zod.object({
+  "x-admin-secret": zod.string(),
+});
+
+export const ListDisplayNamesResponseItem = zod.object({
+  id: zod.number(),
+  source_type: zod.string(),
+  source_id: zod.string(),
+  raw_name: zod.string(),
+  song: zod.string(),
+  suggested_name: zod.string(),
+  approved_name: zod.string().nullish(),
+  status: zod.string(),
+  updated_at: zod.string().nullish(),
+});
+export const ListDisplayNamesResponse = zod.array(ListDisplayNamesResponseItem);
+
+/**
+ * @summary Anzeigenamen-Eintrag aktualisieren
+ */
+export const UpdateDisplayNameParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDisplayNameHeader = zod.object({
+  "x-admin-secret": zod.string(),
+});
+
+export const UpdateDisplayNameBody = zod.object({
+  status: zod.enum(["pending", "approved", "rejected"]).optional(),
+  approved_name: zod.string().nullish(),
+});
+
+export const UpdateDisplayNameResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
  * Liefert die Gesamtzahl angemeldeter Personen
  * @summary Anmeldungsstatistik abrufen
  */

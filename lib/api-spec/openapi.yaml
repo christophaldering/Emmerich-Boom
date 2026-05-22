@@ -96,6 +96,92 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiError"
+  /admin/display-names/sync:
+    post:
+      operationId: syncDisplayNames
+      tags: [interesse]
+      summary: Neue Songwunsch-Namen einlesen
+      description: Legt für alle Interessenten/Anmeldungen mit Song fehlende display_names-Zeilen an
+      parameters:
+        - in: header
+          name: x-admin-secret
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Anzahl neu angelegter Zeilen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisplayNamesSyncResult"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /admin/display-names:
+    get:
+      operationId: listDisplayNames
+      tags: [interesse]
+      summary: Alle Anzeigenamen-Einträge abrufen
+      parameters:
+        - in: header
+          name: x-admin-secret
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Liste der Einträge
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DisplayNameEntry"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /admin/display-names/{id}:
+    patch:
+      operationId: updateDisplayName
+      tags: [interesse]
+      summary: Anzeigenamen-Eintrag aktualisieren
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: x-admin-secret
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DisplayNamePatch"
+      responses:
+        "200":
+          description: Erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResult"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /anmeldung/stats:
     get:
       operationId: getAnmeldungStats
@@ -232,6 +318,57 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/InteresseEntry"
+    DisplayNameEntry:
+      type: object
+      required:
+        - id
+        - source_type
+        - source_id
+        - raw_name
+        - song
+        - suggested_name
+        - status
+      properties:
+        id:
+          type: integer
+        source_type:
+          type: string
+        source_id:
+          type: string
+        raw_name:
+          type: string
+        song:
+          type: string
+        suggested_name:
+          type: string
+        approved_name:
+          type: ["string", "null"]
+        status:
+          type: string
+        updated_at:
+          type: ["string", "null"]
+    DisplayNamePatch:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        approved_name:
+          type: ["string", "null"]
+    DisplayNamesSyncResult:
+      type: object
+      required:
+        - synced
+      properties:
+        synced:
+          type: integer
+    OkResult:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
     ApiError:
       type: object
       required:

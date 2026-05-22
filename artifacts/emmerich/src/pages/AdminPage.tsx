@@ -897,9 +897,9 @@ type Tab = "anmeldungen" | "tickets" | "einlass" | "statistik" | "namen";
 const TABS: { id: Tab; label: string }[] = [
   { id: "anmeldungen", label: "Interessenten" },
   { id: "tickets",     label: "Tickets" },
+  { id: "namen",       label: "Namen" },
   { id: "einlass",     label: "Einlass" },
   { id: "statistik",   label: "Statistik" },
-  { id: "namen",       label: "Namen" },
 ];
 
 interface DisplayNameRow {
@@ -1159,7 +1159,17 @@ export default function AdminPage() {
   }, [autoRefresh]);
 
   useEffect(() => {
-    if (authed && activeTab === "namen") loadDisplayNames();
+    if (!authed || activeTab !== "namen") return;
+    const autoSync = async () => {
+      try {
+        await fetch(`${BASE}/api/admin/display-names/sync`, {
+          method: "POST",
+          headers: { "x-admin-secret": SECRET },
+        });
+      } catch { /* ignore */ }
+      await loadDisplayNames();
+    };
+    void autoSync();
   }, [authed, activeTab, loadDisplayNames]);
 
   useEffect(() => {
