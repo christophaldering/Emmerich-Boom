@@ -72,6 +72,11 @@ export interface InteresseEntry {
   song?: string | null;
   /** @nullable */
   createdAt?: string | null;
+  /**
+   * Vom Admin freigegebener Anzeigename (oder null wenn noch ausstehend)
+   * @nullable
+   */
+  display_name?: string | null;
 }
 
 export interface InteresseResponse {

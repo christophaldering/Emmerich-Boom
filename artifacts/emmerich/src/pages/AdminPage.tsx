@@ -892,14 +892,27 @@ interface MonitorData {
   eingelassen: MonitorTicket[]; nicht_da: MonitorTicket[]; scan_log: MonitorLog[];
 }
 
-type Tab = "anmeldungen" | "tickets" | "einlass" | "statistik";
+type Tab = "anmeldungen" | "tickets" | "einlass" | "statistik" | "namen";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "anmeldungen", label: "Interessenten" },
   { id: "tickets",     label: "Tickets" },
   { id: "einlass",     label: "Einlass" },
   { id: "statistik",   label: "Statistik" },
+  { id: "namen",       label: "Namen" },
 ];
+
+interface DisplayNameRow {
+  id: number;
+  source_type: string;
+  source_id: string;
+  raw_name: string;
+  song: string;
+  suggested_name: string;
+  approved_name: string | null;
+  status: string;
+  updated_at: string | null;
+}
 
 const ADMIN_BASIS = 129;
 
@@ -1002,8 +1015,74 @@ export default function AdminPage() {
     localStorage.getItem("emmerich_auto_refresh") !== "0"
   );
   const [kaiState, setKaiState] = useState<"idle" | "loading" | "done" | "error">("idle");
-
   const [kaiComment, setKaiComment] = useState<string | null>(null);
+  const [displayNames, setDisplayNames] = useState<DisplayNameRow[]>([]);
+  const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
+  const [nameSyncing, setNameSyncing] = useState(false);
+  const [nameSavePending, setNameSavePending] = useState<number | null>(null);
+
+  const loadDisplayNames = useCallback(async () => {
+    try {
+      const r = await fetch(`${BASE}/api/admin/display-names`, { headers: { "x-admin-secret": SECRET } });
+      const data: DisplayNameRow[] = await r.json();
+      setDisplayNames(data);
+      const edits: Record<number, string> = {};
+      data.forEach(d => { edits[d.id] = d.approved_name ?? d.suggested_name; });
+      setNameEdits(edits);
+    } catch { /* ignore */ }
+  }, []);
+
+  const syncDisplayNames = async () => {
+    setNameSyncing(true);
+    try {
+      await fetch(`${BASE}/api/admin/display-names/sync`, { method: "POST", headers: { "x-admin-secret": SECRET } });
+      await loadDisplayNames();
+    } finally {
+      setNameSyncing(false);
+    }
+  };
+
+  const approveDisplayName = async (id: number) => {
+    setNameSavePending(id);
+    try {
+      await fetch(`${BASE}/api/admin/display-names/${id}`, {
+        method: "PATCH",
+        headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "approved", approved_name: nameEdits[id] ?? "" }),
+      });
+      await loadDisplayNames();
+    } finally {
+      setNameSavePending(null);
+    }
+  };
+
+  const rejectDisplayName = async (id: number) => {
+    setNameSavePending(id);
+    try {
+      await fetch(`${BASE}/api/admin/display-names/${id}`, {
+        method: "PATCH",
+        headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "rejected" }),
+      });
+      await loadDisplayNames();
+    } finally {
+      setNameSavePending(null);
+    }
+  };
+
+  const resetDisplayName = async (id: number) => {
+    setNameSavePending(id);
+    try {
+      await fetch(`${BASE}/api/admin/display-names/${id}`, {
+        method: "PATCH",
+        headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "pending", approved_name: null }),
+      });
+      await loadDisplayNames();
+    } finally {
+      setNameSavePending(null);
+    }
+  };
 
   const regenerateKai = async () => {
     setKaiState("loading");
@@ -1078,6 +1157,10 @@ export default function AdminPage() {
   useEffect(() => {
     localStorage.setItem("emmerich_auto_refresh", autoRefresh ? "1" : "0");
   }, [autoRefresh]);
+
+  useEffect(() => {
+    if (authed && activeTab === "namen") loadDisplayNames();
+  }, [authed, activeTab, loadDisplayNames]);
 
   useEffect(() => {
     if (!authed || !autoRefresh) return;
@@ -1510,6 +1593,182 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+        </>
+      )}
+
+      {/* ── Tab: Namen ── */}
+      {activeTab === "namen" && (
+        <>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
+            <div>
+              <SectionTitle>Songwunsch-Namen</SectionTitle>
+              <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55), marginTop: "-0.5rem", marginBottom: 0 }}>
+                Originalname aus dem Formular → Vorschlag → Anzeigename freigeben.<br />
+                Freigegebene Namen erscheinen öffentlich in der Playlist.
+              </p>
+            </div>
+            <button
+              onClick={() => void syncDisplayNames()}
+              disabled={nameSyncing}
+              style={{
+                background: "transparent",
+                border: `1px solid ${am(0.4)}`,
+                borderRadius: "4px",
+                color: A,
+                padding: "0.5rem 1.1rem",
+                fontFamily: "'Playfair Display', serif",
+                fontStyle: "italic",
+                fontWeight: 700,
+                fontSize: "0.88rem",
+                cursor: nameSyncing ? "wait" : "pointer",
+                opacity: nameSyncing ? 0.6 : 1,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {nameSyncing ? "Sync …" : "↻ Neue einlesen"}
+            </button>
+          </div>
+
+          {displayNames.length === 0 ? (
+            <p style={{ color: fg(0.55), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.92rem" }}>
+              Noch keine Einträge — „Neue einlesen" klicken.
+            </p>
+          ) : (
+            <>
+              {/* Stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "1.5rem" }}>
+                <StatCard n={displayNames.filter(d => d.status === "pending").length}  label="Ausstehend" />
+                <StatCard n={displayNames.filter(d => d.status === "approved").length} label="Freigegeben" />
+                <StatCard n={displayNames.filter(d => d.status === "rejected").length} label="Abgelehnt" />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+                {displayNames.map(d => {
+                  const pending = nameSavePending === d.id;
+                  const statusColor = d.status === "approved" ? "#2ecc71" : d.status === "rejected" ? fg(0.3) : am(0.7);
+                  const statusLabel = d.status === "approved" ? "✓ Freigegeben" : d.status === "rejected" ? "✗ Abgelehnt" : "⋯ Ausstehend";
+                  return (
+                    <div
+                      key={d.id}
+                      style={{
+                        background: d.status === "approved" ? "rgba(46,204,113,0.04)" : d.status === "rejected" ? fg(0.02) : am(0.04),
+                        border: `1px solid ${d.status === "approved" ? "rgba(46,204,113,0.2)" : d.status === "rejected" ? fg(0.07) : am(0.15)}`,
+                        borderRadius: "5px",
+                        padding: "0.75rem 0.9rem",
+                        display: "grid",
+                        gridTemplateColumns: "minmax(100px,1fr) minmax(100px,1fr) minmax(120px,1.2fr) auto",
+                        gap: "0.6rem 1rem",
+                        alignItems: "center",
+                      }}
+                    >
+                      {/* Original + Quelle */}
+                      <div>
+                        <div style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.45), marginBottom: "0.1rem" }}>
+                          {d.source_type === "interessent" ? "Phase 1" : "Phase 2"}
+                        </div>
+                        <div style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.65), wordBreak: "break-all" }}>
+                          {d.raw_name}
+                        </div>
+                      </div>
+
+                      {/* Song */}
+                      <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.6), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {d.song}
+                      </div>
+
+                      {/* Anzeigename (editierbar) */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                        <input
+                          type="text"
+                          value={nameEdits[d.id] ?? d.suggested_name}
+                          onChange={e => setNameEdits(prev => ({ ...prev, [d.id]: e.target.value }))}
+                          style={{
+                            background: "rgba(245,232,200,0.06)",
+                            border: `1px solid ${am(0.25)}`,
+                            borderRadius: "3px",
+                            color: FG,
+                            padding: "0.3rem 0.6rem",
+                            fontFamily: "'Lora', serif",
+                            fontSize: "0.88rem",
+                            outline: "none",
+                            width: "100%",
+                          }}
+                        />
+                        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: statusColor }}>
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      {/* Buttons */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", flexShrink: 0 }}>
+                        {d.status !== "approved" && (
+                          <button
+                            onClick={() => void approveDisplayName(d.id)}
+                            disabled={pending}
+                            style={{
+                              background: "rgba(46,204,113,0.12)",
+                              border: "1px solid rgba(46,204,113,0.4)",
+                              borderRadius: "3px",
+                              color: "#2ecc71",
+                              padding: "0.25rem 0.65rem",
+                              fontFamily: "'Lora', serif",
+                              fontSize: "0.78rem",
+                              cursor: pending ? "wait" : "pointer",
+                              opacity: pending ? 0.5 : 1,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {pending ? "…" : "Freigeben"}
+                          </button>
+                        )}
+                        {d.status !== "rejected" && (
+                          <button
+                            onClick={() => void rejectDisplayName(d.id)}
+                            disabled={pending}
+                            style={{
+                              background: "transparent",
+                              border: `1px solid ${fg(0.2)}`,
+                              borderRadius: "3px",
+                              color: fg(0.45),
+                              padding: "0.25rem 0.65rem",
+                              fontFamily: "'Lora', serif",
+                              fontSize: "0.78rem",
+                              cursor: pending ? "wait" : "pointer",
+                              opacity: pending ? 0.5 : 1,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Ablehnen
+                          </button>
+                        )}
+                        {d.status !== "pending" && (
+                          <button
+                            onClick={() => void resetDisplayName(d.id)}
+                            disabled={pending}
+                            style={{
+                              background: "transparent",
+                              border: `1px solid ${am(0.2)}`,
+                              borderRadius: "3px",
+                              color: am(0.55),
+                              padding: "0.25rem 0.65rem",
+                              fontFamily: "'Lora', serif",
+                              fontSize: "0.78rem",
+                              cursor: pending ? "wait" : "pointer",
+                              opacity: pending ? 0.5 : 1,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Zurücksetzen
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

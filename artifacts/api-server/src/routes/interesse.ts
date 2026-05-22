@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
-import { interessenten, anmeldungenTable } from "@workspace/db";
-import { count, desc, isNotNull, ne, sql } from "drizzle-orm";
+import { interessenten, anmeldungenTable, displayNamesTable } from "@workspace/db";
+import { count, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
 import { generateKaiComment } from "./stimmung";
 
 const router = Router();
@@ -60,7 +60,7 @@ const PERSONEN_COUNT: Record<string, number> = {
 };
 
 router.get("/interesse", async (_req, res) => {
-  const [rows, anmeldungRows] = await Promise.all([
+  const [rows, anmeldungRows, approvedRows] = await Promise.all([
     db
       .select({
         id: interessenten.id,
@@ -83,7 +83,19 @@ router.get("/interesse", async (_req, res) => {
       .from(anmeldungenTable)
       .where(isNotNull(anmeldungenTable.song))
       .orderBy(desc(anmeldungenTable.created_at)),
+    db
+      .select({
+        source_type: displayNamesTable.source_type,
+        source_id: displayNamesTable.source_id,
+        approved_name: displayNamesTable.approved_name,
+      })
+      .from(displayNamesTable)
+      .where(eq(displayNamesTable.status, "approved")),
   ]);
+
+  const approvedMap = new Map(
+    approvedRows.map((r) => [`${r.source_type}:${r.source_id}`, r.approved_name]),
+  );
 
   const phase1Boomer = rows.length;
   const phase1Personen = rows.reduce(
@@ -101,11 +113,17 @@ router.get("/interesse", async (_req, res) => {
         name: firstName,
         song: r.song,
         createdAt: r.createdAt,
+        display_name: approvedMap.get(`anmeldung:${r.id}`) ?? null,
       };
     });
 
+  const interesseWithDisplay = rows.map((r) => ({
+    ...r,
+    display_name: approvedMap.get(`interessent:${r.id}`) ?? null,
+  }));
+
   const entries = [
-    ...rows,
+    ...interesseWithDisplay,
     ...anmeldungWishes,
   ].sort((a, b) => {
     const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;

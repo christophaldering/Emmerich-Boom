@@ -145,7 +145,7 @@ export default function Playlist({ refreshKey = 0, highlightId = null }: Playlis
 
                 >
                   <span className="pl-num">{i + 1}</span>
-                  <span className="pl-who">{t.wishBy ? t.wishBy.split(" & ").map(toInitials).join(" & ") : ""}</span>
+                  <span className="pl-who">{t.displayName ?? ""}</span>
                   <span className="pl-note">♪</span>
                   <span className="pl-song-text">
                     <strong>{t.artist}</strong>

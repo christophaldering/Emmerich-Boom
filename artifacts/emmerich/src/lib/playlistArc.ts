@@ -7,6 +7,7 @@ export type Track = {
   title: string;
   energy: number;
   wishBy?: string;
+  displayName?: string;
   memberKeys?: string[];
 };
 
@@ -98,7 +99,7 @@ export function estimateEnergy(songText: string): number {
   return 68;
 }
 
-export type WishEntry = { id: number | string; name: string; song: string | null };
+export type WishEntry = { id: number | string; name: string; song: string | null; display_name?: string | null };
 
 function parseSong(raw: string): { artist: string; title: string } {
   const emDash = raw.indexOf(" – ");
@@ -120,27 +121,30 @@ function normalizeSong(text: string): string {
 export function buildSortedPlaylist(wishes: WishEntry[]): Track[] {
   const validWishes = wishes.filter((e) => e.song && e.song.trim() !== "");
 
-  const groupMap = new Map<string, Track[]>();
+  const groupMap = new Map<string, { track: Track; displayLabel: string }[]>();
   for (const e of validWishes) {
     const raw = e.song!.trim();
     const { artist, title } = parseSong(raw);
     const energy = estimateEnergy(raw);
     const normKey = normalizeSong(raw);
+    const displayLabel = e.display_name ?? toInitials(e.name);
     const track: Track = { key: `w${e.id}`, label: "♥", artist, title, energy, wishBy: e.name };
     if (!groupMap.has(normKey)) groupMap.set(normKey, []);
-    groupMap.get(normKey)!.push(track);
+    groupMap.get(normKey)!.push({ track, displayLabel });
   }
 
   const mergedWishes: Track[] = [];
   for (const group of groupMap.values()) {
     if (group.length === 1) {
-      mergedWishes.push(group[0]);
+      const { track, displayLabel } = group[0];
+      mergedWishes.push({ ...track, displayName: displayLabel });
     } else {
-      const base = group[0];
+      const base = group[0].track;
       mergedWishes.push({
         ...base,
-        wishBy: group.map((t) => t.wishBy!).join(" & "),
-        memberKeys: group.slice(1).map((t) => t.key),
+        wishBy: group.map((g) => g.track.wishBy!).join(" & "),
+        displayName: group.map((g) => g.displayLabel).join(" & "),
+        memberKeys: group.slice(1).map((g) => g.track.key),
       });
     }
   }
@@ -195,8 +199,7 @@ export function buildPlaylistText(tracks: Track[]): string {
     }
     const num = String(i + 1).padStart(2, " ");
     const songLabel = formatTrackLabel(t);
-    const wishByAnon = t.wishBy ? t.wishBy.split(" & ").map(toInitials).join(" & ") : null;
-    const song = wishByAnon ? `${songLabel}  (Wunsch von ${wishByAnon})` : songLabel;
+    const song = t.displayName ? `${songLabel}  (Wunsch von ${t.displayName})` : songLabel;
     lines.push(`${num}.  ${song}`);
   });
 

@@ -217,6 +217,9 @@ components:
           type: ["string", "null"]
         createdAt:
           type: ["string", "null"]
+        display_name:
+          type: ["string", "null"]
+          description: Vom Admin freigegebener Anzeigename (oder null wenn noch ausstehend)
     InteresseResponse:
       type: object
       required:

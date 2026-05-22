@@ -34,6 +34,12 @@ export const GetInteresseResponse = zod.object({
       statement: zod.string().nullish(),
       song: zod.string().nullish(),
       createdAt: zod.string().nullish(),
+      display_name: zod
+        .string()
+        .nullish()
+        .describe(
+          "Vom Admin freigegebener Anzeigename (oder null wenn noch ausstehend)",
+        ),
     }),
   ),
 });

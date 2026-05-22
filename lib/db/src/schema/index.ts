@@ -26,3 +26,4 @@ export * from "./page_views";
 export * from "./scan_log";
 export * from "./ticket_nummer_counter";
 export * from "./tickets";
+export * from "./display_names";
