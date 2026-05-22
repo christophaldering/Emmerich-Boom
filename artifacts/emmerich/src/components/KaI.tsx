@@ -62,7 +62,7 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
   const fetchTeilnehmer = () => {
     fetch("/api/interesse", { cache: "no-store" })
       .then((r) => r.json())
-      .then((d: Teilnehmer[]) => setTeilnehmer(d))
+      .then((d: { entries: Teilnehmer[] }) => setTeilnehmer(d.entries ?? []))
       .catch(() => {});
   };
 
