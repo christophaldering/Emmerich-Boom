@@ -18,3 +18,9 @@ id = "ylMe4et4cGf0XN5rFWjbf"
 uri = "file://plakat-boomerparty-2026.pdf"
 type = "pdf"
 title = "Plakat Boomerparty 2026 (A3)"
+
+[[outputs]]
+id = "N6EKDAcG1vuK3eSpkQKX8"
+uri = "file://artifacts/emmerich/public/sarah-eul-ticket.pdf"
+type = "pdf"
+title = "Frei-Ticket Sarah Eul (NRZ)"
