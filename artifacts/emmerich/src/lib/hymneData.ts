@@ -105,26 +105,26 @@ export const STROPHEN: Array<{ lines: string[]; refrain?: boolean; title?: boole
 export const LINE_TIMESTAMPS: number[][] = [
   // 0 Titel (vor dem Song, kein Timing)
   [0.0, 3.0],
-  // 1 Strophe 1 (nach ~7s Intro)
-  [7.0, 15.0, 22.0, 29.0],
-  // 1 Vorsatz 1
-  [38.0, 44.0],
-  // 2 Refrain 1
-  [50.0, 56.0, 62.0, 67.0, 72.0],
-  // 3 Strophe 2 (+7s Korrektur ab Mitte)
-  [87.0, 94.0, 101.0, 108.0],
-  // 4 Vorsatz 2
-  [116.0, 122.0],
-  // 5 Refrain 2
-  [128.0, 134.0, 140.0, 145.0, 150.0],
-  // 6 Strophe 3
-  [160.0, 167.0, 174.0, 180.0],
-  // 7 Strophe 4
-  [187.0, 194.0, 201.0, 207.0],
-  // 8 Vorsatz 3
-  [214.0, 220.0],
-  // 9 Finale-Refrain
-  [226.0, 232.0, 238.0, 243.0, 248.0],
+  // 1 Strophe 1 (+5s gesamt)
+  [12.0, 20.0, 27.0, 34.0],
+  // 2 Vorsatz 1
+  [43.0, 49.0],
+  // 3 Refrain 1
+  [55.0, 61.0, 67.0, 72.0, 77.0],
+  // 4 Strophe 2
+  [92.0, 99.0, 106.0, 113.0],
+  // 5 Vorsatz 2
+  [121.0, 127.0],
+  // 6 Refrain 2
+  [133.0, 139.0, 145.0, 150.0, 155.0],
+  // 7 Strophe 3
+  [165.0, 172.0, 179.0, 185.0],
+  // 8 Strophe 4
+  [192.0, 199.0, 206.0, 212.0],
+  // 9 Vorsatz 3
+  [219.0, 225.0],
+  // 10 Finale-Refrain
+  [231.0, 237.0, 243.0, 247.0, 249.0],
 ];
 
 export interface FlatEntry {
