@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useHymneAudio } from "@/contexts/HymneAudioContext";
 
 const ZITATE = [
   "Früher war mehr Lametta.",
@@ -20,6 +21,7 @@ const ZITATE = [
 
 export default function Poster() {
   const [zitat, setZitat] = useState<string | null>(null);
+  const { toggle, isPlaying } = useHymneAudio();
 
   const open = useCallback(() => {
     setZitat(ZITATE[Math.floor(Math.random() * ZITATE.length)]);
@@ -50,6 +52,69 @@ export default function Poster() {
           cursor: "pointer",
         }}
       />
+
+      {/* Hymne Play-Button Overlay */}
+      <button
+        onClick={(e) => { e.stopPropagation(); toggle(); }}
+        aria-label={isPlaying ? "Hymne pausieren" : "Die Hymne abspielen"}
+        style={{
+          position: "absolute",
+          bottom: "2.2rem",
+          right: "1.5rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.55rem",
+          background: "rgba(10,7,4,0.78)",
+          border: "1.5px solid rgba(232,153,26,0.55)",
+          borderRadius: "100px",
+          padding: "0.55rem 1rem 0.55rem 0.65rem",
+          cursor: "pointer",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          transition: "border-color 0.18s, background 0.18s",
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(232,153,26,0.9)";
+          (e.currentTarget as HTMLButtonElement).style.background = "rgba(10,7,4,0.92)";
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(232,153,26,0.55)";
+          (e.currentTarget as HTMLButtonElement).style.background = "rgba(10,7,4,0.78)";
+        }}
+      >
+        {/* Icon circle */}
+        <span style={{
+          width: "28px",
+          height: "28px",
+          borderRadius: "50%",
+          background: "#E8991A",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          {isPlaying ? (
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#0A0704">
+              <rect x="5" y="3" width="4" height="18"/>
+              <rect x="15" y="3" width="4" height="18"/>
+            </svg>
+          ) : (
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#0A0704">
+              <polygon points="6,3 20,12 6,21"/>
+            </svg>
+          )}
+        </span>
+        <span style={{
+          fontFamily: "'Lora', Georgia, serif",
+          fontStyle: "italic",
+          fontSize: "0.8rem",
+          color: "#F5E8C8",
+          letterSpacing: "0.04em",
+          whiteSpace: "nowrap",
+        }}>
+          {isPlaying ? "läuft …" : "Die Hymne"}
+        </span>
+      </button>
 
       {zitat && (
         <div

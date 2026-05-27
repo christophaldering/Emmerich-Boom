@@ -18,30 +18,37 @@ import AnmeldungFortschritt from "@/components/AnmeldungFortschritt";
 import Formular from "@/components/Formular";
 import TicketsTeaser from "@/components/TicketsTeaser";
 import Stempel from "@/components/Stempel";
+import Hymne from "@/components/Hymne";
+import StickyHymnePlayer from "@/components/StickyHymnePlayer";
+import { HymneAudioProvider } from "@/contexts/HymneAudioContext";
 
 export default function BoomerPartyPage() {
   return (
-    <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
-      <Poster />
-      <Teilnehmer />
-      <AnmeldeAufruf />
-      <Letter />
-      <Phase2Aufruf />
-      <AnmeldungFortschritt />
-      <Motto />
-      <StimmungsBild />
-      <Fakten />
-      <Countdown />
-      <TicketsTeaser />
-      <Stempel />
-      <Formular />
-      <Playlist />
-      <KaI refreshSignal={0} />
-      <BoomerClub />
-      <DruckMaterial />
-      <PressNote />
-      <Legal />
-      <SiteFooter />
-    </main>
+    <HymneAudioProvider>
+      <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
+        <Poster />
+        <AnmeldungFortschritt />
+        <AnmeldeAufruf />
+        <Phase2Aufruf />
+        <Hymne />
+        <Letter />
+        <Motto />
+        <StimmungsBild />
+        <Fakten />
+        <Countdown />
+        <Teilnehmer />
+        <TicketsTeaser />
+        <Stempel />
+        <Playlist />
+        <KaI refreshSignal={0} />
+        <Formular />
+        <BoomerClub />
+        <DruckMaterial />
+        <PressNote />
+        <Legal />
+        <SiteFooter />
+        <StickyHymnePlayer />
+      </main>
+    </HymneAudioProvider>
   );
 }
