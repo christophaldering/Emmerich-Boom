@@ -251,24 +251,11 @@ export default function Phase2Aufruf() {
         <div className="p2a-divider reveal d2" />
 
         <p className="p2a-text reveal d3">
-          {count !== null ? (
-            <>
-              <strong>{count} Leute</strong> haben Interesse signalisiert.{" "}
-            </>
-          ) : null}
-          Jetzt geht es in die nächste Phase: Die <em>verbindliche Anmeldung</em> ist ab sofort
-          möglich — und erforderlich, wenn du dabei sein willst.
+          Das hatten wir so nicht erwartet: <em>überbucht</em> — und das ist das schönste
+          Problem, das man haben kann.
           <br />
-          <strong>10&nbsp;€ pro Person · Anmeldung bis 30. Juni 2026.</strong>
+          <strong>Anmeldung abgeschlossen. Tickets draußen. Vorfreude an.</strong>
         </p>
-
-        <button
-          className="p2a-btn reveal"
-          style={{ animationDelay: "0.6s" }}
-          onClick={() => navigateTo("/anmeldung")}
-        >
-          → Jetzt verbindlich anmelden
-        </button>
       </div>
     </section>
   );
