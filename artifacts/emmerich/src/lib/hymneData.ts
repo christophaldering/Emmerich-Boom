@@ -1,5 +1,13 @@
-export const STROPHEN: Array<{ lines: string[]; refrain?: boolean }> = [
-  // 0 — Strophe 1
+export const STROPHEN: Array<{ lines: string[]; refrain?: boolean; title?: boolean }> = [
+  // 0 — Titel
+  {
+    title: true,
+    lines: [
+      "EMMERICH BOOMT!",
+      "Die Hymne vom BoomerClub Emmerich",
+    ],
+  },
+  // 1 — Strophe 1
   {
     lines: [
       "An der Theke der Sozietät, da nahm das Unheil seinen Lauf,",
@@ -95,7 +103,9 @@ export const STROPHEN: Array<{ lines: string[]; refrain?: boolean }> = [
 // Song duration: ~4:10 (250s). 10 sections, 37 lines total.
 // Adjust after listening to the actual recording.
 export const LINE_TIMESTAMPS: number[][] = [
-  // 0 Strophe 1 (nach ~7s Intro)
+  // 0 Titel (vor dem Song, kein Timing)
+  [0.0, 3.0],
+  // 1 Strophe 1 (nach ~7s Intro)
   [7.0, 15.0, 22.0, 29.0],
   // 1 Vorsatz 1
   [38.0, 44.0],

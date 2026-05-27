@@ -176,6 +176,26 @@ export default function Hymne() {
           color: #F5C842;
           text-shadow: 0 0 18px rgba(245,200,66,0.35);
         }
+        .hymne-title-line-main {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-weight: 800;
+          font-size: clamp(1.3rem, 4vw, 1.8rem);
+          color: #E8991A;
+          display: block;
+          text-align: center;
+          letter-spacing: 0.05em;
+          line-height: 1.3;
+        }
+        .hymne-title-line-sub {
+          font-family: 'Lora', Georgia, serif;
+          font-style: italic;
+          font-size: clamp(0.8rem, 2vw, 0.95rem);
+          color: rgba(245,232,200,0.6);
+          display: block;
+          text-align: center;
+          letter-spacing: 0.12em;
+          margin-bottom: 0.4rem;
+        }
         .hymne-footer-line {
           font-family: 'Lora', Georgia, serif;
           font-style: italic;
@@ -245,6 +265,16 @@ export default function Hymne() {
         {STROPHEN.map((strophe, si) => (
           <div key={si} className="hymne-strophe">
             {strophe.lines.map((line, li) => {
+              if (strophe.title) {
+                return (
+                  <span
+                    key={li}
+                    className={li === 0 ? "hymne-title-line-main" : "hymne-title-line-sub"}
+                  >
+                    {line}
+                  </span>
+                );
+              }
               const isActive =
                 activeEntry !== null &&
                 activeEntry.si === si &&
