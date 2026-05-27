@@ -61,9 +61,6 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
 
   if (!loaded || stats.boomer === 0) return null;
 
-  const totalPersonen = stats.personen;
-  const boomerCount   = stats.boomer;
-
   const SHOW_LIMIT = 8;
   const visible = showAll ? entries : entries.slice(0, SHOW_LIMIT);
   const hidden  = entries.length - SHOW_LIMIT;
@@ -72,15 +69,6 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
     <section style={{ background: "var(--bg-section)", padding: "2.5rem 1.5rem 2rem", animation: "fadeInUp 0.7s ease both" }}>
       <style>{`
         @keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-
-        .promo-hero { text-align:center; margin-bottom:2rem; max-width:700px; margin-left:auto; margin-right:auto; }
-        .promo-label { display:inline-block; font-family:'Lora',serif; font-style:italic; font-size:0.78rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--amber); margin-bottom:0.8rem; opacity:0.85; }
-        .promo-count-row { display:flex; align-items:center; justify-content:center; gap:2.5rem; flex-wrap:wrap; }
-        .promo-stat { display:flex; flex-direction:column; align-items:center; gap:0.25rem; }
-        .promo-count { font-family:'Playfair Display',serif; font-weight:800; font-size:clamp(4rem,14vw,7rem); line-height:1; text-shadow:0 0 40px rgba(205,155,65,0.25); }
-        .promo-count--amber { color:var(--amber); }
-        .promo-count--warm  { color:var(--warm); }
-        .promo-count-label { font-family:'Lora',serif; font-style:italic; font-size:clamp(0.8rem,2.5vw,1rem); color:var(--fg-65); line-height:1.3; text-align:center; }
 
         .tn-list { max-width:640px; margin:0 auto; border-top:1px solid var(--fg-08); }
 
@@ -97,31 +85,6 @@ export default function Teilnehmer({ refreshKey = 0 }: TeilnehmerProps) {
         .tn-expand { display:block; font-family:'Courier New',Courier,monospace; font-size:0.8rem; color:var(--amber-60); background:none; border:none; cursor:pointer; padding:0.5rem 0.5rem 0; text-align:left; }
         .tn-expand:hover { color:var(--amber); }
       `}</style>
-
-      <div className="promo-hero">
-        <span className="promo-label">Interesse bekundet</span>
-        {totalPersonen > boomerCount ? (
-          <div className="promo-count-row">
-            <div className="promo-stat">
-              <span className="promo-count promo-count--amber">{boomerCount}</span>
-              <span className="promo-count-label">{boomerCount === 1 ? "Boomer hat" : "Boomer haben"}</span>
-            </div>
-            <div className="promo-stat">
-              <span className="promo-count promo-count--warm">{totalPersonen}</span>
-              <span className="promo-count-label">Personen angemeldet</span>
-            </div>
-          </div>
-        ) : (
-          <div className="promo-count-row">
-            <div className="promo-stat">
-              <span className="promo-count promo-count--amber">{boomerCount}</span>
-              <span className="promo-count-label">
-                {boomerCount === 1 ? "Boomer hat sich gemeldet" : "Boomer haben Interesse bekundet"}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
 
       <div className="tn-list">
         {visible.map((e) => {
