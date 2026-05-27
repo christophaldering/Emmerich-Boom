@@ -78,10 +78,51 @@ const STROPHEN = [
   },
 ];
 
+// Manually calibrated timestamps (seconds) for each line, matching STROPHEN structure.
+// Adjust these values after listening to the actual recording.
+const LINE_TIMESTAMPS: number[][] = [
+  // Strophe 1
+  [3.5, 7.5, 11.5, 15.5],
+  // Strophe 2 (Kein Tinder…)
+  [20.5, 24.0],
+  // Refrain 1
+  [27.5, 31.0, 34.5, 37.5, 40.5],
+  // Strophe 3 (Sie nennen uns…)
+  [44.5, 48.5, 52.5, 56.5],
+  // Strophe 4 (Kein Tinder…)
+  [61.0, 64.5],
+  // Refrain 2
+  [68.0, 71.5, 75.0, 78.0, 81.0],
+  // Strophe 5 (Wir sind nicht jung…)
+  [85.0, 89.0, 93.0, 97.0],
+  // Strophe 6 (Die Knie machen Krach…)
+  [101.5, 105.5, 109.5, 113.5],
+];
+
+// Build a flat list of { si, li, startTime } for binary-search lookup
+const FLAT_TIMESTAMPS = LINE_TIMESTAMPS.flatMap((strophe, si) =>
+  strophe.map((startTime, li) => ({ si, li, startTime }))
+).sort((a, b) => a.startTime - b.startTime);
+
+function getActiveLine(currentTime: number): { si: number; li: number } | null {
+  if (currentTime <= 0) return null;
+  let active: { si: number; li: number } | null = null;
+  for (const entry of FLAT_TIMESTAMPS) {
+    if (entry.startTime <= currentTime) {
+      active = { si: entry.si, li: entry.li };
+    } else {
+      break;
+    }
+  }
+  return active;
+}
+
 export default function Hymne() {
-  const { isPlaying, currentTime, duration, toggle, seek } = useHymneAudio();
+  const { isPlaying, currentTime, duration, toggle, seek, hasStarted } = useHymneAudio();
 
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const activeLine = hasStarted ? getActiveLine(currentTime) : null;
+  const showKaraoke = hasStarted;
 
   return (
     <section style={{ background: "#0A0704", borderBottom: "1px solid rgba(232,153,26,0.25)" }}>
@@ -214,6 +255,7 @@ export default function Hymne() {
           line-height: 1.85;
           color: rgba(245,232,200,0.78);
           display: block;
+          transition: color 0.35s ease, opacity 0.35s ease;
         }
         .hymne-refrain-line {
           font-family: 'Playfair Display', Georgia, serif;
@@ -222,6 +264,21 @@ export default function Hymne() {
           line-height: 1.75;
           color: #E8991A;
           display: block;
+          transition: color 0.35s ease, opacity 0.35s ease;
+        }
+        .hymne-strophe-line.karaoke-dim {
+          color: rgba(245,232,200,0.28);
+        }
+        .hymne-refrain-line.karaoke-dim {
+          color: rgba(232,153,26,0.28);
+        }
+        .hymne-strophe-line.karaoke-active {
+          color: #F5C842;
+          text-shadow: 0 0 18px rgba(245,200,66,0.35);
+        }
+        .hymne-refrain-line.karaoke-active {
+          color: #F5C842;
+          text-shadow: 0 0 18px rgba(245,200,66,0.35);
         }
         .hymne-footer-line {
           font-family: 'Lora', Georgia, serif;
@@ -291,14 +348,29 @@ export default function Hymne() {
         {/* Songtext */}
         {STROPHEN.map((strophe, si) => (
           <div key={si} className="hymne-strophe">
-            {strophe.lines.map((line, li) => (
-              <span
-                key={li}
-                className={strophe.refrain ? "hymne-refrain-line" : "hymne-strophe-line"}
-              >
-                {line}
-              </span>
-            ))}
+            {strophe.lines.map((line, li) => {
+              const isActive =
+                activeLine !== null &&
+                activeLine.si === si &&
+                activeLine.li === li;
+              const isDim = showKaraoke && !isActive;
+              const baseClass = strophe.refrain
+                ? "hymne-refrain-line"
+                : "hymne-strophe-line";
+              const karaokeClass = isActive
+                ? "karaoke-active"
+                : isDim
+                ? "karaoke-dim"
+                : "";
+              return (
+                <span
+                  key={li}
+                  className={`${baseClass}${karaokeClass ? ` ${karaokeClass}` : ""}`}
+                >
+                  {line}
+                </span>
+              );
+            })}
           </div>
         ))}
 
