@@ -1,90 +1,120 @@
 export const STROPHEN: Array<{ lines: string[]; refrain?: boolean }> = [
+  // 0 — Strophe 1
   {
     lines: [
-      "An der Theke der Sozietät, da nahm das Unheil seinen Lauf,",
-      "ein Pils, ein Alt, 'ne Schnapsidee — und keiner hörte auf.",
-      "Tulpensonntag '24, daran erinnert sich noch wer —",
-      "seitdem geh'n wir nicht nüchtern heim. Na und, wer fragt schon sehr?",
+      "An der Theke der Sozietät, da nahm das Unheil seinen Lauf.",
+      "Ein Pils, ein Alt, 'ne Schnapsidee — und keiner hörte auf.",
+      "Tulpensonntag vierundzwanzig, da fing das alles irgendwie an.",
+      "Seitdem sing'n wir durch lange Nächte — und irgendwann kommt irgendwann.",
     ],
   },
-  {
-    lines: [
-      "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Truppe, nur Bier — und nur wir!",
-    ],
-  },
-  {
-    refrain: true,
-    lines: [
-      "Emmerich boomt! — und wir boomen mit,",
-      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
-      "Am Bölt, an der Theke, da gehör'n wir hin —",
-      "Emmerich boomt — und wir mittendrin!",
-      "Emmerich boomt — und wir boomen mit!",
-    ],
-  },
-  {
-    lines: [
-      "Sie nennen uns die Boomer — ja bitte, gern geschehn.",
-      "wir tanzen noch zu Platten, die hat keiner mehr gesehn.",
-      "Das Handy liegt im Eck, das W-LAN ist uns schnuppe,",
-      "am Feierabendmarkt am Rhein steht schon die halbe Truppe.",
-    ],
-  },
+  // 1 — Vorsatz 1
   {
     lines: [
       "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Truppe, nur Bier — und nur wir!",
+      "nur Theke, nur Boomer, nur Bier — und nur wir!",
     ],
   },
+  // 2 — Refrain 1
   {
     refrain: true,
     lines: [
-      "Emmerich boomt! — und wir boomen mit,",
-      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
+      "Emmerich boomt — und wir boomen mit!",
+      "Oben am Kapaunenberg, da sing'n wir unsern Hit!",
       "Am Bölt, an der Theke, da gehör'n wir hin —",
-      "Emmerich boomt — und wir mittendrin!",
+      "Emmerich boomt, und wir mittendrin!",
       "Emmerich boomt — und wir boomen mit!",
     ],
   },
+  // 3 — Strophe 2
+  {
+    lines: [
+      "Sie nennen uns die Boomer — ja bitte, gern gescheh'n.",
+      "Wir tanzen noch zu Platten, die hat keiner mehr gesehn.",
+      "Das Handy liegt im Eck herum, das WLAN ist uns schnuppe.",
+      "Auch am Feierabendmarkt am Rhein trifft man immer irgendwen von früher.",
+    ],
+  },
+  // 4 — Vorsatz 2
+  {
+    lines: [
+      "Kein Tinder, kein Insta, kein Status, kein Like —",
+      "nur Theke, nur Boomer, nur Bier — und nur wir!",
+    ],
+  },
+  // 5 — Refrain 2
+  {
+    refrain: true,
+    lines: [
+      "Emmerich boomt — und wir boomen mit!",
+      "Oben am Kapaunenberg, da sing'n wir unsern Hit!",
+      "Am Bölt, an der Theke, da gehör'n wir hin —",
+      "Emmerich boomt, und wir mittendrin!",
+      "Emmerich boomt — und wir boomen mit!",
+    ],
+  },
+  // 6 — Strophe 3
   {
     lines: [
       "Wir sind nicht jung — na gut. Wir sind genau richtig.",
       "Wir halten zusammen, im Spaß und auch im Wichtig.",
       "Und wenn der Rhein vorbeizieht und der Abend leise wird,",
-      "dann weiß ein jeder hier: in Emmerich ist man nie verirrt.",
+      "dann weiß hier jeder irgendwann: In Emmerich ist man nie verirrt.",
     ],
   },
+  // 7 — Strophe 4
   {
     lines: [
-      "Die Knie machen Krach, der Rücken hat Beschwerden,",
-      "doch oben aufm Bölt, da woll'n wir achtzehn werden!",
-      "Ein Bier, ein Lied, die Bude bebt, der DJ legt nochmal auf —",
-      "und morgen früh? Egal. Wir nehmen das in Kauf!",
+      "Die Knie machen Krach, im Rücken is Pein —",
+      "doch oben auf'm Bölt, da woll'n wir wieder achtzehn sein!",
+      "Ein Bier, ein Lied, die Bude bebt, der DJ legt noch auf —",
+      "und morgen früh? Ach völlig egal. Wir nehmen das in Kauf!",
+    ],
+  },
+  // 8 — Vorsatz 3
+  {
+    lines: [
+      "Kein Tinder, kein Insta, kein Status, kein Like —",
+      "nur Theke, nur Boomer, nur Bier — und nur wir!",
+    ],
+  },
+  // 9 — Finale-Refrain
+  {
+    refrain: true,
+    lines: [
+      "Emmerich boomt — und wir boomen mit!",
+      "Oben am Kapaunenberg, da sing'n wir unsern Hit!",
+      "Am Bölt, an der Theke, da gehör'n wir hin —",
+      "Emmerich boomt, und wir mittendrin!",
+      "Emmerich boomt! Und wir boomen mit!",
     ],
   },
 ];
 
-// Manually calibrated start times (seconds) for each line.
-// Song duration: ~4:10 (250s). Adjust after listening to the recording.
-// Structure: Intro → St1 → St2 → Ref1 → St3 → St4 → Ref2 → St5 → St6 → Outro
+// Calibrated start times (seconds) for each line.
+// Song duration: ~4:10 (250s). 10 sections, 37 lines total.
+// Adjust after listening to the actual recording.
 export const LINE_TIMESTAMPS: number[][] = [
-  // Strophe 1 (nach ~8s Intro)
-  [8.0, 16.0, 24.0, 32.0],
-  // Strophe 2 — "Kein Tinder …"
-  [42.0, 50.0],
-  // Refrain 1
-  [58.0, 65.0, 72.0, 78.5, 85.0],
-  // Strophe 3 — "Sie nennen uns …"
-  [96.0, 104.0, 112.0, 120.0],
-  // Strophe 4 — "Kein Tinder …"
-  [130.0, 138.0],
-  // Refrain 2
-  [146.0, 153.0, 160.0, 166.5, 173.0],
-  // Strophe 5 — "Wir sind nicht jung …"
-  [185.0, 193.0, 201.0, 209.0],
-  // Strophe 6 — "Die Knie machen Krach …"
-  [218.0, 226.0, 234.0, 242.0],
+  // 0 Strophe 1 (nach ~7s Intro)
+  [7.0, 15.0, 22.0, 29.0],
+  // 1 Vorsatz 1
+  [38.0, 44.0],
+  // 2 Refrain 1
+  [50.0, 56.0, 62.0, 67.0, 72.0],
+  // 3 Strophe 2
+  [80.0, 87.0, 94.0, 101.0],
+  // 4 Vorsatz 2
+  [109.0, 115.0],
+  // 5 Refrain 2
+  [121.0, 127.0, 133.0, 138.0, 143.0],
+  // 6 Strophe 3
+  [153.0, 160.0, 167.0, 173.0],
+  // 7 Strophe 4
+  [180.0, 187.0, 194.0, 200.0],
+  // 8 Vorsatz 3
+  [207.0, 213.0],
+  // 9 Finale-Refrain
+  [219.0, 225.0, 231.0, 236.0, 241.0],
 ];
 
 export interface FlatEntry {
