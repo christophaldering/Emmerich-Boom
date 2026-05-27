@@ -2,25 +2,25 @@ export const STROPHEN: Array<{ lines: string[]; refrain?: boolean }> = [
   // 0 — Strophe 1
   {
     lines: [
-      "An der Theke der Sozietät, da nahm das Unheil seinen Lauf.",
-      "Ein Pils, ein Alt, 'ne Schnapsidee — und keiner hörte auf.",
-      "Tulpensonntag vierundzwanzig, da fing das alles irgendwie an.",
-      "Seitdem sing'n wir durch lange Nächte — und irgendwann kommt irgendwann.",
+      "An der Theke der Sozietät, da nahm das Unheil seinen Lauf,",
+      "ein Pils, ein Alt, 'ne Schnapsidee — und keiner hörte auf.",
+      "Tulpensonntag '24, daran erinnert sich noch wer —",
+      "seitdem geh'n wir nicht nüchtern heim. Na und, wer fragt schon sehr?",
     ],
   },
   // 1 — Vorsatz 1
   {
     lines: [
       "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Boomer, nur Bier — und nur wir!",
+      "nur Theke, nur Truppe, nur Bier — und nur wir!",
     ],
   },
   // 2 — Refrain 1
   {
     refrain: true,
     lines: [
-      "Emmerich boomt — und wir boomen mit!",
-      "Oben am Kapaunenberg, da sing'n wir unsern Hit!",
+      "Emmerich boomt! — und wir boomen mit,",
+      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
       "Am Bölt, an der Theke, da gehör'n wir hin —",
       "Emmerich boomt, und wir mittendrin!",
       "Emmerich boomt — und wir boomen mit!",
@@ -29,25 +29,25 @@ export const STROPHEN: Array<{ lines: string[]; refrain?: boolean }> = [
   // 3 — Strophe 2
   {
     lines: [
-      "Sie nennen uns die Boomer — ja bitte, gern gescheh'n.",
-      "Wir tanzen noch zu Platten, die hat keiner mehr gesehn.",
-      "Das Handy liegt im Eck herum, das WLAN ist uns schnuppe.",
-      "Auch am Feierabendmarkt am Rhein trifft man immer irgendwen von früher.",
+      "Sie nennen uns die Boomer — ja bitte, gern geschehn,",
+      "wir tanzen noch zu Platten, die hat keiner mehr gesehn.",
+      "Das Handy liegt im Eck, das W-LAN ist uns schnuppe,",
+      "am Feierabendmarkt am Rhein steht schon die halbe Truppe.",
     ],
   },
   // 4 — Vorsatz 2
   {
     lines: [
       "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Boomer, nur Bier — und nur wir!",
+      "nur Theke, nur Truppe, nur Bier — und nur wir!",
     ],
   },
   // 5 — Refrain 2
   {
     refrain: true,
     lines: [
-      "Emmerich boomt — und wir boomen mit!",
-      "Oben am Kapaunenberg, da sing'n wir unsern Hit!",
+      "Emmerich boomt! — und wir boomen mit,",
+      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
       "Am Bölt, an der Theke, da gehör'n wir hin —",
       "Emmerich boomt, und wir mittendrin!",
       "Emmerich boomt — und wir boomen mit!",
@@ -57,36 +57,36 @@ export const STROPHEN: Array<{ lines: string[]; refrain?: boolean }> = [
   {
     lines: [
       "Wir sind nicht jung — na gut. Wir sind genau richtig.",
-      "Wir halten zusammen, im Spaß und auch im Wichtig.",
+      "Wir halten zusammen, im Spaß und auch im Wichtig'.",
       "Und wenn der Rhein vorbeizieht und der Abend leise wird,",
-      "dann weiß hier jeder irgendwann: In Emmerich ist man nie verirrt.",
+      "dann weiß ein jeder hier: in Emmerich ist man nie verirrt.",
     ],
   },
   // 7 — Strophe 4
   {
     lines: [
-      "Die Knie machen Krach, im Rücken is Pein —",
-      "doch oben auf'm Bölt, da woll'n wir wieder achtzehn sein!",
-      "Ein Bier, ein Lied, die Bude bebt, der DJ legt noch auf —",
-      "und morgen früh? Ach völlig egal. Wir nehmen das in Kauf!",
+      "Die Knie machen Krach, der Rücken hat Beschwerden,",
+      "doch oben aufm Bölt, da woll'n wir achtzehn werden!",
+      "Ein Bier, ein Lied, die Bude bebt, der DJ legt nochmal auf —",
+      "und morgen früh? Egal. Wir nehmen das in Kauf!",
     ],
   },
   // 8 — Vorsatz 3
   {
     lines: [
       "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Boomer, nur Bier — und nur wir!",
+      "nur Theke, nur Truppe, nur Boomer dabei!",
     ],
   },
   // 9 — Finale-Refrain
   {
     refrain: true,
     lines: [
-      "Emmerich boomt — und wir boomen mit!",
-      "Oben am Kapaunenberg, da sing'n wir unsern Hit!",
+      "Emmerich boomt! — und wir boomen mit,",
+      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
       "Am Bölt, an der Theke, da gehör'n wir hin —",
       "Emmerich boomt, und wir mittendrin!",
-      "Emmerich boomt! Und wir boomen mit!",
+      "Emmerich boomt — und wir boomen mit!",
     ],
   },
 ];
