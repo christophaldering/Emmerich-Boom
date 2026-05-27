@@ -125,7 +125,7 @@ export default function Letter() {
 
           <p>Ein kleines Orga-Team kümmert sich drum — in der Freizeit, ohne Budget, dafür mit Herzblut. Großes Dankeschön an <strong>Farzin und Revse vom Kapaunenberg</strong> für ihre Unterstützung.</p>
 
-          <p>Und das Beste: Die Party ist ausgebucht. Über 130 Emmericherinnen und Emmericher haben sich verbindlich angemeldet — mehr als je erwartet. Die Tickets sind raus. Jetzt heißt es: Vorfreude. Und am <strong>18. Juli pünktlich auf dem Bölt</strong> erscheinen.</p>
+          <p>Und jetzt das Wichtigste: Die Anmeldung ist offen — <strong>10&nbsp;€ pro Person, bis Ende Juni 2026.</strong> Wer dabei sein möchte: direkt verbindlich anmelden und Platz sichern. Wer zusätzlich ein Statement hinterlassen oder einen Musikwunsch platzieren möchte, gerne — aber: ein Ticket gibt's nur mit der verbindlichen Anmeldung.</p>
         </div>
       </div>
     </section>

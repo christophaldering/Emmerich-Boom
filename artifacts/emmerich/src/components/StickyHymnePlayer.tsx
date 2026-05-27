@@ -1,4 +1,5 @@
 import { useHymneAudio } from "@/contexts/HymneAudioContext";
+import { FLAT_ENTRIES, getActiveLineIndex } from "@/lib/hymneData";
 
 function formatTime(s: number): string {
   if (!isFinite(s)) return "0:00";
@@ -13,6 +14,15 @@ export default function StickyHymnePlayer() {
   if (!hasStarted) return null;
 
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const activeIdx = getActiveLineIndex(currentTime);
+
+  const prevEntry = activeIdx > 0 ? FLAT_ENTRIES[activeIdx - 1] : null;
+  const activeEntry = activeIdx >= 0 ? FLAT_ENTRIES[activeIdx] : null;
+  const nextEntry = activeIdx >= 0 && activeIdx < FLAT_ENTRIES.length - 1
+    ? FLAT_ENTRIES[activeIdx + 1]
+    : null;
+
+  const showLyrics = activeEntry !== null;
 
   return (
     <>
@@ -27,11 +37,11 @@ export default function StickyHymnePlayer() {
           left: 0;
           right: 0;
           z-index: 9000;
-          background: rgba(10,7,4,0.96);
+          background: rgba(10,7,4,0.97);
           border-top: 1px solid rgba(232,153,26,0.35);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          padding: 0.6rem 1.2rem 0.7rem;
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          padding: 0.55rem 1.2rem 0.65rem;
           animation: shp-slide-up 0.3s ease-out both;
           display: flex;
           align-items: center;
@@ -52,12 +62,38 @@ export default function StickyHymnePlayer() {
         }
         .shp-btn:hover { filter: brightness(1.12); }
         .shp-btn svg { width: 14px; height: 14px; fill: #0A0704; }
-        .shp-info {
+        .shp-center {
           flex: 1;
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 0.3rem;
+          gap: 0.18rem;
+        }
+        .shp-lyrics-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          overflow: hidden;
+        }
+        .shp-lyric {
+          font-family: 'Lora', Georgia, serif;
+          font-style: italic;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-height: 1.4;
+          transition: color 0.3s ease, opacity 0.3s ease, font-size 0.2s ease;
+        }
+        .shp-lyric-dim {
+          font-size: 0.62rem;
+          color: rgba(232,153,26,0.35);
+          letter-spacing: 0.02em;
+        }
+        .shp-lyric-active {
+          font-size: 0.78rem;
+          color: #F5C842;
+          letter-spacing: 0.02em;
+          text-shadow: 0 0 12px rgba(245,200,66,0.4);
         }
         .shp-title {
           font-family: 'Lora', Georgia, serif;
@@ -72,10 +108,11 @@ export default function StickyHymnePlayer() {
         }
         .shp-bar-wrap {
           position: relative;
-          height: 4px;
+          height: 3px;
           border-radius: 2px;
           background: rgba(232,153,26,0.18);
           cursor: pointer;
+          margin-top: 0.3rem;
         }
         .shp-bar-fill {
           position: absolute;
@@ -87,8 +124,8 @@ export default function StickyHymnePlayer() {
         .shp-time {
           flex-shrink: 0;
           font-family: 'Lora', Georgia, serif;
-          font-size: 0.72rem;
-          color: rgba(232,153,26,0.65);
+          font-size: 0.68rem;
+          color: rgba(232,153,26,0.55);
           letter-spacing: 0.04em;
           white-space: nowrap;
         }
@@ -101,19 +138,37 @@ export default function StickyHymnePlayer() {
             <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
           )}
         </button>
-        <div className="shp-info">
-          <span className="shp-title">Emmerich boomt! — Die Hymne</span>
+
+        <div className="shp-center">
+          {showLyrics ? (
+            <div className="shp-lyrics-wrap">
+              {prevEntry ? (
+                <span className="shp-lyric shp-lyric-dim">{prevEntry.text}</span>
+              ) : (
+                <span className="shp-lyric shp-lyric-dim" style={{ opacity: 0 }}>·</span>
+              )}
+              <span className="shp-lyric shp-lyric-active">{activeEntry!.text}</span>
+              {nextEntry ? (
+                <span className="shp-lyric shp-lyric-dim">{nextEntry.text}</span>
+              ) : (
+                <span className="shp-lyric shp-lyric-dim" style={{ opacity: 0 }}>·</span>
+              )}
+            </div>
+          ) : (
+            <span className="shp-title">Emmerich boomt! — Die Hymne</span>
+          )}
           <div
             className="shp-bar-wrap"
             onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const frac = (e.clientX - rect.left) / rect.width;
-              seek(frac * duration);
+              seek(Math.max(0, Math.min(frac * duration, duration)));
             }}
           >
             <div className="shp-bar-fill" style={{ width: `${pct}%` }} />
           </div>
         </div>
+
         <span className="shp-time">{formatTime(currentTime)} / {formatTime(duration)}</span>
       </div>
     </>

@@ -1,4 +1,5 @@
 import { useHymneAudio } from "@/contexts/HymneAudioContext";
+import { STROPHEN, FLAT_ENTRIES, getActiveLineIndex } from "@/lib/hymneData";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const DOWNLOAD_URL = `${BASE}/audio/emmerich-boomt.mp3`;
@@ -11,117 +12,12 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
-const STROPHEN = [
-  {
-    lines: [
-      "An der Theke der Sozietät, da nahm das Unheil seinen Lauf,",
-      "ein Pils, ein Alt, 'ne Schnapsidee — und keiner hörte auf.",
-      "Tulpensonntag '24, daran erinnert sich noch wer —",
-      "seitdem geh'n wir nicht nüchtern heim. Na und, wer fragt schon sehr?",
-    ],
-  },
-  {
-    lines: [
-      "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Truppe, nur Bier — und nur wir!",
-    ],
-  },
-  {
-    refrain: true,
-    lines: [
-      "Emmerich boomt! — und wir boomen mit,",
-      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
-      "Am Bölt, an der Theke, da gehör'n wir hin —",
-      "Emmerich boomt — und wir mittendrin!",
-      "Emmerich boomt — und wir boomen mit!",
-    ],
-  },
-  {
-    lines: [
-      "Sie nennen uns die Boomer — ja bitte, gern geschehn.",
-      "wir tanzen noch zu Platten, die hat keiner mehr gesehn.",
-      "Das Handy liegt im Eck, das W-LAN ist uns schnuppe,",
-      "am Feierabendmarkt am Rhein steht schon die halbe Truppe.",
-    ],
-  },
-  {
-    lines: [
-      "Kein Tinder, kein Insta, kein Status, kein Like —",
-      "nur Theke, nur Truppe, nur Bier — und nur wir!",
-    ],
-  },
-  {
-    refrain: true,
-    lines: [
-      "Emmerich boomt! — und wir boomen mit,",
-      "oben am Kapaunenberg, da singen wir uns'ren Hit!",
-      "Am Bölt, an der Theke, da gehör'n wir hin —",
-      "Emmerich boomt — und wir mittendrin!",
-      "Emmerich boomt — und wir boomen mit!",
-    ],
-  },
-  {
-    lines: [
-      "Wir sind nicht jung — na gut. Wir sind genau richtig.",
-      "Wir halten zusammen, im Spaß und auch im Wichtig.",
-      "Und wenn der Rhein vorbeizieht und der Abend leise wird,",
-      "dann weiß ein jeder hier: in Emmerich ist man nie verirrt.",
-    ],
-  },
-  {
-    lines: [
-      "Die Knie machen Krach, der Rücken hat Beschwerden,",
-      "doch oben aufm Bölt, da woll'n wir achtzehn werden!",
-      "Ein Bier, ein Lied, die Bude bebt, der DJ legt nochmal auf —",
-      "und morgen früh? Egal. Wir nehmen das in Kauf!",
-    ],
-  },
-];
-
-// Manually calibrated timestamps (seconds) for each line, matching STROPHEN structure.
-// Adjust these values after listening to the actual recording.
-const LINE_TIMESTAMPS: number[][] = [
-  // Strophe 1
-  [3.5, 7.5, 11.5, 15.5],
-  // Strophe 2 (Kein Tinder…)
-  [20.5, 24.0],
-  // Refrain 1
-  [27.5, 31.0, 34.5, 37.5, 40.5],
-  // Strophe 3 (Sie nennen uns…)
-  [44.5, 48.5, 52.5, 56.5],
-  // Strophe 4 (Kein Tinder…)
-  [61.0, 64.5],
-  // Refrain 2
-  [68.0, 71.5, 75.0, 78.0, 81.0],
-  // Strophe 5 (Wir sind nicht jung…)
-  [85.0, 89.0, 93.0, 97.0],
-  // Strophe 6 (Die Knie machen Krach…)
-  [101.5, 105.5, 109.5, 113.5],
-];
-
-// Build a flat list of { si, li, startTime } for binary-search lookup
-const FLAT_TIMESTAMPS = LINE_TIMESTAMPS.flatMap((strophe, si) =>
-  strophe.map((startTime, li) => ({ si, li, startTime }))
-).sort((a, b) => a.startTime - b.startTime);
-
-function getActiveLine(currentTime: number): { si: number; li: number } | null {
-  if (currentTime <= 0) return null;
-  let active: { si: number; li: number } | null = null;
-  for (const entry of FLAT_TIMESTAMPS) {
-    if (entry.startTime <= currentTime) {
-      active = { si: entry.si, li: entry.li };
-    } else {
-      break;
-    }
-  }
-  return active;
-}
-
 export default function Hymne() {
   const { isPlaying, currentTime, duration, toggle, seek, hasStarted } = useHymneAudio();
 
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const activeLine = hasStarted ? getActiveLine(currentTime) : null;
+  const activeIdx = hasStarted ? getActiveLineIndex(currentTime) : -1;
+  const activeEntry = activeIdx >= 0 ? FLAT_ENTRIES[activeIdx] : null;
   const showKaraoke = hasStarted;
 
   return (
@@ -350,9 +246,9 @@ export default function Hymne() {
           <div key={si} className="hymne-strophe">
             {strophe.lines.map((line, li) => {
               const isActive =
-                activeLine !== null &&
-                activeLine.si === si &&
-                activeLine.li === li;
+                activeEntry !== null &&
+                activeEntry.si === si &&
+                activeEntry.li === li;
               const isDim = showKaraoke && !isActive;
               const baseClass = strophe.refrain
                 ? "hymne-refrain-line"

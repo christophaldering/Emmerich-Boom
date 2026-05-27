@@ -251,11 +251,19 @@ export default function Phase2Aufruf() {
         <div className="p2a-divider reveal d2" />
 
         <p className="p2a-text reveal d3">
-          Das hatten wir so nicht erwartet: <em>überbucht</em> — und das ist das schönste
-          Problem, das man haben kann.
+          Die Anmeldung läuft — und läuft besser als erwartet.{" "}
+          Wer noch dabei sein möchte: bis <strong>30. Juni 2026</strong> ist die Tür offen.
           <br />
-          <strong>Anmeldung abgeschlossen. Tickets draußen. Vorfreude an.</strong>
+          <strong>10&nbsp;€ pro Person · Zahlung per Überweisung oder PayPal.</strong>
         </p>
+
+        <button
+          className="p2a-btn reveal"
+          style={{ animationDelay: "0.6s" }}
+          onClick={() => navigateTo("/anmeldung")}
+        >
+          → Jetzt verbindlich anmelden
+        </button>
       </div>
     </section>
   );
