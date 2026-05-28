@@ -10,6 +10,7 @@ import Erfolgsektion from "@/components/Erfolgsektion";
 import LegalPhase2 from "@/components/LegalPhase2";
 import AnmeldungCounter from "@/components/AnmeldungCounter";
 import { PHASE2_CONFIG } from "@/config/phase2";
+import { HymneAudioProvider } from "@/contexts/HymneAudioContext";
 
 function AnmeldungDemnächst() {
   return (
@@ -69,6 +70,7 @@ export default function AnmeldungPage() {
   };
 
   return (
+    <HymneAudioProvider>
     <div style={{ background: "var(--black)", minHeight: "100svh", color: "var(--warm)" }}>
       <Poster />
       <AnmeldungBrief />
@@ -97,5 +99,6 @@ export default function AnmeldungPage() {
       <PressNote />
       <LegalPhase2 />
     </div>
+    </HymneAudioProvider>
   );
 }
