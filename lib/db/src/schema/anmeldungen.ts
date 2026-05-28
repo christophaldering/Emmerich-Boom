@@ -16,6 +16,7 @@ export const anmeldungenTable = pgTable("anmeldungen", {
   bezahlt_am:                       timestamp("bezahlt_am"),
   ticket_versendet_am:              timestamp("ticket_versendet_am"),
   bestaetigungsmail_versendet_am:   timestamp("bestaetigungsmail_versendet_am", { withTimezone: true }),
+  storniert_am:                     timestamp("storniert_am"),
   created_at:                       timestamp("created_at").defaultNow(),
 });
 

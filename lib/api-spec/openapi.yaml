@@ -187,7 +187,7 @@ paths:
       operationId: getAnmeldungStats
       tags: [anmeldung]
       summary: Anmeldungsstatistik abrufen
-      description: Liefert die Gesamtzahl angemeldeter Personen
+      description: Liefert die Gesamtzahl angemeldeter Personen (stornierte ausgeschlossen)
       responses:
         "200":
           description: Statistik
@@ -197,6 +197,78 @@ paths:
                 $ref: "#/components/schemas/AnmeldungStats"
         "500":
           description: Serverfehler
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /admin/anmeldungen/{id}/stornieren:
+    post:
+      operationId: stornierenAnmeldung
+      tags: [anmeldung]
+      summary: Anmeldung intern stornieren
+      description: Setzt storniert_am auf now(). Stille Aktion — kein Mail an Teilnehmer.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: x-admin-secret
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Erfolgreich storniert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StoRnierungResult"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Nicht gefunden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+  /admin/anmeldungen/{id}/reaktivieren:
+    post:
+      operationId: reaktivierenAnmeldung
+      tags: [anmeldung]
+      summary: Stornierung einer Anmeldung rückgängig machen
+      description: Setzt storniert_am zurück auf null. Stille Aktion — kein Mail an Teilnehmer.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: header
+          name: x-admin-secret
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Erfolgreich reaktiviert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResult"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Nicht gefunden
           content:
             application/json:
               schema:
@@ -362,6 +434,17 @@ components:
       properties:
         synced:
           type: integer
+    StoRnierungResult:
+      type: object
+      required:
+        - ok
+        - storniert_am
+      properties:
+        ok:
+          type: boolean
+        storniert_am:
+          type: string
+          format: date-time
     OkResult:
       type: object
       required:

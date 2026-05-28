@@ -46,6 +46,7 @@ router.get("/admin/anmeldungen", async (req: Request, res: Response) => {
         betrag_gesamt:        anmeldungenTable.betrag_gesamt,
         bezahlt_am:           anmeldungenTable.bezahlt_am,
         ticket_versendet_am:  anmeldungenTable.ticket_versendet_am,
+        storniert_am:         anmeldungenTable.storniert_am,
         created_at:           anmeldungenTable.created_at,
       })
       .from(anmeldungenTable)
@@ -99,6 +100,45 @@ router.post("/admin/anmeldungen/:id/bezahlt", async (req: Request, res: Response
     res.json({ ok: true, bezahlt_am: updated[0]!.bezahlt_am });
   } catch (err) {
     req.log.error(err, "admin bezahlt failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
+// POST /api/admin/anmeldungen/:id/stornieren — Anmeldung intern stornieren (stille Aktion)
+router.post("/admin/anmeldungen/:id/stornieren", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+  try {
+    const now = new Date();
+    const updated = await db
+      .update(anmeldungenTable)
+      .set({ storniert_am: now })
+      .where(eq(anmeldungenTable.id, id))
+      .returning({ id: anmeldungenTable.id, storniert_am: anmeldungenTable.storniert_am });
+    if (updated.length === 0) { res.status(404).json({ error: "Nicht gefunden" }); return; }
+    res.json({ ok: true, storniert_am: updated[0]!.storniert_am });
+  } catch (err) {
+    req.log.error(err, "admin stornieren failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
+// POST /api/admin/anmeldungen/:id/reaktivieren — Stornierung rückgängig machen (stille Aktion)
+router.post("/admin/anmeldungen/:id/reaktivieren", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+  try {
+    const updated = await db
+      .update(anmeldungenTable)
+      .set({ storniert_am: null })
+      .where(eq(anmeldungenTable.id, id))
+      .returning({ id: anmeldungenTable.id });
+    if (updated.length === 0) { res.status(404).json({ error: "Nicht gefunden" }); return; }
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error(err, "admin reaktivieren failed");
     res.status(500).json({ error: "Datenbankfehler" });
   }
 });

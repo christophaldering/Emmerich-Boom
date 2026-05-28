@@ -97,6 +97,13 @@ function dateFmt(iso: string | null) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
+function dateTimeFmt(iso: string | null) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+  const time = d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  return `${date} ${time}`;
+}
 function shortDate(isoDate: string) {
   const [, m, d] = isoDate.split("-");
   return `${d}.${m}`;
@@ -336,6 +343,7 @@ interface AnmeldungRow {
   betrag_gesamt: number;
   bezahlt_am: string | null;
   ticket_versendet_am: string | null;
+  storniert_am: string | null;
   created_at: string;
   ticket_count: number;
   tickets: AnmeldungTicketInfo[];
@@ -414,9 +422,36 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
     finally { setPreviewLoading(null); }
   };
 
+  const [stLoading, setStLoading] = useState(false);
+  const stornieren = async () => {
+    if (!window.confirm(`Anmeldung #${row.id} (${row.email}) stornieren?\nKein Mail an den Teilnehmer.`)) return;
+    setStLoading(true); setMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/stornieren`, {
+        method: "POST", headers: { "x-admin-secret": SECRET },
+      });
+      const d = await r.json() as { ok?: boolean; error?: string };
+      if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
+    } catch { setMsg("Verbindungsfehler"); }
+    finally { setStLoading(false); }
+  };
+  const reaktivieren = async () => {
+    if (!window.confirm(`Stornierung von #${row.id} (${row.email}) rückgängig machen?`)) return;
+    setStLoading(true); setMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/reaktivieren`, {
+        method: "POST", headers: { "x-admin-secret": SECRET },
+      });
+      const d = await r.json() as { ok?: boolean; error?: string };
+      if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
+    } catch { setMsg("Verbindungsfehler"); }
+    finally { setStLoading(false); }
+  };
+
   const personen = Array.isArray(row.personen) ? row.personen : [];
   const bezahlt = !!row.bezahlt_am;
   const versendet = !!row.ticket_versendet_am;
+  const storniert = !!row.storniert_am;
 
   const tdStyle: React.CSSProperties = {
     padding: "0.55rem 0.6rem",
@@ -504,18 +539,24 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
       )
     : null;
 
+  const rowBg = storniert
+    ? "rgba(180,60,60,0.07)"
+    : bezahlt
+      ? "rgba(46,204,113,0.04)"
+      : "transparent";
+
   return (
     <>
     {modal}
-    <tr style={{ background: bezahlt ? "rgba(46,204,113,0.04)" : "transparent" }}>
+    <tr style={{ background: rowBg, opacity: storniert ? 0.72 : 1 }}>
       {/* # */}
-      <td style={{ ...tdStyle, fontFamily: "'Playfair Display', serif", fontWeight: 700, color: A, width: "2.5rem" }}>
+      <td style={{ ...tdStyle, fontFamily: "'Playfair Display', serif", fontWeight: 700, color: storniert ? fg(0.4) : A, width: "2.5rem" }}>
         {String(row.id).padStart(3, "0")}
       </td>
 
       {/* E-Mail + Namen */}
-      <td style={{ ...tdStyle, minWidth: "160px" }}>
-        <div style={{ color: FG, marginBottom: "0.2rem" }}>{row.email}</div>
+      <td style={{ ...tdStyle, minWidth: "160px", textDecoration: storniert ? "line-through" : "none" }}>
+        <div style={{ color: storniert ? fg(0.45) : FG, marginBottom: "0.2rem" }}>{row.email}</div>
         {row.telefon && (
           <div style={{ color: fg(0.6), fontSize: "0.78rem", marginBottom: "0.15rem" }}>📞 {row.telefon}</div>
         )}
@@ -524,16 +565,16 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
       </td>
 
       {/* Personen */}
-      <td style={{ ...tdStyle, textAlign: "center", width: "2.5rem" }}>{row.personen_anzahl}</td>
+      <td style={{ ...tdStyle, textAlign: "center", width: "2.5rem", color: storniert ? fg(0.4) : FG }}>{row.personen_anzahl}</td>
 
       {/* Betrag */}
-      <td style={{ ...tdStyle, textAlign: "right", width: "3.5rem" }}>{row.betrag_gesamt} €</td>
+      <td style={{ ...tdStyle, textAlign: "right", width: "3.5rem", color: storniert ? fg(0.4) : FG }}>{row.betrag_gesamt} €</td>
 
       {/* Bezahlweg */}
-      <td style={{ ...tdStyle, width: "5rem" }}>{BW_LABEL[row.bezahlweg] ?? row.bezahlweg}</td>
+      <td style={{ ...tdStyle, width: "5rem", color: storniert ? fg(0.4) : FG }}>{BW_LABEL[row.bezahlweg] ?? row.bezahlweg}</td>
 
       {/* Angemeldet */}
-      <td style={{ ...tdStyle, color: fg(0.55), width: "5.5rem", fontSize: "0.78rem" }}>{dateFmt(row.created_at)}</td>
+      <td style={{ ...tdStyle, color: fg(0.55), width: "6rem", fontSize: "0.78rem" }}>{dateTimeFmt(row.created_at)}</td>
 
       {/* Bezahlt-Spalte */}
       <td style={{ ...tdStyle, width: "8rem" }}>
@@ -612,6 +653,35 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
             ))}
           </div>
         )}
+      </td>
+
+      {/* Stornieren / Reaktivieren */}
+      <td style={{ ...tdStyle, width: "7rem" }}>
+        {storniert ? (
+          <>
+            <div style={{ color: "#e74c3c", fontSize: "0.73rem", marginBottom: "0.3rem" }}>
+              ✕ {dateTimeFmt(row.storniert_am!)}
+            </div>
+            <button onClick={reaktivieren} disabled={stLoading} style={{
+              ...btnBase,
+              background: am(0.12),
+              color: fg(0.75),
+              border: `1px solid ${am(0.3)}`,
+            }}>
+              {stLoading ? "…" : "Reaktivieren"}
+            </button>
+          </>
+        ) : (
+          <button onClick={stornieren} disabled={stLoading} style={{
+            ...btnBase,
+            background: "transparent",
+            color: fg(0.4),
+            border: `1px solid rgba(180,60,60,0.3)`,
+          }}>
+            {stLoading ? "…" : "Stornieren"}
+          </button>
+        )}
+        {msg && storniert !== !!row.storniert_am && <div style={{ color: "#e74c3c", fontSize: "0.73rem", marginTop: "0.2rem" }}>{msg}</div>}
       </td>
     </tr>
     </>
@@ -1240,17 +1310,19 @@ export default function AdminPage() {
         <>
           {/* Bezahlt-Zusammenfassung */}
           {anmeldungenRows.length > 0 && (() => {
-            const bezahlt   = anmeldungenRows.filter(r => r.bezahlt_am).length;
-            const versendet = anmeldungenRows.filter(r => r.ticket_versendet_am).length;
-            const sumPersonen = anmeldungenRows.reduce((s, r) => s + r.personen_anzahl, 0);
-            const sumBetrag   = anmeldungenRows.reduce((s, r) => s + r.betrag_gesamt, 0);
-            const sumBezahlt  = anmeldungenRows.filter(r => r.bezahlt_am).reduce((s, r) => s + r.betrag_gesamt, 0);
+            const stornierte  = anmeldungenRows.filter(r => r.storniert_am);
+            const aktive      = anmeldungenRows.filter(r => !r.storniert_am);
+            const bezahlt     = aktive.filter(r => r.bezahlt_am).length;
+            const versendet   = aktive.filter(r => r.ticket_versendet_am).length;
+            const sumPersonen = aktive.reduce((s, r) => s + r.personen_anzahl, 0);
+            const sumBetrag   = aktive.reduce((s, r) => s + r.betrag_gesamt, 0);
+            const sumBezahlt  = aktive.filter(r => r.bezahlt_am).reduce((s, r) => s + r.betrag_gesamt, 0);
             return (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "2rem" }}>
-                <StatCard n={anmeldungenRows.length} label="Anmeldungen" />
+                <StatCard n={aktive.length} label="Anmeldungen" sub={stornierte.length > 0 ? `${stornierte.length} storniert` : undefined} />
                 <StatCard n={sumPersonen}            label="Personen gesamt" />
-                <StatCard n={`${bezahlt} / ${anmeldungenRows.length}`} label="Bezahlt" />
-                <StatCard n={`${versendet} / ${anmeldungenRows.length}`} label="Tickets versendet" />
+                <StatCard n={`${bezahlt} / ${aktive.length}`} label="Bezahlt" />
+                <StatCard n={`${versendet} / ${aktive.length}`} label="Tickets versendet" />
                 <StatCard n={`${sumBetrag} €`}       label="Erwartet gesamt" />
                 <StatCard n={`${sumBezahlt} €`}      label="Eingegangen" />
               </div>
@@ -1268,7 +1340,7 @@ export default function AdminPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ borderBottom: `2px solid ${am(0.3)}` }}>
-                      {(["#", "E-Mail / Namen", "Pers.", "Betrag", "Weg", "Angemeldet", "Bezahlt", "Tickets"] as const).map(h => (
+                      {(["#", "E-Mail / Namen", "Pers.", "Betrag", "Weg", "Angemeldet", "Bezahlt", "Tickets", ""] as const).map(h => (
                         <th key={h} style={{
                           padding: "0.4rem 0.6rem",
                           fontFamily: "'Playfair Display', serif",

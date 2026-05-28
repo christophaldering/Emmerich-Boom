@@ -28,6 +28,7 @@ import type {
   InteresseResponse,
   InteressentenCount,
   OkResult,
+  StoRnierungResult,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -598,7 +599,7 @@ export const useUpdateDisplayName = <
 };
 
 /**
- * Liefert die Gesamtzahl angemeldeter Personen
+ * Liefert die Gesamtzahl angemeldeter Personen (stornierte ausgeschlossen)
  * @summary Anmeldungsstatistik abrufen
  */
 export const getGetAnmeldungStatsUrl = () => {
@@ -672,3 +673,173 @@ export function useGetAnmeldungStats<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Setzt storniert_am auf now(). Stille Aktion — kein Mail an Teilnehmer.
+ * @summary Anmeldung intern stornieren
+ */
+export const getStornierenAnmeldungUrl = (id: number) => {
+  return `/api/admin/anmeldungen/${id}/stornieren`;
+};
+
+export const stornierenAnmeldung = async (
+  id: number,
+  options?: RequestInit,
+): Promise<StoRnierungResult> => {
+  return customFetch<StoRnierungResult>(getStornierenAnmeldungUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getStornierenAnmeldungMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stornierenAnmeldung>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof stornierenAnmeldung>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["stornierenAnmeldung"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof stornierenAnmeldung>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return stornierenAnmeldung(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type StornierenAnmeldungMutationResult = NonNullable<
+  Awaited<ReturnType<typeof stornierenAnmeldung>>
+>;
+
+export type StornierenAnmeldungMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Anmeldung intern stornieren
+ */
+export const useStornierenAnmeldung = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof stornierenAnmeldung>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof stornierenAnmeldung>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getStornierenAnmeldungMutationOptions(options));
+};
+
+/**
+ * Setzt storniert_am zurück auf null. Stille Aktion — kein Mail an Teilnehmer.
+ * @summary Stornierung einer Anmeldung rückgängig machen
+ */
+export const getReaktivierenAnmeldungUrl = (id: number) => {
+  return `/api/admin/anmeldungen/${id}/reaktivieren`;
+};
+
+export const reaktivierenAnmeldung = async (
+  id: number,
+  options?: RequestInit,
+): Promise<OkResult> => {
+  return customFetch<OkResult>(getReaktivierenAnmeldungUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getReaktivierenAnmeldungMutationOptions = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof reaktivierenAnmeldung>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof reaktivierenAnmeldung>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["reaktivierenAnmeldung"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof reaktivierenAnmeldung>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return reaktivierenAnmeldung(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ReaktivierenAnmeldungMutationResult = NonNullable<
+  Awaited<ReturnType<typeof reaktivierenAnmeldung>>
+>;
+
+export type ReaktivierenAnmeldungMutationError = ErrorType<ApiError>;
+
+/**
+ * @summary Stornierung einer Anmeldung rückgängig machen
+ */
+export const useReaktivierenAnmeldung = <
+  TError = ErrorType<ApiError>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof reaktivierenAnmeldung>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof reaktivierenAnmeldung>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getReaktivierenAnmeldungMutationOptions(options));
+};

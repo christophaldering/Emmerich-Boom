@@ -128,9 +128,42 @@ export const UpdateDisplayNameResponse = zod.object({
 });
 
 /**
- * Liefert die Gesamtzahl angemeldeter Personen
+ * Liefert die Gesamtzahl angemeldeter Personen (stornierte ausgeschlossen)
  * @summary Anmeldungsstatistik abrufen
  */
 export const GetAnmeldungStatsResponse = zod.object({
   angemeldete_personen: zod.number(),
+});
+
+/**
+ * Setzt storniert_am auf now(). Stille Aktion — kein Mail an Teilnehmer.
+ * @summary Anmeldung intern stornieren
+ */
+export const StornierenAnmeldungParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const StornierenAnmeldungHeader = zod.object({
+  "x-admin-secret": zod.string(),
+});
+
+export const StornierenAnmeldungResponse = zod.object({
+  ok: zod.boolean(),
+  storniert_am: zod.date(),
+});
+
+/**
+ * Setzt storniert_am zurück auf null. Stille Aktion — kein Mail an Teilnehmer.
+ * @summary Stornierung einer Anmeldung rückgängig machen
+ */
+export const ReaktivierenAnmeldungParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ReaktivierenAnmeldungHeader = zod.object({
+  "x-admin-secret": zod.string(),
+});
+
+export const ReaktivierenAnmeldungResponse = zod.object({
+  ok: zod.boolean(),
 });

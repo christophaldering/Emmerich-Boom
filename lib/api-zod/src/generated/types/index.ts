@@ -22,3 +22,4 @@ export * from "./interessentenCount";
 export * from "./interesseResponse";
 export * from "./interesseStats";
 export * from "./okResult";
+export * from "./stoRnierungResult";

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db, anmeldungenTable } from "@workspace/db";
-import { sql, sum, eq } from "drizzle-orm";
+import { sql, sum, eq, isNull } from "drizzle-orm";
 import { sendBestaetigung } from "../services/mailer.js";
 
 const router = Router();
@@ -35,7 +35,8 @@ router.get("/anmeldung/stats", async (req, res) => {
   try {
     const result = await db
       .select({ total: sum(anmeldungenTable.personen_anzahl) })
-      .from(anmeldungenTable);
+      .from(anmeldungenTable)
+      .where(isNull(anmeldungenTable.storniert_am));
     const angemeldete_personen = Number(result[0]?.total ?? 0);
     res.json({ angemeldete_personen });
   } catch (err) {

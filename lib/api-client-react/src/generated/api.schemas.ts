@@ -117,6 +117,11 @@ export interface DisplayNamesSyncResult {
   synced: number;
 }
 
+export interface StoRnierungResult {
+  ok: boolean;
+  storniert_am: string;
+}
+
 export interface OkResult {
   ok: boolean;
 }
