@@ -5,13 +5,6 @@ import {
   getGetAnmeldungStatsQueryKey,
 } from "@workspace/api-client-react";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
-function navigateToAnmeldung() {
-  window.history.pushState({}, "", `${BASE}/anmeldung`);
-  window.dispatchEvent(new PopStateEvent("popstate"));
-}
-
 export default function SiteHeader() {
   const [visible, setVisible] = useState(false);
   const { isPlaying, toggle } = useHymneAudio();
@@ -21,12 +14,21 @@ export default function SiteHeader() {
 
   const angemeldete = statsData?.angemeldete_personen ?? 0;
 
+  // Show header once the poster sentinel (placed right after Poster) leaves viewport
   useEffect(() => {
-    const check = () => setVisible(window.scrollY > window.innerHeight * 0.85);
-    window.addEventListener("scroll", check, { passive: true });
-    check();
-    return () => window.removeEventListener("scroll", check);
+    const sentinel = document.getElementById("poster-sentinel");
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, []);
+
+  function scrollToFormular() {
+    document.getElementById("formular")?.scrollIntoView({ behavior: "smooth" });
+  }
 
   return (
     <>
@@ -59,7 +61,6 @@ export default function SiteHeader() {
           transform: translateY(0);
           pointer-events: auto;
         }
-        /* Left: event name */
         .sh-title {
           font-family: 'Lora', Georgia, serif;
           font-style: italic;
@@ -75,7 +76,6 @@ export default function SiteHeader() {
           line-height: 1;
         }
         .sh-title:hover { color: rgba(232,153,26,0.85); }
-        /* Middle: play + count */
         .sh-center {
           display: flex;
           align-items: center;
@@ -119,7 +119,6 @@ export default function SiteHeader() {
           color: rgba(245,232,200,0.5);
           letter-spacing: 0.04em;
         }
-        /* Right: CTA */
         .sh-cta {
           flex-shrink: 0;
           font-family: 'Lora', Georgia, serif;
@@ -135,7 +134,6 @@ export default function SiteHeader() {
           transition: filter 0.15s;
         }
         .sh-cta:hover { filter: brightness(1.12); }
-        /* Mobile: hide title */
         @media (max-width: 480px) {
           .sh-title { display: none; }
           .sh-center { justify-content: flex-start; }
@@ -143,7 +141,7 @@ export default function SiteHeader() {
       `}</style>
 
       <div className={`sh-wrap ${visible ? "sh-visible" : "sh-hidden"}`}>
-        {/* Left */}
+        {/* Left — event name, click scrolls back to top */}
         <button
           className="sh-title"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -152,7 +150,7 @@ export default function SiteHeader() {
           Emmerich boomt!
         </button>
 
-        {/* Center */}
+        {/* Center — play/pause + live count */}
         <div className="sh-center">
           <button
             className="sh-play-btn"
@@ -171,16 +169,14 @@ export default function SiteHeader() {
             )}
           </button>
 
-          {angemeldete > 0 && (
-            <div className="sh-stat">
-              <span className="sh-stat-num">{angemeldete}</span>
-              <span className="sh-stat-label">dabei</span>
-            </div>
-          )}
+          <div className="sh-stat">
+            <span className="sh-stat-num">{angemeldete}</span>
+            <span className="sh-stat-label">dabei</span>
+          </div>
         </div>
 
-        {/* Right */}
-        <button className="sh-cta" onClick={navigateToAnmeldung}>
+        {/* Right — CTA smooth-scrolls to #formular */}
+        <button className="sh-cta" onClick={scrollToFormular}>
           Anmelden →
         </button>
       </div>
