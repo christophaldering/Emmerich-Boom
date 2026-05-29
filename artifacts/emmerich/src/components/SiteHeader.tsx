@@ -26,8 +26,10 @@ export default function SiteHeader() {
     return () => observer.disconnect();
   }, []);
 
-  function scrollToFormular() {
-    document.getElementById("formular")?.scrollIntoView({ behavior: "smooth" });
+  const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+  function goToAnmeldung() {
+    window.history.pushState({}, "", `${BASE}/anmeldung`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
   }
 
   return (
@@ -208,7 +210,7 @@ export default function SiteHeader() {
         </div>
 
         {/* Right — CTA smooth-scrolls to #formular */}
-        <button className="sh-cta" onClick={scrollToFormular}>
+        <button className="sh-cta" onClick={goToAnmeldung}>
           Anmelden →
         </button>
       </div>
