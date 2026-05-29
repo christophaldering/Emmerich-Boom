@@ -1,9 +1,7 @@
 import { PHASE2_CONFIG } from "@/config/phase2";
 import TicketSVG from "@/components/TicketSVG";
 import TicketRueckseite from "@/components/TicketRueckseite";
-import { AnmeldungBar } from "@/components/AnmeldungCounter";
-import { useGetInteressentenCount, getGetInteressentenCountQueryKey } from "@workspace/api-client-react";
-import { INTERESSENTEN_OFFSET } from "@/lib/config";
+import { useGetAnmeldungStats, getGetAnmeldungStatsQueryKey } from "@workspace/api-client-react";
 
 interface ErfolgsektionProps {
   anzahl: number;
@@ -15,11 +13,10 @@ interface ErfolgsektionProps {
 export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket_codes }: ErfolgsektionProps) {
   const betrag = anzahl * PHASE2_CONFIG.PREIS_PRO_PERSON;
 
-  const { data: interesData } = useGetInteressentenCount({
-    query: { queryKey: getGetInteressentenCountQueryKey() },
+  const { data: statsData } = useGetAnmeldungStats({
+    query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 30000 },
   });
-  const basis = (interesData?.count ?? 0) + INTERESSENTEN_OFFSET;
-  const angemeldete = ticket_nummern.length > 0 ? Math.max(...ticket_nummern) : 0;
+  const angemeldete = statsData?.angemeldete_personen ?? 0;
 
   return (
     <section
@@ -186,7 +183,7 @@ export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket
         </p>
       </div>
 
-      {/* Fortschrittsbalken */}
+      {/* Anmelde-Zähler */}
       {angemeldete > 0 && (
         <div
           style={{
@@ -203,26 +200,13 @@ export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket
               fontSize: "0.9rem",
               color: "var(--fg-65)",
               lineHeight: 1.6,
-              margin: "0 0 0.75rem",
+              margin: 0,
             }}
           >
-            {basis > 0 ? (
-              <>
-                Ihr seid jetzt{" "}
-                <strong style={{ color: "var(--amber)", fontWeight: 600 }}>{angemeldete}</strong>{" "}
-                von{" "}
-                <strong style={{ color: "var(--fg-85)", fontWeight: 600 }}>{basis}</strong>{" "}
-                Interessenten dabei.
-              </>
-            ) : (
-              <>
-                Insgesamt{" "}
-                <strong style={{ color: "var(--amber)", fontWeight: 600 }}>{angemeldete}</strong>{" "}
-                {angemeldete === 1 ? "Person" : "Personen"} angemeldet.
-              </>
-            )}
+            Ihr seid jetzt dabei — insgesamt{" "}
+            <strong style={{ color: "var(--amber)", fontWeight: 600 }}>{angemeldete}</strong>{" "}
+            {angemeldete === 1 ? "Boomer angemeldet" : "Boomer angemeldet"}.
           </p>
-          <AnmeldungBar angemeldete={angemeldete} basis={basis > 0 ? basis : angemeldete} />
         </div>
       )}
 

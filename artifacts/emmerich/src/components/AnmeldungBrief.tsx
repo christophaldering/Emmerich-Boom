@@ -1,7 +1,13 @@
 import { useReveal } from "@/hooks/useReveal";
+import { useGetInteressentenCount, getGetInteressentenCountQueryKey } from "@workspace/api-client-react";
+import { INTERESSENTEN_OFFSET } from "@/lib/config";
 
 export default function AnmeldungBrief() {
   const ref = useReveal();
+  const { data: interesData } = useGetInteressentenCount({
+    query: { queryKey: getGetInteressentenCountQueryKey(), refetchInterval: 300000 },
+  });
+  const count = interesData?.count != null ? interesData.count + INTERESSENTEN_OFFSET : null;
 
   return (
     <section
@@ -19,7 +25,7 @@ export default function AnmeldungBrief() {
           marginBottom: "2rem",
         }}
       >
-        129 Daumen hoch. Wir sind ehrlich gesagt baff.
+        {count != null ? `${count} Daumen hoch.` : "Daumen hoch."} Wir sind ehrlich gesagt baff.
       </h2>
 
       <div className="reveal d2">
