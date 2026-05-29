@@ -4,8 +4,7 @@ import {
   getGetAnmeldungStatsQueryKey,
 } from "@workspace/api-client-react";
 
-const DOTS_PER_ROW = 15;
-const DOT_STAGGER_MS = 6;
+const BASIS = 129;
 
 function getComment(angemeldet: number): string {
   if (angemeldet <= 24)
@@ -53,43 +52,6 @@ function useCounter(target: number, duration = 900, active: boolean) {
   return value;
 }
 
-function DotGrid({
-  count,
-  visible,
-}: {
-  count: number;
-  visible: boolean;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "5px",
-        maxWidth: `${DOTS_PER_ROW * (10 + 5) - 5}px`,
-        alignContent: "flex-start",
-      }}
-    >
-      {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          style={{
-            width: "10px",
-            height: "10px",
-            borderRadius: "50%",
-            background: "#E8991A",
-            flexShrink: 0,
-            opacity: visible ? 1 : 0,
-            transition: visible
-              ? `opacity 0.25s ease ${i * DOT_STAGGER_MS}ms`
-              : "none",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function AnmeldungFortschritt() {
   const { data: statsData } = useGetAnmeldungStats({
     query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 60000 },
@@ -121,6 +83,9 @@ export default function AnmeldungFortschritt() {
 
   if (angemeldete < 1) return null;
 
+  const overflow    = angemeldete > BASIS;
+  const bonusCount  = angemeldete - BASIS;
+
   return (
     <section
       ref={sectionRef}
@@ -132,83 +97,110 @@ export default function AnmeldungFortschritt() {
     >
       <style>{`
         @keyframes af-fade-up {
-          from { opacity: 0; transform: translateY(12px); }
+          from { opacity: 0; transform: translateY(14px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .af-label {
-          animation: af-fade-up 0.6s ease-out both;
-        }
-        .af-comment {
-          animation: af-fade-up 0.6s ease-out 0.25s both;
-        }
+        .af-visible .af-d0 { animation: af-fade-up 0.55s ease-out 0.00s both; }
+        .af-visible .af-d1 { animation: af-fade-up 0.55s ease-out 0.10s both; }
+        .af-visible .af-d2 { animation: af-fade-up 0.55s ease-out 0.22s both; }
+        .af-visible .af-d3 { animation: af-fade-up 0.55s ease-out 0.38s both; }
       `}</style>
 
-      <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-
-        {/* Section label */}
-        {visible && (
-          <p
-            className="af-label"
-            style={{
-              fontFamily: "'Lora', Georgia, serif",
-              fontSize: "clamp(0.72rem, 1.8vw, 0.82rem)",
-              letterSpacing: "0.13em",
-              textTransform: "uppercase",
-              color: "var(--amber)",
-              opacity: 0.6,
-              margin: "0 0 1.5rem",
-            }}
-          >
-            Anmeldungen
-          </p>
-        )}
-
-        {/* Main layout: number + dot grid */}
-        <div
+      <div
+        className={visible ? "af-visible" : ""}
+        style={{ maxWidth: "640px", margin: "0 auto" }}
+      >
+        {/* Label */}
+        <p
+          className="af-d0"
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "flex-start",
-            gap: "2rem 3rem",
+            fontFamily: "'Lora', Georgia, serif",
+            fontSize: "clamp(0.72rem, 1.8vw, 0.82rem)",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--amber)",
+            opacity: 0.6,
+            margin: "0 0 1.2rem",
           }}
         >
-          {/* Big number */}
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontWeight: 800,
-              fontSize: "clamp(5rem, 14vw, 7rem)",
-              lineHeight: 1,
-              color: "var(--amber)",
-              letterSpacing: "-0.02em",
-              minWidth: "2ch",
-              flexShrink: 0,
-            }}
-          >
-            {displayCount}
-          </div>
+          Anmeldungen
+        </p>
 
-          {/* Dot grid */}
-          <div style={{ paddingTop: "0.5rem", flex: "1 1 auto" }}>
-            <DotGrid count={angemeldete} visible={visible} />
-          </div>
-        </div>
+        {/* Big number */}
+        <p
+          className="af-d1"
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontWeight: 800,
+            fontSize: "clamp(5.5rem, 18vw, 8rem)",
+            lineHeight: 0.9,
+            color: "var(--amber)",
+            letterSpacing: "-0.03em",
+            margin: "0 0 0.6rem",
+          }}
+        >
+          {displayCount}
+        </p>
 
-        {/* Comment */}
-        {visible && (
-          <p
-            className="af-comment"
-            style={{
-              fontFamily: "'Lora', Georgia, serif",
-              fontSize: "clamp(1rem, 2.5vw, 1.15rem)",
-              lineHeight: 1.65,
-              color: "var(--fg-88)",
-              margin: "2rem 0 0",
-            }}
-          >
-            {getComment(angemeldete)}
-          </p>
-        )}
+        {/* Context line */}
+        <p
+          className="af-d2"
+          style={{
+            fontFamily: "'Lora', Georgia, serif",
+            fontSize: "clamp(1rem, 2.6vw, 1.15rem)",
+            lineHeight: 1.5,
+            color: "var(--fg-65)",
+            margin: "0 0 0.35rem",
+          }}
+        >
+          {overflow ? (
+            <>
+              Plätze vergeben
+              <span
+                style={{
+                  marginLeft: "0.75em",
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontWeight: 700,
+                  fontSize: "0.82em",
+                  color: "#f5d84a",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                +{bonusCount} über Basis
+              </span>
+            </>
+          ) : (
+            <>
+              von{" "}
+              <span
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontWeight: 700,
+                  color: "var(--warm)",
+                }}
+              >
+                {BASIS}
+              </span>{" "}
+              Interessenten haben gebucht
+            </>
+          )}
+        </p>
+
+        {/* KaI comment */}
+        <p
+          className="af-d3"
+          style={{
+            fontFamily: "'Lora', Georgia, serif",
+            fontStyle: "italic",
+            fontSize: "clamp(0.88rem, 2.2vw, 0.98rem)",
+            lineHeight: 1.7,
+            color: "var(--amber)",
+            opacity: 0.5,
+            margin: "1.2rem 0 0",
+          }}
+        >
+          {getComment(angemeldete)}
+        </p>
       </div>
     </section>
   );
