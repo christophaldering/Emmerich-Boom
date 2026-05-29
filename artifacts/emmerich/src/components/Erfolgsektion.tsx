@@ -68,7 +68,7 @@ export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket
           marginBottom: "0.5rem",
         }}
       >
-        Eure Tickets sind da.
+        So sehen eure Tickets aus.
       </p>
       <p
         style={{
@@ -76,22 +76,93 @@ export default function Erfolgsektion({ anzahl, personen, ticket_nummern, ticket
           fontSize: "0.95rem",
           color: "var(--fg-65)",
           lineHeight: 1.6,
-          marginBottom: "2.5rem",
+          marginBottom: "1.5rem",
         }}
       >
         {anzahl} {anzahl === 1 ? "Person" : "Personen"} ·{" "}
         <strong style={{ color: "var(--amber)" }}>{betrag} €</strong> gesamt
       </p>
 
+      {/* Vorschau-Hinweis */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          background: "rgba(232,153,26,0.07)",
+          border: "1px solid rgba(232,153,26,0.3)",
+          borderLeft: "3px solid var(--amber)",
+          borderRadius: "0 4px 4px 0",
+          padding: "0.65rem 1rem",
+          marginBottom: "1.8rem",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'Lora', serif",
+            fontSize: "0.72rem",
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            color: "var(--amber)",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          Vorschau
+        </span>
+        <span
+          style={{
+            fontFamily: "'Lora', serif",
+            fontSize: "0.88rem",
+            color: "var(--fg-65)",
+            lineHeight: 1.5,
+          }}
+        >
+          Die echten Tickets werden nach Zahlungseingang an deine E-Mail-Adresse geschickt.
+        </span>
+      </div>
+
       {/* SVG-Tickets — Vorder- + Rückseite pro Person */}
       <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "2.5rem" }}>
         {personen.map((name, i) => (
           <div key={ticket_nummern[i] ?? i} style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            <TicketSVG
-              name={name}
-              nummer={ticket_nummern[i] ?? i + 1}
-              code={ticket_codes?.[i]}
-            />
+            {/* Ticket mit VORSCHAU-Stempel */}
+            <div style={{ position: "relative" }}>
+              <TicketSVG
+                name={name}
+                nummer={ticket_nummern[i] ?? i + 1}
+                code={ticket_codes?.[i]}
+              />
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  pointerEvents: "none",
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Playfair Display', serif",
+                    fontWeight: 800,
+                    fontSize: "clamp(1.6rem, 6vw, 2.4rem)",
+                    letterSpacing: "0.22em",
+                    color: "rgba(232,153,26,0.28)",
+                    transform: "rotate(-18deg)",
+                    userSelect: "none",
+                    whiteSpace: "nowrap",
+                    border: "3px solid rgba(232,153,26,0.22)",
+                    padding: "0.2em 0.6em",
+                    borderRadius: "4px",
+                  }}
+                >
+                  VORSCHAU
+                </span>
+              </div>
+            </div>
             <p style={{
               fontFamily: "'Lora', serif",
               fontStyle: "italic",
