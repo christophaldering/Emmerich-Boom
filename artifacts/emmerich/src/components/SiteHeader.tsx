@@ -99,11 +99,25 @@ export default function SiteHeader() {
         }
         .sh-play-btn:hover { filter: brightness(1.15); }
         .sh-play-btn svg { width: 11px; height: 11px; fill: #0A0704; }
+        .sh-play-label {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.75rem;
+          color: rgba(232,153,26,0.75);
+          white-space: nowrap;
+          letter-spacing: 0.04em;
+          flex-shrink: 0;
+        }
         .sh-stat {
           display: flex;
           align-items: baseline;
           gap: 0.3em;
           white-space: nowrap;
+        }
+        .sh-stat-pre {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.65rem;
+          color: rgba(245,232,200,0.45);
+          letter-spacing: 0.03em;
         }
         .sh-stat-num {
           font-family: 'Playfair Display', Georgia, serif;
@@ -118,6 +132,20 @@ export default function SiteHeader() {
           font-size: 0.7rem;
           color: rgba(245,232,200,0.5);
           letter-spacing: 0.04em;
+        }
+        .sh-stat-sep {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.7rem;
+          color: rgba(245,232,200,0.25);
+        }
+        .sh-stat-avail {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.7rem;
+          color: rgba(245,232,200,0.4);
+          letter-spacing: 0.02em;
+        }
+        @media (max-width: 400px) {
+          .sh-stat-sep, .sh-stat-avail { display: none; }
         }
         .sh-cta {
           flex-shrink: 0;
@@ -168,10 +196,14 @@ export default function SiteHeader() {
               </svg>
             )}
           </button>
+          <span className="sh-play-label">Hymne</span>
 
           <div className="sh-stat">
+            <span className="sh-stat-pre">Schon</span>
             <span className="sh-stat-num">{angemeldete}</span>
             <span className="sh-stat-label">dabei</span>
+            <span className="sh-stat-sep"> · </span>
+            <span className="sh-stat-avail">noch Plätze frei</span>
           </div>
         </div>
 
