@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { interessenten, kiRequests, anmeldungenTable } from "@workspace/db";
-import { desc, gte, count, isNotNull } from "drizzle-orm";
+import { desc, gte, count, isNull } from "drizzle-orm";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router = Router();
@@ -107,11 +107,10 @@ export async function generateKaiComment(): Promise<void> {
         song: anmeldungenTable.song,
       })
       .from(anmeldungenTable)
-      .where(isNotNull(anmeldungenTable.song))
+      .where(isNull(anmeldungenTable.storniert_am))
       .orderBy(desc(anmeldungenTable.created_at));
 
     const phase2Eintraege: Phase2Entry[] = anmeldungRows
-      .filter((r) => r.song && r.song.trim() !== "")
       .map((r) => {
         const personen = r.personen as Array<{ name?: string }> | null;
         const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : "Angemeldete Person";
@@ -163,11 +162,10 @@ router.post("/stimmung/regenerate", async (req, res) => {
         song: anmeldungenTable.song,
       })
       .from(anmeldungenTable)
-      .where(isNotNull(anmeldungenTable.song))
+      .where(isNull(anmeldungenTable.storniert_am))
       .orderBy(desc(anmeldungenTable.created_at));
 
     const phase2EintraegeRegen: Phase2Entry[] = anmeldungRowsRegen
-      .filter((r) => r.song && r.song.trim() !== "")
       .map((r) => {
         const personen = r.personen as Array<{ name?: string }> | null;
         const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : "Angemeldete Person";

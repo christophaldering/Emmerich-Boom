@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "@workspace/db";
 import { interessenten, anmeldungenTable, displayNamesTable } from "@workspace/db";
-import { count, desc, eq, isNotNull, ne, sql } from "drizzle-orm";
+import { count, desc, eq, isNull, ne, sql } from "drizzle-orm";
 import { generateKaiComment } from "./stimmung";
 
 const router = Router();
@@ -81,7 +81,7 @@ router.get("/interesse", async (_req, res) => {
         createdAt: anmeldungenTable.created_at,
       })
       .from(anmeldungenTable)
-      .where(isNotNull(anmeldungenTable.song))
+      .where(isNull(anmeldungenTable.storniert_am))
       .orderBy(desc(anmeldungenTable.created_at)),
     db
       .select({
@@ -104,7 +104,6 @@ router.get("/interesse", async (_req, res) => {
   );
 
   const anmeldungWishes = anmeldungRows
-    .filter((r) => r.song && r.song.trim() !== "")
     .map((r) => {
       const personen = r.personen as Array<{ name?: string }> | null;
       const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : r.email;
