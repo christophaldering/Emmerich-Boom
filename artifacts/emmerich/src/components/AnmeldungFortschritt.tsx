@@ -18,10 +18,10 @@ function getComment(angemeldet: number): string {
   if (angemeldet <= 149)
     return "Alle ursprünglichen Interessenten sind dabei — und es kommen noch welche dazu.";
   if (angemeldet <= 199)
-    return "150 Leute. Das war so nicht geplant — und ist trotzdem genau richtig.";
+    return "Das war so nicht geplant — und ist trotzdem genau richtig.";
   if (angemeldet <= 249)
-    return "200 Anmeldungen. Ernsthaft. Das ist keine Geburtstagsfeier mehr, das ist eine Bewegung.";
-  return "250 und mehr. Irgendwas haben wir hier losgetreten. Emmerich, wir müssen reden.";
+    return "Ernsthaft. Das ist keine Geburtstagsfeier mehr, das ist eine Bewegung.";
+  return "Irgendwas haben wir hier losgetreten. Emmerich, wir müssen reden.";
 }
 
 function useCounter(target: number, duration = 900, active: boolean) {
