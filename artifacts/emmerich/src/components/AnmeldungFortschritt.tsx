@@ -155,7 +155,7 @@ export default function AnmeldungFortschritt() {
         >
           {overflow ? (
             <>
-              Plätze vergeben
+              Boomers dabei
               <span
                 style={{
                   marginLeft: "0.75em",
@@ -166,7 +166,7 @@ export default function AnmeldungFortschritt() {
                   letterSpacing: "0.02em",
                 }}
               >
-                +{bonusCount} über Basis
+                +{bonusCount} extra
               </span>
             </>
           ) : (
@@ -181,7 +181,7 @@ export default function AnmeldungFortschritt() {
               >
                 {BASIS}
               </span>{" "}
-              Interessenten haben gebucht
+              haben zugesagt
             </>
           )}
         </p>
