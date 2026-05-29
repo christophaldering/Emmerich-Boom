@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -353,7 +353,12 @@ const BW_LABEL: Record<string, string> = { ueberweisung: "Überw.", paypal: "Pay
 
 // ── Anmeldungen-Tabelle ─────────────────────────────────────────────────────
 
-function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: () => void }) {
+function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
+  row: AnmeldungRow;
+  onRefresh: () => void;
+  selected?: boolean;
+  onToggle?: (id: number) => void;
+}) {
   const [bzLoading, setBzLoading] = useState(false);
   const [tkLoading, setTkLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<"png" | "pdf" | null>(null);
@@ -549,6 +554,17 @@ function AnmeldungTableRow({ row, onRefresh }: { row: AnmeldungRow; onRefresh: (
     <>
     {modal}
     <tr style={{ background: rowBg, opacity: storniert ? 0.72 : 1 }}>
+      {/* Checkbox */}
+      <td style={{ ...tdStyle, width: "1.8rem", textAlign: "center", verticalAlign: "middle", paddingLeft: "0.4rem", paddingRight: "0.2rem" }}>
+        {onToggle && (
+          <input
+            type="checkbox"
+            checked={selected ?? false}
+            onChange={() => onToggle(row.id)}
+            style={{ cursor: "pointer", accentColor: A, width: "14px", height: "14px" }}
+          />
+        )}
+      </td>
       {/* # */}
       <td style={{ ...tdStyle, fontFamily: "'Playfair Display', serif", fontWeight: 700, color: storniert ? fg(0.4) : A, width: "2.5rem" }}>
         {String(row.id).padStart(3, "0")}
@@ -940,13 +956,14 @@ function visitOrdinal(n: number | null): string {
 
 interface AlleTicketsEntry {
   id: number;
-  anmeldung_id: number;
+  anmeldung_id: number | null;
   person_name: string;
   ticket_nummer: string;
   ticket_code: string;
   versendet_am: string | null;
   eingelassen_am: string | null;
   created_at: string;
+  is_freiticket?: boolean;
 }
 
 interface MonitorTicket {
@@ -962,14 +979,15 @@ interface MonitorData {
   eingelassen: MonitorTicket[]; nicht_da: MonitorTicket[]; scan_log: MonitorLog[];
 }
 
-type Tab = "anmeldungen" | "tickets" | "einlass" | "statistik" | "namen";
+type Tab = "anmeldungen" | "tickets" | "einzeltickets" | "einlass" | "statistik" | "namen";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "anmeldungen", label: "Interessenten" },
-  { id: "tickets",     label: "Tickets" },
-  { id: "namen",       label: "Namen" },
-  { id: "einlass",     label: "Einlass" },
-  { id: "statistik",   label: "Statistik" },
+  { id: "anmeldungen",   label: "Interessenten" },
+  { id: "tickets",       label: "Anmeldungen" },
+  { id: "einzeltickets", label: "Einzeltickets" },
+  { id: "namen",         label: "Namen" },
+  { id: "einlass",       label: "Einlass" },
+  { id: "statistik",     label: "Statistik" },
 ];
 
 interface DisplayNameRow {
@@ -1090,6 +1108,12 @@ export default function AdminPage() {
   const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
   const [nameSyncing, setNameSyncing] = useState(false);
   const [nameSavePending, setNameSavePending] = useState<number | null>(null);
+  const [sortCol, setSortCol]           = useState<"id" | "betrag" | "personen" | "created" | "bezahlt">("id");
+  const [sortDir, setSortDir]           = useState<"asc" | "desc">("asc");
+  const [filterText, setFilterText]     = useState("");
+  const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
+  const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
+  const [bulkLoading, setBulkLoading]   = useState(false);
 
   const loadDisplayNames = useCallback(async () => {
     try {
@@ -1212,6 +1236,59 @@ export default function AdminPage() {
 
   const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets]);
 
+  const displayRows = useMemo(() => {
+    let rows = [...anmeldungenRows];
+    if (filterText.trim()) {
+      const q = filterText.trim().toLowerCase();
+      rows = rows.filter(r =>
+        r.email.toLowerCase().includes(q) ||
+        r.personen.some(p => p.toLowerCase().includes(q)) ||
+        String(r.id).includes(q)
+      );
+    }
+    if (filterStatus === "bezahlt")        rows = rows.filter(r => !!r.bezahlt_am && !r.storniert_am);
+    else if (filterStatus === "unbezahlt") rows = rows.filter(r => !r.bezahlt_am && !r.storniert_am);
+    else if (filterStatus === "storniert") rows = rows.filter(r => !!r.storniert_am);
+    rows = [...rows].sort((a, b) => {
+      let cmp = 0;
+      switch (sortCol) {
+        case "betrag":   cmp = a.betrag_gesamt - b.betrag_gesamt; break;
+        case "personen": cmp = a.personen_anzahl - b.personen_anzahl; break;
+        case "bezahlt": {
+          const ta = a.bezahlt_am ? new Date(a.bezahlt_am).getTime() : 0;
+          const tb = b.bezahlt_am ? new Date(b.bezahlt_am).getTime() : 0;
+          cmp = ta - tb; break;
+        }
+        case "created": {
+          cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); break;
+        }
+        default: cmp = a.id - b.id;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return rows;
+  }, [anmeldungenRows, filterText, filterStatus, sortCol, sortDir]);
+
+  const handleBulkBezahlt = useCallback(async () => {
+    const targets = [...selectedIds].filter(id => {
+      const row = anmeldungenRows.find(r => r.id === id);
+      return row && !row.bezahlt_am && !row.storniert_am;
+    });
+    if (targets.length === 0) { setSelectedIds(new Set()); return; }
+    setBulkLoading(true);
+    await Promise.all(
+      targets.map(id =>
+        fetch(`${BASE}/api/admin/anmeldungen/${id}/bezahlt`, {
+          method: "POST",
+          headers: { "x-admin-secret": SECRET },
+        }).catch(() => {})
+      )
+    );
+    setBulkLoading(false);
+    setSelectedIds(new Set());
+    loadAnmeldungen();
+  }, [selectedIds, anmeldungenRows, loadAnmeldungen]);
+
   const handleFreischalten = useCallback(async (code: string) => {
     setEinlassPending(code);
     await fetch(`${BASE}/api/ticket/${code}/freischalten`, {
@@ -1329,57 +1406,206 @@ export default function AdminPage() {
             );
           })()}
 
-          <SectionTitle>Phase-2-Anmeldungen ({anmeldungenRows.length})</SectionTitle>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55), marginTop: "-0.75rem", marginBottom: "1.25rem" }}>
-            Grüne Zeile = bezahlt. Zuerst „Als bezahlt" markieren, dann Tickets versenden.
+          {/* ── Filter + Suche ── */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.7rem", alignItems: "center" }}>
+            <input
+              type="text"
+              value={filterText}
+              onChange={e => setFilterText(e.target.value)}
+              placeholder="E-Mail oder Name …"
+              style={{
+                background: "rgba(245,232,200,0.06)",
+                border: `1px solid ${am(0.3)}`,
+                borderRadius: "4px",
+                color: FG,
+                padding: "0.35rem 0.75rem",
+                fontFamily: "'Lora', serif",
+                fontSize: "0.83rem",
+                outline: "none",
+                flex: "1 1 180px",
+                maxWidth: "280px",
+              }}
+            />
+            {(["alle", "bezahlt", "unbezahlt", "storniert"] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => setFilterStatus(s)}
+                style={{
+                  background: filterStatus === s ? am(0.18) : "transparent",
+                  border: `1px solid ${filterStatus === s ? am(0.5) : am(0.22)}`,
+                  borderRadius: "4px",
+                  color: filterStatus === s ? A : am(0.65),
+                  cursor: "pointer",
+                  fontFamily: "'Lora', serif",
+                  fontSize: "0.78rem",
+                  padding: "0.3rem 0.65rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {s === "alle" ? "Alle" : s === "bezahlt" ? "Bezahlt" : s === "unbezahlt" ? "Ausstehend" : "Storniert"}
+              </button>
+            ))}
+            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: fg(0.4), marginLeft: "auto", whiteSpace: "nowrap" }}>
+              {displayRows.length !== anmeldungenRows.length
+                ? `${displayRows.length} / ${anmeldungenRows.length}`
+                : `${anmeldungenRows.length}`}{" "}Einträge
+            </span>
+          </div>
+
+          {/* ── Bulk-Aktion ── */}
+          {selectedIds.size > 0 && (
+            <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", marginBottom: "0.7rem", background: am(0.08), border: `1px solid ${am(0.28)}`, borderRadius: "4px", padding: "0.45rem 0.85rem", flexWrap: "wrap" }}>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: A }}>
+                {selectedIds.size} ausgewählt
+              </span>
+              <button
+                onClick={() => void handleBulkBezahlt()}
+                disabled={bulkLoading}
+                style={{
+                  background: A, border: "none", borderRadius: "3px",
+                  color: BG, cursor: bulkLoading ? "wait" : "pointer",
+                  fontFamily: "'Lora', serif", fontSize: "0.78rem", fontWeight: 700,
+                  padding: "0.3rem 0.75rem", opacity: bulkLoading ? 0.6 : 1,
+                }}
+              >
+                {bulkLoading ? "…" : "Als bezahlt markieren"}
+              </button>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                style={{
+                  background: "transparent", border: `1px solid ${fg(0.15)}`,
+                  borderRadius: "3px", color: fg(0.5), cursor: "pointer",
+                  fontFamily: "'Lora', serif", fontSize: "0.78rem",
+                  padding: "0.3rem 0.6rem",
+                }}
+              >
+                Auswahl aufheben
+              </button>
+            </div>
+          )}
+
+          <SectionTitle>
+            Phase-2-Anmeldungen ({displayRows.length !== anmeldungenRows.length ? `${displayRows.length} / ${anmeldungenRows.length}` : anmeldungenRows.length})
+          </SectionTitle>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55), marginTop: "-0.75rem", marginBottom: "0.75rem" }}>
+            Grüne Zeile = bezahlt. Klick auf Spaltenköpfe sortiert.
           </p>
           {anmeldungenRows.length === 0
             ? <p style={{ color: fg(0.55), fontSize: "0.92rem" }}>Noch keine Anmeldungen.</p>
-            : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr style={{ borderBottom: `2px solid ${am(0.3)}` }}>
-                      {(["#", "E-Mail / Namen", "Pers.", "Betrag", "Weg", "Angemeldet", "Bezahlt", "Tickets", ""] as const).map(h => (
-                        <th key={h} style={{
+            : displayRows.length === 0
+              ? <p style={{ color: fg(0.55), fontSize: "0.92rem", fontStyle: "italic" }}>Kein Eintrag passt zum Filter.</p>
+              : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      {(() => {
+                        const thBase: React.CSSProperties = {
                           padding: "0.4rem 0.6rem",
                           fontFamily: "'Playfair Display', serif",
                           fontWeight: 700,
                           fontSize: "0.78rem",
-                          color: A,
                           textAlign: "left",
                           whiteSpace: "nowrap",
-                        }}>{h}</th>
+                          userSelect: "none",
+                        };
+                        const sortable = (col: typeof sortCol): React.CSSProperties => ({
+                          ...thBase,
+                          color: sortCol === col ? A : am(0.72),
+                          cursor: "pointer",
+                        });
+                        const fixed: React.CSSProperties = { ...thBase, color: fg(0.45), cursor: "default" };
+                        const ind = (col: typeof sortCol) =>
+                          sortCol === col ? (sortDir === "asc" ? " ↑" : " ↓") : " ↕";
+                        const onSort = (col: typeof sortCol) => () => {
+                          if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+                          else { setSortCol(col); setSortDir("asc"); }
+                        };
+                        const allChecked = displayRows.length > 0 && displayRows.every(r => selectedIds.has(r.id));
+                        const someChecked = displayRows.some(r => selectedIds.has(r.id));
+                        return (
+                          <tr style={{ borderBottom: `2px solid ${am(0.3)}` }}>
+                            <th style={{ ...thBase, width: "1.8rem", padding: "0.4rem 0.4rem 0.4rem 0.5rem" }}>
+                              <input
+                                type="checkbox"
+                                checked={allChecked}
+                                ref={el => { if (el) el.indeterminate = someChecked && !allChecked; }}
+                                onChange={e => e.target.checked
+                                  ? setSelectedIds(new Set(displayRows.map(r => r.id)))
+                                  : setSelectedIds(new Set())
+                                }
+                                style={{ cursor: "pointer", accentColor: A, width: "14px", height: "14px" }}
+                              />
+                            </th>
+                            <th style={sortable("id")} onClick={onSort("id")}>#{ ind("id") }</th>
+                            <th style={fixed}>E-Mail / Namen</th>
+                            <th style={sortable("personen")} onClick={onSort("personen")}>Pers.{ind("personen")}</th>
+                            <th style={sortable("betrag")} onClick={onSort("betrag")}>Betrag{ind("betrag")}</th>
+                            <th style={fixed}>Weg</th>
+                            <th style={sortable("created")} onClick={onSort("created")}>Angemeldet{ind("created")}</th>
+                            <th style={sortable("bezahlt")} onClick={onSort("bezahlt")}>Bezahlt{ind("bezahlt")}</th>
+                            <th style={fixed}>Tickets</th>
+                            <th style={fixed}></th>
+                          </tr>
+                        );
+                      })()}
+                    </thead>
+                    <tbody>
+                      {displayRows.map(r => (
+                        <AnmeldungTableRow
+                          key={r.id}
+                          row={r}
+                          onRefresh={loadAnmeldungen}
+                          selected={selectedIds.has(r.id)}
+                          onToggle={id => setSelectedIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(id)) next.delete(id); else next.add(id);
+                            return next;
+                          })}
+                        />
                       ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {anmeldungenRows.map(r => (
-                      <AnmeldungTableRow key={r.id} row={r} onRefresh={loadAnmeldungen} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )
+                    </tbody>
+                  </table>
+                </div>
+              )
           }
+        </>
+      )}
 
-          {/* ── Ticket-Übersicht ── */}
-          <SectionTitle>Generierte Tickets ({alleTickets.length})</SectionTitle>
+      {/* ── Tab: Einzeltickets ── */}
+      {activeTab === "einzeltickets" && (
+        <>
+          {(() => {
+            const freitickets = alleTickets.filter(t => t.is_freiticket);
+            const phase2      = alleTickets.filter(t => !t.is_freiticket);
+            return (
+              <>
+                <SectionTitle>Einzeltickets ({alleTickets.length})</SectionTitle>
+                {alleTickets.length > 0 && (
+                  <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55), marginTop: "-0.75rem", marginBottom: "1.25rem" }}>
+                    {phase2.length} generierte{phase2.length !== 1 ? "" : "s"} Ticket{phase2.length !== 1 ? "s" : ""}
+                    {freitickets.length > 0 && ` · ${freitickets.length} Freiticket${freitickets.length !== 1 ? "s" : ""}`}
+                  </p>
+                )}
+              </>
+            );
+          })()}
           {alleTickets.length === 0
-            ? <p style={{ color: fg(0.55), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem" }}>Noch keine Tickets generiert.</p>
+            ? <p style={{ color: fg(0.55), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem" }}>Noch keine Tickets.</p>
             : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 {alleTickets.map(t => {
                   const qrValue = `${window.location.origin}${BASE}/boomer-orga-intern/ticket/${t.ticket_code}`;
-                  const numDisplay = (() => {
-                    const n = parseInt(t.ticket_nummer, 10);
-                    return isNaN(n) ? t.ticket_nummer : String(n).padStart(3, "0");
-                  })();
+                  const numDisplay = t.is_freiticket
+                    ? "FT"
+                    : (() => {
+                        const n = parseInt(t.ticket_nummer, 10);
+                        return isNaN(n) ? t.ticket_nummer : String(n).padStart(3, "0");
+                      })();
                   return (
-                    <div key={t.id} style={{
+                    <div key={`${t.is_freiticket ? "ft" : "t"}-${t.id}`} style={{
                       display: "flex", alignItems: "center", gap: "0.85rem",
-                      background: t.eingelassen_am ? "rgba(46,204,113,0.05)" : am(0.04),
-                      border: `1px solid ${t.eingelassen_am ? "rgba(46,204,113,0.2)" : am(0.18)}`,
+                      background: t.is_freiticket ? "rgba(232,153,26,0.07)" : t.eingelassen_am ? "rgba(46,204,113,0.05)" : am(0.04),
+                      border: `1px solid ${t.is_freiticket ? am(0.4) : t.eingelassen_am ? "rgba(46,204,113,0.2)" : am(0.18)}`,
                       borderRadius: "5px", padding: "0.6rem 0.85rem",
                       flexWrap: "wrap",
                     }}>
@@ -1396,10 +1622,28 @@ export default function AdminPage() {
                         <QRCodeSVG value={qrValue} size={52} level="M" />
                       </div>
 
-                      {/* Name + Code */}
+                      {/* Name + Code + Badge */}
                       <div style={{ flex: 1, minWidth: "120px" }}>
-                        <div style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", color: FG, marginBottom: "0.2rem" }}>
-                          {t.person_name}
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
+                          <div style={{ fontFamily: "'Lora', serif", fontSize: "0.92rem", color: FG }}>
+                            {t.person_name}
+                          </div>
+                          {t.is_freiticket && (
+                            <span style={{
+                              fontFamily: "'Playfair Display', serif",
+                              fontStyle: "italic",
+                              fontSize: "0.67rem",
+                              fontWeight: 700,
+                              color: BG,
+                              background: A,
+                              borderRadius: "2px",
+                              padding: "0.08rem 0.38rem",
+                              letterSpacing: "0.07em",
+                              flexShrink: 0,
+                            }}>
+                              FREITICKET
+                            </span>
+                          )}
                         </div>
                         <code style={{ fontFamily: "monospace", fontSize: "0.7rem", color: fg(0.5), letterSpacing: "0.05em" }}>
                           {t.ticket_code}
@@ -1408,13 +1652,15 @@ export default function AdminPage() {
 
                       {/* Status-Badges */}
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flexShrink: 0 }}>
-                        <span style={{
-                          fontFamily: "'Lora', serif", fontSize: "0.75rem",
-                          color: t.versendet_am ? "#2ecc71" : fg(0.4),
-                          whiteSpace: "nowrap",
-                        }}>
-                          {t.versendet_am ? `✉ ${dateFmt(t.versendet_am)}` : "– nicht versendet"}
-                        </span>
+                        {!t.is_freiticket && (
+                          <span style={{
+                            fontFamily: "'Lora', serif", fontSize: "0.75rem",
+                            color: t.versendet_am ? "#2ecc71" : fg(0.4),
+                            whiteSpace: "nowrap",
+                          }}>
+                            {t.versendet_am ? `✉ ${dateFmt(t.versendet_am)}` : "– nicht versendet"}
+                          </span>
+                        )}
                         <span style={{
                           fontFamily: "'Lora', serif", fontSize: "0.75rem",
                           color: t.eingelassen_am ? "#2ecc71" : fg(0.4),
@@ -1424,20 +1670,22 @@ export default function AdminPage() {
                         </span>
                       </div>
 
-                      {/* Download */}
-                      <a
-                        href={`${BASE}/api/ticket/${t.ticket_code}/download/pdf`}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          fontFamily: "'Lora', serif", fontSize: "0.78rem",
-                          color: am(0.75), textDecoration: "none",
-                          border: `1px solid ${am(0.3)}`, borderRadius: "3px",
-                          padding: "0.25rem 0.6rem", flexShrink: 0, whiteSpace: "nowrap",
-                        }}
-                      >
-                        PDF ↓
-                      </a>
+                      {/* Download (nur für Phase-2-Tickets) */}
+                      {!t.is_freiticket && (
+                        <a
+                          href={`${BASE}/api/ticket/${t.ticket_code}/download/pdf`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            fontFamily: "'Lora', serif", fontSize: "0.78rem",
+                            color: am(0.75), textDecoration: "none",
+                            border: `1px solid ${am(0.3)}`, borderRadius: "3px",
+                            padding: "0.25rem 0.6rem", flexShrink: 0, whiteSpace: "nowrap",
+                          }}
+                        >
+                          PDF ↓
+                        </a>
+                      )}
                     </div>
                   );
                 })}

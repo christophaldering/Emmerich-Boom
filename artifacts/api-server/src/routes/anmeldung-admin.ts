@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { db, anmeldungenTable, anmeldungTicketsTable, scanLog } from "@workspace/db";
-import { eq, sql, desc } from "drizzle-orm";
+import { db, anmeldungenTable, anmeldungTicketsTable, scanLog, tickets as legacyTicketsTable } from "@workspace/db";
+import { eq, sql, desc, isNull } from "drizzle-orm";
 import crypto from "crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -310,11 +310,11 @@ router.get("/admin/anmeldungen/:id/ticket-vorschau", async (req: Request, res: R
   }
 });
 
-// GET /api/admin/alle-tickets — alle generierten Tickets, sortiert nach ID
+// GET /api/admin/alle-tickets — alle generierten Tickets + Freitickets, sortiert nach Nummer/ID
 router.get("/admin/alle-tickets", async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
   try {
-    const tickets = await db
+    const phase2 = await db
       .select({
         id:             anmeldungTicketsTable.id,
         anmeldung_id:   anmeldungTicketsTable.anmeldung_id,
@@ -326,9 +326,27 @@ router.get("/admin/alle-tickets", async (req: Request, res: Response) => {
         created_at:     anmeldungTicketsTable.created_at,
       })
       .from(anmeldungTicketsTable)
-      // Numerische Sortierung; CASE-Fallback für Legacy-Format "EB-{id}-{idx}"
       .orderBy(sql`CASE WHEN ticket_nummer ~ '^[0-9]+$' THEN ticket_nummer::int ELSE 0 END ASC, id ASC`);
-    res.json(tickets);
+
+    const freitickets = await db
+      .select({
+        id:             legacyTicketsTable.id,
+        anmeldung_id:   legacyTicketsTable.anmeldungId,
+        person_name:    legacyTicketsTable.personName,
+        ticket_nummer:  legacyTicketsTable.ticketCode,
+        ticket_code:    legacyTicketsTable.ticketCode,
+        versendet_am:   legacyTicketsTable.paidAt,
+        eingelassen_am: legacyTicketsTable.usedAt,
+        created_at:     legacyTicketsTable.createdAt,
+      })
+      .from(legacyTicketsTable)
+      .where(isNull(legacyTicketsTable.anmeldungId));
+
+    const result = [
+      ...phase2.map(t => ({ ...t, is_freiticket: false })),
+      ...freitickets.map(t => ({ ...t, is_freiticket: true })),
+    ];
+    res.json(result);
   } catch (err) {
     req.log.error(err, "alle-tickets failed");
     res.status(500).json({ error: "Fehler beim Laden der Tickets" });
