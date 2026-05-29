@@ -1004,6 +1004,15 @@ interface DisplayNameRow {
 
 const ADMIN_BASIS = 129;
 
+const ADMIN_CHIP_MILESTONES = [129, 150, 200, 250, 300];
+
+function getAdminNextMilestone(n: number): number {
+  for (const m of ADMIN_CHIP_MILESTONES) {
+    if (n < m) return m;
+  }
+  return Math.ceil(n / 50) * 50;
+}
+
 function AdminFortschritt() {
   const { data } = useGetAnmeldungStats({
     query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 30_000 },
@@ -1012,11 +1021,22 @@ function AdminFortschritt() {
   const angemeldet = data?.angemeldete_personen ?? 0;
   if (angemeldet < 1) return null;
 
-  const trackMax = Math.max(ADMIN_BASIS, angemeldet);
-  const fillPct  = Math.min((angemeldet / trackMax) * 100, 100);
-  const overflow = angemeldet > ADMIN_BASIS;
-  const pct      = Math.round((angemeldet / ADMIN_BASIS) * 100);
-  const rest     = ADMIN_BASIS - angemeldet;
+  const overflow   = angemeldet > ADMIN_BASIS;
+  const trackMax   = Math.max(ADMIN_BASIS, getAdminNextMilestone(angemeldet));
+  const fillPct    = Math.min((angemeldet / trackMax) * 100, 100);
+  const pct        = Math.round((angemeldet / ADMIN_BASIS) * 100);
+  const rest       = ADMIN_BASIS - angemeldet;
+  const bonusCount = angemeldet - ADMIN_BASIS;
+  const basisPct   = (ADMIN_BASIS / trackMax) * 100;
+  const bonusPct   = (angemeldet / trackMax) * 100;
+  const nextMilestone = getAdminNextMilestone(angemeldet);
+  const chips = ADMIN_CHIP_MILESTONES
+    .filter(m => m <= nextMilestone)
+    .map(m => ({
+      value: m,
+      label: m === ADMIN_BASIS ? `${m} Basis` : String(m),
+      achieved: m <= angemeldet,
+    }));
 
   return (
     <div style={{
@@ -1026,46 +1046,100 @@ function AdminFortschritt() {
       padding: "0.85rem 1.1rem",
       marginBottom: "1.5rem",
     }}>
-      {/* Top row: numbers */}
-      <div style={{ display: "flex", alignItems: "baseline", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
-        <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1.5rem", color: A, lineHeight: 1 }}>
-          {angemeldet}
-        </span>
-        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.6) }}>
-          von {ADMIN_BASIS} Interessenten · <span style={{ color: overflow ? "#2ecc71" : FG, fontWeight: overflow ? 600 : 400 }}>{pct} %</span>
-        </span>
-        <span style={{ marginLeft: "auto", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: overflow ? "#2ecc71" : fg(0.55), whiteSpace: "nowrap" }}>
-          {overflow
-            ? `+${angemeldet - ADMIN_BASIS} über Basis`
-            : rest === 0
-              ? "Basis erreicht"
-              : `${rest} Platz${rest !== 1 ? "e" : ""} offen`}
-        </span>
-      </div>
+      {overflow ? (
+        /* ── OVERFLOW: Celebration ── */
+        <>
+          {/* Top row */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1.5rem", color: A, lineHeight: 1 }}>
+              {angemeldet}
+            </span>
+            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.6) }}>
+              Personen
+            </span>
+            <span style={{ marginLeft: "auto", fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.85rem", color: "#f5d84a", whiteSpace: "nowrap" }}>
+              +{bonusCount} über Basis
+            </span>
+          </div>
 
-      {/* Progress bar */}
-      <div style={{ position: "relative", height: "8px", borderRadius: "4px", background: am(0.18) }}>
-        {/* Fill */}
-        <div style={{
-          position: "absolute", inset: "0 auto 0 0",
-          width: `${fillPct}%`,
-          borderRadius: "4px",
-          background: overflow
-            ? "linear-gradient(90deg, #c87010 0%, #E8991A 55%, #2ecc71 100%)"
-            : "linear-gradient(90deg, #c87010 0%, #E8991A 60%, #f5b840 100%)",
-        }} />
-        {/* Basis marker when overflow */}
-        {overflow && (
-          <div style={{
-            position: "absolute",
-            top: "-3px", bottom: "-3px",
-            left: `${(ADMIN_BASIS / trackMax) * 100}%`,
-            width: "2px",
-            background: "rgba(245,232,200,0.4)",
-            borderRadius: "1px",
-          }} />
-        )}
-      </div>
+          {/* Two-phase bar */}
+          <div style={{ position: "relative", height: "8px", borderRadius: "4px", background: am(0.18) }}>
+            {/* Phase 1: Basis — amber, full */}
+            <div style={{
+              position: "absolute", top: 0, bottom: 0, left: 0,
+              width: `${basisPct}%`,
+              borderRadius: "4px 0 0 4px",
+              background: "linear-gradient(90deg, #c87010 0%, #E8991A 60%, #f5b840 100%)",
+            }} />
+            {/* Phase 2: Bonus — warm/golden */}
+            <div style={{
+              position: "absolute", top: 0, bottom: 0,
+              left: `${basisPct}%`,
+              width: `${bonusPct - basisPct}%`,
+              borderRadius: "0 4px 4px 0",
+              background: "linear-gradient(90deg, #f5c030 0%, #f5e060 100%)",
+            }} />
+            {/* Separator */}
+            <div style={{
+              position: "absolute",
+              top: "-3px", bottom: "-3px",
+              left: `${basisPct}%`,
+              width: "2px",
+              background: "rgba(245,232,200,0.5)",
+              borderRadius: "1px",
+            }} />
+          </div>
+
+          {/* Milestone chips */}
+          <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.6rem", flexWrap: "wrap" }}>
+            {chips.map(chip => (
+              <span key={chip.value} style={{
+                padding: "0.15rem 0.55rem",
+                borderRadius: "20px",
+                border: chip.achieved
+                  ? "1px solid rgba(245,216,80,0.4)"
+                  : "1px solid rgba(232,153,26,0.25)",
+                background: chip.achieved ? "rgba(245,216,80,0.07)" : "transparent",
+                fontFamily: "'Lora', serif",
+                fontSize: "0.68rem",
+                letterSpacing: "0.03em",
+                color: chip.achieved ? "rgba(245,216,80,0.8)" : fg(0.35),
+                whiteSpace: "nowrap",
+              }}>
+                {chip.achieved ? `✓ ${chip.label}` : `→ ${chip.label}`}
+              </span>
+            ))}
+          </div>
+        </>
+      ) : (
+        /* ── NORMAL MODE ── */
+        <>
+          {/* Top row: numbers */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.55rem" }}>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1.5rem", color: A, lineHeight: 1 }}>
+              {angemeldet}
+            </span>
+            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.6) }}>
+              von {ADMIN_BASIS} Interessenten · <span style={{ color: FG, fontWeight: 400 }}>{pct} %</span>
+            </span>
+            <span style={{ marginLeft: "auto", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.55), whiteSpace: "nowrap" }}>
+              {rest === 0
+                ? "Basis erreicht"
+                : `${rest} Platz${rest !== 1 ? "e" : ""} offen`}
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ position: "relative", height: "8px", borderRadius: "4px", background: am(0.18) }}>
+            <div style={{
+              position: "absolute", inset: "0 auto 0 0",
+              width: `${fillPct}%`,
+              borderRadius: "4px",
+              background: "linear-gradient(90deg, #c87010 0%, #E8991A 60%, #f5b840 100%)",
+            }} />
+          </div>
+        </>
+      )}
     </div>
   );
 }
