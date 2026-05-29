@@ -20,11 +20,13 @@ import TicketsTeaser from "@/components/TicketsTeaser";
 import Stempel from "@/components/Stempel";
 import Hymne from "@/components/Hymne";
 import StickyHymnePlayer from "@/components/StickyHymnePlayer";
+import SiteHeader from "@/components/SiteHeader";
 import { HymneAudioProvider } from "@/contexts/HymneAudioContext";
 
 export default function BoomerPartyPage() {
   return (
     <HymneAudioProvider>
+      <SiteHeader />
       <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
         <Poster />
         <AnmeldungFortschritt />
