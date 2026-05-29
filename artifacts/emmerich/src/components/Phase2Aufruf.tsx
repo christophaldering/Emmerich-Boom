@@ -165,20 +165,18 @@ export default function Phase2Aufruf() {
       `}</style>
 
       <div className="p2a-inner">
-        {count !== null && (
+        {angemeldete !== null && (
           <div className="p2a-hero-block reveal d1" style={{ animationDelay: "0s" }}>
-            <div className="p2a-count">{count}</div>
-            <div className="p2a-count-label">Personen haben Interesse signalisiert</div>
-            {angemeldete !== null && (
+            <div className="p2a-count">{angemeldete}</div>
+            <div className="p2a-count-label">Boomer dabei</div>
+            {count !== null && (
               <p className="p2a-secondary">
-                → <strong>{angemeldete}</strong> davon bereits angemeldet
+                → Aus <strong>{count}</strong> Interessenten wurden {angemeldete} Anmeldungen
               </p>
             )}
-            {count !== null && count > 0 && angemeldete !== null && (() => {
+            {count !== null && count > 0 && (() => {
               const pct = Math.round((angemeldete / count) * 100);
-              // Wenn mehr angemeldet als Interessenten: Track-Basis wächst mit
               const trackMax = Math.max(count, angemeldete);
-              // Füllbreite relativ zu trackMax (Interessenten-Marker liegt bei count/trackMax)
               const fillW  = Math.round((angemeldete / trackMax) * 100);
               const markW  = Math.round((count       / trackMax) * 100);
               const overflow = angemeldete > count;
@@ -198,22 +196,19 @@ export default function Phase2Aufruf() {
 
               return (
                 <div className="p2a-bar-wrap">
-                  {/* Etwas Abstand nach oben damit die Marker-Beschriftung Platz hat */}
                   <div className="p2a-bar-track" style={{ marginBottom: "1.4rem" }}>
                     <div className="p2a-bar-fill" style={{ width: `${fillW}%` }} />
-                    {/* Marker + Beschriftung bei der ursprünglichen Interessenten-Zahl */}
                     <div className="p2a-bar-marker" style={{ left: `calc(${markW}% - 1px)` }} />
                     <div className="p2a-bar-marker-label" style={{ left: `${markW}%` }}>
                       {count} Interessierte
                     </div>
-                    {/* Glühender Spike wenn Überlauf */}
                     {overflow && (
                       <div className="p2a-bar-overflow" style={{ left: `calc(${markW}% - 1px)` }} />
                     )}
                   </div>
                   <div className="p2a-bar-meta">
                     <span className="p2a-bar-pct">
-                      {pct}&thinsp;% angemeldet
+                      {pct}&thinsp;% der Interessenten haben gebucht
                     </span>
                     <span className="p2a-bar-comment">{comment}</span>
                   </div>

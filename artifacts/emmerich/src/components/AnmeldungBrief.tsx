@@ -1,13 +1,12 @@
 import { useReveal } from "@/hooks/useReveal";
-import { useGetInteressentenCount, getGetInteressentenCountQueryKey } from "@workspace/api-client-react";
-import { INTERESSENTEN_OFFSET } from "@/lib/config";
+import { useGetAnmeldungStats, getGetAnmeldungStatsQueryKey } from "@workspace/api-client-react";
 
 export default function AnmeldungBrief() {
   const ref = useReveal();
-  const { data: interesData } = useGetInteressentenCount({
-    query: { queryKey: getGetInteressentenCountQueryKey(), refetchInterval: 300000 },
+  const { data: statsData } = useGetAnmeldungStats({
+    query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 60000 },
   });
-  const count = interesData?.count != null ? interesData.count + INTERESSENTEN_OFFSET : null;
+  const angemeldete = statsData?.angemeldete_personen ?? null;
 
   return (
     <section
@@ -25,7 +24,8 @@ export default function AnmeldungBrief() {
           marginBottom: "2rem",
         }}
       >
-        {count != null ? `${count} Daumen hoch.` : "Daumen hoch."} Wir sind ehrlich gesagt baff.
+        {angemeldete != null ? `${angemeldete} Boomer dabei.` : "Schon viele dabei."}{" "}
+        Und du fehlst noch.
       </h2>
 
       <div className="reveal d2">
@@ -40,20 +40,20 @@ export default function AnmeldungBrief() {
         `}</style>
         <div className="anmeldung-brief">
           <p>
-            Die Vorabfrage war bewusst unverbindlich — kein Formular, keine Daten, einfach Ja
-            sagen können. Das Ergebnis ist eindeutig: Das Interesse ist da, und das in einem
-            Ausmaß, das uns wirklich überrascht hat.
+            Emmerich, 18. Juli 2026 — das wird eine Party für Leute, die wissen, was
+            eine gute Party ist. Musik, die man noch auswendig kann. Gesichter, die man
+            vielleicht lange nicht gesehen hat. Und Abende, die besser werden, je später
+            es wird.
           </p>
           <p>
-            Das gibt uns jetzt die Grundlage, konkret zu planen: Gespräche mit dem Wirt,
-            Kapazitäten, Technik, Material. All das kostet Geld — und die Organisatoren gehen
-            dabei in Vorleistung. Das können wir nur verantworten, wenn wir wissen, wer wirklich
-            dabei ist.
+            Die Anmeldung ist einfach: Name, Mailadresse, zehn Euro pro Person — fertig.
+            Die Tickets kommen per Mail, die Zahlung läuft per Überweisung oder PayPal.
+            Anmeldeschluss ist der <strong style={{ color: "var(--warm)" }}>30. Juni 2026</strong>.
           </p>
           <p>
-            Darum bitten wir jetzt um verbindliche Anmeldungen — mit Name, Mailadresse und zehn
-            Euro pro Person. Wer sich in Phase 1 eingetragen hat, muss das hier nochmal tun. Der
-            frühere Eintrag war kein Versprechen — und das war so gewollt. Jetzt schon.
+            Wer jetzt noch nicht dabei ist, verpasst etwas. Das sagen nicht wir — das
+            sagen die {angemeldete != null ? angemeldete : "vielen"} Leute, die schon
+            angemeldet sind.
           </p>
         </div>
       </div>

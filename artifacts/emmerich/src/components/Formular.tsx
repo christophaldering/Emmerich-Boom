@@ -74,15 +74,19 @@ export default function Formular({ onSuccess }: FormularProps) {
       <div style={{ maxWidth: "640px", margin: "0 auto", padding: "0 2rem" }}>
 
         <div style={{ marginBottom: "2.5rem" }}>
-          <span style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.78rem", letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--amber)", marginBottom: "0.7rem" }}>
-            Interessensbekundung
-          </span>
+          {!GESCHLOSSEN && (
+            <span style={{ display: "block", fontFamily: "'Lora', serif", fontSize: "0.78rem", letterSpacing: "0.25em", textTransform: "uppercase", color: "var(--amber)", marginBottom: "0.7rem" }}>
+              Interessensbekundung
+            </span>
+          )}
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontWeight: 800, fontSize: "clamp(2.2rem, 7vw, 3.2rem)", color: "var(--warm)", lineHeight: 1.15, marginBottom: "0.6rem" }}>
             Bist du dabei?
           </h2>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7 }}>
-            Statement hinterlassen — unverbindlich.
-          </p>
+          {!GESCHLOSSEN && (
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "1rem", color: "var(--fg-75)", lineHeight: 1.7 }}>
+              Statement hinterlassen — unverbindlich.
+            </p>
+          )}
         </div>
 
         {/* Geschlossen-Box — ersetzt Warnbox wenn Phase 1 beendet */}
