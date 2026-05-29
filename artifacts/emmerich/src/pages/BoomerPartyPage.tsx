@@ -31,7 +31,7 @@ export default function BoomerPartyPage() {
         <Poster />
         <div id="poster-sentinel" style={{ height: 0, overflow: "hidden" }} />
         <AnmeldungFortschritt />
-        <AnmeldeAufruf />
+        {/* <AnmeldeAufruf /> — durch Sticky-Header CTA ersetzt */}
         <Phase2Aufruf />
         <Hymne />
         <Letter />

@@ -7,13 +7,6 @@ import {
 } from "@workspace/api-client-react";
 import { INTERESSENTEN_OFFSET } from "@/lib/config";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-
-function navigateTo(path: string) {
-  window.history.pushState({}, "", `${BASE}${path}`);
-  window.dispatchEvent(new PopStateEvent("popstate"));
-}
-
 export default function Phase2Aufruf() {
   const ref = useReveal();
   const { data: interesData } = useGetInteressentenCount({
@@ -88,24 +81,6 @@ export default function Phase2Aufruf() {
         .p2a-text em {
           color: var(--amber);
           font-style: italic;
-        }
-        .p2a-btn {
-          display: inline-block;
-          background: var(--amber);
-          color: #0A0704;
-          border: none;
-          border-radius: 3px;
-          padding: 1rem 2.4rem;
-          font-family: 'Playfair Display', Georgia, serif;
-          font-style: italic;
-          font-weight: 700;
-          font-size: 1.15rem;
-          cursor: pointer;
-          text-decoration: none;
-          transition: opacity 0.15s;
-        }
-        .p2a-btn:hover {
-          opacity: 0.88;
         }
         .p2a-divider {
           width: 2.5rem;
@@ -257,13 +232,6 @@ export default function Phase2Aufruf() {
           <strong>10&nbsp;€ pro Person · Zahlung per Überweisung oder PayPal.</strong>
         </p>
 
-        <button
-          className="p2a-btn reveal"
-          style={{ animationDelay: "0.6s" }}
-          onClick={() => navigateTo("/anmeldung")}
-        >
-          → Jetzt verbindlich anmelden
-        </button>
       </div>
     </section>
   );
