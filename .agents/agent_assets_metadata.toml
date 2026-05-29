@@ -24,3 +24,15 @@ id = "N6EKDAcG1vuK3eSpkQKX8"
 uri = "file://artifacts/emmerich/public/sarah-eul-ticket.pdf"
 type = "pdf"
 title = "Frei-Ticket Sarah Eul (NRZ)"
+
+[[outputs]]
+id = "XoUMZVo_FbKUgUsPthZ4Y"
+uri = "file://Freiticket-Christian-Hagemann.pdf"
+type = "pdf"
+title = "Freiticket Christian Hagemann"
+
+[[outputs]]
+id = "-BUdTXgZUsPPPunEThV-7"
+uri = "file://Freiticket-Sarah-Eul.pdf"
+type = "pdf"
+title = "Freiticket Sarah Eul"
