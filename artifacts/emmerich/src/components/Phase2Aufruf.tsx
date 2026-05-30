@@ -53,10 +53,25 @@ export default function Phase2Aufruf() {
           color: var(--amber);
           opacity: 0.7;
           margin-bottom: 0.9rem;
+          display: flex;
+          align-items: baseline;
+          gap: 0.6em;
+          flex-wrap: wrap;
+        }
+        .p2a-extra-badge {
+          font-family: 'Lora', Georgia, serif;
+          font-style: italic;
+          font-size: clamp(0.8rem, 2.2vw, 0.95rem);
+          letter-spacing: 0.06em;
+          text-transform: none;
+          color: var(--amber);
+          opacity: 1;
+          font-weight: 700;
         }
         .p2a-secondary {
           font-family: 'Lora', Georgia, serif;
           font-size: clamp(0.9rem, 2.2vw, 1.05rem);
+          font-style: italic;
           color: var(--amber);
           opacity: 0.72;
           margin: 0;
@@ -168,13 +183,24 @@ export default function Phase2Aufruf() {
         {angemeldete !== null && (
           <div className="p2a-hero-block reveal d1" style={{ animationDelay: "0s" }}>
             <div className="p2a-count">{angemeldete}</div>
-            <div className="p2a-count-label">Boomer dabei</div>
-            {count !== null && (
+            <div className="p2a-count-label">
+              <span>Boomer dabei</span>
+              {count !== null && angemeldete > count && (
+                <span className="p2a-extra-badge">+{angemeldete - count} extra</span>
+              )}
+            </div>
+            {count !== null && angemeldete > count && (
+              <p className="p2a-secondary">
+                Das war so nicht geplant — und ist trotzdem genau richtig.
+              </p>
+            )}
+            {count !== null && angemeldete <= count && (
               <p className="p2a-secondary">
                 → Aus <strong>{count}</strong> Interessenten wurden {angemeldete} Anmeldungen
               </p>
             )}
             {count !== null && count > 0 && (() => {
+              const extra = angemeldete - count;
               const pct = Math.round((angemeldete / count) * 100);
               const trackMax = Math.max(count, angemeldete);
               const fillW  = Math.round((angemeldete / trackMax) * 100);
@@ -189,10 +215,7 @@ export default function Phase2Aufruf() {
                 pct < 90  ? "Wir nähern uns — gleich da!" :
                 pct < 100 ? "Fast! Noch ein paar Boomer fehlen." :
                 pct === 100 ? "Genau so viele wie ursprünglich gemeldet — Respekt." :
-                pct < 115 ? "Wow — mehr als ursprünglich gemeldet. Das hätten wir nicht erwartet!" :
-                pct < 130 ? "Jetzt wird's richtig voll. Ihr seid der Wahnsinn." :
-                pct < 150 ? "Wir sind baff. Einfach baff." :
-                "Das ist kein Boomerparty mehr — das ist eine Bewegung. 🕺";
+                `${extra} mehr als ursprünglich gemeldet.`;
 
               return (
                 <div className="p2a-bar-wrap">
