@@ -166,7 +166,7 @@ export default function AnmeldungFortschritt() {
                   letterSpacing: "0.02em",
                 }}
               >
-                +{bonusCount} mehr als erwartet
+                das sind {bonusCount} mehr, als ursprünglich Interesse bekundet hatten! 😎🎶🕺💃
               </span>
             </>
           ) : (
