@@ -42,10 +42,8 @@ function buildKaiPrompt(teilnehmer: TeilnehmerEntry[], phase2: Phase2Entry[]): s
     : "";
 
   const personenHinweis = phase2.length > 0
-    ? `Es gibt ${anmeldungenPhase1} Interessenten aus Phase 1 und ${phase2.length} verbindliche Anmeldungen aus Phase 2 — zusammen ${totalAnmeldungen} Anmeldungen und mindestens ${totalPersonen} Personen.`
-    : totalPersonen > anmeldungenPhase1
-      ? `Es gibt ${anmeldungenPhase1} Anmeldungen, aber da einige Leute mit Begleitung kommen, sind insgesamt mindestens ${totalPersonen} Personen dabei.`
-      : `Es gibt ${anmeldungenPhase1} Anmeldungen — alle kommen alleine, also ${anmeldungenPhase1} Personen.`;
+    ? `Es gibt ${phase2.length} verbindliche Anmeldungen aus Phase 2 — das sind mindestens ${totalPersonenPhase2} Personen. Zum Hintergrund: ${anmeldungenPhase1} Personen hatten in Phase 1 unverbindlich Interesse signalisiert.`
+    : `Es laufen noch keine verbindlichen Anmeldungen aus Phase 2. In Phase 1 haben ${anmeldungenPhase1} Personen unverbindlich Interesse signalisiert.`;
 
   const phase2Section = phase2.length > 0
     ? `\nVerbindliche Anmeldungen (Phase 2) — ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen:\n${phase2Block}\n`

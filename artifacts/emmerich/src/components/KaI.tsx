@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { toInitials } from "@/utils/toInitials";
+import { useGetAnmeldungStats, getGetAnmeldungStatsQueryKey } from "@workspace/api-client-react";
 
 interface KaiResponse {
   inhalt: string | null;
@@ -19,37 +19,24 @@ interface KaIProps {
   refreshSignal?: number;
 }
 
-function isPhase1(t: Teilnehmer): boolean {
-  return typeof t.id !== "string" || !t.id.startsWith("a");
-}
-
-function buildKaiIntro(liste: Teilnehmer[]): string {
-  const phase1 = liste.filter(isPhase1);
-  const n = phase1.length;
-  if (n === 0) {
+function buildKaiIntro(angemeldete: number, liste: Teilnehmer[]): string {
+  if (angemeldete === 0) {
     return "KaI wartet auf die ersten Anmeldungen.";
   }
 
-  const namen = phase1.map((t) => t.display_name ?? toInitials(t.name));
-  const songs = phase1.filter((t) => t.song).map((t) => t.song as string);
+  const songs = liste.filter((t) => t.song).map((t) => t.song as string);
   const songHint = songs.length > 0 ? `\u201e${songs[Math.floor(songs.length / 2)]}\u201c` : null;
 
-  let nameStr: string;
-  if (n === 1)      nameStr = namen[0];
-  else if (n === 2) nameStr = `${namen[0]} und ${namen[1]}`;
-  else if (n === 3) nameStr = `${namen[0]}, ${namen[1]} und ${namen[2]}`;
-  else              nameStr = `${namen[0]}, ${namen[1]} und ${n - 2} weitere`;
-
-  if (n === 1) {
-    return `KaI hat die erste Anmeldung gelesen \u2014 ${namen[0]} ist dabei.${songHint ? ` Musikwunsch: ${songHint}. Eine interessante Wahl.` : " Eine erste Einsch\u00e4tzung hat KaI bereits."}`;
+  if (angemeldete === 1) {
+    return `KaI hat die erste Anmeldung gelesen.${songHint ? ` Musikwunsch: ${songHint}. Eine interessante Wahl.` : " Eine erste Einsch\u00e4tzung hat KaI bereits."}`;
   }
-  if (n <= 3) {
-    return `KaI hat ${n} Anmeldungen gelesen: ${nameStr}.${songHint ? ` ${songHint} ist mit dabei.` : ""} Der Abend nimmt Form an.`;
+  if (angemeldete <= 8) {
+    return `${angemeldete} verbindliche Anmeldungen. KaI hat sie alle gelesen.${songHint ? ` ${songHint} ist mit dabei, was einiges verspricht.` : ""} Das wird ein Abend.`;
   }
-  if (n <= 8) {
-    return `${n} Anmeldungen. KaI kennt ${nameStr} \u2014 und hat jede Zeile gelesen.${songHint ? ` ${songHint} ist mit dabei, was einiges verspricht.` : ""} Das wird ein Abend.`;
+  if (angemeldete < 50) {
+    return `${angemeldete} Personen haben sich verbindlich angemeldet. KaI hat alle Anmeldungen gelesen \u2014 jedes Wort, jeden Songwunsch. Jetzt hat KaI eine Meinung.`;
   }
-  return `${n} Menschen haben sich angemeldet. KaI hat sie alle gelesen \u2014 jedes Wort, jeden Songwunsch. Jetzt hat KaI eine Meinung.`;
+  return `${angemeldete} Personen haben sich verbindlich angemeldet. KaI hat ihre Anmeldungen gelesen \u2014 und hat eine Meinung dazu.`;
 }
 
 export default function KaI({ refreshSignal = 0 }: KaIProps) {
@@ -59,6 +46,11 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
   const [teilnehmer, setTeilnehmer]   = useState<Teilnehmer[]>([]);
   const fastPollRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const knownCreatedAt = useRef<string | null>(null);
+
+  const { data: statsData } = useGetAnmeldungStats({
+    query: { queryKey: getGetAnmeldungStatsQueryKey(), refetchInterval: 60000 },
+  });
+  const angemeldete_personen = statsData?.angemeldete_personen ?? 0;
 
   const fetchTeilnehmer = () => {
     fetch("/api/interesse", { cache: "no-store" })
@@ -120,7 +112,7 @@ export default function KaI({ refreshSignal = 0 }: KaIProps) {
     };
   }, [refreshSignal]);
 
-  const introText = buildKaiIntro(teilnehmer);
+  const introText = buildKaiIntro(angemeldete_personen, teilnehmer);
 
   return (
     <section style={{ background: "var(--bg-section)", padding: "2rem 1.5rem 2.5rem" }}>
