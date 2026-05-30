@@ -24,7 +24,7 @@ export default function Phase2Aufruf() {
       ref={ref}
       style={{
         background: "var(--bg-page)",
-        padding: "5rem 2rem 5.5rem",
+        padding: "3rem 2rem 3rem",
         borderBottom: "1px solid var(--amber-25)",
       }}
     >

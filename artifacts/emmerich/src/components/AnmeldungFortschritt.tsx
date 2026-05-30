@@ -91,7 +91,7 @@ export default function AnmeldungFortschritt() {
       ref={sectionRef}
       style={{
         background: "var(--bg-page)",
-        padding: "4rem 2rem 4.5rem",
+        padding: "2.5rem 2rem 2.5rem",
         borderBottom: "1px solid var(--amber-25)",
       }}
     >
