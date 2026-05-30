@@ -33,10 +33,10 @@ export default function BoomerPartyPage() {
         <AnmeldungFortschritt />
         {/* <AnmeldeAufruf /> — durch Sticky-Header CTA ersetzt */}
         <Phase2Aufruf />
-        <Hymne />
         <Letter />
         <Motto />
         <StimmungsBild />
+        <Hymne />
         <Fakten />
         <Countdown />
         <Teilnehmer />
