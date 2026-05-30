@@ -121,7 +121,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
         background: "var(--bg-section)",
         borderTop: "2px solid var(--amber-30)",
         borderBottom: "2px solid var(--amber-30)",
-        padding: "4rem 0 5rem",
+        padding: "2rem 0 5rem",
       }}
     >
       <style>{`

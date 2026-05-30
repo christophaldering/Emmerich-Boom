@@ -69,16 +69,10 @@ function AnmeldungHeader() {
   );
 }
 
-import Poster from "@/components/Poster";
-import Countdown from "@/components/Countdown";
 import PressNote from "@/components/PressNote";
-import AnmeldungBrief from "@/components/AnmeldungBrief";
-import DreiZeilen from "@/components/DreiZeilen";
-import FaktenPhase2 from "@/components/FaktenPhase2";
 import Anmeldeformular from "@/components/Anmeldeformular";
 import Erfolgsektion from "@/components/Erfolgsektion";
 import LegalPhase2 from "@/components/LegalPhase2";
-import AnmeldungCounter from "@/components/AnmeldungCounter";
 import { PHASE2_CONFIG } from "@/config/phase2";
 import { HymneAudioProvider } from "@/contexts/HymneAudioContext";
 
@@ -144,15 +138,9 @@ export default function AnmeldungPage() {
     <div style={{ background: "var(--black)", minHeight: "100svh", color: "var(--warm)" }}>
       <AnmeldungHeader />
       <div aria-hidden style={{ height: 48, flexShrink: 0 }} />
-      <Poster />
-      <AnmeldungBrief />
-      <DreiZeilen />
-      <FaktenPhase2 />
-      <Countdown />
 
       {PHASE2_CONFIG.ANMELDUNG_AKTIV ? (
         <>
-          <AnmeldungCounter />
           <Anmeldeformular onSuccess={handleSuccess} />
           {erfolg && (
             <div ref={erfolgsRef}>
