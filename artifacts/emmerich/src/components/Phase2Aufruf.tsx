@@ -191,7 +191,7 @@ export default function Phase2Aufruf() {
             </div>
             {count !== null && angemeldete > count && (
               <p className="p2a-secondary">
-                Das war so nicht geplant — und ist trotzdem genau richtig.
+                Das hatten wir uns erhofft — wollten es zunächst aber nicht glauben.
               </p>
             )}
             {count !== null && angemeldete <= count && (
