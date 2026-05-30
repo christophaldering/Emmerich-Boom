@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { interessenten, kiRequests, anmeldungenTable } from "@workspace/db";
+import { kiRequests, anmeldungenTable } from "@workspace/db";
 import { desc, gte, count, isNull } from "drizzle-orm";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 
@@ -8,27 +8,15 @@ const router = Router();
 
 const DAILY_LIMIT = parseInt(process.env.KI_DAILY_LIMIT ?? "30");
 
-interface TeilnehmerEntry { name: string; personen: string | null; statement: string | null; song: string | null; }
 interface Phase2Entry { name: string; personenAnzahl: number; song: string | null; }
 
-const PERSONEN_COUNT: Record<string, number> = {
-  "Nur ich": 1, "Wir zwei": 2, "Wir drei": 3,
-  "Vier auf einen Streich": 4, "Fünf oder mehr": 5,
-};
-
-function buildKaiPrompt(teilnehmer: TeilnehmerEntry[], phase2: Phase2Entry[]): string {
-  const anmeldungenPhase1 = teilnehmer.length;
-  const totalPersonenPhase2 = phase2.reduce((sum, a) => sum + a.personenAnzahl, 0);
+function buildKaiPrompt(phase2: Phase2Entry[]): string {
+  const totalPersonen = phase2.reduce((sum, a) => sum + a.personenAnzahl, 0);
 
   const phase2Block = phase2.map((a) => {
-    const wer = a.personenAnzahl > 1 ? `kommt zu ${a.personenAnzahl}` : "kommt alleine";
     const song = a.song ? `Musikwunsch: „${a.song}"` : "kein Musikwunsch";
-    return `• ${a.name} (${wer}) — ${song}`;
+    return `• ${a.name} — ${song}`;
   }).join("\n");
-
-  const personenHinweis = phase2.length > 0
-    ? `Es gibt ${phase2.length} verbindliche Buchungen aus Phase 2 — das sind mindestens ${totalPersonenPhase2} Personen. Zum Hintergrund: ${anmeldungenPhase1} Personen hatten in Phase 1 unverbindlich Interesse signalisiert.`
-    : `Es laufen noch keine verbindlichen Anmeldungen aus Phase 2. In Phase 1 haben ${anmeldungenPhase1} Personen unverbindlich Interesse signalisiert.`;
 
   return `Du bist KaI — das KI-System des Entwicklerteams hinter emmerich-boomt.de.
 
@@ -36,18 +24,18 @@ Du liest die verbindlichen Anmeldungen für die BoomerParty (18. Juli 2026, Böl
 
 Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und hast gelegentlich eine trocken-witzige Einschätzung bereit. Kein mystischer Ton. Kein Bullet-Format. Direkt in den Kommentar.
 
-${personenHinweis}
+Es sind ${totalPersonen} Personen verbindlich angemeldet.
 
-Verbindliche Anmeldungen (Phase 2) — ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen:
+Angemeldete mit Musikwunsch:
 ${phase2Block}
 
-WICHTIG: Jede Zeile oben gehört exakt zu einer Buchung. Der Musikwunsch einer Zeile gehört dieser einen Buchung — nie einer anderen. Keine Verwechslungen.
+WICHTIG: Jede Zeile gehört exakt zu einer Buchung. Der Musikwunsch einer Zeile gehört dieser einen Buchung — nie einer anderen.
 
 Schreib jetzt einen Kommentar. Regeln:
 - Ich-Form, genderneutral
 - Vornamen erlaubt — herzlich, nie bloßstellend
 - Wenn du einen Song erwähnst, nenn immer den dazugehörigen Namen
-- Die Zahlen für deinen Kommentar sind ausschließlich: ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen — keine anderen Zahlen verwenden
+- Die einzige Zahl in deinem Kommentar ist ${totalPersonen} Personen — keine andere Zahl verwenden, weder Buchungszahl noch historische Daten
 - Geh auf Einzelheiten ein, die es wert sind — aber nur wenn du sicher bist, wer was gewünscht hat
 - Warmherzig, leicht formell, dann doch witzig
 - Kein erklärender Intro-Satz — direkt beginnen
@@ -65,16 +53,6 @@ export async function generateKaiComment(): Promise<void> {
       .where(gte(kiRequests.createdAt, todayStart));
 
     if (todayCount >= DAILY_LIMIT) return;
-
-    const alleEintraege = await db
-      .select({
-        name: interessenten.name,
-        personen: interessenten.personen,
-        statement: interessenten.statement,
-        song: interessenten.song,
-      })
-      .from(interessenten)
-      .orderBy(desc(interessenten.createdAt));
 
     const anmeldungRows = await db
       .select({
@@ -98,7 +76,7 @@ export async function generateKaiComment(): Promise<void> {
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 512,
-      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege, phase2Eintraege) }],
+      messages: [{ role: "user", content: buildKaiPrompt(phase2Eintraege) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";
@@ -118,21 +96,6 @@ router.post("/stimmung/regenerate", async (req, res) => {
     return;
   }
   try {
-    const alleEintraege = await db
-      .select({
-        name: interessenten.name,
-        personen: interessenten.personen,
-        statement: interessenten.statement,
-        song: interessenten.song,
-      })
-      .from(interessenten)
-      .orderBy(desc(interessenten.createdAt));
-
-    if (alleEintraege.length === 0) {
-      res.json({ ok: false, reason: "Keine Anmeldungen vorhanden" });
-      return;
-    }
-
     const anmeldungRowsRegen = await db
       .select({
         personen: anmeldungenTable.personen,
@@ -150,10 +113,15 @@ router.post("/stimmung/regenerate", async (req, res) => {
         return { name: firstName, personenAnzahl: r.personen_anzahl, song: r.song };
       });
 
+    if (phase2EintraegeRegen.length === 0) {
+      res.json({ ok: false, reason: "Keine Anmeldungen vorhanden" });
+      return;
+    }
+
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 512,
-      messages: [{ role: "user", content: buildKaiPrompt(alleEintraege, phase2EintraegeRegen) }],
+      messages: [{ role: "user", content: buildKaiPrompt(phase2EintraegeRegen) }],
     });
 
     const inhalt = message.content[0].type === "text" ? message.content[0].text : "";
