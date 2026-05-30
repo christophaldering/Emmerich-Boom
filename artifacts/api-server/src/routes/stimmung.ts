@@ -18,57 +18,37 @@ const PERSONEN_COUNT: Record<string, number> = {
 
 function buildKaiPrompt(teilnehmer: TeilnehmerEntry[], phase2: Phase2Entry[]): string {
   const anmeldungenPhase1 = teilnehmer.length;
-  const totalPersonenPhase1 = teilnehmer.reduce(
-    (sum, t) => sum + (PERSONEN_COUNT[t.personen ?? ""] ?? 1), 0
-  );
   const totalPersonenPhase2 = phase2.reduce((sum, a) => sum + a.personenAnzahl, 0);
-  const totalAnmeldungen = anmeldungenPhase1 + phase2.length;
-  const totalPersonen = totalPersonenPhase1 + totalPersonenPhase2;
 
-  const personenBlock = teilnehmer.map((t) => {
-    const anzahl = PERSONEN_COUNT[t.personen ?? ""] ?? 1;
-    const wer = anzahl > 1 ? `kommt zu ${anzahl}` : "kommt alleine";
-    const song = t.song ? `Musikwunsch: „${t.song}"` : "kein Musikwunsch";
-    const stmt = t.statement ? `Statement: „${t.statement}"` : "kein Statement";
-    return `• ${t.name} (${wer}) — ${song} — ${stmt}`;
+  const phase2Block = phase2.map((a) => {
+    const wer = a.personenAnzahl > 1 ? `kommt zu ${a.personenAnzahl}` : "kommt alleine";
+    const song = a.song ? `Musikwunsch: „${a.song}"` : "kein Musikwunsch";
+    return `• ${a.name} (${wer}) — ${song}`;
   }).join("\n");
 
-  const phase2Block = phase2.length > 0
-    ? phase2.map((a) => {
-        const wer = a.personenAnzahl > 1 ? `kommt zu ${a.personenAnzahl}` : "kommt alleine";
-        const song = a.song ? `Musikwunsch: „${a.song}"` : "kein Musikwunsch";
-        return `• ${a.name} (${wer}) — ${song}`;
-      }).join("\n")
-    : "";
-
   const personenHinweis = phase2.length > 0
-    ? `Es gibt ${phase2.length} verbindliche Anmeldungen aus Phase 2 — das sind mindestens ${totalPersonenPhase2} Personen. Zum Hintergrund: ${anmeldungenPhase1} Personen hatten in Phase 1 unverbindlich Interesse signalisiert.`
+    ? `Es gibt ${phase2.length} verbindliche Buchungen aus Phase 2 — das sind mindestens ${totalPersonenPhase2} Personen. Zum Hintergrund: ${anmeldungenPhase1} Personen hatten in Phase 1 unverbindlich Interesse signalisiert.`
     : `Es laufen noch keine verbindlichen Anmeldungen aus Phase 2. In Phase 1 haben ${anmeldungenPhase1} Personen unverbindlich Interesse signalisiert.`;
-
-  const phase2Section = phase2.length > 0
-    ? `\nVerbindliche Anmeldungen (Phase 2) — ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen:\n${phase2Block}\n`
-    : "";
 
   return `Du bist KaI — das KI-System des Entwicklerteams hinter emmerich-boomt.de.
 
-Du liest die Anmeldungen für die BoomerParty (18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein) und kommentierst sie. Gäste zwischen 50 und 70 Jahren, die sich aus Emmerich und Umgebung kennen.
+Du liest die verbindlichen Anmeldungen für die BoomerParty (18. Juli 2026, Bölt/Kapaunenberg, Emmerich am Rhein) und kommentierst sie. Gäste zwischen 50 und 70 Jahren, die sich aus Emmerich und Umgebung kennen.
 
 Du sprichst in der Ich-Form. Du bist neugierig, beobachtend, warmherzig — und hast gelegentlich eine trocken-witzige Einschätzung bereit. Kein mystischer Ton. Kein Bullet-Format. Direkt in den Kommentar.
 
 ${personenHinweis}
 
-Interessenten (Phase 1) — jede Zeile gehört zu genau einer Anmeldung:
-${personenBlock}
-${phase2Section}
-WICHTIG: Jede Zeile oben gehört exakt zu einer Anmeldung. Musikwunsch und Statement in einer Zeile gehören dieser einen Person — nie einer anderen. Keine Verwechslungen.
+Verbindliche Anmeldungen (Phase 2) — ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen:
+${phase2Block}
+
+WICHTIG: Jede Zeile oben gehört exakt zu einer Buchung. Der Musikwunsch einer Zeile gehört dieser einen Buchung — nie einer anderen. Keine Verwechslungen.
 
 Schreib jetzt einen Kommentar. Regeln:
 - Ich-Form, genderneutral
 - Vornamen erlaubt — herzlich, nie bloßstellend
-- Wenn du einen Song oder ein Statement erwähnst, nenn immer den dazugehörigen Namen
-- Erwähne sowohl die Anzahl der Anmeldungen als auch die Gesamtzahl der Personen, wenn sie voneinander abweichen
-- Differenziere zwischen Phase-1-Interessenten und Phase-2-Buchungen, wenn beide vorhanden sind
-- Geh auf Einzelheiten ein, die es wert sind — aber nur wenn du sicher bist, wer was gesagt oder gewünscht hat
+- Wenn du einen Song erwähnst, nenn immer den dazugehörigen Namen
+- Die Zahlen für deinen Kommentar sind ausschließlich: ${phase2.length} Buchungen, ${totalPersonenPhase2} Personen — keine anderen Zahlen verwenden
+- Geh auf Einzelheiten ein, die es wert sind — aber nur wenn du sicher bist, wer was gewünscht hat
 - Warmherzig, leicht formell, dann doch witzig
 - Kein erklärender Intro-Satz — direkt beginnen
 - 3–4 Sätze, nicht mehr`;
@@ -96,8 +76,6 @@ export async function generateKaiComment(): Promise<void> {
       .from(interessenten)
       .orderBy(desc(interessenten.createdAt));
 
-    if (alleEintraege.length === 0) return;
-
     const anmeldungRows = await db
       .select({
         personen: anmeldungenTable.personen,
@@ -114,6 +92,8 @@ export async function generateKaiComment(): Promise<void> {
         const firstName = Array.isArray(personen) && personen[0]?.name ? personen[0].name : "Angemeldete Person";
         return { name: firstName, personenAnzahl: r.personen_anzahl, song: r.song };
       });
+
+    if (phase2Eintraege.length === 0) return;
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
