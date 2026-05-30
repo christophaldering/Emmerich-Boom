@@ -1,4 +1,74 @@
 import { useState, useRef } from "react";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function AnmeldungHeader() {
+  function goHome() {
+    window.history.pushState({}, "", `${BASE}/`);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }
+  return (
+    <>
+      <style>{`
+        .ah-wrap {
+          position: fixed;
+          top: 0; left: 0; right: 0;
+          z-index: 8500;
+          height: 48px;
+          background: rgba(10,7,4,0.96);
+          border-bottom: 1px solid rgba(232,153,26,0.18);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 1.2rem;
+          gap: 0.75rem;
+        }
+        .ah-back {
+          font-family: 'Lora', Georgia, serif;
+          font-style: italic;
+          font-size: 0.78rem;
+          letter-spacing: 0.04em;
+          color: rgba(232,153,26,0.55);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+          white-space: nowrap;
+          transition: color 0.15s;
+        }
+        .ah-back:hover { color: rgba(232,153,26,0.9); }
+        .ah-title {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-weight: 800;
+          font-style: italic;
+          font-size: 0.95rem;
+          letter-spacing: 0.04em;
+          color: #E8991A;
+          text-align: center;
+          flex: 1;
+        }
+        .ah-date {
+          font-family: 'Lora', Georgia, serif;
+          font-size: 0.72rem;
+          color: rgba(245,232,200,0.35);
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+        }
+        @media (max-width: 400px) { .ah-date { display: none; } }
+      `}</style>
+      <div className="ah-wrap">
+        <button className="ah-back" onClick={goHome} aria-label="Zurück zur Startseite">
+          ← Startseite
+        </button>
+        <span className="ah-title">Anmeldung</span>
+        <span className="ah-date">18. Juli 2026</span>
+      </div>
+    </>
+  );
+}
+
 import Poster from "@/components/Poster";
 import Countdown from "@/components/Countdown";
 import PressNote from "@/components/PressNote";
@@ -72,6 +142,7 @@ export default function AnmeldungPage() {
   return (
     <HymneAudioProvider>
     <div style={{ background: "var(--black)", minHeight: "100svh", color: "var(--warm)" }}>
+      <AnmeldungHeader />
       <Poster />
       <AnmeldungBrief />
       <DreiZeilen />

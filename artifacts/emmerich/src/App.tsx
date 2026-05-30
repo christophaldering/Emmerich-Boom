@@ -44,7 +44,10 @@ export default function App() {
 
   useEffect(() => {
     setRoute(getRoute());
-    const onPop = () => setRoute(getRoute());
+    const onPop = () => {
+      window.scrollTo(0, 0);
+      setRoute(getRoute());
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
