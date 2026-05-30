@@ -143,6 +143,7 @@ export default function AnmeldungPage() {
     <HymneAudioProvider>
     <div style={{ background: "var(--black)", minHeight: "100svh", color: "var(--warm)" }}>
       <AnmeldungHeader />
+      <div aria-hidden style={{ height: 48, flexShrink: 0 }} />
       <Poster />
       <AnmeldungBrief />
       <DreiZeilen />

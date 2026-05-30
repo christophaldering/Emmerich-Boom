@@ -43,6 +43,7 @@ export default function App() {
   const [route, setRoute] = useState(getRoute);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     setRoute(getRoute());
     const onPop = () => {
       window.scrollTo(0, 0);
