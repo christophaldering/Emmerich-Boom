@@ -1493,20 +1493,42 @@ export default function AdminPage() {
             if (dupes.length === 0) return null;
             return (
               <div style={{ marginBottom: "1.25rem", background: "rgba(220,80,40,0.07)", border: "1px solid rgba(220,80,40,0.35)", borderRadius: "6px", padding: "0.9rem 1.1rem" }}>
-                <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", color: "#e05a28", margin: "0 0 0.65rem" }}>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", color: "#e05a28", margin: "0 0 0.75rem" }}>
                   ⚠ {dupes.length} doppelte E-Mail{dupes.length > 1 ? "s" : ""}
                 </p>
                 {dupes.map(group => (
-                  <div key={group[0].email} style={{ marginBottom: "0.5rem" }}>
-                    <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.85) }}>{group[0].email}</span>
-                    <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.5), marginLeft: "0.5rem" }}>
-                      → {group.map(r => `#${r.id}`).join(", ")}
-                    </span>
+                  <div key={group[0].email} style={{ marginBottom: "0.9rem" }}>
+                    <div style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.85), marginBottom: "0.35rem" }}>
+                      {group[0].email}
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                      {group.map(r => (
+                        <div key={r.id} style={{ display: "flex", alignItems: "center", gap: "0.4rem", background: "rgba(220,80,40,0.1)", border: "1px solid rgba(220,80,40,0.3)", borderRadius: "4px", padding: "0.25rem 0.5rem" }}>
+                          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.7) }}>
+                            #{r.id} · {Array.isArray(r.personen) ? r.personen[0] : r.personen} · {r.personen_anzahl}P
+                            {r.bezahlt_am ? " · ✓ bezahlt" : ""}
+                          </span>
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm(`Anmeldung #${r.id} (${r.email}) stornieren?`)) return;
+                              try {
+                                const resp = await fetch(`${BASE}/api/admin/anmeldungen/${r.id}/stornieren`, {
+                                  method: "POST", headers: { "x-admin-secret": SECRET },
+                                });
+                                const d = await resp.json() as { ok?: boolean; error?: string };
+                                if (d.ok) loadAnmeldungen();
+                                else alert(d.error ?? "Fehler");
+                              } catch { alert("Verbindungsfehler"); }
+                            }}
+                            style={{ background: "rgba(220,80,40,0.7)", border: "none", borderRadius: "3px", color: "#fff", fontFamily: "'Lora', serif", fontSize: "0.75rem", padding: "0.15rem 0.45rem", cursor: "pointer" }}
+                          >
+                            stornieren
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
-                <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", color: fg(0.45), margin: "0.5rem 0 0" }}>
-                  Duplikat in der Tabelle unten suchen und stornieren.
-                </p>
               </div>
             );
           })()}

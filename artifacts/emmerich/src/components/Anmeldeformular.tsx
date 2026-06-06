@@ -101,9 +101,15 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
           });
         },
         onError: (err) => {
+          if (typeof err === "object" && err !== null && "status" in err && (err as { status?: number }).status === 409) {
+            setClientError("duplicate");
+            return;
+          }
           const msg =
             typeof err === "object" && err !== null && "data" in err
-              ? ((err as { data?: { error?: string } }).data?.error ?? "Ein Fehler ist aufgetreten.")
+              ? ((err as { data?: { message?: string; error?: string } }).data?.message
+                  ?? (err as { data?: { error?: string } }).data?.error
+                  ?? "Ein Fehler ist aufgetreten.")
               : "Verbindungsfehler. Bitte nochmal versuchen.";
           setClientError(msg);
         },
@@ -316,11 +322,22 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
             {loading ? "Wird gespeichert …" : "Jetzt verbindlich anmelden"}
           </button>
 
-          {clientError && (
+          {clientError === "duplicate" ? (
+            <div style={{ background: "rgba(220,80,40,0.07)", border: "1px solid rgba(220,80,40,0.4)", borderRadius: "4px", padding: "0.9rem 1.1rem", fontFamily: "'Lora', serif", fontStyle: "italic", color: "#e05a28", fontSize: "0.9rem", lineHeight: 1.75 }}>
+              Diese E-Mail-Adresse ist bereits angemeldet.{" "}
+              <a
+                href="mailto:Christoph.aldering@googlemail.com?subject=Änderung%20meiner%20Anmeldung&body=Hallo%20Christoph%2C%0A%0Aich%20möchte%20meine%20Buchung%20gerne%20ändern%3A%0A%0A"
+                style={{ color: "inherit", fontWeight: 600 }}
+              >
+                Christoph direkt schreiben
+              </a>
+              , falls du etwas ändern möchtest.
+            </div>
+          ) : clientError ? (
             <div style={{ background: "var(--amber-06)", border: "1px solid var(--amber-25)", borderRadius: "4px", padding: "0.9rem 1.1rem", fontFamily: "'Lora', serif", fontStyle: "italic", color: "var(--amber)", fontSize: "0.9rem", lineHeight: 1.7 }}>
               {clientError}
             </div>
-          )}
+          ) : null}
         </form>
       </div>
     </section>

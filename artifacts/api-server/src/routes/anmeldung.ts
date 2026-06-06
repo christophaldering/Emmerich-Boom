@@ -67,7 +67,8 @@ router.post("/anmeldung", async (req, res) => {
 
     if (existing.length > 0) {
       res.status(409).json({
-        error: "Diese E-Mail-Adresse ist bereits angemeldet. Falls du etwas ändern möchtest, melde dich einfach bei Christoph.",
+        error: "duplicate",
+        message: "Diese E-Mail-Adresse ist bereits angemeldet. Falls du etwas ändern möchtest, melde dich einfach bei Christoph.",
       });
       return;
     }
