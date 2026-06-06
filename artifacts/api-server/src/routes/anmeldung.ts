@@ -131,6 +131,16 @@ router.post("/anmeldung", async (req, res) => {
       });
 
   } catch (err) {
+    if (
+      typeof err === "object" && err !== null &&
+      "code" in err && (err as { code: string }).code === "23505"
+    ) {
+      res.status(409).json({
+        error: "duplicate",
+        message: "Diese E-Mail-Adresse ist bereits angemeldet. Falls du etwas ändern möchtest, melde dich einfach bei Christoph.",
+      });
+      return;
+    }
     req.log.error(err, "anmeldung insert failed");
     res.status(500).json({ error: "Datenbankfehler" });
   }
