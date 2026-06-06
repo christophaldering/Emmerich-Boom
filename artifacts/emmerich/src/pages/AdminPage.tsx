@@ -283,6 +283,88 @@ function WeekdayChart({ data }: { data: WeekdayEntry[] }) {
   );
 }
 
+function ConfirmModal({ title, message, confirmLabel = "Ja, stornieren", onConfirm, onCancel }: {
+  title: string;
+  message?: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onCancel(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onCancel]);
+
+  return createPortal(
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed", inset: 0, zIndex: 10000,
+        background: "rgba(10,7,4,0.82)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "1.5rem",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: "#130e09",
+          border: `1px solid ${am(0.45)}`,
+          borderRadius: "8px",
+          padding: "1.75rem 2rem",
+          maxWidth: "420px",
+          width: "100%",
+          boxShadow: "0 12px 48px rgba(0,0,0,0.75)",
+        }}
+      >
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.1rem", color: A, margin: "0 0 0.6rem" }}>
+          {title}
+        </p>
+        {message && (
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.7), margin: "0 0 1.4rem", lineHeight: 1.6 }}>
+            {message}
+          </p>
+        )}
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+          <button
+            onClick={onCancel}
+            style={{
+              background: "transparent",
+              border: `1px solid ${am(0.3)}`,
+              borderRadius: "4px",
+              color: fg(0.65),
+              fontFamily: "'Lora', serif",
+              fontSize: "0.9rem",
+              padding: "0.5rem 1.2rem",
+              cursor: "pointer",
+            }}
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              background: "rgba(220,60,40,0.15)",
+              border: "1px solid rgba(220,60,40,0.55)",
+              borderRadius: "4px",
+              color: "#e05a3a",
+              fontFamily: "'Lora', serif",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              padding: "0.5rem 1.2rem",
+              cursor: "pointer",
+            }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function RegTimeline({ data }: { data: RegTimelineEntry[] }) {
   if (data.length === 0) return <p style={{ color: fg(0.55), fontSize: "0.88rem", fontFamily: "'Lora', serif" }}>Noch keine Anmeldungen.</p>;
 
@@ -428,29 +510,43 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
   };
 
   const [stLoading, setStLoading] = useState(false);
-  const stornieren = async () => {
-    if (!window.confirm(`Anmeldung #${row.id} (${row.email}) stornieren?\nKein Mail an den Teilnehmer.`)) return;
-    setStLoading(true); setMsg("");
-    try {
-      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/stornieren`, {
-        method: "POST", headers: { "x-admin-secret": SECRET },
-      });
-      const d = await r.json() as { ok?: boolean; error?: string };
-      if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
-    } catch { setMsg("Verbindungsfehler"); }
-    finally { setStLoading(false); }
+  const [pendingConfirm, setPendingConfirm] = useState<{ title: string; confirmLabel: string; onConfirm: () => void } | null>(null);
+
+  const stornieren = () => {
+    setPendingConfirm({
+      title: `Anmeldung #${row.id} stornieren?`,
+      confirmLabel: "Ja, stornieren",
+      onConfirm: async () => {
+        setPendingConfirm(null);
+        setStLoading(true); setMsg("");
+        try {
+          const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/stornieren`, {
+            method: "POST", headers: { "x-admin-secret": SECRET },
+          });
+          const d = await r.json() as { ok?: boolean; error?: string };
+          if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
+        } catch { setMsg("Verbindungsfehler"); }
+        finally { setStLoading(false); }
+      },
+    });
   };
-  const reaktivieren = async () => {
-    if (!window.confirm(`Stornierung von #${row.id} (${row.email}) rückgängig machen?`)) return;
-    setStLoading(true); setMsg("");
-    try {
-      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/reaktivieren`, {
-        method: "POST", headers: { "x-admin-secret": SECRET },
-      });
-      const d = await r.json() as { ok?: boolean; error?: string };
-      if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
-    } catch { setMsg("Verbindungsfehler"); }
-    finally { setStLoading(false); }
+  const reaktivieren = () => {
+    setPendingConfirm({
+      title: `Stornierung #${row.id} rückgängig machen?`,
+      confirmLabel: "Ja, reaktivieren",
+      onConfirm: async () => {
+        setPendingConfirm(null);
+        setStLoading(true); setMsg("");
+        try {
+          const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/reaktivieren`, {
+            method: "POST", headers: { "x-admin-secret": SECRET },
+          });
+          const d = await r.json() as { ok?: boolean; error?: string };
+          if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
+        } catch { setMsg("Verbindungsfehler"); }
+        finally { setStLoading(false); }
+      },
+    });
   };
 
   const personen = Array.isArray(row.personen) ? row.personen : [];
@@ -553,6 +649,14 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
   return (
     <>
     {modal}
+    {pendingConfirm && (
+      <ConfirmModal
+        title={pendingConfirm.title}
+        confirmLabel={pendingConfirm.confirmLabel}
+        onConfirm={pendingConfirm.onConfirm}
+        onCancel={() => setPendingConfirm(null)}
+      />
+    )}
     <tr style={{ background: rowBg, opacity: storniert ? 0.72 : 1 }}>
       {/* Checkbox */}
       <td style={{ ...tdStyle, width: "1.8rem", textAlign: "center", verticalAlign: "middle", paddingLeft: "0.4rem", paddingRight: "0.2rem" }}>
@@ -1188,6 +1292,7 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
   const [bulkLoading, setBulkLoading]   = useState(false);
+  const [confirmPending, setConfirmPending] = useState<{ title: string; onConfirm: () => void } | null>(null);
 
   const loadDisplayNames = useCallback(async () => {
     try {
@@ -1408,6 +1513,13 @@ export default function AdminPage() {
 
   return (
     <div style={{ background: BG, color: FG, minHeight: "100svh", fontFamily: "'Lora', serif", padding: "2rem 1.5rem", maxWidth: "820px", margin: "0 auto" }}>
+      {confirmPending && (
+        <ConfirmModal
+          title={confirmPending.title}
+          onConfirm={confirmPending.onConfirm}
+          onCancel={() => setConfirmPending(null)}
+        />
+      )}
 
       {/* ── Header ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.4rem" }}>
@@ -1509,16 +1621,20 @@ export default function AdminPage() {
                             {r.bezahlt_am ? " · ✓ bezahlt" : ""}
                           </span>
                           <button
-                            onClick={async () => {
-                              if (!window.confirm(`Anmeldung #${r.id} (${r.email}) stornieren?`)) return;
-                              try {
-                                const resp = await fetch(`${BASE}/api/admin/anmeldungen/${r.id}/stornieren`, {
-                                  method: "POST", headers: { "x-admin-secret": SECRET },
-                                });
-                                const d = await resp.json() as { ok?: boolean; error?: string };
-                                if (d.ok) loadAnmeldungen();
-                                else alert(d.error ?? "Fehler");
-                              } catch { alert("Verbindungsfehler"); }
+                            onClick={() => {
+                              setConfirmPending({
+                                title: `Anmeldung #${r.id} stornieren?`,
+                                onConfirm: async () => {
+                                  setConfirmPending(null);
+                                  try {
+                                    const resp = await fetch(`${BASE}/api/admin/anmeldungen/${r.id}/stornieren`, {
+                                      method: "POST", headers: { "x-admin-secret": SECRET },
+                                    });
+                                    const d = await resp.json() as { ok?: boolean; error?: string };
+                                    if (d.ok) loadAnmeldungen();
+                                  } catch { /* ignore */ }
+                                },
+                              });
                             }}
                             style={{ background: "rgba(220,80,40,0.7)", border: "none", borderRadius: "3px", color: "#fff", fontFamily: "'Lora', serif", fontSize: "0.75rem", padding: "0.15rem 0.45rem", cursor: "pointer" }}
                           >
