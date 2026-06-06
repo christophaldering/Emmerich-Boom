@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { db, anmeldungenTable } from "@workspace/db";
-import { sql, sum, eq, isNull } from "drizzle-orm";
+import { sql, sum, eq, isNull, and } from "drizzle-orm";
 import { sendBestaetigung } from "../services/mailer.js";
 
 const router = Router();
@@ -56,6 +56,22 @@ router.post("/anmeldung", async (req, res) => {
   const betrag_gesamt = d.personen_anzahl * PREIS_PRO_PERSON;
 
   try {
+    const existing = await db
+      .select({ id: anmeldungenTable.id })
+      .from(anmeldungenTable)
+      .where(and(
+        sql`LOWER(${anmeldungenTable.email}) = LOWER(${d.email})`,
+        isNull(anmeldungenTable.storniert_am),
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      res.status(409).json({
+        error: "Diese E-Mail-Adresse ist bereits angemeldet. Falls du etwas ändern möchtest, melde dich einfach bei Christoph.",
+      });
+      return;
+    }
+
     const { id, ticket_nummern } = await db.transaction(async (tx) => {
       const counterResult = await tx.execute(
         sql`SELECT next_nummer FROM ticket_nummer_counter WHERE id = 1 FOR UPDATE`,

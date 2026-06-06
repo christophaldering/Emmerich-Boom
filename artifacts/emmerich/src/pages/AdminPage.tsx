@@ -1480,6 +1480,37 @@ export default function AdminPage() {
             );
           })()}
 
+          {/* ── Duplikat-Warnung ── */}
+          {(() => {
+            const aktive = anmeldungenRows.filter(r => !r.storniert_am);
+            const byEmail: Record<string, AnmeldungRow[]> = {};
+            for (const r of aktive) {
+              const key = r.email.toLowerCase();
+              if (!byEmail[key]) byEmail[key] = [];
+              byEmail[key].push(r);
+            }
+            const dupes = Object.values(byEmail).filter(g => g.length > 1);
+            if (dupes.length === 0) return null;
+            return (
+              <div style={{ marginBottom: "1.25rem", background: "rgba(220,80,40,0.07)", border: "1px solid rgba(220,80,40,0.35)", borderRadius: "6px", padding: "0.9rem 1.1rem" }}>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", color: "#e05a28", margin: "0 0 0.65rem" }}>
+                  ⚠ {dupes.length} doppelte E-Mail{dupes.length > 1 ? "s" : ""}
+                </p>
+                {dupes.map(group => (
+                  <div key={group[0].email} style={{ marginBottom: "0.5rem" }}>
+                    <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.85) }}>{group[0].email}</span>
+                    <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.5), marginLeft: "0.5rem" }}>
+                      → {group.map(r => `#${r.id}`).join(", ")}
+                    </span>
+                  </div>
+                ))}
+                <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", color: fg(0.45), margin: "0.5rem 0 0" }}>
+                  Duplikat in der Tabelle unten suchen und stornieren.
+                </p>
+              </div>
+            );
+          })()}
+
           {/* ── Filter + Suche ── */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.7rem", alignItems: "center" }}>
             <input
