@@ -1,5 +1,4 @@
-import { pgTable, serial, text, integer, jsonb, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
-import { sql } from "drizzle-orm";
+import { pgTable, serial, text, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -19,11 +18,7 @@ export const anmeldungenTable = pgTable("anmeldungen", {
   bestaetigungsmail_versendet_am:   timestamp("bestaetigungsmail_versendet_am", { withTimezone: true }),
   storniert_am:                     timestamp("storniert_am"),
   created_at:                       timestamp("created_at").defaultNow(),
-}, (table) => [
-  uniqueIndex("anmeldungen_active_email_unique")
-    .on(sql`lower(${table.email})`)
-    .where(sql`${table.storniert_am} IS NULL`),
-]);
+});
 
 export const insertAnmeldungSchema = createInsertSchema(anmeldungenTable).omit({ id: true, created_at: true });
 export type InsertAnmeldung = z.infer<typeof insertAnmeldungSchema>;
