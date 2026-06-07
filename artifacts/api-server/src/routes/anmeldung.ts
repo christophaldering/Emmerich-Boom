@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db, anmeldungenTable } from "@workspace/db";
 import { sql, sum, eq, isNull, and } from "drizzle-orm";
 import { sendBestaetigung } from "../services/mailer.js";
+import { generateKaiComment } from "./stimmung.js";
 
 const router = Router();
 
@@ -110,6 +111,9 @@ router.post("/anmeldung", async (req, res) => {
 
     // 201 sofort senden — Mail-Versand blockiert den User nicht
     res.status(201).json({ id, betrag_gesamt, ticket_nummern });
+
+    // Fire-and-forget: KaI-Kommentar mit aktuellen Daten neu generieren
+    generateKaiComment().catch(() => {});
 
     // Fire-and-forget: Bestätigungsmail asynchron versenden
     sendBestaetigung({
