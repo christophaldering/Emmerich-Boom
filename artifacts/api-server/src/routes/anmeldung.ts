@@ -57,21 +57,27 @@ router.post("/anmeldung", async (req, res) => {
   const betrag_gesamt = d.personen_anzahl * PREIS_PRO_PERSON;
 
   try {
-    const existing = await db
-      .select({ id: anmeldungenTable.id })
+    const existingByEmail = await db
+      .select({ id: anmeldungenTable.id, personen: anmeldungenTable.personen })
       .from(anmeldungenTable)
       .where(and(
         sql`LOWER(${anmeldungenTable.email}) = LOWER(${d.email})`,
         isNull(anmeldungenTable.storniert_am),
-      ))
-      .limit(1);
+      ));
 
-    if (existing.length > 0) {
-      res.status(409).json({
-        error: "duplicate",
-        message: "Diese E-Mail-Adresse ist bereits angemeldet. Falls du etwas ändern möchtest, melde dich einfach bei Christoph.",
+    if (existingByEmail.length > 0) {
+      const submittedNames = d.personen.map(n => n.toLowerCase().trim());
+      const hasNameOverlap = existingByEmail.some(row => {
+        const existingPersonen = Array.isArray(row.personen) ? (row.personen as string[]) : [];
+        return existingPersonen.some(name => submittedNames.includes(name.toLowerCase().trim()));
       });
-      return;
+      if (hasNameOverlap) {
+        res.status(409).json({
+          error: "duplicate",
+          message: "Eine Anmeldung mit diesen Daten liegt bereits vor. Bei Fragen melde dich einfach bei Christoph.",
+        });
+        return;
+      }
     }
 
     const { id, ticket_nummern } = await db.transaction(async (tx) => {

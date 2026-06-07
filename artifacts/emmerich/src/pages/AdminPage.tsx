@@ -1601,12 +1601,24 @@ export default function AdminPage() {
               if (!byEmail[key]) byEmail[key] = [];
               byEmail[key].push(r);
             }
-            const dupes = Object.values(byEmail).filter(g => g.length > 1);
+            const dupes = Object.values(byEmail).filter(group => {
+              if (group.length < 2) return false;
+              const nameGroups = group.map(r => {
+                const p = Array.isArray(r.personen) ? (r.personen as string[]) : [];
+                return p.map(n => n.toLowerCase().trim());
+              });
+              for (let i = 0; i < nameGroups.length; i++) {
+                for (let j = i + 1; j < nameGroups.length; j++) {
+                  if (nameGroups[i].some(n => nameGroups[j].includes(n))) return true;
+                }
+              }
+              return false;
+            });
             if (dupes.length === 0) return null;
             return (
               <div style={{ marginBottom: "1.25rem", background: "rgba(220,80,40,0.07)", border: "1px solid rgba(220,80,40,0.35)", borderRadius: "6px", padding: "0.9rem 1.1rem" }}>
                 <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", color: "#e05a28", margin: "0 0 0.75rem" }}>
-                  ⚠ {dupes.length} doppelte E-Mail{dupes.length > 1 ? "s" : ""}
+                  ⚠ {dupes.length} identische Buchung{dupes.length > 1 ? "en" : ""}
                 </p>
                 {dupes.map(group => (
                   <div key={group[0].email} style={{ marginBottom: "0.9rem" }}>
