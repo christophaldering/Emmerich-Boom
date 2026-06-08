@@ -512,6 +512,32 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
   const [stLoading, setStLoading] = useState(false);
   const [pendingConfirm, setPendingConfirm] = useState<{ title: string; confirmLabel: string; onConfirm: () => void } | null>(null);
 
+  const [editNames, setEditNames] = useState(false);
+  const [editedNames, setEditedNames] = useState<string[]>([]);
+  const [saveNamesLoading, setSaveNamesLoading] = useState(false);
+  const [saveNamesMsg, setSaveNamesMsg] = useState("");
+
+  const startEditNames = () => {
+    setEditedNames(Array.isArray(row.personen) ? [...(row.personen as string[])] : []);
+    setSaveNamesMsg("");
+    setEditNames(true);
+  };
+  const cancelEditNames = () => { setEditNames(false); setSaveNamesMsg(""); };
+  const saveNames = async () => {
+    setSaveNamesLoading(true); setSaveNamesMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/personen`, {
+        method: "PATCH",
+        headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+        body: JSON.stringify({ personen: editedNames }),
+      });
+      const d = await r.json() as { ok?: boolean; error?: string };
+      if (d.ok) { setEditNames(false); onRefresh(); }
+      else { setSaveNamesMsg(d.error ?? "Fehler"); }
+    } catch { setSaveNamesMsg("Verbindungsfehler"); }
+    finally { setSaveNamesLoading(false); }
+  };
+
   const stornieren = () => {
     setPendingConfirm({
       title: `Anmeldung #${row.id} stornieren?`,
@@ -680,7 +706,55 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
         {row.telefon && (
           <div style={{ color: fg(0.6), fontSize: "0.78rem", marginBottom: "0.15rem" }}>📞 {row.telefon}</div>
         )}
-        <div style={{ color: fg(0.65), fontSize: "0.78rem" }}>{personen.join(", ")}</div>
+        {editNames ? (
+          <div style={{ marginTop: "0.2rem" }}>
+            {editedNames.map((name, i) => (
+              <input
+                key={i}
+                value={name}
+                onChange={e => {
+                  const next = [...editedNames];
+                  next[i] = e.target.value;
+                  setEditedNames(next);
+                }}
+                style={{
+                  display: "block", width: "100%", marginBottom: "0.2rem",
+                  background: "rgba(232,153,26,0.08)", border: `1px solid ${am(0.4)}`,
+                  borderRadius: "3px", color: FG, fontFamily: "'Lora', serif",
+                  fontSize: "0.78rem", padding: "0.2rem 0.35rem", boxSizing: "border-box",
+                }}
+              />
+            ))}
+            <div style={{ display: "flex", gap: "0.3rem", marginTop: "0.25rem" }}>
+              <button
+                onClick={saveNames}
+                disabled={saveNamesLoading || editedNames.some(n => n.trim().length < 2)}
+                style={{ ...btnBase, background: am(0.75), color: BG, fontSize: "0.72rem", padding: "0.15rem 0.45rem" }}
+              >
+                {saveNamesLoading ? "…" : "Speichern"}
+              </button>
+              <button
+                onClick={cancelEditNames}
+                disabled={saveNamesLoading}
+                style={{ ...btnBase, background: "transparent", border: `1px solid ${fg(0.2)}`, color: fg(0.5), fontSize: "0.72rem", padding: "0.15rem 0.45rem" }}
+              >
+                Abbrechen
+              </button>
+            </div>
+            {saveNamesMsg && <div style={{ color: "#e74c3c", fontSize: "0.72rem", marginTop: "0.2rem" }}>{saveNamesMsg}</div>}
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.3rem" }}>
+            <span style={{ color: fg(0.65), fontSize: "0.78rem" }}>{personen.join(", ")}</span>
+            {!storniert && (
+              <button
+                onClick={startEditNames}
+                title="Namen bearbeiten"
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: fg(0.35), fontSize: "0.7rem", padding: "0 0.1rem", lineHeight: 1, flexShrink: 0 }}
+              >✎</button>
+            )}
+          </div>
+        )}
         {row.song && <div style={{ color: fg(0.5), fontSize: "0.75rem", marginTop: "0.15rem" }}>♪ {row.song}</div>}
       </td>
 
@@ -1512,7 +1586,7 @@ export default function AdminPage() {
   const deviceRows = Object.entries(devices).sort((a, b) => b[1] - a[1]) as [string, number][];
 
   return (
-    <div style={{ background: BG, color: FG, minHeight: "100svh", fontFamily: "'Lora', serif", padding: "2rem 1.5rem", maxWidth: "820px", margin: "0 auto" }}>
+    <div style={{ background: BG, color: FG, minHeight: "100svh", fontFamily: "'Lora', serif", padding: "2rem 1.5rem", maxWidth: "1600px", margin: "0 auto" }}>
       {confirmPending && (
         <ConfirmModal
           title={confirmPending.title}

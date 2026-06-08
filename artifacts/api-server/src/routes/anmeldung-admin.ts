@@ -237,6 +237,63 @@ router.post("/admin/anmeldungen/:id/tickets-versenden", async (req: Request, res
   }
 });
 
+// PATCH /api/admin/anmeldungen/:id/personen — Personennamen korrigieren
+router.patch("/admin/anmeldungen/:id/personen", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+
+  const body = req.body as unknown;
+  if (
+    typeof body !== "object" || body === null ||
+    !Array.isArray((body as Record<string, unknown>)["personen"]) ||
+    !(body as Record<string, unknown[]>)["personen"].every((n: unknown) => typeof n === "string" && n.trim().length >= 2)
+  ) {
+    res.status(400).json({ error: "personen muss ein Array von Strings (mind. 2 Zeichen) sein" });
+    return;
+  }
+  const neuPersonen: string[] = ((body as Record<string, string[]>)["personen"]).map(n => n.trim());
+
+  try {
+    const rows = await db
+      .select({ personen_anzahl: anmeldungenTable.personen_anzahl })
+      .from(anmeldungenTable)
+      .where(eq(anmeldungenTable.id, id))
+      .limit(1);
+    if (rows.length === 0) { res.status(404).json({ error: "Nicht gefunden" }); return; }
+
+    if (neuPersonen.length !== rows[0]!.personen_anzahl) {
+      res.status(400).json({ error: `Erwartet ${rows[0]!.personen_anzahl} Namen, erhalten ${neuPersonen.length}` });
+      return;
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(anmeldungenTable)
+        .set({ personen: neuPersonen })
+        .where(eq(anmeldungenTable.id, id));
+
+      const tickets = await tx
+        .select({ id: anmeldungTicketsTable.id, ticket_nummer: anmeldungTicketsTable.ticket_nummer })
+        .from(anmeldungTicketsTable)
+        .where(eq(anmeldungTicketsTable.anmeldung_id, id))
+        .orderBy(anmeldungTicketsTable.ticket_nummer);
+
+      for (let i = 0; i < tickets.length && i < neuPersonen.length; i++) {
+        await tx
+          .update(anmeldungTicketsTable)
+          .set({ person_name: neuPersonen[i]! })
+          .where(eq(anmeldungTicketsTable.id, tickets[i]!.id));
+      }
+    });
+
+    res.json({ ok: true, personen: neuPersonen });
+  } catch (err) {
+    req.log.error(err, "admin personen-update failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
 // GET /api/admin/anmeldungen/:id/ticket-vorschau?format=png|pdf
 // Renders a sample ticket for the given Anmeldung and returns PNG (inline) or PDF (download).
 // Uses existing tickets if present; otherwise falls back to a dummy entry from personen names.
