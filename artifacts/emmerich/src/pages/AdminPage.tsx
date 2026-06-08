@@ -708,6 +708,11 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
         )}
         {editNames ? (
           <div style={{ marginTop: "0.2rem" }}>
+            {versendet && (
+              <div style={{ fontSize: "0.72rem", color: "#e8991a", marginBottom: "0.3rem", lineHeight: 1.35 }}>
+                ⚠ Ticket bereits versendet — nach dem Speichern bitte erneut versenden.
+              </div>
+            )}
             {editedNames.map((name, i) => (
               <input
                 key={i}
