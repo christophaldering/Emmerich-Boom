@@ -14,7 +14,6 @@ import SiteFooter from "@/components/SiteFooter";
 import StimmungsBild from "@/components/StimmungsBild";
 import AnmeldeAufruf from "@/components/AnmeldeAufruf";
 import Phase2Aufruf from "@/components/Phase2Aufruf";
-import AnmeldungFortschritt from "@/components/AnmeldungFortschritt";
 import Formular from "@/components/Formular";
 import TicketsTeaser from "@/components/TicketsTeaser";
 import Stempel from "@/components/Stempel";
@@ -30,7 +29,6 @@ export default function BoomerPartyPage() {
       <main style={{ background: "var(--bg-page)", minHeight: "100svh" }}>
         <Poster />
         <div id="poster-sentinel" style={{ height: 0, overflow: "hidden" }} />
-        <AnmeldungFortschritt />
         {/* <AnmeldeAufruf /> — durch Sticky-Header CTA ersetzt */}
         <Phase2Aufruf />
         <Letter />
