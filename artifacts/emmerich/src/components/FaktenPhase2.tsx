@@ -74,6 +74,10 @@ export default function FaktenPhase2() {
           <span className="fakten2-key">Anmeldeschluss</span>
           <span className="fakten2-val">{PHASE2_CONFIG.ANMELDEFRIST}</span>
         </div>
+        <div className="fakten2-row">
+          <span className="fakten2-key">Kapazität</span>
+          <span className="fakten2-val">275 Plätze</span>
+        </div>
       </div>
     </section>
   );

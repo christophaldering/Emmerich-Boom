@@ -23,3 +23,4 @@ export * from "./interesseResponse";
 export * from "./interesseStats";
 export * from "./okResult";
 export * from "./stoRnierungResult";
+export * from "./wartelisteInput";

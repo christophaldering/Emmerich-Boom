@@ -48,6 +48,12 @@ export interface AnmeldungResult {
 
 export interface AnmeldungStats {
   angemeldete_personen: number;
+  kapazitaet: number;
+  verfuegbar: number;
+}
+
+export interface WartelisteInput {
+  email: string;
 }
 
 export interface InteressentenCount {

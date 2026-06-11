@@ -1367,6 +1367,7 @@ export default function AdminPage() {
   const [nameSavePending, setNameSavePending] = useState<number | null>(null);
   const [sortCol, setSortCol]           = useState<"id" | "betrag" | "personen" | "created" | "bezahlt">("id");
   const [sortDir, setSortDir]           = useState<"asc" | "desc">("asc");
+  const [wartelisteCount, setWartelisteCount] = useState<number | null>(null);
   const [filterText, setFilterText]     = useState("");
   const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
@@ -1492,7 +1493,14 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
-  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets]);
+  const loadWarteliste = useCallback(() => {
+    fetch(`${BASE}/api/admin/warteliste`, { headers: { "x-admin-secret": SECRET } })
+      .then(r => r.json())
+      .then(data => { if (typeof data.count === "number") setWartelisteCount(data.count); })
+      .catch(() => {});
+  }, []);
+
+  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); loadWarteliste(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets, loadWarteliste]);
 
   const displayRows = useMemo(() => {
     let rows = [...anmeldungenRows];
@@ -1663,6 +1671,8 @@ export default function AdminPage() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "2rem" }}>
                 <StatCard n={aktive.length} label="Anmeldungen" sub={stornierte.length > 0 ? `${stornierte.length} storniert` : undefined} />
                 <StatCard n={sumPersonen}            label="Personen gesamt" />
+                <StatCard n={275 - sumPersonen}      label="Noch verfügbar" sub="von 275" />
+                <StatCard n={wartelisteCount ?? "–"} label="Warteliste" />
                 <StatCard n={`${bezahlt} / ${aktive.length}`} label="Bezahlt" />
                 <StatCard n={`${versendet} / ${aktive.length}`} label="Tickets versendet" />
                 <StatCard n={`${sumBetrag} €`}       label="Erwartet gesamt" />

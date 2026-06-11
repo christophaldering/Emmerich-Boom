@@ -6,8 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface AnmeldungStats {
-  angemeldete_personen: number;
-  kapazitaet: number;
-  verfuegbar: number;
+export interface WartelisteInput {
+  email: string;
 }

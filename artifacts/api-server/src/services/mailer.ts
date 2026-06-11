@@ -399,3 +399,96 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 
   logger.info({ to: opts.to }, "Ticket-Mail versendet");
 }
+
+// ─── Wartelisten-Bestätigungsmail ─────────────────────────────────────────────
+
+export interface WartelisteMailOptions {
+  to: string;
+}
+
+export async function sendWartelisteBestaetigung(opts: WartelisteMailOptions): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    logger.error({ to: opts.to }, "RESEND_API_KEY nicht gesetzt — Wartelisten-Mail kann nicht versendet werden");
+    throw new Error("RESEND_API_KEY nicht gesetzt");
+  }
+
+  const resend = new Resend(apiKey);
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Warteliste · EMMERICH BOOMT!</title></head>
+<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
+<div style="max-width:600px;margin:0 auto;">
+
+  <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
+    style="display:block;width:100%;height:auto;" />
+
+  <div style="padding:40px 32px 48px;">
+
+    <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
+      Du stehst auf der Warteliste.
+    </h1>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Wir haben deine Anfrage für die BoomerParty am <strong>18.&nbsp;Juli&nbsp;2026</strong> in Emmerich am Rhein erhalten.
+      Alle Plätze sind gerade vergeben &mdash; aber manchmal tut sich noch was.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      Sollte ein Platz frei werden, melden wir uns direkt bei dir &mdash; ohne dass du nochmal aktiv werden musst.
+      Wir kennen das mit den vielen Mails. Ihr h\u00f6rt von uns, wenn es so weit ist.
+    </p>
+
+    <div style="margin:28px 0;padding:20px 24px;border:1px solid rgba(232,153,26,.25);border-left:3px solid rgba(232,153,26,.6);background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.7;color:rgba(245,232,200,.7);margin:0;">
+        Bis dahin &mdash; und vielleicht bis bald.<br />
+        <strong style="color:#f5e8c8;">Das Orga-Team</strong>
+      </p>
+    </div>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:11px;line-height:1.7;color:rgba(245,232,200,.35);margin:32px 0 0;border-top:1px solid rgba(245,232,200,.08);padding-top:20px;">
+      EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; B\u00f6lt / Gasst\u00e4tte Kapaunenberg &bull; Emmerich am Rhein
+    </p>
+
+  </div>
+</div>
+</body>
+</html>`;
+
+  const text = `Du stehst auf der Warteliste.
+
+Wir haben deine Anfrage für die BoomerParty am 18. Juli 2026 in Emmerich am Rhein erhalten.
+Alle Plätze sind gerade vergeben — aber manchmal tut sich noch was.
+
+Sollte ein Platz frei werden, melden wir uns direkt bei dir — ohne dass du nochmal aktiv werden musst.
+
+Bis dahin — und vielleicht bis bald.
+Das Orga-Team
+
+---
+EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg · Emmerich am Rhein`;
+
+  const { error } = await resend.emails.send({
+    from: `"${ABSENDER_NAME}" <${ABSENDER_MAIL}>`,
+    to: opts.to,
+    replyTo: ABSENDER_MAIL,
+    subject: "Warteliste \u00b7 EMMERICH BOOMT! \u00b7 18. Juli 2026",
+    html,
+    text,
+    attachments: [
+      {
+        filename:    "boomerpartyposter.jpeg",
+        content:     getPosterBuffer(),
+        contentType: "image/jpeg",
+        contentId:   POSTER_CID,
+      },
+    ],
+  });
+
+  if (error) {
+    throw new Error(`Resend-Fehler: ${JSON.stringify(error)}`);
+  }
+
+  logger.info({ to: opts.to }, "Wartelisten-Bestätigungsmail versendet");
+}

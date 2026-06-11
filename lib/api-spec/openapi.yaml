@@ -335,9 +335,23 @@ components:
       type: object
       required:
         - angemeldete_personen
+        - kapazitaet
+        - verfuegbar
       properties:
         angemeldete_personen:
           type: integer
+        kapazitaet:
+          type: integer
+        verfuegbar:
+          type: integer
+    WartelisteInput:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
     InteressentenCount:
       type: object
       required:

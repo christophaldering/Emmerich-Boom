@@ -8,6 +8,7 @@ import { generateKaiComment } from "./stimmung.js";
 const router = Router();
 
 const PREIS_PRO_PERSON = 10;
+const KAPAZITAET = 275;
 
 const anmeldungSchema = z
   .object({
@@ -39,7 +40,8 @@ router.get("/anmeldung/stats", async (req, res) => {
       .from(anmeldungenTable)
       .where(isNull(anmeldungenTable.storniert_am));
     const angemeldete_personen = Number(result[0]?.total ?? 0);
-    res.json({ angemeldete_personen });
+    const verfuegbar = Math.max(0, KAPAZITAET - angemeldete_personen);
+    res.json({ angemeldete_personen, kapazitaet: KAPAZITAET, verfuegbar });
   } catch (err) {
     req.log.error(err, "anmeldung stats failed");
     res.status(500).json({ error: "Datenbankfehler" });
@@ -57,6 +59,19 @@ router.post("/anmeldung", async (req, res) => {
   const betrag_gesamt = d.personen_anzahl * PREIS_PRO_PERSON;
 
   try {
+    const capacityResult = await db
+      .select({ total: sum(anmeldungenTable.personen_anzahl) })
+      .from(anmeldungenTable)
+      .where(isNull(anmeldungenTable.storniert_am));
+    const currentTotal = Number(capacityResult[0]?.total ?? 0);
+    if (currentTotal + d.personen_anzahl > KAPAZITAET) {
+      res.status(409).json({
+        error: "ausgebucht",
+        message: "Es sind leider keine freien Plätze mehr verfügbar.",
+      });
+      return;
+    }
+
     const existingByEmail = await db
       .select({ id: anmeldungenTable.id, personen: anmeldungenTable.personen })
       .from(anmeldungenTable)

@@ -133,6 +133,8 @@ export const UpdateDisplayNameResponse = zod.object({
  */
 export const GetAnmeldungStatsResponse = zod.object({
   angemeldete_personen: zod.number(),
+  kapazitaet: zod.number(),
+  verfuegbar: zod.number(),
 });
 
 /**
