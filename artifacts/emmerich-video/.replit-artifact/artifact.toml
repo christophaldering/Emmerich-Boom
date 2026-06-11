@@ -1,0 +1,31 @@
+kind = "video"
+previewPath = "/emmerich-video/"
+title = "EMMERICH BOOMT! — Animiertes Video"
+version = "1.0.0"
+id = "artifacts/emmerich-video"
+router = "path"
+
+[[integratedSkills]]
+name = "video-js"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/emmerich-video/" ]
+localPort = 18186
+
+[services.development]
+run = "pnpm --filter @workspace/emmerich-video run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/emmerich-video", "run", "build" ]
+publicDir = "artifacts/emmerich-video/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18186"
+BASE_PATH = "/emmerich-video/"

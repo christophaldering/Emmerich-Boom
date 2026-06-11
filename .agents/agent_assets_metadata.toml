@@ -1,5 +1,16 @@
 uploads = []
-generated = []
+
+[[generated]]
+id = "06Jph-zixKk21MdrIuckO"
+uri = "file://artifacts/emmerich-video/public/images/disco-bg.png"
+type = "image"
+title = "Boomer party disco lights background"
+
+[[generated]]
+id = "re8G_q6KPC52Xcwzu2sc7"
+uri = "file://artifacts/emmerich-video/public/images/retro-tape.png"
+type = "image"
+title = "Golden retro cassette tape or vinyl"
 
 [[outputs]]
 id = "tyRhnI9EQjMNMfCxxPV_q"
