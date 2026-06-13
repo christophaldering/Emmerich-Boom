@@ -118,4 +118,34 @@ router.get("/admin/warteliste", async (req, res) => {
   }
 });
 
+router.delete("/admin/warteliste/:id", async (req, res) => {
+  if (req.headers["x-admin-secret"] !== ADMIN_SECRET) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: "Ungültige ID" });
+    return;
+  }
+
+  try {
+    const deleted = await db
+      .delete(wartelisteTable)
+      .where(eq(wartelisteTable.id, id))
+      .returning({ id: wartelisteTable.id });
+
+    if (deleted.length === 0) {
+      res.status(404).json({ error: "Eintrag nicht gefunden" });
+      return;
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error(err, "admin warteliste delete failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
 export default router;
