@@ -1370,6 +1370,7 @@ export default function AdminPage() {
   const [sortDir, setSortDir]           = useState<"asc" | "desc">("asc");
   const [wartelisteCount, setWartelisteCount] = useState<number | null>(null);
   const [wartelisteEintraege, setWartelisteEintraege] = useState<{ id: number; email: string; created_at: string; bestaetigung_versendet_am: string | null }[]>([]);
+  const [wartelisteDeleting, setWartelisteDeleting] = useState<number | null>(null);
   const [filterText, setFilterText]     = useState("");
   const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
@@ -1504,6 +1505,23 @@ export default function AdminPage() {
       })
       .catch(() => {});
   }, []);
+
+  const deleteWartelisteEntry = (id: number, email: string) => {
+    setConfirmPending({
+      title: `Eintrag von „${email}" aus der Warteliste entfernen?`,
+      onConfirm: () => {
+        setConfirmPending(null);
+        setWartelisteDeleting(id);
+        fetch(`${BASE}/api/admin/warteliste/${id}`, {
+          method: "DELETE",
+          headers: { "x-admin-secret": SECRET },
+        })
+          .then(() => { loadWarteliste(); })
+          .catch(() => {})
+          .finally(() => { setWartelisteDeleting(null); });
+      },
+    });
+  };
 
   const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); loadWarteliste(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets, loadWarteliste]);
 
@@ -2479,11 +2497,14 @@ export default function AdminPage() {
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem 0.45rem 0", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>#</th>
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>E-Mail</th>
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Eingetragen am</th>
-                    <th style={{ textAlign: "left", padding: "0.45rem 0", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Bestätigung</th>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Bestätigung</th>
+                    <th style={{ padding: "0.45rem 0", width: "1px" }}></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {wartelisteEintraege.map((e, idx) => (
+                  {wartelisteEintraege.map((e, idx) => {
+                    const deleting = wartelisteDeleting === e.id;
+                    return (
                     <tr
                       key={e.id}
                       style={{ borderBottom: `1px solid ${am(0.1)}`, background: idx % 2 === 0 ? "transparent" : am(0.03) }}
@@ -2491,14 +2512,35 @@ export default function AdminPage() {
                       <td style={{ padding: "0.55rem 0.75rem 0.55rem 0", color: fg(0.4), fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
                       <td style={{ padding: "0.55rem 0.75rem", color: FG, wordBreak: "break-all" }}>{e.email}</td>
                       <td style={{ padding: "0.55rem 0.75rem", color: fg(0.75), whiteSpace: "nowrap" }}>{dateTimeFmt(e.created_at)}</td>
-                      <td style={{ padding: "0.55rem 0", whiteSpace: "nowrap" }}>
+                      <td style={{ padding: "0.55rem 0.75rem", whiteSpace: "nowrap" }}>
                         {e.bestaetigung_versendet_am
                           ? <span style={{ color: "#2ecc71" }}>✓ {dateTimeFmt(e.bestaetigung_versendet_am)}</span>
                           : <span style={{ color: fg(0.4), fontStyle: "italic" }}>ausstehend</span>
                         }
                       </td>
+                      <td style={{ padding: "0.55rem 0", whiteSpace: "nowrap" }}>
+                        <button
+                          onClick={() => deleteWartelisteEntry(e.id, e.email)}
+                          disabled={deleting}
+                          title="Aus Warteliste entfernen"
+                          style={{
+                            background: "transparent",
+                            border: `1px solid ${fg(0.18)}`,
+                            borderRadius: "3px",
+                            color: fg(0.45),
+                            padding: "0.2rem 0.55rem",
+                            fontFamily: "'Lora', serif",
+                            fontSize: "0.78rem",
+                            cursor: deleting ? "wait" : "pointer",
+                            opacity: deleting ? 0.5 : 1,
+                          }}
+                        >
+                          {deleting ? "…" : "Löschen"}
+                        </button>
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
