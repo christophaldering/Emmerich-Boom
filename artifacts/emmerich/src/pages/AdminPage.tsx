@@ -1162,7 +1162,7 @@ interface MonitorData {
   eingelassen: MonitorTicket[]; nicht_da: MonitorTicket[]; scan_log: MonitorLog[];
 }
 
-type Tab = "anmeldungen" | "tickets" | "einzeltickets" | "einlass" | "statistik" | "namen";
+type Tab = "anmeldungen" | "tickets" | "einzeltickets" | "einlass" | "statistik" | "namen" | "warteliste";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "anmeldungen",   label: "Interessenten" },
@@ -1171,6 +1171,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "namen",         label: "Namen" },
   { id: "einlass",       label: "Einlass" },
   { id: "statistik",     label: "Statistik" },
+  { id: "warteliste",    label: "Warteliste" },
 ];
 
 interface DisplayNameRow {
@@ -1368,6 +1369,7 @@ export default function AdminPage() {
   const [sortCol, setSortCol]           = useState<"id" | "betrag" | "personen" | "created" | "bezahlt">("id");
   const [sortDir, setSortDir]           = useState<"asc" | "desc">("asc");
   const [wartelisteCount, setWartelisteCount] = useState<number | null>(null);
+  const [wartelisteEintraege, setWartelisteEintraege] = useState<{ id: number; email: string; created_at: string; bestaetigung_versendet_am: string | null }[]>([]);
   const [filterText, setFilterText]     = useState("");
   const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
@@ -1496,7 +1498,10 @@ export default function AdminPage() {
   const loadWarteliste = useCallback(() => {
     fetch(`${BASE}/api/admin/warteliste`, { headers: { "x-admin-secret": SECRET } })
       .then(r => r.json())
-      .then(data => { if (typeof data.count === "number") setWartelisteCount(data.count); })
+      .then(data => {
+        if (typeof data.count === "number") setWartelisteCount(data.count);
+        if (Array.isArray(data.eintraege)) setWartelisteEintraege(data.eintraege);
+      })
       .catch(() => {});
   }, []);
 
@@ -2442,6 +2447,61 @@ export default function AdminPage() {
                 })}
               </div>
             </>
+          )}
+        </>
+      )}
+
+      {/* ── Tab: Warteliste ── */}
+      {activeTab === "warteliste" && (
+        <>
+          <SectionTitle>Warteliste</SectionTitle>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55), marginTop: "-0.5rem", marginBottom: "1.5rem" }}>
+            Personen, die sich bei ausgeschöpfter Kapazität auf die Warteliste eingetragen haben.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "1.75rem" }}>
+            <StatCard n={wartelisteCount ?? wartelisteEintraege.length} label="auf der Warteliste" />
+            <StatCard
+              n={wartelisteEintraege.filter(e => e.bestaetigung_versendet_am).length}
+              label="Bestätigung versendet"
+            />
+          </div>
+
+          {wartelisteEintraege.length === 0 ? (
+            <p style={{ color: fg(0.55), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.92rem" }}>
+              Noch niemand auf der Warteliste.
+            </p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'Lora', serif", fontSize: "0.88rem" }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${am(0.25)}` }}>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0.75rem 0.45rem 0", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>#</th>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>E-Mail</th>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Eingetragen am</th>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Bestätigung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {wartelisteEintraege.map((e, idx) => (
+                    <tr
+                      key={e.id}
+                      style={{ borderBottom: `1px solid ${am(0.1)}`, background: idx % 2 === 0 ? "transparent" : am(0.03) }}
+                    >
+                      <td style={{ padding: "0.55rem 0.75rem 0.55rem 0", color: fg(0.4), fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
+                      <td style={{ padding: "0.55rem 0.75rem", color: FG, wordBreak: "break-all" }}>{e.email}</td>
+                      <td style={{ padding: "0.55rem 0.75rem", color: fg(0.75), whiteSpace: "nowrap" }}>{dateTimeFmt(e.created_at)}</td>
+                      <td style={{ padding: "0.55rem 0", whiteSpace: "nowrap" }}>
+                        {e.bestaetigung_versendet_am
+                          ? <span style={{ color: "#2ecc71" }}>✓ {dateTimeFmt(e.bestaetigung_versendet_am)}</span>
+                          : <span style={{ color: fg(0.4), fontStyle: "italic" }}>ausstehend</span>
+                        }
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </>
       )}
