@@ -126,6 +126,11 @@ export default function AnmeldungPage() {
   } | null>(null);
   const erfolgsRef = useRef<HTMLDivElement>(null);
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlEmail = searchParams.get("email") ?? undefined;
+  const urlToken = searchParams.get("token") ?? undefined;
+  const isNachruecker = !!urlToken;
+
   const handleSuccess = (data: { anzahl: number; personen: string[]; ticket_nummern: number[] }) => {
     setErfolg(data);
     setTimeout(() => {
@@ -139,9 +144,35 @@ export default function AnmeldungPage() {
       <AnmeldungHeader />
       <div aria-hidden style={{ height: 48, flexShrink: 0 }} />
 
-      {PHASE2_CONFIG.ANMELDUNG_AKTIV ? (
+      {isNachruecker && !erfolg && (
+        <div style={{
+          maxWidth: "640px",
+          margin: "0 auto",
+          padding: "1.5rem 2rem 0",
+        }}>
+          <div style={{
+            border: "1px solid rgba(232,153,26,0.4)",
+            borderLeft: "3px solid rgba(232,153,26,0.8)",
+            borderRadius: "0 4px 4px 0",
+            background: "rgba(232,153,26,0.05)",
+            padding: "0.9rem 1.2rem",
+            fontFamily: "'Lora', serif",
+            fontSize: "0.92rem",
+            color: "rgba(245,232,200,0.85)",
+            lineHeight: 1.65,
+          }}>
+            🎉 Du rückst nach — ein Platz ist für dich reserviert. Füll das Formular aus und du bist dabei.
+          </div>
+        </div>
+      )}
+
+      {PHASE2_CONFIG.ANMELDUNG_AKTIV || isNachruecker ? (
         <>
-          <Anmeldeformular onSuccess={handleSuccess} />
+          <Anmeldeformular
+            onSuccess={handleSuccess}
+            initialEmail={urlEmail}
+            nachrueckerToken={urlToken}
+          />
           {erfolg && (
             <div ref={erfolgsRef}>
               <Erfolgsektion

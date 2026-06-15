@@ -14,6 +14,29 @@ import TicketDemoPage from "@/pages/TicketDemoPage";
 import ProgrammPage from "@/pages/ProgrammPage";
 import Beacon from "@/components/Beacon";
 
+function NachrueckerAbgelehntPage() {
+  const A = "#E8991A";
+  return (
+    <div style={{ background: "#0A0704", minHeight: "100svh", color: "#F5E8C8", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ maxWidth: "560px", textAlign: "center" }}>
+        <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(1.5rem, 5vw, 2.2rem)", color: A, marginBottom: "1.5rem", lineHeight: 1.25 }}>
+          Alles klar — kein Stress.
+        </p>
+        <p style={{ fontFamily: "'Lora', Georgia, serif", fontSize: "1rem", lineHeight: 1.8, color: "rgba(245,232,200,0.75)", marginBottom: "2rem" }}>
+          Du hast abgelehnt. Der Platz geht an jemand anderen weiter.<br />
+          Wir wünschen dir trotzdem einen guten Sommer.
+        </p>
+        <button
+          onClick={() => { window.history.pushState({}, "", `${import.meta.env.BASE_URL.replace(/\/$/, "")}/`); window.dispatchEvent(new PopStateEvent("popstate")); }}
+          style={{ background: "transparent", border: `1px solid ${A}`, borderRadius: "4px", color: A, fontFamily: "'Playfair Display', Georgia, serif", fontStyle: "italic", fontSize: "1rem", padding: "0.75rem 2rem", cursor: "pointer" }}
+        >
+          Zur Startseite
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const ADMIN_SLUG = "boomer-orga-intern";
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -32,6 +55,7 @@ function getRoute(): { page: string; param?: string } {
   if (clean === "anmeldung") return { page: "anmeldung" };
   if (clean === "ticket-demo") return { page: "ticket-demo" };
   if (clean === "programm") return { page: "programm" };
+  if (clean === "nachruecker/abgelehnt") return { page: "nachruecker-abgelehnt" };
   const ticketOverviewMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})/alle$`));
   if (ticketOverviewMatch) return { page: "anmeldung-tickets", param: ticketOverviewMatch[1].toUpperCase() };
   const ticketMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})$`));
@@ -63,6 +87,7 @@ export default function App() {
   if (route.page === "ticket" && route.param) return <TicketPage code={route.param} />;
   if (route.page === "anmeldung-tickets" && route.param) return <AnmeldungTicketsPage code={route.param} />;
   if (route.page === "anmeldung") return <AnmeldungPage />;
+  if (route.page === "nachruecker-abgelehnt") return <NachrueckerAbgelehntPage />;
   if (route.page === "ticket-demo") return <TicketDemoPage />;
   if (route.page === "programm") return <ProgrammPage />;
 

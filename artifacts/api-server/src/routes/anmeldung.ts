@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { db, anmeldungenTable } from "@workspace/db";
+import { db, anmeldungenTable, wartelisteTable } from "@workspace/db";
 import { sql, sum, eq, isNull, and } from "drizzle-orm";
 import { sendBestaetigung } from "../services/mailer.js";
 import { generateKaiComment } from "./stimmung.js";
@@ -58,6 +58,11 @@ router.post("/anmeldung", async (req, res) => {
   const d = parsed.data;
   const betrag_gesamt = d.personen_anzahl * PREIS_PRO_PERSON;
 
+  const nachrueckerToken =
+    typeof req.body.nachruecker_token === "string" && req.body.nachruecker_token.trim()
+      ? (req.body.nachruecker_token as string).trim()
+      : null;
+
   try {
     const capacityResult = await db
       .select({ total: sum(anmeldungenTable.personen_anzahl) })
@@ -70,6 +75,24 @@ router.post("/anmeldung", async (req, res) => {
         message: "Es sind leider keine freien Plätze mehr verfügbar.",
       });
       return;
+    }
+
+    let wartelisteId: number | null = null;
+    if (nachrueckerToken) {
+      const tokenRows = await db
+        .select({ id: wartelisteTable.id, nachruecker_status: wartelisteTable.nachruecker_status })
+        .from(wartelisteTable)
+        .where(eq(wartelisteTable.nachruecker_token, nachrueckerToken))
+        .limit(1);
+
+      if (tokenRows.length === 0 || tokenRows[0].nachruecker_status !== "angenommen") {
+        res.status(403).json({
+          error: "ungültiger_token",
+          message: "Dein Einladungslink ist ungültig oder bereits verwendet. Bitte melde dich bei Christoph.",
+        });
+        return;
+      }
+      wartelisteId = tokenRows[0].id;
     }
 
     const existingByEmail = await db
@@ -132,6 +155,16 @@ router.post("/anmeldung", async (req, res) => {
 
     // 201 sofort senden — Mail-Versand blockiert den User nicht
     res.status(201).json({ id, betrag_gesamt, ticket_nummern });
+
+    // Nachrücker-Token invalidieren
+    if (wartelisteId !== null) {
+      db.update(wartelisteTable)
+        .set({ nachruecker_status: "angemeldet" })
+        .where(eq(wartelisteTable.id, wartelisteId))
+        .catch((err: unknown) => {
+          req.log.error({ err, wartelisteId }, "Nachrücker-Status-Update fehlgeschlagen");
+        });
+    }
 
     // Fire-and-forget: KaI-Kommentar mit aktuellen Daten neu generieren
     generateKaiComment().catch(() => {});

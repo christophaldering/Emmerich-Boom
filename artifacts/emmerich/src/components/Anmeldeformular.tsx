@@ -4,6 +4,8 @@ import { useSubmitAnmeldung, useGetAnmeldungStats } from "@workspace/api-client-
 
 interface AnmeldeformularProps {
   onSuccess: (data: { anzahl: number; personen: string[]; ticket_nummern: number[] }) => void;
+  initialEmail?: string;
+  nachrueckerToken?: string;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -149,23 +151,26 @@ function WartelisteBereich() {
   );
 }
 
-export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+export default function Anmeldeformular({ onSuccess, initialEmail, nachrueckerToken }: AnmeldeformularProps) {
   const [personenAnzahl, setPersonen] = useState(1);
   const [anzahlInput, setAnzahlInput] = useState("1");
   const [personen, setPersonen_]      = useState<string[]>([""]);
-  const [email, setEmail]             = useState("");
+  const [email, setEmail]             = useState(initialEmail ?? "");
   const [telefon, setTelefon]         = useState("");
   const [song, setSong]               = useState("");
   const [statement, setStatement]     = useState("");
   const [verbindlich, setVerbindlich] = useState(false);
   const [clientError, setClientError] = useState("");
+  const [nachrueckerLoading, setNachrueckerLoading] = useState(false);
 
   const mutation = useSubmitAnmeldung();
   const { data: stats } = useGetAnmeldungStats({ query: { refetchInterval: 60_000 } });
 
   const verfuegbar = stats?.verfuegbar ?? null;
   const kapazitaet = stats?.kapazitaet ?? 275;
-  const ausgebucht = verfuegbar !== null && verfuegbar === 0;
+  const ausgebucht = nachrueckerToken ? false : (verfuegbar !== null && verfuegbar === 0);
 
   const handlePersonenChange = (n: number) => {
     setPersonen(n);
@@ -189,7 +194,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setClientError("");
 
@@ -198,18 +203,44 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
       return;
     }
 
+    const formData = {
+      email:           email.trim(),
+      telefon:         telefon.trim() || null,
+      personen_anzahl: personenAnzahl,
+      personen:        personen.map((p) => p.trim()),
+      song:            song.trim() || null,
+      statement:       statement.trim() || null,
+      verbindlich:     true as const,
+    };
+
+    if (nachrueckerToken) {
+      setNachrueckerLoading(true);
+      try {
+        const r = await fetch(`${BASE}/api/anmeldung`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...formData, nachruecker_token: nachrueckerToken }),
+        });
+        const d = await r.json() as { id?: number; ticket_nummern?: number[]; error?: string; message?: string };
+        if (r.ok) {
+          onSuccess({
+            anzahl:         personenAnzahl,
+            personen:       personen.map((p) => p.trim()),
+            ticket_nummern: d.ticket_nummern ?? [],
+          });
+        } else {
+          setClientError(d.message ?? d.error ?? "Ein Fehler ist aufgetreten.");
+        }
+      } catch {
+        setClientError("Verbindungsfehler. Bitte nochmal versuchen.");
+      } finally {
+        setNachrueckerLoading(false);
+      }
+      return;
+    }
+
     mutation.mutate(
-      {
-        data: {
-          email:           email.trim(),
-          telefon:         telefon.trim() || null,
-          personen_anzahl: personenAnzahl,
-          personen:        personen.map((p) => p.trim()),
-          song:            song.trim() || null,
-          statement:       statement.trim() || null,
-          verbindlich:     true,
-        },
-      },
+      { data: formData },
       {
         onSuccess: (responseData) => {
           onSuccess({
@@ -241,7 +272,7 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
   };
 
   const MAX = PHASE2_CONFIG.MAX_PERSONEN_PRO_ANMELDUNG;
-  const loading = mutation.isPending;
+  const loading = mutation.isPending || nachrueckerLoading;
 
   return (
     <section
@@ -397,10 +428,11 @@ export default function Anmeldeformular({ onSuccess }: AnmeldeformularProps) {
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { if (!initialEmail) setEmail(e.target.value); }}
+                  readOnly={!!initialEmail}
                   placeholder="name@beispiel.de"
                   className="af-input"
-                  style={inputStyle}
+                  style={{ ...inputStyle, ...(initialEmail ? { opacity: 0.7, cursor: "default" } : {}) }}
                 />
                 <p style={hintStyle}>Wir schicken eure Tickets an diese Adresse.</p>
               </div>

@@ -7,12 +7,18 @@ export const wartelisteTable = pgTable("warteliste", {
   email: text("email").notNull().unique(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   bestaetigung_versendet_am: timestamp("bestaetigung_versendet_am"),
+  nachruecker_token: text("nachruecker_token").unique(),
+  nachruecker_eingeladen_am: timestamp("nachruecker_eingeladen_am"),
+  nachruecker_status: text("nachruecker_status"),
 });
 
 export const insertWartelisteSchema = createInsertSchema(wartelisteTable).omit({
   id: true,
   created_at: true,
   bestaetigung_versendet_am: true,
+  nachruecker_token: true,
+  nachruecker_eingeladen_am: true,
+  nachruecker_status: true,
 });
 export type InsertWarteliste = z.infer<typeof insertWartelisteSchema>;
 export type Warteliste = typeof wartelisteTable.$inferSelect;

@@ -492,3 +492,127 @@ EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg ·
 
   logger.info({ to: opts.to }, "Wartelisten-Bestätigungsmail versendet");
 }
+
+// ─── Nachrücker-Einladungsmail ─────────────────────────────────────────────
+
+export interface NachrueckerMailOptions {
+  to: string;
+  annehmenUrl: string;
+  ablehnenUrl: string;
+  fristText?: string;
+}
+
+export async function sendNachrueckerEinladung(opts: NachrueckerMailOptions): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    logger.error({ to: opts.to }, "RESEND_API_KEY nicht gesetzt — Nachrücker-Mail kann nicht versendet werden");
+    throw new Error("RESEND_API_KEY nicht gesetzt");
+  }
+
+  const resend = new Resend(apiKey);
+  const frist = opts.fristText ?? "48 Stunden";
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Nachrücker · EMMERICH BOOMT!</title></head>
+<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
+<div style="max-width:600px;margin:0 auto;">
+
+  <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
+    style="display:block;width:100%;height:auto;" />
+
+  <div style="padding:40px 32px 48px;">
+
+    <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
+      Ein Platz ist frei &mdash; du kannst nachr&uuml;cken.
+    </h1>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Du stehst auf unserer Warteliste f&uuml;r die BoomerParty am <strong>18.&nbsp;Juli&nbsp;2026</strong> in Emmerich am Rhein.
+      Es ist ein Platz frei geworden &mdash; und du bist dran.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      Bitte entscheide dich innerhalb von <strong>${escHtml(frist)}</strong>:
+    </p>
+
+    <table cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px;">
+      <tr>
+        <td style="padding-right:12px;">
+          <a href="${escHtml(opts.annehmenUrl)}"
+            style="display:inline-block;padding:14px 28px;background:#e8991a;color:#0a0704;font-family:Georgia,'Times New Roman',serif;font-size:15px;font-weight:bold;text-decoration:none;border-radius:4px;">
+            Ja, ich komme!
+          </a>
+        </td>
+        <td>
+          <a href="${escHtml(opts.ablehnenUrl)}"
+            style="display:inline-block;padding:14px 28px;background:transparent;color:rgba(245,232,200,.55);border:1px solid rgba(245,232,200,.2);font-family:Georgia,'Times New Roman',serif;font-size:14px;text-decoration:none;border-radius:4px;">
+            Nein, danke
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.7;color:rgba(245,232,200,.45);margin:0 0 28px;">
+      Mit Klick auf &bdquo;Ja, ich komme!&ldquo; wirst du direkt zur Anmeldung weitergeleitet.<br />
+      Wenn du nicht reagierst, verf&auml;llt der Platz nach ${escHtml(frist)}.
+    </p>
+
+    <div style="margin:28px 0;padding:20px 24px;border:1px solid rgba(232,153,26,.25);border-left:3px solid rgba(232,153,26,.6);background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.7;color:rgba(245,232,200,.7);margin:0;">
+        Bis dann &mdash; hoffentlich auf der Party.<br />
+        <strong style="color:#f5e8c8;">Das Orga-Team</strong>
+      </p>
+    </div>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:11px;line-height:1.7;color:rgba(245,232,200,.35);margin:32px 0 0;border-top:1px solid rgba(245,232,200,.08);padding-top:20px;">
+      EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; B&ouml;lt / Gasst&auml;tte Kapaunenberg &bull; Emmerich am Rhein
+    </p>
+
+  </div>
+</div>
+</body>
+</html>`;
+
+  const text = `Ein Platz ist frei — du kannst nachrücken.
+
+Du stehst auf unserer Warteliste für die BoomerParty am 18. Juli 2026 in Emmerich am Rhein.
+Es ist ein Platz frei geworden — und du bist dran.
+
+Bitte entscheide dich innerhalb von ${frist}:
+
+→ JA, ich komme: ${opts.annehmenUrl}
+
+→ Nein, danke: ${opts.ablehnenUrl}
+
+Wenn du nicht reagierst, verfällt der Platz nach ${frist}.
+
+Bis dann — hoffentlich auf der Party.
+Das Orga-Team
+
+---
+EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg · Emmerich am Rhein`;
+
+  const { error } = await resend.emails.send({
+    from: `"${ABSENDER_NAME}" <${ABSENDER_MAIL}>`,
+    to: opts.to,
+    replyTo: ABSENDER_MAIL,
+    subject: "Ein Platz ist frei \u00b7 EMMERICH BOOMT! \u00b7 18. Juli 2026",
+    html,
+    text,
+    attachments: [
+      {
+        filename:    "boomerpartyposter.jpeg",
+        content:     getPosterBuffer(),
+        contentType: "image/jpeg",
+        contentId:   POSTER_CID,
+      },
+    ],
+  });
+
+  if (error) {
+    throw new Error(`Resend-Fehler: ${JSON.stringify(error)}`);
+  }
+
+  logger.info({ to: opts.to }, "Nachrücker-Einladungsmail versendet");
+}
