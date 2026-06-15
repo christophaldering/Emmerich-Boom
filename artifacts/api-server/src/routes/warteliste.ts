@@ -174,7 +174,18 @@ router.post("/admin/warteliste/:id/einladen", async (req, res) => {
 
     res.json({ ok: true });
 
-    sendNachrueckerEinladung({ to: eintrag.email, annehmenUrl, ablehnenUrl })
+    // Frist: 72 Stunden ab jetzt als lesbarer Zeitpunkt
+    const fristDatum = new Date(Date.now() + 72 * 60 * 60 * 1000);
+    const fristText = fristDatum.toLocaleString("de-DE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/Berlin",
+    }) + " Uhr (72 Stunden)";
+
+    sendNachrueckerEinladung({ to: eintrag.email, annehmenUrl, ablehnenUrl, fristText })
       .catch((err: unknown) => {
         req.log.error({ err, email: eintrag.email }, "Nachrücker-Einladungsmail fehlgeschlagen");
       });
@@ -207,20 +218,19 @@ router.get("/nachruecker/annehmen", async (req, res) => {
 
     const eintrag = rows[0];
 
-    if (eintrag.nachruecker_status === "abgelehnt") {
-      res.redirect("/?nachruecker=abgelehnt");
+    // Nur 'eingeladen' ist gültig; alles andere (abgelehnt, angenommen ohne Token, etc.) → ungültig
+    if (eintrag.nachruecker_status !== "eingeladen" && eintrag.nachruecker_status !== "angenommen") {
+      res.redirect("/?nachruecker=ungueltig");
       return;
     }
 
-    if (eintrag.nachruecker_status === "angemeldet") {
-      res.redirect("/anmeldung?nachruecker=bereits_angemeldet");
-      return;
+    // Idempotent: nur updaten wenn noch 'eingeladen'
+    if (eintrag.nachruecker_status === "eingeladen") {
+      await db
+        .update(wartelisteTable)
+        .set({ nachruecker_status: "angenommen" })
+        .where(eq(wartelisteTable.id, eintrag.id));
     }
-
-    await db
-      .update(wartelisteTable)
-      .set({ nachruecker_status: "angenommen" })
-      .where(eq(wartelisteTable.id, eintrag.id));
 
     const emailParam = encodeURIComponent(eintrag.email);
     res.redirect(`/anmeldung?email=${emailParam}&token=${token}`);

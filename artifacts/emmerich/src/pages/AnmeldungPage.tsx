@@ -184,7 +184,32 @@ export default function AnmeldungPage() {
           )}
         </>
       ) : (
-        <AnmeldungDemnächst />
+        <>
+          <div style={{
+            maxWidth: "640px",
+            margin: "0 auto",
+            padding: "1.5rem 2rem 2rem",
+            fontFamily: "'Lora', serif",
+          }}>
+            <div style={{
+              border: "1px solid rgba(232,153,26,0.3)",
+              borderLeft: "3px solid rgba(232,153,26,0.7)",
+              borderRadius: "0 4px 4px 0",
+              background: "rgba(232,153,26,0.04)",
+              padding: "1.1rem 1.4rem",
+              color: "rgba(245,232,200,0.8)",
+              lineHeight: 1.7,
+              fontSize: "0.92rem",
+            }}>
+              <strong style={{ color: "rgba(245,232,200,0.95)", display: "block", marginBottom: "0.4rem" }}>
+                Anmeldungen laufen aktuell nur noch über die Warteliste.
+              </strong>
+              Wenn du auf der Warteliste stehst, bekommst du von uns eine persönliche Einladung per Mail.
+              Bei Fragen: <a href="mailto:boomerparty26@emmerich-boomt.de" style={{ color: "rgba(232,153,26,0.9)", textDecoration: "none" }}>boomerparty26@emmerich-boomt.de</a>
+            </div>
+          </div>
+          <AnmeldungDemnächst />
+        </>
       )}
 
       <PressNote />

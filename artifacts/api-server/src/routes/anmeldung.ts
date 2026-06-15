@@ -10,6 +10,10 @@ const router = Router();
 const PREIS_PRO_PERSON = 10;
 const KAPAZITAET = 275;
 
+// Wenn false: Anmeldungen nur noch mit gültigem Nachrücker-Token erlaubt.
+// Muss zusammen mit PHASE2_CONFIG.ANMELDUNG_AKTIV im Frontend auf false gesetzt werden.
+const ANMELDUNG_AKTIV = true;
+
 const anmeldungSchema = z
   .object({
     email:           z.string().email().max(300),
@@ -64,6 +68,15 @@ router.post("/anmeldung", async (req, res) => {
       : null;
 
   try {
+    // Wenn Anmeldung nur noch über Warteliste läuft: Token ist Pflicht
+    if (!ANMELDUNG_AKTIV && !nachrueckerToken) {
+      res.status(403).json({
+        error: "nur_warteliste",
+        message: "Anmeldungen laufen aktuell nur noch über die Warteliste. Bitte wende dich an Christoph.",
+      });
+      return;
+    }
+
     const capacityResult = await db
       .select({ total: sum(anmeldungenTable.personen_anzahl) })
       .from(anmeldungenTable)
@@ -156,13 +169,13 @@ router.post("/anmeldung", async (req, res) => {
     // 201 sofort senden — Mail-Versand blockiert den User nicht
     res.status(201).json({ id, betrag_gesamt, ticket_nummern });
 
-    // Nachrücker-Token invalidieren
+    // Nachrücker-Token invalidieren (token auf null setzen; status bleibt 'angenommen')
     if (wartelisteId !== null) {
       db.update(wartelisteTable)
-        .set({ nachruecker_status: "angemeldet" })
+        .set({ nachruecker_token: null })
         .where(eq(wartelisteTable.id, wartelisteId))
         .catch((err: unknown) => {
-          req.log.error({ err, wartelisteId }, "Nachrücker-Status-Update fehlgeschlagen");
+          req.log.error({ err, wartelisteId }, "Nachrücker-Token-Invalidierung fehlgeschlagen");
         });
     }
 
