@@ -8,6 +8,7 @@ import anmeldungRouter from "./anmeldung";
 import anmeldungAdminRouter from "./anmeldung-admin";
 import displayNamesRouter from "./display-names";
 import wartelisteRouter from "./warteliste";
+import exportRouter from "./export";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(anmeldungRouter);
 router.use(anmeldungAdminRouter);
 router.use(displayNamesRouter);
 router.use(wartelisteRouter);
+router.use(exportRouter);
 
 export default router;

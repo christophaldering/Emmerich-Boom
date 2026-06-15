@@ -1379,6 +1379,7 @@ export default function AdminPage() {
   }[]>([]);
   const [wartelisteDeleting, setWartelisteDeleting] = useState<number | null>(null);
   const [wartelisteEinladen, setWartelisteEinladen] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
   const [filterText, setFilterText]     = useState("");
   const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
@@ -1551,6 +1552,30 @@ export default function AdminPage() {
 
   const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); loadWarteliste(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets, loadWarteliste]);
 
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const r = await fetch(`${BASE}/api/admin/export`, {
+        headers: { "x-admin-secret": SECRET },
+      });
+      if (!r.ok) { alert("Export fehlgeschlagen."); return; }
+      const blob = await r.blob();
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `emmerich-boomt-export-${dateStr}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Export fehlgeschlagen — Verbindungsfehler.");
+    } finally {
+      setExporting(false);
+    }
+  }, []);
+
   const displayRows = useMemo(() => {
     let rows = [...anmeldungenRows];
     if (filterText.trim()) {
@@ -1670,6 +1695,13 @@ export default function AdminPage() {
           <a href={`${BASE}/boomer-orga-intern/einlass`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Einlass-Scanner
           </a>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            title="Alle Daten als Excel-Datei herunterladen"
+            style={{ background: exporting ? am(0.12) : "transparent", border: `1px solid ${am(exporting ? 0.6 : 0.45)}`, borderRadius: "3px", color: am(exporting ? 1 : 0.85), cursor: exporting ? "wait" : "pointer", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem", opacity: exporting ? 0.75 : 1 }}>
+            {exporting ? "…" : "↓ Excel"}
+          </button>
           <button onClick={refreshAll} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Aktualisieren
           </button>
