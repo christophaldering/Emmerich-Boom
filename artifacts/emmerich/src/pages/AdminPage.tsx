@@ -2565,7 +2565,7 @@ export default function AdminPage() {
                             <button
                               onClick={() => einladeWartelisteEntry(e.id, e.email)}
                               disabled={einladen}
-                              title="Nachrücker-Einladung senden"
+                              title={e.nachruecker_status === "abgelehnt" ? "Erneut als Nachrücker einladen" : "Nachrücker-Einladung senden"}
                               style={{
                                 background: "rgba(232,153,26,0.12)",
                                 border: `1px solid ${am(0.4)}`,
@@ -2578,7 +2578,7 @@ export default function AdminPage() {
                                 opacity: einladen ? 0.5 : 1,
                               }}
                             >
-                              {einladen ? "…" : "Einladen"}
+                              {einladen ? "…" : e.nachruecker_status === "abgelehnt" ? "Erneut einladen" : "Einladen"}
                             </button>
                           )}
                           <button

@@ -11,8 +11,8 @@ const PREIS_PRO_PERSON = 10;
 const KAPAZITAET = 275;
 
 // Wenn false: Anmeldungen nur noch mit gültigem Nachrücker-Token erlaubt.
-// Muss zusammen mit PHASE2_CONFIG.ANMELDUNG_AKTIV im Frontend auf false gesetzt werden.
-const ANMELDUNG_AKTIV = true;
+// Muss zusammen mit PHASE2_CONFIG.ANMELDUNG_AKTIV im Frontend konsistent gehalten werden.
+const ANMELDUNG_AKTIV = false;
 
 const anmeldungSchema = z
   .object({

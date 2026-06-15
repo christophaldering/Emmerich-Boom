@@ -157,8 +157,8 @@ router.post("/admin/warteliste/:id/einladen", async (req, res) => {
     const token = randomBytes(24).toString("hex");
 
     const proto  = ((req.headers["x-forwarded-proto"] as string) ?? req.protocol).split(",")[0].trim();
-    const host   = (req.headers["x-forwarded-host"] as string) ?? (req.get("host") ?? "localhost");
-    const origin = `${proto}://${host}`;
+    const host   = (req.headers["x-forwarded-host"] as string) ?? (req.get("host") ?? "");
+    const origin = process.env.SITE_URL ?? (host ? `${proto}://${host}` : "https://emmerich-boomt.de");
 
     const annehmenUrl = `${origin}/api/nachruecker/annehmen?token=${token}`;
     const ablehnenUrl = `${origin}/api/nachruecker/ablehnen?token=${token}`;
@@ -245,7 +245,7 @@ router.get("/nachruecker/annehmen", async (req, res) => {
 router.get("/nachruecker/ablehnen", async (req, res) => {
   const token = typeof req.query.token === "string" ? req.query.token.trim() : null;
   if (!token) {
-    res.redirect("/");
+    res.redirect("/?nachruecker=ungueltig");
     return;
   }
 
@@ -256,17 +256,20 @@ router.get("/nachruecker/ablehnen", async (req, res) => {
       .where(eq(wartelisteTable.nachruecker_token, token))
       .limit(1);
 
-    if (rows.length > 0) {
-      await db
-        .update(wartelisteTable)
-        .set({ nachruecker_status: "abgelehnt" })
-        .where(eq(wartelisteTable.id, rows[0].id));
+    if (rows.length === 0) {
+      res.redirect("/?nachruecker=ungueltig");
+      return;
     }
+
+    await db
+      .update(wartelisteTable)
+      .set({ nachruecker_status: "abgelehnt" })
+      .where(eq(wartelisteTable.id, rows[0].id));
 
     res.redirect("/?nachruecker=abgelehnt");
   } catch (err) {
     req.log.error(err, "nachruecker ablehnen failed");
-    res.redirect("/");
+    res.redirect("/?nachruecker=fehler");
   }
 });
 
