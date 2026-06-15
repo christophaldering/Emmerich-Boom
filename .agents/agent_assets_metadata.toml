@@ -47,3 +47,9 @@ id = "-BUdTXgZUsPPPunEThV-7"
 uri = "file://Freiticket-Sarah-Eul.pdf"
 type = "pdf"
 title = "Freiticket Sarah Eul"
+
+[[outputs]]
+id = "wQHICevFKDnNVo5lE_i57"
+uri = "file://.local/emmerich-boomt-export-produktion-2026-06-15.xlsx"
+type = "table"
+title = "EMMERICH BOOMT — Export Produktion (15.06.2026)"
