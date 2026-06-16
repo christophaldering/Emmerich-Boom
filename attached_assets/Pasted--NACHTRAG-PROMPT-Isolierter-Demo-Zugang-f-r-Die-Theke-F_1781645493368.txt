@@ -1,0 +1,77 @@
+# NACHTRAG-PROMPT — Isolierter Demo-Zugang für „Die Theke”
+
+**Fokussierter Nachtrag zur bereits gebauten Theke. Nur das Folgende umsetzen, sonst nichts anfassen.**
+
+## Kontext
+
+Die Theke ist fertig (Routen `/theke` und `/theke/wand`, Auth via `POST /api/theke/auth` gegen `anmeldung_tickets.ticket_code`, Tabellen `theke_profile/_botschaften/_fotos/_verteiler/_einladungen`, Admin unter `boomer-orga-intern`). Es fehlt der **isolierte Demo-Zugang**: ein einziges Demo-Ticket, über das die Orga die Theke testen und am Beamer zeigen kann, **ohne echte Teilnehmerdaten zu berühren**. Die bestehenden „Theke öffnen als ‚[Name]’”-Links bleiben unverändert bestehen.
+
+## 1. VERBOTEN
+
+- **KEIN zweiter Zugangs-/Auth-Mechanismus.** Das Demo-Ticket läuft durch denselben `POST /api/theke/auth` wie jedes echte Ticket.
+- **KEIN neues Passwort, kein Sonderfall im Auth-Code.**
+- **Demo-Inhalte dürfen NIEMALS bei echten Teilnehmern auftauchen** — nicht im Feed, nicht auf der Wand, nicht im Band, nicht in Zählungen.
+- **An die Demo-Bestellung wird NIE eine Einladungs-Mail versendet** (auch nicht bei „An alle senden”).
+- Bestehende Theke-Funktionen, andere Seiten, `phase2.ts`-Schalter: **unverändert**.
+
+## 2. Konstante
+
+In `artifacts/api-server/src/config.ts` ergänzen:
+
+```
+THEKE_DEMO_CODE: "00000000deadbeef",
+```
+
+Einzige Quelle der Wahrheit. Nirgends doppelt hardcoden.
+
+## 3. Idempotentes Anlegen beim Serverstart (statt manuellem Script)
+
+In `artifacts/api-server/src/index.ts` eine Funktion `seedThekeDemoIfMissing()` ergänzen und beim Start aufrufen (analog zum vorhandenen `seedKaiIfEmpty()`). Verhalten:
+
+- Prüfen, ob bereits ein `anmeldung_tickets`-Eintrag mit `ticket_code = THEKE_DEMO_CODE` existiert. **Wenn ja: nichts tun.** (Idempotent, keine Duplikate.)
+- Wenn nein: eine Demo-Bestellung in `anmeldungen` anlegen — alle NOT-NULL-Pflichtfelder mit unauffälligen Demo-Werten füllen (E-Mail `orga-vorschau@emmerich-boomt.de`, `personen_anzahl = 1`, `personen = ["Orga-Vorschau"]`, `betrag_gesamt = 0`, übrige Pflichtfelder mit neutralen Werten). Dazu genau **ein** `anmeldung_tickets` mit `person_name = "Orga-Vorschau"`, einem festen `ticket_nummer = "DEMO-0000"` und `ticket_code = THEKE_DEMO_CODE`.
+- Fehler beim Seed nur loggen, Serverstart nicht blockieren.
+
+## 4. Strikte Isolierung — Demo überall ausschließen
+
+In **allen** Theke-Abfragen das Demo-Ticket per `ticket_code <> THEKE_DEMO_CODE` (bzw. dessen `anmeldung_id`) ausschließen:
+
+- `GET /api/theke/feed` (Swipe-Feed)
+- die Datenquelle der Beamer-Wand
+- `GET /api/theke/botschaften` („Das Band”)
+- alle Profil-/Foto-/Botschafts-**Zählungen**
+- `GET /api/theke-admin/uebersicht`
+- `GET /api/theke-admin/einladungen`
+- `POST /api/theke-admin/einladung/senden` — Demo-Ticket aus „alle” / „nur nicht eingeladene” / Einzel- und Sammelversand **immer** herausfiltern, sodass an `orga-vorschau@…` keine Mail geht.
+
+Der Auth-Pfad (`POST /api/theke/auth`) lässt das Demo-Ticket hingegen normal zu — sonst käme die Vorschau nicht rein.
+
+## 5. Admin-Vorschau-Buttons
+
+Im Admin-Abschnitt „Theke” eine kleine Box **„Theke — Vorschau (Orga)”** mit zwei Buttons (neuer Tab):
+
+- **„Vorschau öffnen”** → `/theke?t=<THEKE_DEMO_CODE>`
+- **„Beamer-Wand öffnen”** → `/theke/wand?t=<THEKE_DEMO_CODE>`
+
+Den Code dafür liefert das Backend (z. B. als Feld `demo_code` in der Antwort von `GET /api/theke-admin/uebersicht`), damit Frontend und Konstante nicht auseinanderlaufen. **Nicht** im Frontend hardcoden.
+
+## 6. CHECKLISTE
+
+- [ ] `THEKE_DEMO_CODE` in `config.ts`.
+- [ ] `seedThekeDemoIfMissing()` beim Start, idempotent, keine Duplikate.
+- [ ] Demo-Ticket kommt über den normalen Auth-Pfad rein (kein Sonderfall).
+- [ ] Demo aus Feed, Wand, Band, allen Zählungen ausgeschlossen.
+- [ ] Demo aus Admin-Übersicht, Einladungsliste und jedem Versand ausgeschlossen — keine Mail an `orga-vorschau@…`.
+- [ ] Admin-Box mit „Vorschau öffnen” + „Beamer-Wand öffnen”, Code vom Backend.
+- [ ] Bestehende „Theke öffnen als ‚[Name]’”-Links unverändert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## 7. PFLICHT-ABSCHLUSSERKLÄRUNG
+
+> **DEMO-ZUGANG FERTIG.**
+> Geänderte Dateien: …
+> `THEKE_DEMO_CODE`: …
+> Demo per Start-Seed idempotent angelegt: ja/nein
+> Demo aus Feed/Wand/Band/Zählungen/Admin/Versand ausgeschlossen: ja/nein
+> Keine Mail an die Demo-Bestellung möglich: ja/nein
+> Abweichungen (falls vorhanden, begründet): …

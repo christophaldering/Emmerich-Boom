@@ -2,9 +2,10 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import cron from "node-cron";
 import { buildAndSendDailyReport } from "./services/dailyReport.js";
-import { db } from "@workspace/db";
+import { db, anmeldungenTable, anmeldungTicketsTable } from "@workspace/db";
 import { kiRequests } from "@workspace/db";
-import { count } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
+import { SERVER_CONFIG } from "./config.js";
 
 async function seedKaiIfEmpty() {
   try {
@@ -17,6 +18,43 @@ async function seedKaiIfEmpty() {
     logger.info("[KaI] Seed-Kommentar eingefügt");
   } catch (err) {
     logger.error({ err }, "[KaI] Seed fehlgeschlagen");
+  }
+}
+
+async function seedThekeDemoIfMissing() {
+  try {
+    const existing = await db
+      .select({ id: anmeldungTicketsTable.id })
+      .from(anmeldungTicketsTable)
+      .where(eq(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_DEMO_CODE))
+      .limit(1);
+    if (existing.length > 0) return;
+
+    const [demo] = await db
+      .insert(anmeldungenTable)
+      .values({
+        email:         "orga-vorschau@emmerich-boomt.de",
+        personen_anzahl: 1,
+        personen:      ["Orga-Vorschau"],
+        betrag_gesamt: 0,
+        bezahlweg:     "demo",
+        song:          "Demo",
+        statement:     "Orga-Vorschau-Zugang — kein echter Teilnehmer",
+      })
+      .returning({ id: anmeldungenTable.id });
+
+    if (!demo) throw new Error("Demo-Anmeldung konnte nicht angelegt werden");
+
+    await db.insert(anmeldungTicketsTable).values({
+      anmeldung_id: demo.id,
+      person_name:  "Orga-Vorschau",
+      ticket_nummer: "DEMO-0000",
+      ticket_code:  SERVER_CONFIG.THEKE_DEMO_CODE,
+    });
+
+    logger.info("[Theke] Demo-Ticket angelegt (idempotent)");
+  } catch (err) {
+    logger.error({ err }, "[Theke] Demo-Seed fehlgeschlagen — Serverstart nicht blockiert");
   }
 }
 
@@ -43,6 +81,7 @@ app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
 
   seedKaiIfEmpty();
+  seedThekeDemoIfMissing();
 
   cron.schedule(
     "0 8 * * *",

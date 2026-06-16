@@ -1391,6 +1391,7 @@ const dtFmt = (s: string | null) => s ? new Date(s).toLocaleString("de-DE", { da
 function ThekeAdminSection() {
   const [uebersicht, setUebersicht] = useState<ThekeUebersichtEntry[]>([]);
   const [targets, setTargets] = useState<ThekeEinladungTarget[]>([]);
+  const [demoCode, setDemoCode] = useState("");
   const [loading, setLoading] = useState(true);
   const [bulkSending, setBulkSending] = useState(false);
   const [singleSending, setSingleSending] = useState<number | null>(null);
@@ -1406,7 +1407,11 @@ function ThekeAdminSection() {
         fetch(`${BASE}/api/theke-admin/uebersicht`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
         fetch(`${BASE}/api/theke-admin/einladungen`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
       ]);
-      if (r1.ok) setUebersicht(await r1.json() as ThekeUebersichtEntry[]);
+      if (r1.ok) {
+        const d = await r1.json() as { demo_code: string; tickets: ThekeUebersichtEntry[] };
+        setUebersicht(d.tickets ?? []);
+        setDemoCode(d.demo_code ?? "");
+      }
       if (r2.ok) setTargets(await r2.json() as ThekeEinladungTarget[]);
     } catch { setError("Ladefehler"); }
     setLoading(false);
@@ -1462,16 +1467,20 @@ function ThekeAdminSection() {
     <div>
       <SectionTitle>Die Theke</SectionTitle>
 
-      {/* ── Schnellzugang ── */}
-      {uebersicht.length > 0 && (
-        <div style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem", background: am(0.08), border: `1px solid ${am(0.25)}`, borderRadius: "6px", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.65) }}>Orga-Vorschau:</span>
-          {uebersicht.slice(0, 3).map(e => (
-            <a key={e.id} href={`/theke?t=${e.ticket_code}`} target="_blank" rel="noopener noreferrer"
-              style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1rem", cursor: "pointer", textDecoration: "none", display: "inline-block" }}>
-              Theke öffnen als „{e.anzeige_name}"
+      {/* ── Theke — Vorschau (Orga) ── */}
+      {demoCode && (
+        <div style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem", background: am(0.08), border: `1px solid ${am(0.3)}`, borderRadius: "6px" }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: A, fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.65rem" }}>Theke — Vorschau (Orga)</div>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            <a href={`/theke?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
+              style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1.1rem", textDecoration: "none", display: "inline-block" }}>
+              Vorschau öffnen
             </a>
-          ))}
+            <a href={`/theke/wand?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
+              style={{ background: "transparent", border: `1px solid ${am(0.5)}`, borderRadius: "4px", color: A, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1.1rem", textDecoration: "none", display: "inline-block" }}>
+              Beamer-Wand öffnen
+            </a>
+          </div>
         </div>
       )}
 

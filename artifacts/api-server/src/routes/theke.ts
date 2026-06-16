@@ -5,6 +5,7 @@ import { randomUUID } from "crypto";
 import { db, anmeldungTicketsTable, thekeProfileTable, thekeBotschaftenTable, thekeFotosTable, thekeVerteilerTable } from "@workspace/db";
 import { eq, desc, and, isNotNull, sql } from "drizzle-orm";
 import { Client } from "@replit/object-storage";
+import { SERVER_CONFIG } from "../config.js";
 
 const router = Router();
 const storage = multer.memoryStorage();
@@ -456,7 +457,10 @@ router.get("/theke/feed", async (req: Request, res: Response) => {
   const profiles = await db
     .select()
     .from(thekeProfileTable)
-    .where(isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am))
+    .where(and(
+      isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am),
+      sql`${thekeProfileTable.anmeldung_ticket_id} NOT IN (SELECT id FROM anmeldung_tickets WHERE ticket_code = ${SERVER_CONFIG.THEKE_DEMO_CODE})`,
+    ))
     .orderBy(desc(thekeProfileTable.updated_at));
 
   const profileIds = profiles.map(p => p.anmeldung_ticket_id);
@@ -539,6 +543,7 @@ router.get("/theke/band", async (req: Request, res: Response) => {
     .where(and(
       eq(thekeBotschaftenTable.abspielen_ok, true),
       isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am),
+      sql`${thekeBotschaftenTable.anmeldung_ticket_id} NOT IN (SELECT id FROM anmeldung_tickets WHERE ticket_code = ${SERVER_CONFIG.THEKE_DEMO_CODE})`,
     ))
     .orderBy(desc(thekeBotschaftenTable.created_at));
 
