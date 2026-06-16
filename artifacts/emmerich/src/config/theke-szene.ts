@@ -6,17 +6,24 @@
 //   3. BAR_REGION    — Prozentbereich des Tresens im neuen Foto
 //
 // Alle top/left/width/height-Werte sind Prozent der Bühnenabmessungen (0–100).
-// Empfehlung: Bild in ≈ 1920 px Breite ablegen, JPEG, optimiert.
-// Mehrere Hintergründe (je Phase) wären eine triviale Erweiterung — jetzt ein
-// aktiver Backdrop.
+// Aktuelles Bild: atmosphärischer Pub-Raum mit leeren Bilderrahmen an der
+// Ziegelwand (Mitte-rechts) und hölzernem Tresen im Vordergrund (links).
 
 export const THEKE_SZENE = {
   /** Pfad zum Kulissenfoto (Vite serviert aus public/theke/) */
   BACKDROP_URL: "/theke/backdrop.jpg",
 
-  /** Rückwand-Bereich: hier hängen die Porträtrahmen (% der Bühne) */
-  WALL_REGION: { top: 14, left: 5, width: 90, height: 44 },
+  /**
+   * Rückwand-Bereich: hier hängen die Porträtrahmen.
+   * Im aktuellen Bild sind die leeren Goldrahmen ca. bei
+   *   x: 24 %–88 %,  y: 8 %–62 %
+   */
+  WALL_REGION: { top: 8, left: 24, width: 64, height: 52 },
 
-  /** Tresen-Bereich: hier stehen Bierdeckel + Telefon (% der Bühne) */
-  BAR_REGION:  { top: 62, left: 8, width: 84, height: 30 },
+  /**
+   * Tresen-Bereich: hier stehen Bierdeckel + Telefon.
+   * Im aktuellen Bild beginnt die sichtbare Tresenplatte bei ca. y 57 %,
+   * läuft bis ca. y 83 %, horizontal links bis ca. 70 %.
+   */
+  BAR_REGION:  { top: 57, left: 3, width: 66, height: 28 },
 } as const;
