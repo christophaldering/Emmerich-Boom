@@ -1352,6 +1352,7 @@ function TabBar({ active, onSelect }: { active: Tab; onSelect: (t: Tab) => void 
 interface ThekeUebersichtEntry {
   id: number;
   ticket_nummer: string;
+  ticket_code: string;
   person_name: string;
   anzeige_name: string;
   bestaetigt: boolean;
@@ -1460,6 +1461,20 @@ function ThekeAdminSection() {
   return (
     <div>
       <SectionTitle>Die Theke</SectionTitle>
+
+      {/* ── Schnellzugang ── */}
+      {uebersicht.length > 0 && (
+        <div style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem", background: am(0.08), border: `1px solid ${am(0.25)}`, borderRadius: "6px", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.65) }}>Orga-Vorschau:</span>
+          {uebersicht.slice(0, 3).map(e => (
+            <a key={e.id} href={`/theke?t=${e.ticket_code}`} target="_blank" rel="noopener noreferrer"
+              style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1rem", cursor: "pointer", textDecoration: "none", display: "inline-block" }}>
+              Theke öffnen als „{e.anzeige_name}"
+            </a>
+          ))}
+        </div>
+      )}
+
       {loading && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.5) }}>Lädt …</p>}
       {error && <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e05a3a", marginBottom: "1rem" }}>{error}</p>}
 
@@ -1488,7 +1503,7 @@ function ThekeAdminSection() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${am(0.3)}` }}>
-                    {["#", "Ticket", "Person", "Anzeige", "Bestät.", "Einw.A", "Foto", "Botschaft", "Galerie"].map(h => (
+                    {["#", "Ticket", "Person", "Anzeige", "Bestät.", "Einw.A", "Foto", "Botschaft", "Galerie", ""].map(h => (
                       <th key={h} style={{ padding: "0.5rem 0.75rem", color: am(0.8), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
@@ -1505,6 +1520,12 @@ function ThekeAdminSection() {
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{(e.foto_frueher_key || e.foto_heute_key) ? <span style={{ color: A }}>📷</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{e.hat_botschaft ? <span style={{ color: A }}>🎙</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center", color: e.galerie_count > 0 ? A : fg(0.35) }}>{e.galerie_count > 0 ? e.galerie_count : "–"}</td>
+                      <td style={{ padding: "0.5rem 0.5rem" }}>
+                        <a href={`/theke?t=${e.ticket_code}`} target="_blank" rel="noopener noreferrer"
+                          style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.35)}`, borderRadius: "3px", color: A, padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>
+                          Öffnen ↗
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -53,6 +53,7 @@ router.get("/theke-admin/uebersicht", async (req: Request, res: Response) => {
       return {
         id:                          t.id,
         ticket_nummer:               t.ticket_nummer,
+        ticket_code:                 t.ticket_code,
         person_name:                 t.person_name,
         anzeige_name:                p?.anzeige_name ?? t.person_name,
         bestaetigt:                  p?.bestaetigt ?? false,
