@@ -1162,7 +1162,7 @@ interface MonitorData {
   eingelassen: MonitorTicket[]; nicht_da: MonitorTicket[]; scan_log: MonitorLog[];
 }
 
-type Tab = "anmeldungen" | "tickets" | "einzeltickets" | "einlass" | "statistik" | "namen" | "warteliste";
+type Tab = "anmeldungen" | "tickets" | "einzeltickets" | "einlass" | "statistik" | "namen" | "warteliste" | "theke";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "anmeldungen",   label: "Interessenten" },
@@ -1172,6 +1172,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "einlass",       label: "Einlass" },
   { id: "statistik",     label: "Statistik" },
   { id: "warteliste",    label: "Warteliste" },
+  { id: "theke",         label: "Theke" },
 ];
 
 interface DisplayNameRow {
@@ -1342,6 +1343,212 @@ function TabBar({ active, onSelect }: { active: Tab; onSelect: (t: Tab) => void 
           {t.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+// ─── Theke Admin Section ──────────────────────────────────────────────────────
+
+interface ThekeUebersichtEntry {
+  id: number;
+  ticket_nummer: string;
+  person_name: string;
+  anzeige_name: string;
+  bestaetigt: boolean;
+  sichtbarkeit_zugestimmt_am: string | null;
+  abendfotos_ok: boolean;
+  foto_frueher_key: string | null;
+  foto_heute_key: string | null;
+  hat_botschaft: boolean;
+  galerie_count: number;
+  created_at: string;
+}
+
+interface ThekeEinladungTarget {
+  id: number;
+  ticket_nummer: string;
+  person_name: string;
+  email: string;
+  einladung_versendet_am: string | null;
+}
+
+function ThekeAdminSection() {
+  const [uebersicht, setUebersicht] = useState<ThekeUebersichtEntry[]>([]);
+  const [targets, setTargets] = useState<ThekeEinladungTarget[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState<number | null>(null);
+  const [sentIds, setSentIds] = useState<number[]>([]);
+  const [error, setError] = useState("");
+  const [subTab, setSubTab] = useState<"uebersicht" | "einladungen">("uebersicht");
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const [r1, r2] = await Promise.all([
+          fetch(`${BASE}/api/theke-admin/uebersicht`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
+          fetch(`${BASE}/api/theke-admin/einladungen`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
+        ]);
+        if (r1.ok) setUebersicht(await r1.json() as ThekeUebersichtEntry[]);
+        if (r2.ok) setTargets(await r2.json() as ThekeEinladungTarget[]);
+      } catch {
+        setError("Ladefehler");
+      }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const sendEinladung = async (ticketId: number) => {
+    setSending(ticketId);
+    setError("");
+    try {
+      const res = await fetch(`${BASE}/api/theke-admin/einladung/senden`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-secret": "emmerich-orga-stats-2026" },
+        body: JSON.stringify({ ticket_id: ticketId }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (data.ok) {
+        setSentIds(prev => [...prev, ticketId]);
+        setTargets(prev => prev.map(t => t.id === ticketId
+          ? { ...t, einladung_versendet_am: new Date().toISOString() }
+          : t));
+      } else {
+        setError(data.error ?? "Fehler");
+      }
+    } catch {
+      setError("Verbindungsfehler");
+    }
+    setSending(null);
+  };
+
+  const sendAlle = async () => {
+    const unsent = targets.filter(t => !t.einladung_versendet_am && !sentIds.includes(t.id));
+    for (const t of unsent) {
+      await sendEinladung(t.id);
+      await new Promise(r => setTimeout(r, 300));
+    }
+  };
+
+  const bestaetigt = uebersicht.filter(e => e.bestaetigt).length;
+  const mitFoto    = uebersicht.filter(e => e.foto_frueher_key || e.foto_heute_key).length;
+  const mitBotsch  = uebersicht.filter(e => e.hat_botschaft).length;
+  const eingeladen = targets.filter(t => t.einladung_versendet_am).length;
+
+  return (
+    <div>
+      <SectionTitle>Die Theke</SectionTitle>
+      {loading && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.5) }}>Lädt …</p>}
+      {error && <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e05a3a", marginBottom: "1rem" }}>{error}</p>}
+
+      {!loading && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "1.75rem" }}>
+            <StatCard n={uebersicht.length} label="Profile angelegt" />
+            <StatCard n={bestaetigt} label="Bestätigt" />
+            <StatCard n={mitFoto} label="Mit Foto" />
+            <StatCard n={mitBotsch} label="Mit Botschaft" />
+            <StatCard n={eingeladen} label="Einladungen versendet" />
+            <StatCard n={targets.length - eingeladen} label="Noch nicht eingeladen" />
+          </div>
+
+          <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${am(0.2)}`, marginBottom: "1.5rem" }}>
+            {(["uebersicht", "einladungen"] as const).map(t => (
+              <button key={t} onClick={() => setSubTab(t)}
+                style={{ background: "transparent", border: "none", borderBottom: subTab === t ? `2px solid ${A}` : "2px solid transparent", color: subTab === t ? A : fg(0.5), fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", padding: "0.55rem 1.1rem 0.5rem", marginBottom: "-1px", cursor: "pointer" }}>
+                {t === "uebersicht" ? "Profile" : "Einladungen"}
+              </button>
+            ))}
+          </div>
+
+          {subTab === "uebersicht" && (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${am(0.3)}` }}>
+                    {["#", "Ticket", "Person", "Anzeige", "Bestät.", "Einw.A", "Foto", "Botschaft", "Galerie"].map(h => (
+                      <th key={h} style={{ padding: "0.5rem 0.75rem", color: am(0.8), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {uebersicht.map((e, i) => (
+                    <tr key={e.id} style={{ borderBottom: `1px solid ${am(0.1)}`, background: i % 2 === 0 ? "transparent" : am(0.03) }}>
+                      <td style={{ padding: "0.5rem 0.75rem 0.5rem 0", color: fg(0.4), fontVariantNumeric: "tabular-nums" }}>{i + 1}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", color: fg(0.6), fontFamily: "monospace", fontSize: "0.8rem" }}>{e.ticket_nummer}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", color: FG }}>{e.person_name}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", color: fg(0.8) }}>{e.anzeige_name}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{e.bestaetigt ? <span style={{ color: "#2ecc71" }}>✓</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{e.sichtbarkeit_zugestimmt_am ? <span style={{ color: "#2ecc71" }}>✓</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{(e.foto_frueher_key || e.foto_heute_key) ? <span style={{ color: A }}>📷</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{e.hat_botschaft ? <span style={{ color: A }}>🎙</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "center", color: e.galerie_count > 0 ? A : fg(0.35) }}>{e.galerie_count > 0 ? e.galerie_count : "–"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {uebersicht.length === 0 && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.4), marginTop: "1rem" }}>Noch keine Profile.</p>}
+            </div>
+          )}
+
+          {subTab === "einladungen" && (
+            <div>
+              <div style={{ marginBottom: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+                <button onClick={sendAlle}
+                  disabled={targets.every(t => !!t.einladung_versendet_am || sentIds.includes(t.id))}
+                  style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.9rem", padding: "0.65rem 1.5rem", cursor: "pointer", opacity: targets.every(t => !!t.einladung_versendet_am || sentIds.includes(t.id)) ? 0.5 : 1 }}>
+                  Alle ausstehenden einladen
+                </button>
+                <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.5) }}>
+                  {eingeladen}/{targets.length} eingeladen
+                </span>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                  <thead>
+                    <tr style={{ borderBottom: `1px solid ${am(0.3)}` }}>
+                      {["#", "Ticket", "Name", "E-Mail", "Eingeladen am", "Aktion"].map(h => (
+                        <th key={h} style={{ padding: "0.5rem 0.75rem", color: am(0.8), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {targets.map((t, i) => {
+                      const istVersendet = !!t.einladung_versendet_am || sentIds.includes(t.id);
+                      return (
+                        <tr key={t.id} style={{ borderBottom: `1px solid ${am(0.1)}`, background: i % 2 === 0 ? "transparent" : am(0.03) }}>
+                          <td style={{ padding: "0.5rem 0.75rem 0.5rem 0", color: fg(0.4) }}>{i + 1}</td>
+                          <td style={{ padding: "0.5rem 0.75rem", color: fg(0.6), fontFamily: "monospace", fontSize: "0.8rem" }}>{t.ticket_nummer}</td>
+                          <td style={{ padding: "0.5rem 0.75rem", color: FG }}>{t.person_name}</td>
+                          <td style={{ padding: "0.5rem 0.75rem", color: fg(0.8), wordBreak: "break-all" }}>{t.email}</td>
+                          <td style={{ padding: "0.5rem 0.75rem", color: fg(0.55), whiteSpace: "nowrap" }}>
+                            {t.einladung_versendet_am ? new Date(t.einladung_versendet_am).toLocaleDateString("de-DE") : sentIds.includes(t.id) ? <span style={{ color: "#2ecc71" }}>Gerade ✓</span> : "–"}
+                          </td>
+                          <td style={{ padding: "0.5rem 0" }}>
+                            {!istVersendet ? (
+                              <button onClick={() => sendEinladung(t.id)} disabled={sending === t.id}
+                                style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.4)}`, borderRadius: "3px", color: A, padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", cursor: sending === t.id ? "wait" : "pointer", opacity: sending === t.id ? 0.5 : 1 }}>
+                                {sending === t.id ? "…" : "Einladen"}
+                              </button>
+                            ) : (
+                              <button onClick={() => sendEinladung(t.id)} disabled={sending === t.id}
+                                style={{ background: "transparent", border: `1px solid ${fg(0.2)}`, borderRadius: "3px", color: fg(0.4), padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", cursor: "pointer" }}>
+                                Nochmals
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {targets.length === 0 && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.4), marginTop: "1rem" }}>Keine Tickets mit E-Mail-Adresse gefunden.</p>}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -2527,6 +2734,9 @@ export default function AdminPage() {
           )}
         </>
       )}
+
+      {/* ── Tab: Theke ── */}
+      {activeTab === "theke" && <ThekeAdminSection />}
 
       {/* ── Tab: Warteliste ── */}
       {activeTab === "warteliste" && (

@@ -1,0 +1,539 @@
+import { Router, type Request, type Response } from "express";
+import multer from "multer";
+import { z } from "zod/v4";
+import { randomUUID } from "crypto";
+import { db, anmeldungTicketsTable, thekeProfileTable, thekeBotschaftenTable, thekeFotosTable, thekeVerteilerTable } from "@workspace/db";
+import { eq, desc, and, isNotNull, sql } from "drizzle-orm";
+import { Client } from "@replit/object-storage";
+
+const router = Router();
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter(_req, file, cb) {
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "video/webm"];
+    cb(null, allowed.includes(file.mimetype));
+  },
+});
+const audioUpload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter(_req, file, cb) {
+    const allowed = ["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "video/webm"];
+    cb(null, allowed.includes(file.mimetype));
+  },
+});
+
+function getObjectStorage() {
+  return new Client();
+}
+
+async function storeFile(buffer: Buffer, key: string, mimeType: string): Promise<void> {
+  const client = getObjectStorage();
+  const { ok, error } = await client.uploadFromBytes(key, buffer, { contentType: mimeType });
+  if (!ok) throw new Error(`Upload fehlgeschlagen: ${error}`);
+}
+
+async function deleteFile(key: string): Promise<void> {
+  const client = getObjectStorage();
+  await client.delete(key);
+}
+
+async function getFileBytes(key: string): Promise<{ data: Uint8Array; contentType: string } | null> {
+  const client = getObjectStorage();
+  const { ok, value, error } = await client.downloadAsBytes(key);
+  if (!ok || !value) {
+    if (error) return null;
+    return null;
+  }
+  const ext = key.split(".").pop()?.toLowerCase() ?? "";
+  const mimeMap: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+    gif: "image/gif", webp: "image/webp", webm: "audio/webm",
+    ogg: "audio/ogg", mp4: "audio/mp4", mp3: "audio/mpeg",
+  };
+  const contentType = mimeMap[ext] ?? "application/octet-stream";
+  return { data: value, contentType };
+}
+
+async function validateCode(code: string) {
+  if (!code || code.length !== 16) return null;
+  const rows = await db
+    .select()
+    .from(anmeldungTicketsTable)
+    .where(eq(anmeldungTicketsTable.ticket_code, code.toUpperCase()))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+function getCode(req: Request): string | null {
+  const fromHeader = req.headers["x-theke-token"];
+  if (typeof fromHeader === "string" && fromHeader.length === 16) return fromHeader.toUpperCase();
+  const fromBody = (req.body as Record<string, unknown>)?.["t"];
+  if (typeof fromBody === "string" && fromBody.length === 16) return fromBody.toUpperCase();
+  return null;
+}
+
+// ─── POST /api/theke/auth ────────────────────────────────────────────────────
+router.post("/theke/auth", async (req: Request, res: Response) => {
+  const body = req.body as { t?: string; anzeige_name?: string };
+  const code = typeof body.t === "string" ? body.t.toUpperCase() : null;
+  if (!code) { res.status(400).json({ error: "Kein Code" }); return; }
+
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültiger Code" }); return; }
+
+  let [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+
+  if (!profile) {
+    [profile] = await db
+      .insert(thekeProfileTable)
+      .values({
+        anmeldung_ticket_id: ticket.id,
+        anzeige_name: body.anzeige_name?.trim() || ticket.person_name,
+        bestaetigt: false,
+      })
+      .returning();
+  } else if (body.anzeige_name && body.anzeige_name.trim() !== profile.anzeige_name) {
+    [profile] = await db
+      .update(thekeProfileTable)
+      .set({ anzeige_name: body.anzeige_name.trim(), updated_at: new Date() })
+      .where(eq(thekeProfileTable.id, profile!.id))
+      .returning();
+  }
+
+  res.json({
+    ticket: {
+      id: ticket.id,
+      person_name: ticket.person_name,
+      ticket_nummer: ticket.ticket_nummer,
+    },
+    profile: profile!,
+  });
+});
+
+// ─── PUT /api/theke/profil ───────────────────────────────────────────────────
+const profilSchema = z.object({
+  anzeige_name:    z.string().min(2).max(80).optional(),
+  vorstellung:     z.string().max(500).optional(),
+  jahr_1985:       z.string().max(200).optional(),
+  lauter_song:     z.string().max(200).optional(),
+  f_tontraeger:    z.string().max(100).optional(),
+  f_abends:        z.string().max(100).optional(),
+  f_untersatz:     z.string().max(100).optional(),
+  f_musik:         z.string().max(100).optional(),
+  f_getraenk:      z.string().max(100).optional(),
+  foto_frueher_jahr: z.number().int().min(1940).max(2010).optional(),
+  foto_heute_jahr:   z.number().int().min(1940).max(2030).optional(),
+});
+
+router.put("/theke/profil", async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const parsed = profilSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Ungültige Felder" }); return; }
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+
+  const [updated] = await db
+    .update(thekeProfileTable)
+    .set({ ...parsed.data, updated_at: new Date() })
+    .where(eq(thekeProfileTable.id, profile.id))
+    .returning();
+
+  res.json({ ok: true, profile: updated });
+});
+
+// ─── POST /api/theke/einwilligung ────────────────────────────────────────────
+router.post("/theke/einwilligung", async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const body = req.body as { a?: boolean; b?: boolean; b_email?: string; c?: boolean };
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+
+  const now = new Date();
+  const updates: Partial<typeof thekeProfileTable.$inferSelect> = {
+    updated_at: now,
+  };
+
+  if (body.a === true && !profile.sichtbarkeit_zugestimmt_am) {
+    updates.sichtbarkeit_zugestimmt_am = now;
+    updates.bestaetigt = true;
+  }
+  if (body.a === false) {
+    updates.sichtbarkeit_zugestimmt_am = null;
+    updates.bestaetigt = false;
+  }
+  if (body.c !== undefined) {
+    updates.abendfotos_ok = body.c;
+  }
+
+  const [updated] = await db
+    .update(thekeProfileTable)
+    .set(updates)
+    .where(eq(thekeProfileTable.id, profile.id))
+    .returning();
+
+  if (body.b === true && body.b_email) {
+    const email = body.b_email.trim().toLowerCase();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      await db
+        .insert(thekeVerteilerTable)
+        .values({
+          email,
+          name: profile.anzeige_name,
+          anmeldung_ticket_id: ticket.id,
+          einwilligung_am: now,
+        })
+        .onConflictDoNothing();
+    }
+  }
+
+  res.json({ ok: true, profile: updated });
+});
+
+// ─── POST /api/theke/foto/profil-frueher ────────────────────────────────────
+router.post("/theke/foto/profil-frueher", upload.single("foto"), async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+  if (!req.file) { res.status(400).json({ error: "Kein Bild" }); return; }
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+
+  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
+  const key = `theke/foto/${randomUUID()}.${ext}`;
+  await storeFile(req.file.buffer, key, req.file.mimetype);
+
+  if (profile.foto_frueher_key) {
+    await deleteFile(profile.foto_frueher_key).catch(() => {});
+  }
+
+  const jahr = parseInt(String((req.body as Record<string, unknown>)?.["jahr"] ?? ""), 10);
+  const [updated] = await db
+    .update(thekeProfileTable)
+    .set({
+      foto_frueher_key:  key,
+      foto_frueher_jahr: isNaN(jahr) ? null : jahr,
+      updated_at:        new Date(),
+    })
+    .where(eq(thekeProfileTable.id, profile.id))
+    .returning();
+
+  res.json({ ok: true, key, profile: updated });
+});
+
+// ─── POST /api/theke/foto/profil-heute ──────────────────────────────────────
+router.post("/theke/foto/profil-heute", upload.single("foto"), async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+  if (!req.file) { res.status(400).json({ error: "Kein Bild" }); return; }
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+
+  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
+  const key = `theke/foto/${randomUUID()}.${ext}`;
+  await storeFile(req.file.buffer, key, req.file.mimetype);
+
+  if (profile.foto_heute_key) {
+    await deleteFile(profile.foto_heute_key).catch(() => {});
+  }
+
+  const jahr = parseInt(String((req.body as Record<string, unknown>)?.["jahr"] ?? ""), 10);
+  const [updated] = await db
+    .update(thekeProfileTable)
+    .set({
+      foto_heute_key:  key,
+      foto_heute_jahr: isNaN(jahr) ? null : jahr,
+      updated_at:      new Date(),
+    })
+    .where(eq(thekeProfileTable.id, profile.id))
+    .returning();
+
+  res.json({ ok: true, key, profile: updated });
+});
+
+// ─── POST /api/theke/foto/galerie ────────────────────────────────────────────
+router.post("/theke/foto/galerie", upload.single("foto"), async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+  if (!req.file) { res.status(400).json({ error: "Kein Bild" }); return; }
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+
+  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
+  const key = `theke/foto/${randomUUID()}.${ext}`;
+  await storeFile(req.file.buffer, key, req.file.mimetype);
+
+  const body = req.body as Record<string, unknown>;
+  const bildunterschrift = typeof body["bildunterschrift"] === "string" ? body["bildunterschrift"].trim().slice(0, 120) : null;
+  const jahr = parseInt(String(body["jahr"] ?? ""), 10);
+
+  const [foto] = await db
+    .insert(thekeFotosTable)
+    .values({
+      anmeldung_ticket_id: ticket.id,
+      datei_key:           key,
+      bildunterschrift:    bildunterschrift || null,
+      jahr:                isNaN(jahr) ? null : jahr,
+      sichtbar_ok:         true,
+    })
+    .returning();
+
+  res.json({ ok: true, foto });
+});
+
+// ─── DELETE /api/theke/foto/:id ──────────────────────────────────────────────
+router.delete("/theke/foto/:id", async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+
+  const [foto] = await db
+    .select()
+    .from(thekeFotosTable)
+    .where(and(eq(thekeFotosTable.id, id), eq(thekeFotosTable.anmeldung_ticket_id, ticket.id)))
+    .limit(1);
+  if (!foto) { res.status(404).json({ error: "Nicht gefunden" }); return; }
+
+  await deleteFile(foto.datei_key).catch(() => {});
+  await db.delete(thekeFotosTable).where(eq(thekeFotosTable.id, id));
+
+  res.json({ ok: true });
+});
+
+// ─── POST /api/theke/audio ───────────────────────────────────────────────────
+router.post("/theke/audio", audioUpload.single("audio"), async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+  if (!req.file) { res.status(400).json({ error: "Keine Audiodatei" }); return; }
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+
+  const mime = req.file.mimetype;
+  const ext = mime.includes("ogg") ? "ogg" : mime.includes("mp4") ? "mp4" : mime.includes("mp3") || mime.includes("mpeg") ? "mp3" : "webm";
+  const key = `theke/audio/${randomUUID()}.${ext}`;
+  await storeFile(req.file.buffer, key, mime);
+
+  const body = req.body as Record<string, unknown>;
+  const dauer = parseInt(String(body["dauer_sek"] ?? "0"), 10);
+
+  const vorhandene = await db
+    .select()
+    .from(thekeBotschaftenTable)
+    .where(eq(thekeBotschaftenTable.anmeldung_ticket_id, ticket.id));
+
+  for (const b of vorhandene) {
+    await deleteFile(b.datei_key).catch(() => {});
+    await db.delete(thekeBotschaftenTable).where(eq(thekeBotschaftenTable.id, b.id));
+  }
+
+  const [botschaft] = await db
+    .insert(thekeBotschaftenTable)
+    .values({
+      anmeldung_ticket_id: ticket.id,
+      datei_key:           key,
+      dauer_sek:           isNaN(dauer) ? 0 : Math.min(dauer, 60),
+      abspielen_ok:        true,
+    })
+    .returning();
+
+  res.json({ ok: true, botschaft });
+});
+
+// ─── DELETE /api/theke/audio/:id ─────────────────────────────────────────────
+router.delete("/theke/audio/:id", async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+
+  const [botschaft] = await db
+    .select()
+    .from(thekeBotschaftenTable)
+    .where(and(eq(thekeBotschaftenTable.id, id), eq(thekeBotschaftenTable.anmeldung_ticket_id, ticket.id)))
+    .limit(1);
+  if (!botschaft) { res.status(404).json({ error: "Nicht gefunden" }); return; }
+
+  await deleteFile(botschaft.datei_key).catch(() => {});
+  await db.delete(thekeBotschaftenTable).where(eq(thekeBotschaftenTable.id, id));
+
+  res.json({ ok: true });
+});
+
+// ─── GET /api/theke/datei/*key ────────────────────────────────────────────────
+router.get("/theke/datei/*key", async (req: Request, res: Response) => {
+  const code = req.headers["x-theke-token"] as string | undefined ?? req.query["t"] as string | undefined;
+  const ticket = code ? await validateCode(code) : null;
+  if (!ticket) { res.status(401).json({ error: "Zugang verweigert" }); return; }
+
+  const urlPath = (req.params as Record<string, string>)["key"] ?? "";
+  if (!urlPath.startsWith("theke/")) { res.status(400).json({ error: "Ungültiger Pfad" }); return; }
+
+  const result = await getFileBytes(urlPath);
+  if (!result) { res.status(404).json({ error: "Datei nicht gefunden" }); return; }
+
+  res.setHeader("Content-Type", result.contentType);
+  res.setHeader("Cache-Control", "private, max-age=3600");
+  res.send(Buffer.from(result.data));
+});
+
+// ─── GET /api/theke/feed ──────────────────────────────────────────────────────
+router.get("/theke/feed", async (req: Request, res: Response) => {
+  const code = req.headers["x-theke-token"] as string | undefined ?? req.query["t"] as string | undefined;
+  const ticket = code ? await validateCode(code) : null;
+  if (!ticket) { res.status(401).json({ error: "Zugang verweigert" }); return; }
+
+  const profiles = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am))
+    .orderBy(desc(thekeProfileTable.updated_at));
+
+  const profileIds = profiles.map(p => p.anmeldung_ticket_id);
+  const fotos = profileIds.length > 0
+    ? await db.select().from(thekeFotosTable).where(sql`${thekeFotosTable.anmeldung_ticket_id} = ANY(ARRAY[${sql.raw(profileIds.join(","))}]::int[])`)
+    : [];
+  const botschaften = profileIds.length > 0
+    ? await db.select({ anmeldung_ticket_id: thekeBotschaftenTable.anmeldung_ticket_id, id: thekeBotschaftenTable.id })
+        .from(thekeBotschaftenTable)
+        .where(sql`${thekeBotschaftenTable.anmeldung_ticket_id} = ANY(ARRAY[${sql.raw(profileIds.join(","))}]::int[]) AND ${thekeBotschaftenTable.abspielen_ok} = TRUE`)
+    : [];
+
+  const fotosByTicket = new Map<number, typeof fotos>();
+  for (const f of fotos) {
+    const list = fotosByTicket.get(f.anmeldung_ticket_id) ?? [];
+    list.push(f);
+    fotosByTicket.set(f.anmeldung_ticket_id, list);
+  }
+  const botschaftenSet = new Set(botschaften.map(b => b.anmeldung_ticket_id));
+
+  const result = profiles.map(p => ({
+    ...p,
+    fotos: fotosByTicket.get(p.anmeldung_ticket_id) ?? [],
+    hat_botschaft: botschaftenSet.has(p.anmeldung_ticket_id),
+  }));
+
+  res.json(result);
+});
+
+// ─── GET /api/theke/mein-profil ───────────────────────────────────────────────
+router.get("/theke/mein-profil", async (req: Request, res: Response) => {
+  const code = req.headers["x-theke-token"] as string | undefined ?? req.query["t"] as string | undefined;
+  const ticket = code ? await validateCode(code) : null;
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const [profile] = await db
+    .select()
+    .from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+
+  const fotos = await db
+    .select()
+    .from(thekeFotosTable)
+    .where(eq(thekeFotosTable.anmeldung_ticket_id, ticket.id))
+    .orderBy(desc(thekeFotosTable.created_at));
+
+  const botschaft = await db
+    .select()
+    .from(thekeBotschaftenTable)
+    .where(eq(thekeBotschaftenTable.anmeldung_ticket_id, ticket.id))
+    .limit(1);
+
+  res.json({
+    ticket: { id: ticket.id, person_name: ticket.person_name, ticket_nummer: ticket.ticket_nummer },
+    profile,
+    fotos,
+    botschaft: botschaft[0] ?? null,
+  });
+});
+
+// ─── GET /api/theke/band ──────────────────────────────────────────────────────
+router.get("/theke/band", async (req: Request, res: Response) => {
+  const code = req.headers["x-theke-token"] as string | undefined ?? req.query["t"] as string | undefined;
+  const ticket = code ? await validateCode(code) : null;
+  if (!ticket) { res.status(401).json({ error: "Zugang verweigert" }); return; }
+
+  const botschaften = await db
+    .select({
+      id:              thekeBotschaftenTable.id,
+      datei_key:       thekeBotschaftenTable.datei_key,
+      dauer_sek:       thekeBotschaftenTable.dauer_sek,
+      anmeldung_ticket_id: thekeBotschaftenTable.anmeldung_ticket_id,
+      created_at:      thekeBotschaftenTable.created_at,
+      anzeige_name:    thekeProfileTable.anzeige_name,
+    })
+    .from(thekeBotschaftenTable)
+    .innerJoin(thekeProfileTable, eq(thekeProfileTable.anmeldung_ticket_id, thekeBotschaftenTable.anmeldung_ticket_id))
+    .where(and(
+      eq(thekeBotschaftenTable.abspielen_ok, true),
+      isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am),
+    ))
+    .orderBy(desc(thekeBotschaftenTable.created_at));
+
+  res.json(botschaften);
+});
+
+export default router;

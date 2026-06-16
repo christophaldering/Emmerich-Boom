@@ -12,6 +12,8 @@ import FlyerPrintPage from "@/pages/FlyerPrintPage";
 import AnmeldungPage from "@/pages/AnmeldungPage";
 import TicketDemoPage from "@/pages/TicketDemoPage";
 import ProgrammPage from "@/pages/ProgrammPage";
+import ThekePage from "@/pages/ThekePage";
+import ThekeWandPage from "@/pages/ThekeWandPage";
 import Beacon from "@/components/Beacon";
 
 function NachrueckerAbgelehntPage() {
@@ -56,6 +58,8 @@ function getRoute(): { page: string; param?: string } {
   if (clean === "ticket-demo") return { page: "ticket-demo" };
   if (clean === "programm") return { page: "programm" };
   if (clean === "nachruecker/abgelehnt") return { page: "nachruecker-abgelehnt" };
+  if (clean === "theke/wand") return { page: "theke-wand" };
+  if (clean === "theke") return { page: "theke" };
   const ticketOverviewMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})/alle$`));
   if (ticketOverviewMatch) return { page: "anmeldung-tickets", param: ticketOverviewMatch[1].toUpperCase() };
   const ticketMatch = clean.match(new RegExp(`^${ADMIN_SLUG}/ticket/([A-Fa-f0-9]{16})$`));
@@ -90,6 +94,8 @@ export default function App() {
   if (route.page === "nachruecker-abgelehnt") return <NachrueckerAbgelehntPage />;
   if (route.page === "ticket-demo") return <TicketDemoPage />;
   if (route.page === "programm") return <ProgrammPage />;
+  if (route.page === "theke") return <ThekePage />;
+  if (route.page === "theke-wand") return <ThekeWandPage />;
 
   return (
     <>

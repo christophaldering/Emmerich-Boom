@@ -9,6 +9,8 @@ import anmeldungAdminRouter from "./anmeldung-admin";
 import displayNamesRouter from "./display-names";
 import wartelisteRouter from "./warteliste";
 import exportRouter from "./export";
+import thekeRouter from "./theke";
+import thekeAdminRouter from "./theke-admin";
 
 const router: IRouter = Router();
 
@@ -22,5 +24,7 @@ router.use(anmeldungAdminRouter);
 router.use(displayNamesRouter);
 router.use(wartelisteRouter);
 router.use(exportRouter);
+router.use(thekeRouter);
+router.use(thekeAdminRouter);
 
 export default router;

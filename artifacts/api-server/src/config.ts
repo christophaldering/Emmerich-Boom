@@ -10,4 +10,5 @@ export const SERVER_CONFIG = {
   PAYPAL_LINK:             "https://www.paypal.com/pool/9pkJxWVmh2?sr=wccr",
   ABSENDER_MAIL:           "boomerparty26@emmerich-boomt.de",
   ABSENDER_NAME:           "Boomerparty Emmerich",
+  THEKE_BASE_URL:          "https://emmerich-boomt.de",
 } as const;

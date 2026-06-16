@@ -46,6 +46,11 @@ const sections = [
         <br />
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Ihre Rechte</strong><br />
         Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) sowie Widerspruch (Art. 21). Anfragen bitte per E-Mail an die oben genannte Adresse. Sie haben zudem das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.</p>
+        <br />
+        <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>„Die Theke" — geschlossener Bereich</strong><br />
+        Der Bereich „Die Theke" ist ausschließlich über persönliche Magic Links erreichbar und nur für Ticketinhaber zugänglich. Suchmaschinen werden per robots.txt und noindex-Meta-Tag ausgesperrt. Dort werden auf freiwilliger Basis zusätzliche Angaben gespeichert: Steckbrief-Angaben (Anzeigename, Vorstellung, Auswahl-Antworten), Fotos (Profilfotos Früher/Heute sowie Galeriebilder) und Sprachnachrichten (Anrufbeantworter). Diese Inhalte sind nach Einwilligung für alle anderen Ticketinhaber sichtbar. Jede Person kann ihre eigenen Inhalte jederzeit selbst löschen.</p>
+        <br />
+        <p>Es gelten drei getrennte Einwilligungen: (A) Pflicht-Einwilligung für Sichtbarkeit und Upload, (B) optionale Einwilligung für den E-Mail-Verteiler (Abmeldung jederzeit möglich), (C) optionale Einwilligung für Fotos vom Abend. Alle Theke-Inhalte werden zusammen mit den übrigen Anmeldedaten bis zum 30. September 2026 vollständig gelöscht.</p>
       </div>
     ),
   },
