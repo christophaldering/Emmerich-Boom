@@ -695,6 +695,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
 }) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
+  const [fotoMsg, setFotoMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [local, setLocal] = useState({ ...profile });
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -734,16 +735,27 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
   }, [save]);
 
   const uploadFoto = async (slot: "profil-frueher" | "profil-heute", file: File, jahr?: number) => {
-    const form = new FormData();
-    form.append("foto", file);
-    if (jahr) form.append("jahr", String(jahr));
-    const res = await fetch(`${BASE}/api/theke/foto/${slot}`, {
-      method: "POST",
-      headers: { "x-theke-token": token },
-      body: form,
-    });
-    const data = await res.json() as { ok?: boolean; profile?: Profile };
-    if (data.ok && data.profile) onProfileChange(data.profile);
+    setFotoMsg({ text: "Foto wird hochgeladen …", ok: true });
+    try {
+      const form = new FormData();
+      form.append("foto", file);
+      if (jahr) form.append("jahr", String(jahr));
+      const res = await fetch(`${BASE}/api/theke/foto/${slot}`, {
+        method: "POST",
+        headers: { "x-theke-token": token },
+        body: form,
+      });
+      const data = await res.json() as { ok?: boolean; profile?: Profile; error?: string };
+      if (data.ok && data.profile) {
+        onProfileChange(data.profile);
+        setFotoMsg({ text: "Foto gespeichert ✓", ok: true });
+        setTimeout(() => setFotoMsg(null), 3000);
+      } else {
+        setFotoMsg({ text: data.error ?? "Foto konnte nicht gespeichert werden.", ok: false });
+      }
+    } catch {
+      setFotoMsg({ text: "Foto konnte nicht gespeichert werden.", ok: false });
+    }
   };
 
   const hatEinwilligung = !!profile.sichtbarkeit_zugestimmt_am;
@@ -810,6 +822,11 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
         {!hatEinwilligung && (
           <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.9rem", color: fg(0.5), marginBottom: "1rem" }}>
             Bitte zuerst Einwilligung A setzen (siehe unten), um Fotos hochladen zu können.
+          </p>
+        )}
+        {fotoMsg && (
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fotoMsg.ok ? am(0.9) : "#e05252", marginBottom: "0.75rem" }}>
+            {fotoMsg.text}
           </p>
         )}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
@@ -902,16 +919,20 @@ function GesichtKarte({ entry, token, anwesend, onOpenDetail }: {
 }) {
   const [flipped, setFlipped] = useState(false);
   const hauptFoto = entry.foto_frueher_key ?? entry.foto_heute_key;
+  const initials = entry.anzeige_name
+    .split(/\s+/).slice(0, 2)
+    .map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
 
   return (
     <div
       className="gesicht-karte"
-      style={{ perspective: "700px", aspectRatio: "3/4", cursor: "pointer" }}
-      onClick={() => { if (!flipped) setFlipped(true); }}
+      style={{ perspective: "1000px", aspectRatio: "3/4", cursor: "pointer" }}
+      onClick={() => setFlipped(f => !f)}
     >
       <div style={{
         position: "relative", width: "100%", height: "100%",
         transformStyle: "preserve-3d",
+        WebkitTransformStyle: "preserve-3d",
         transition: "transform 0.55s cubic-bezier(0.4,0,0.2,1)",
         transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
       }}>
@@ -919,7 +940,7 @@ function GesichtKarte({ entry, token, anwesend, onOpenDetail }: {
         <div className="karte-face" style={{
           position: "absolute", inset: 0,
           borderRadius: "6px", overflow: "hidden",
-          background: hauptFoto ? BG : am(0.08),
+          background: hauptFoto ? BG : A,
           border: anwesend ? `1px solid ${am(0.55)}` : `1px solid ${am(0.13)}`,
         }}>
           {anwesend && (
@@ -936,8 +957,8 @@ function GesichtKarte({ entry, token, anwesend, onOpenDetail }: {
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.88) 0%, transparent 52%)", zIndex: 2 }} />
             </>
           ) : (
-            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(145deg, ${am(0.06)} 0%, ${am(0.03)} 100%)` }}>
-              <span style={{ fontSize: "2.2rem", opacity: 0.2 }}>👤</span>
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: A }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "clamp(1.4rem, 5vw, 2.2rem)", color: BG, letterSpacing: "0.04em", userSelect: "none" }}>{initials}</span>
             </div>
           )}
           {anwesend && (

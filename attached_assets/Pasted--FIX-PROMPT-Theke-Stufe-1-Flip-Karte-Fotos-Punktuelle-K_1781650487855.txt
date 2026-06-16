@@ -1,0 +1,52 @@
+# FIX-PROMPT — Theke Stufe 1: Flip-Karte & Fotos
+
+**Punktuelle Korrektur an der bereits gebauten Szene. Szenenaufbau, Auth (Großschreibung) und Dauerzugang NICHT verändern. Keine Tabs wieder einführen.**
+
+## Bug 1 — Flip-Karte (Rückseite spiegelverkehrt, dreht nicht zurück)
+
+Die Profilkarte auf der Wand klappt auf die Rückseite, aber: die Rückseiten-Schrift ist gespiegelt, und ein zweiter Tipp dreht sie nicht zurück. Ursache: fehlende `-webkit-backface-visibility` (iOS/Safari) und keine Gegendrehung der Rückseite; außerdem schaltet der Tap nur in eine Richtung.
+
+Die Flip-Karte exakt nach diesem bewährten Muster umsetzen:
+
+- **Eigener Flip-Zustand pro Karte** (nicht global): jede Karte hat ihr eigenes `flipped`. Tippen **toggelt** (`!flipped`), dreht also auch wieder zurück. Die gesamte Karte ist Tap-Fläche.
+- **Struktur:**
+  - Äußerer Container: `style={{ perspective: 1000 }}`.
+  - Innerer Wrapper: `position: relative; transform-style: preserve-3d; transition: transform .5s; transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)"`. Zusätzlich `WebkitTransformStyle: "preserve-3d"`.
+  - **Vorderseite** und **Rückseite** je `position: absolute; inset: 0; backfaceVisibility: "hidden"; WebkitBackfaceVisibility: "hidden"`.
+  - **Rückseite zusätzlich** `transform: "rotateY(180deg)"` — damit steht ihr Inhalt richtig herum (behebt die Spiegelung).
+- Höhe der Karte fest oder über den Container vorgeben, da beide Seiten absolut positioniert sind (sonst kollabiert die Höhe).
+- Der Hinweis „← umdrehen” auf der Rückseite ist nur Text; das Zurückdrehen erledigt der Tap auf die Karte.
+
+## Bug 2 — Fotos (kein Bild auf der Karte)
+
+Schritt für Schritt absichern:
+
+1. **Object Storage prüfen:** Der Upload braucht aktivierten Replit Object Storage. Wenn der Schreibvorgang fehlschlägt, **Fehler an die Nutzer-Oberfläche zurückgeben** statt still zu scheitern („Foto konnte nicht gespeichert werden”). Beim Hochladen kurze Lade-/Erfolgsanzeige.
+1. **Upload korrekt ablegen:** `POST /api/theke/profil/foto` mit `slot = "frueher" | "heute"` speichert das Objekt und setzt `foto_frueher_key` bzw. `foto_heute_key` auf dem Profil. Endung/Content-Type aus der Datei ableiten.
+1. **Feed liefert die Keys:** `GET /api/theke/feed` muss `foto_frueher_key` und `foto_heute_key` je Profil zurückgeben (falls nicht, ergänzen).
+1. **Wand rendert das Bild:** Vorderseite der Karte zeigt das Foto über
+   `<img src={`${BASE}/api/theke/datei?t=${code}&key=${encodeURIComponent(key)}`} style={{ objectFit: "cover", width: "100%", height: "100%" }} />`.
+   Früher/Heute nebeneinander, falls beide vorhanden.
+1. **Fallback ohne Foto:** Solange kein Bild da ist, kein leerer Kasten, sondern die **Initialen** des Namens auf Amber-Grund (#E8991A) als Platzhalter.
+
+## VERBOTEN
+
+- Szenenaufbau (Wand, Tresen, Telefon), Auth/`toUpperCase()`, Dauerzugang, Phasen-Andeutungen NICHT anfassen.
+- Keine Tabs, keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Karte dreht auf Tap hin **und** zurück; Rückseiten-Schrift steht richtig herum (iOS getestet).
+- [ ] Jede Karte hat eigenen Flip-Zustand.
+- [ ] `-webkit-backface-visibility: hidden` auf beiden Seiten, Rückseite um 180° gegengedreht.
+- [ ] Foto-Upload speichert in Object Storage und setzt die Keys; Fehler werden sichtbar gemeldet.
+- [ ] Feed liefert `foto_frueher_key`/`foto_heute_key`; Wand zeigt die Bilder.
+- [ ] Ohne Foto: Initialen-Platzhalter statt leerem Kasten.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Flip dreht hin & zurück, Schrift nicht mehr gespiegelt: ja/nein
+> Object Storage aktiv, Upload + Anzeige funktionieren: ja/nein
+> Fallback-Initialen ohne Foto: ja/nein
+> Geänderte Dateien: …
