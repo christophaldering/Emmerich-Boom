@@ -1,0 +1,332 @@
+# HARDPROMPT — „DIE THEKE” · Vorher-Seite + Einladungsprozess
+
+**KEINE eigenen Entscheidungen außerhalb dieses Prompts. KEIN Scope Creep. Halte dich exakt an Wortlaut, Felder und Verbote.**
+
+-----
+
+## 0. KONTEXT
+
+Monorepo (pnpm workspaces, TypeScript). Frontend `artifacts/emmerich` (React + Vite), API `artifacts/api-server` (Express 5), DB `lib/db` (Drizzle ORM + PostgreSQL, Zod `zod/v4`). Eventseite „EMMERICH BOOMT!” (Boomerparty, 18. Juli 2026).
+
+Wir bauen einen neuen geschlossenen Bereich namens **„Die Theke”** — Zugang ausschließlich über persönliche Magic Links pro Ticket. Heute wird **nur die Vorher-Seite** mit Leben gefüllt; „Der Abend” und „Danach” existieren als sichtbare, gesperrte Reiter.
+
+**Design (unverändert übernehmen):** Hintergrund `#0A0704`, Akzent `#E8991A`, Text `#F5E8C8`. Headlines Playfair Display, Body Lora. Inline-Styles wie in den bestehenden Komponenten. **Keine** Tailwind-Color-Classes, **kein** Inter, **kein** Lila/Magenta/Blau/Grün.
+
+-----
+
+## 1. VERBOTEN (keine Ausnahmen)
+
+- **KEINE KI / keine KaI-Anbindung** in der Theke. Der Mensch ist alleiniger Autor seines Steckbriefs.
+- **KEIN Passwort, kein Login-System, kein Auth-Provider, keine Sessions.** Der Magic Link IST der Zugang.
+- **KEINE neuen Zugangscodes generieren.** Es wird ausschließlich der bestehende `ticket_code` aus `anmeldung_tickets` wiederverwendet.
+- **KEINE Moderationsschlange / kein Freigabe-Workflow.** Inhalte sind sofort sichtbar; löschen kann der Ersteller selbst, im Notfall die Orga.
+- **KEIN Telefon, keine Hardware, keine Wählscheiben-Logik.**
+- **KEINE Massen-/Live-Foto-Funktion für den Partyabend** und **keine Wunschsong-Abstimmung.** Das gehört auf spätere Seiten.
+- **KEINE Theme-Toggles, keine Light/Dark-Umschalter, keine zusätzlichen UI-Spielereien.**
+- **Fotos NICHT verändern, nicht neu rendern, nicht reincompositen.** Die Jahreszahl ist **nur ein CSS-Overlay** über dem unveränderten Bild.
+- **KEINE Änderung an `config/phase2.ts`** (Schalter wie `ANMELDUNG_AKTIV` bleiben unangetastet).
+- **KEINE öffentliche Verlinkung der Theke** von der Landingpage oder anderswo. Theke-Routen auf `noindex`.
+- **Bestehende Seiten/Komponenten NICHT umbauen**, außer den unter §11 ausdrücklich genannten Dateien.
+- **Die drei Einwilligungs-Häkchen NIEMALS bündeln.** Drei getrennte Zwecke, drei getrennte Häkchen.
+
+-----
+
+## 2. ROUTING & ZUGANG (Magic Link, kein Passwort)
+
+In `artifacts/emmerich/src/App.tsx` zwei neue Routen ergänzen (gleicher Stil wie die bestehenden String-Matches in `getRoute()`):
+
+- `clean === "theke"` → `{ page: "theke" }` → rendert `<ThekePage />`
+- `clean === "theke/wand"` → `{ page: "theke-wand" }` → rendert `<ThekeWandPage />`
+
+Der Ticketcode kommt als Query-Parameter: **`/theke?t=<16-stelliger-ticket_code>`**. Die Seite liest ihn aus `window.location.search` (`t`).
+
+**Gate-Verhalten in `ThekePage`:**
+
+1. Kein/leerer `t` → freundliche Sperrseite: „Diese Seite ist nur über deinen persönlichen Theke-Link erreichbar. Schau in deine Einladungs-Mail.”
+1. `t` vorhanden → `POST /api/theke/auth` mit `{ code }`. Ungültig → dieselbe Sperrseite.
+1. Gültig → lade/erzeuge Profil. Existiert noch kein Profil zu diesem Ticket, lege eines an mit `anzeige_name = person_name`, `bestaetigt = false`. Zeige einmalig:
+
+> **Du bist [Name], richtig?**
+> Buttons: **„Ja, das bin ich”** (`bestaetigt = true`) · **„Nein, ich heiße anders”** (Namensfeld editierbar, danach `bestaetigt = true`).
+
+-----
+
+## 3. DATENMODELL — neue Drizzle-Tabellen
+
+Je Tabelle eine Datei in `lib/db/src/schema/`, snake_case-Spalten, `serial` id, `drizzle-zod` Insert-Schema, Barrel-Export in `lib/db/src/schema/index.ts` ergänzen. Danach `pnpm --filter @workspace/db run push` (Fallback `push-force`).
+
+**`theke_profile`** (eine Zeile pro Ticket)
+
+- `id` serial PK
+- `anmeldung_ticket_id` integer NOT NULL UNIQUE → FK auf `anmeldung_tickets.id`
+- `anzeige_name` text NOT NULL
+- `bestaetigt` boolean NOT NULL default false
+- `vorstellung` text  *(Charme-Feld)*
+- `jahr_1985` text  *(Charme-Feld „1985 war ich gerade…”)*
+- `lauter_song` text  *(Charme-Feld)*
+- `f_tontraeger` text  *(Auswahl)*
+- `f_abends` text  *(Auswahl)*
+- `f_untersatz` text  *(Auswahl)*
+- `f_musik` text  *(Auswahl)*
+- `f_getraenk` text  *(Auswahl)*
+- `foto_frueher_key` text · `foto_frueher_jahr` integer
+- `foto_heute_key` text · `foto_heute_jahr` integer
+- `sichtbarkeit_zugestimmt_am` timestamp (nullable) — gesetzt, sobald Häkchen A erstmals akzeptiert
+- `abendfotos_ok` boolean NOT NULL default false
+- `created_at` / `updated_at` timestamps
+
+**`theke_botschaften`** (Anrufbeantworter)
+
+- `id` serial PK
+- `anmeldung_ticket_id` integer NOT NULL → FK
+- `datei_key` text NOT NULL
+- `dauer_sek` integer NOT NULL
+- `abspielen_ok` boolean NOT NULL default false
+- `created_at` timestamp default now
+
+**`theke_fotos`** (Galerie/Vorfreude-Bilder)
+
+- `id` serial PK
+- `anmeldung_ticket_id` integer NOT NULL → FK
+- `datei_key` text NOT NULL
+- `bildunterschrift` text
+- `jahr` integer
+- `sichtbar_ok` boolean NOT NULL default false
+- `created_at` timestamp default now
+
+**`theke_verteiler`** (eigener Info-Verteiler — getrennter Zweck!)
+
+- `id` serial PK
+- `email` text NOT NULL
+- `name` text
+- `anmeldung_ticket_id` integer (nullable) → FK
+- `einwilligung_am` timestamp NOT NULL
+- `abgemeldet_am` timestamp (nullable)
+- `created_at` timestamp default now
+- UNIQUE auf `email`
+
+**`theke_einladungen`** (Versand-Protokoll — „wann was an wen”)
+
+- `id` serial PK
+- `anmeldung_id` integer NOT NULL → FK auf `anmeldungen.id`
+- `empfaenger_email` text NOT NULL  *(Snapshot des Empfängers zum Sendezeitpunkt)*
+- `anzahl_tickets` integer NOT NULL
+- `ticket_codes` jsonb NOT NULL default `[]`  *(die enthaltenen Codes/Links)*
+- `typ` text NOT NULL  *(`"erstmalig"` | `"erneut"`)*
+- `status` text NOT NULL  *(`"gesendet"` | `"fehler"`)*
+- `fehler_text` text (nullable)
+- `versendet_am` timestamp NOT NULL default now
+- `created_at` timestamp default now
+
+-----
+
+## 4. OBJECT STORAGE
+
+Fotos und Audios liegen im **Replit Object Storage** (`@replit/object-storage` zur `api-server`-Dependency hinzufügen). In den Tabellen stehen nur Metadaten + `datei_key`. Key-Schema: `theke/foto/<uuid>.<ext>`, `theke/audio/<uuid>.webm`. Upload im Backend via `multer` (memoryStorage) → Buffer in Object Storage schreiben.
+
+**Auslieferung:** `GET /api/theke/datei?t=<code>&key=<key>` — validiert zuerst, dass `t` ein existierender `ticket_code` ist, streamt erst dann das Objekt. Kein offener Zugriff ohne gültigen Code.
+
+-----
+
+## 5. BACKEND-ENDPUNKTE
+
+Neue Datei `artifacts/api-server/src/routes/theke.ts`, gemountet unter `/api` (in `routes/index.ts`). Request/Response mit `zod/v4` validieren. Jeder schreibende/lesende Endpunkt verlangt einen gültigen `code` (Body oder Query), der gegen `anmeldung_tickets.ticket_code` geprüft wird.
+
+- `POST /api/theke/auth` `{ code }` → `{ ok, ticket: { person_name, anmeldung_id }, profil | null }`
+- `POST /api/theke/profil` (code) → Upsert auf `theke_profile`: `anzeige_name`, `bestaetigt`, die 5 Auswahl-Felder, die 3 Charme-Felder, `sichtbarkeit_zugestimmt` (bool), `abendfotos_ok` (bool). Bei erstem `true` von `sichtbarkeit_zugestimmt` → `sichtbarkeit_zugestimmt_am = now`. **Speichern von Inhalten/Sichtbarkeit nur erlaubt, wenn Häkchen A akzeptiert.** Optional `verteiler_email` + `verteiler_consent`: wenn beides gesetzt → Upsert in `theke_verteiler` (`einwilligung_am = now`).
+- `POST /api/theke/profil/foto` (code, multipart) `slot = "frueher" | "heute"`, `file`, optional `jahr` → Objekt speichern, `foto_<slot>_key`/`foto_<slot>_jahr` setzen. Nur mit Häkchen A.
+- `POST /api/theke/foto` (code, multipart) `file`, optional `bildunterschrift`, optional `jahr` → `theke_fotos`-Zeile (`sichtbar_ok = true`). Nur mit Häkchen A.
+- `DELETE /api/theke/foto/:id` (code) — nur eigenes Ticket; Objekt + Zeile löschen.
+- `POST /api/theke/botschaft` (code, multipart) `file` (Audio), `dauer_sek`, `abspielen_ok` → `theke_botschaften`-Zeile. Nur wenn `abspielen_ok`.
+- `DELETE /api/theke/botschaft/:id` (code) — nur eigenes Ticket.
+- `GET /api/theke/feed?t=<code>` → sichtbare Profile (`sichtbarkeit_zugestimmt_am` gesetzt), **neueste zuerst** (`created_at` desc), je mit `anzeige_name`, Auswahl-Feldern, `foto_frueher_key`/`-jahr`, `foto_heute_key`/`-jahr`, Flags „hat Foto”/„hat Botschaft”.
+- `GET /api/theke/botschaften?t=<code>` → „Das Band”: alle `theke_botschaften` mit `abspielen_ok = true`, mit `datei_key` + `anzeige_name` (join), neueste zuerst.
+- `GET /api/theke/datei?t=<code>&key=<key>` → Stream (siehe §4).
+
+-----
+
+## 6. DIE VORHER-SEITE (`ThekePage`)
+
+Kopf: Titel **„Die Theke”**, darunter eine Reiterleiste mit **drei** sichtbaren Tabs:
+
+- **Vorher** — aktiv, der ganze Inhalt unten.
+- **Der Abend** — gesperrt, abgeblendet, Text: **„Der Abend — öffnet am 18. Juli 2026.”** Unterzeile: „Hier läuft die Party mit, sobald es losgeht.”
+- **Danach** — gesperrt, abgeblendet, Text: **„Danach — kommt nach der Party.”** Unterzeile: „Das Fotoalbum, das Band und die Erinnerungen an den Abend.”
+
+### 6.1 Mein Steckbrief (eigenes Profil, oben)
+
+Name vorbefüllt (siehe §2). Pflicht ist nur der Name; alles andere freiwillig.
+
+**Fünf Auswahl-Fragen** (je EINE Option antippbar, exakt diese Optionen):
+
+- **Tonträger meiner Jugend:** Schallplatte · Kassette · CD · Radio rauf und mitgenommen
+- **Am Abend findet man mich:** auf der Tanzfläche · an der Theke · draußen beim Quatschen · überall mal
+- **Mein erster fahrbarer Untersatz:** Bonanzarad · Mofa/Mokick · Klapprad · erstes Auto · zu Fuß, stolz drauf
+- **Heimliches Musik-Geständnis:** Schlager · Disco · Hard Rock · Neue Deutsche Welle · bleibt geheim
+- **Mein Getränk des Abends:** Bier · Wein · was Hochprozentiges · alkoholfrei, ganz bewusst · überrasch mich
+
+**Drei Charme-Felder** (Freitext, freiwillig):
+
+- „Stell dich in einem Satz vor — oder gib uns dein Motto.” → `vorstellung`
+- „1985 war ich gerade…” → `jahr_1985`
+- „Der Song, bei dem ich sofort lauter drehe.” → `lauter_song`
+
+### 6.2 Früher vs. Heute (Bildpaar mit Jahresstempel)
+
+Zwei Upload-Slots nebeneinander: **Früher** und **Heute**. Je optional eine Jahreszahl. Die Jahreszahl wird als **CSS-Overlay** unten in der Ecke über das Bild gelegt — Optik einer **orangefarbenen Filmkamera-Datumsanzeige der 80er** (`#E8991A`, Digitalziffern-Anmutung). Das Bild selbst bleibt unverändert.
+
+### 6.3 Anrufbeantworter
+
+Browser-Aufnahme via `MediaRecorder` (muss auf iPhone/Safari laufen). Inszenierung als alter AB: Hinweis **„Sprich nach dem Piepton.”**, ein Piepton vor Aufnahmestart, mitlaufender Sekundenzähler, **harte Obergrenze 60 Sekunden** (automatischer Stopp). Anhören, behalten oder neu aufnehmen. Speichern nur, wenn das Abspielen-Häkchen (Teil von A bzw. eigenes „darf abgespielt werden”) gesetzt ist → `abspielen_ok`.
+
+### 6.4 Foto-Upload (Galerie)
+
+Mehrere Bilder hochladbar, je optional Bildunterschrift + Jahr (Overlay wie 6.2). Jederzeit selbst löschbar.
+
+### 6.5 Die drei Einwilligungen (GETRENNT, niemals bündeln)
+
+**(A) Pflicht — schaltet Upload/Sichtbarkeit erst frei.** Speichern von Profil, Fotos, Botschaft nur möglich, wenn gesetzt:
+
+> „Mein Profil, meine Fotos und meine Sprachnachricht dürfen für andere Ticketinhaberinnen und Ticketinhaber der Boomerparty sichtbar gespeichert werden. Ich kann alles jederzeit selbst wieder löschen.”
+
+**(B) Optional — Verteiler.** Eigenes E-Mail-Feld + eigenes Häkchen:
+
+> „Ja, ich möchte von der nächsten Boomerparty und ähnlichen Aktionen per E-Mail hören.”
+
+**(C) Optional — Abend-Fotos.** Eigenes Häkchen (`abendfotos_ok`):
+
+> „Fotos, die am Partyabend von mir gemacht werden, dürfen später hier in der Theke gezeigt werden.”
+
+Direkt neben (A) ein kurzer Satz mit Link auf den vollständigen Datenschutztext (§10).
+
+### 6.6 Die anderen — Swipe-Feed (neueste zuerst)
+
+Unter dem eigenen Steckbrief eine **durchwischbare Karten-Folge** aller sichtbaren Profile, **neueste zuerst**. Eine Karte = ein Steckbrief: optischer Anker das Früher/Heute-Bildpaar, darunter Name + eine, zwei Auswahl-Antworten. Antippen öffnet den vollen Steckbrief. Touch-Swipe + Pfeile.
+
+### 6.7 Suche & Filter
+
+- **Namenssuche** (Pflichtfunktion).
+- **Filter** auf den Auswahl-Feldern (z. B. „alle an der Theke”, „alle mit Schallplatte”).
+- Schalter **„nur mit Foto”** und **„nur mit Sprachnachricht”**.
+
+### 6.8 Das Band
+
+Liste **„Das Band — [n] Nachrichten”** ([n] = Live-Zahl) mit kleinen Abspielern aller freigegebenen Botschaften, neueste zuerst. **Von Tag eins hörbar.**
+
+-----
+
+## 7. BEAMER-WAND (`ThekeWandPage`, Route `/theke/wand`)
+
+Eigene Vollbild-Route, 16:9, schwarzer Grund, Amber-Akzente. Zeigt **dieselben** sichtbaren Profile + Fotos wie der Feed, aber **automatisch durchlaufend** (langsames Durchblenden, keine Bedienung nötig). Zugang ebenfalls über `?t=<gültiger ticket_code>` (Orga öffnet sie mit ihrem eigenen Ticketlink). Zeigt ausschließlich freigegebene Profile.
+
+-----
+
+## 8. EINLADUNGS-MAIL „Die Theke ist offen”
+
+Versand über **Resend** von `boomerparty26@emmerich-boomt.de` (bestehende Resend-Logik/Absender aus `SERVER_CONFIG` wiederverwenden). Eigene Mail, eigener Anlass, warmer, selbstironischer Boomer-Ton (kein generischer Marketing-Sprech, keine Entschuldigungen). Links absolut auf **`https://emmerich-boomt.de/theke?t=<ticket_code>`** (Basis-URL als Konstante in `SERVER_CONFIG`, z. B. `THEKE_BASE_URL`).
+
+- **Betreff:** „Die Theke ist offen — dein Zugang zur Boomerparty”
+- Kurzer Aufmacher, dann **pro Ticket dieser Bestellung ein eigener Block** mit:
+  - dem `person_name`,
+  - dem persönlichen Link,
+  - **„Per WhatsApp weitergeben”** → `https://wa.me/?text=<urlencoded: "Hier ist dein Zugang zur Theke der Boomerparty, [Name]: [Link]">`,
+  - **„Per Mail weitergeben”** → `mailto:?subject=Dein%20Theke-Zugang&body=<urlencoded wie oben>`.
+- Hinweis im Text: „Stimmt einer der Namen nicht? Beim ersten Öffnen kann man sich umbenennen.” und „Hast du für andere mitbestellt, leite ihnen einfach ihren Block weiter.”
+
+-----
+
+## 9. ADMIN — Einladungen versenden (mehrfach) + Protokoll
+
+Neuer Abschnitt im bestehenden Admin-Bereich (`AdminPage.tsx`, Slug `boomer-orga-intern`) **„Theke — Einladungen”**. Backend dazu in `theke.ts` oder eigener `theke-admin.ts`, **nur unter Admin erreichbar**.
+
+**Endpunkte:**
+
+- `GET /api/theke-admin/einladungen` → Liste je Bestellung (`anmeldungen`): `anmeldung_id`, `empfaenger_email`, `anzahl_tickets`, `zuletzt_gesendet_am`, `anzahl_versendungen`, `letzter_status`. Plus pro Bestellung das vollständige Protokoll (alle `theke_einladungen`-Zeilen).
+- `POST /api/theke-admin/einladung/senden` `{ anmeldung_ids: number[] }` (oder `{ alle: true }` / `{ nur_nicht_eingeladene: true }`) → versendet pro Bestellung die „Die Theke ist offen”-Mail an die Besteller-Adresse **und schreibt je Versand eine `theke_einladungen`-Zeile** (`typ` = `"erstmalig"` falls noch nie gesendet, sonst `"erneut"`; `status`/`fehler_text` je Resend-Ergebnis; `ticket_codes` = enthaltene Codes; `empfaenger_email` als Snapshot). Gibt Ergebnis pro Bestellung zurück.
+
+**Mehrfachversand ausdrücklich erlaubt** — derselben Bestellung kann beliebig oft erneut gesendet werden; jeder Versand wird separat protokolliert (kein Überschreiben).
+
+**Admin-UI:** Tabelle aller Bestellungen mit Auswahl-Checkboxen, Buttons **„Einladung senden”** und **„Erneut senden”**, sowie Sammelaktionen „An alle senden” / „An alle noch nicht eingeladenen senden”. Je Zeile sichtbar: Empfänger, Ticketanzahl, **wann zuletzt gesendet, wie oft insgesamt, letzter Status**. Aufklappbar: das volle Protokoll (jede Zeile = Zeitpunkt · Empfänger · Anzahl Links · Typ · Status).
+
+-----
+
+## 10. DATENSCHUTZ
+
+In `artifacts/emmerich/src/components/LegalPhase2.tsx` den Datenschutz-Abschnitt um die Theke erweitern: welche Daten (Profilangaben, Fotos, Sprachnachricht, optional E-Mail für den Verteiler), Zweck, Sichtbarkeit nur für Ticketinhaber der geschlossenen Veranstaltung, Speicherdauer, jederzeitiges Selbst-Löschen, getrennte Einwilligungen, Abmeldung aus dem Verteiler. Keine bestehenden Passagen entfernen.
+
+-----
+
+## 11. ERLAUBTE ÄNDERUNGEN AN BESTEHENDEN DATEIEN (nur diese)
+
+- `artifacts/emmerich/src/App.tsx` — zwei neue Routen.
+- `artifacts/emmerich/src/components/LegalPhase2.tsx` — Datenschutz-Zusatz.
+- `artifacts/emmerich/src/pages/AdminPage.tsx` — Abschnitt „Theke — Einladungen”.
+- `artifacts/api-server/src/config.ts` — `THEKE_BASE_URL` ergänzen.
+- `artifacts/api-server/src/routes/index.ts` — neue Router mounten.
+- `artifacts/api-server/src/services/mailer.ts` — Funktion für die „Die Theke ist offen”-Mail.
+- `lib/db/src/schema/index.ts` — neue Tabellen exportieren.
+- `robots.txt` / `index.html` — `noindex` für Theke (siehe §12).
+
+Alle anderen bestehenden Dateien **unverändert**.
+
+-----
+
+## 12. NOINDEX
+
+`Disallow: /theke` in die `robots.txt` aufnehmen **und** beim Mounten der Theke-Routen dynamisch `<meta name="robots" content="noindex">` in den `<head>` injizieren (beim Verlassen wieder entfernen). Die öffentliche Landingpage bleibt indexierbar.
+
+-----
+
+## 12a. DEMO-ZUGANG (Orga-Vorschau)
+
+Damit die Orga die Theke testen und am Beamer zeigen kann, **ohne ein echtes Teilnehmerticket zu benutzen**, wird ein fest verdrahtetes Demo-Ticket eingerichtet.
+
+- **Fester Code als Konstante** `THEKE_DEMO_CODE` in `artifacts/api-server/src/config.ts`, gültiges 16-stelliges Hex (Vorgabe: `00000000deadbeef`). Einzige Quelle der Wahrheit — nirgends doppelt hardcoden.
+- **Seed-Script** `scripts/src/seed-theke-demo.ts` (lauffähig via `pnpm --filter @workspace/scripts run seed-theke-demo`), **idempotent**: legt — nur falls noch nicht vorhanden — eine Bestellung in `anmeldungen` (E-Mail `orga-vorschau@emmerich-boomt.de`) und genau ein `anmeldung_tickets` mit `person_name = "Orga-Vorschau"` und `ticket_code = THEKE_DEMO_CODE` an. Mehrfaches Ausführen darf keine Duplikate erzeugen.
+- **Verhält sich wie ein echtes Ticket** beim Zugang (`/theke?t=<THEKE_DEMO_CODE>` und `/theke/wand?t=<THEKE_DEMO_CODE>`), durchläuft denselben Auth-Pfad — **keine Sonderlogik im Auth-Endpunkt, kein zweiter Zugangsmechanismus.**
+- **Strikt isoliert:** Das Demo-Ticket (bzw. dessen Bestellung) wird in **allen** Theke-Abfragen ausgeschlossen — Feed, Beamer-Wand, „Das Band”, Einladungsliste und sämtliche Zählungen. Echte Teilnehmer sehen das Demo-Profil nie; an die Demo-Bestellung wird **keine** Einladung versendet.
+- **Admin-Buttons:** Im Abschnitt „Theke — Einladungen” eine kleine Box **„Theke — Vorschau (Orga)”** mit zwei Buttons: **„Vorschau öffnen”** → `/theke?t=<code>` und **„Beamer-Wand öffnen”** → `/theke/wand?t=<code>`, jeweils in neuem Tab. Den Code liefert das Backend (z. B. in der Antwort von `GET /api/theke-admin/einladungen`), damit es keine Abweichung zur Konstante gibt.
+
+## 13. CHECKLISTE (alles abhaken)
+
+- [ ] Routen `/theke` und `/theke/wand` ergänzt, Zugang via `?t=` aus `window.location.search`.
+- [ ] `POST /api/theke/auth` validiert gegen `anmeldung_tickets.ticket_code`; kein Passwort.
+- [ ] Erst-Besuch: „Du bist [Name], richtig?” mit Ja / Nein-umbenennen.
+- [ ] 5 neue Tabellen angelegt + Barrel-Export + `db push` erfolgreich.
+- [ ] Object Storage eingebunden; Dateien als Key gespeichert; Auslieferung nur mit gültigem Code.
+- [ ] Steckbrief: 5 Auswahl-Fragen (exakte Optionen) + 3 Charme-Felder; nur Name Pflicht.
+- [ ] Früher/Heute-Bildpaar mit Jahres-**Overlay** (Foto unverändert).
+- [ ] Anrufbeantworter: Piepton, Zähler, harte 60-s-Grenze, anhören/neu/behalten.
+- [ ] Foto-Galerie mit Unterschrift + Jahr, selbst löschbar.
+- [ ] Drei getrennte Häkchen mit exaktem Wortlaut (A Pflicht, B+C optional); A schaltet Upload frei.
+- [ ] Verteiler in eigener Tabelle mit Einwilligungszeitpunkt.
+- [ ] Swipe-Feed neueste zuerst; Namenssuche + Filter + „nur mit Foto”/„nur mit Sprachnachricht”.
+- [ ] „Das Band” von Tag eins hörbar.
+- [ ] Beamer-Wand `/theke/wand` läuft automatisch durch, zeigt nur freigegebene Profile.
+- [ ] Einladungs-Mail „Die Theke ist offen” mit Block je Ticket + WhatsApp-/Mail-Weitergabe-Links, Resend-Absender korrekt.
+- [ ] Admin: Einladung **mehrfach** versendbar; jeder Versand in `theke_einladungen` protokolliert (wann/was/an wen/Typ/Status).
+- [ ] Admin-UI zeigt zuletzt gesendet, Anzahl, Status + aufklappbares Protokoll.
+- [ ] Datenschutz-Zusatz in `LegalPhase2.tsx`.
+- [ ] Demo-Ticket: Konstante `THEKE_DEMO_CODE` + idempotentes Seed-Script angelegt.
+- [ ] Demo-Zugang läuft über denselben Auth-Pfad (keine Sonderlogik).
+- [ ] Demo-Ticket aus Feed, Wand, Band, Einladungsliste und Zählungen ausgeschlossen; keine Einladung an die Demo-Bestellung.
+- [ ] Admin-Buttons „Vorschau öffnen” + „Beamer-Wand öffnen” mit Code aus dem Backend.
+- [ ] `noindex` + `robots.txt`-Disallow für Theke; keine öffentliche Verlinkung.
+- [ ] KEINE KI, kein Passwort, keine Moderationsschlange, keine Theme-Toggles, keine neuen Farben.
+- [ ] `pnpm run typecheck` und Build laufen sauber durch.
+
+-----
+
+## 14. PFLICHT-ABSCHLUSSERKLÄRUNG
+
+Beende deine Arbeit mit dieser Erklärung, vollständig ausgefüllt:
+
+> **THEKE-VORHER-SEITE FERTIG.**
+> Geänderte/neue Dateien: …
+> Neue Tabellen + `db push`: …
+> Object Storage eingebunden: ja/nein
+> Magic-Link-Zugang ohne Passwort: ja/nein
+> Drei getrennte Häkchen mit exaktem Wortlaut: ja/nein
+> Einladung mehrfach versendbar + protokolliert: ja/nein
+> Checkliste vollständig abgehakt: ja/nein
+> Abweichungen vom Prompt (falls vorhanden, begründet): …
