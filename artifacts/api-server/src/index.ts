@@ -2,7 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import cron from "node-cron";
 import { buildAndSendDailyReport } from "./services/dailyReport.js";
-import { db, anmeldungenTable, anmeldungTicketsTable } from "@workspace/db";
+import { db, anmeldungenTable, anmeldungTicketsTable, thekeProfileTable, thekeFotosTable, thekeBotschaftenTable } from "@workspace/db";
 import { kiRequests } from "@workspace/db";
 import { count, eq } from "drizzle-orm";
 import { SERVER_CONFIG } from "./config.js";
@@ -23,6 +23,31 @@ async function seedKaiIfEmpty() {
 
 async function seedThekeDemoIfMissing() {
   try {
+    // ── Einmalige Bereinigung: altes kleingeschriebenes Demo-Ticket entfernen ──
+    const OLD_CODE = "00000000deadbeef";
+    const [oldTicket] = await db
+      .select({ id: anmeldungTicketsTable.id, anmeldung_id: anmeldungTicketsTable.anmeldung_id })
+      .from(anmeldungTicketsTable)
+      .where(eq(anmeldungTicketsTable.ticket_code, OLD_CODE))
+      .limit(1);
+    if (oldTicket) {
+      await db.delete(thekeBotschaftenTable).where(eq(thekeBotschaftenTable.anmeldung_ticket_id, oldTicket.id));
+      await db.delete(thekeFotosTable).where(eq(thekeFotosTable.anmeldung_ticket_id, oldTicket.id));
+      await db.delete(thekeProfileTable).where(eq(thekeProfileTable.anmeldung_ticket_id, oldTicket.id));
+      await db.delete(anmeldungTicketsTable).where(eq(anmeldungTicketsTable.id, oldTicket.id));
+      // Zugehörige Demo-Bestellung löschen, wenn keine anderen Tickets mehr hängen
+      const remaining = await db
+        .select({ id: anmeldungTicketsTable.id })
+        .from(anmeldungTicketsTable)
+        .where(eq(anmeldungTicketsTable.anmeldung_id, oldTicket.anmeldung_id))
+        .limit(1);
+      if (remaining.length === 0) {
+        await db.delete(anmeldungenTable).where(eq(anmeldungenTable.id, oldTicket.anmeldung_id));
+      }
+      logger.info("[Theke] Altes Klein-Demo-Ticket bereinigt");
+    }
+
+    // ── Großgeschriebenes Demo-Ticket anlegen falls noch nicht vorhanden ──
     const existing = await db
       .select({ id: anmeldungTicketsTable.id })
       .from(anmeldungTicketsTable)
