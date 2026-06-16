@@ -28,6 +28,20 @@ function fotoUrl(key: string, token: string) {
   return `${BASE}/api/theke/datei/${key}?t=${encodeURIComponent(token)}`;
 }
 
+function noindex() {
+  let meta = document.head.querySelector<HTMLMetaElement>("meta[name='robots'][data-theke]");
+  if (!meta) {
+    meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.setAttribute("data-theke", "1");
+    document.head.appendChild(meta);
+  }
+  meta.content = "noindex,nofollow";
+}
+function removeNoindex() {
+  document.head.querySelector("meta[name='robots'][data-theke]")?.remove();
+}
+
 export default function ThekeWandPage() {
   const [token, setToken] = useState<string | null>(null);
   const [zugangFehler, setZugangFehler] = useState(false);
@@ -35,6 +49,11 @@ export default function ThekeWandPage() {
   const [idx, setIdx] = useState(0);
   const [fading, setFading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    noindex();
+    return () => removeNoindex();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

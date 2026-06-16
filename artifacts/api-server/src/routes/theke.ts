@@ -29,9 +29,9 @@ function getObjectStorage() {
   return new Client();
 }
 
-async function storeFile(buffer: Buffer, key: string, mimeType: string): Promise<void> {
+async function storeFile(buffer: Buffer, key: string, _mimeType: string): Promise<void> {
   const client = getObjectStorage();
-  const { ok, error } = await client.uploadFromBytes(key, buffer, { contentType: mimeType });
+  const { ok, error } = await client.uploadFromBytes(key, buffer);
   if (!ok) throw new Error(`Upload fehlgeschlagen: ${error}`);
 }
 
@@ -54,7 +54,8 @@ async function getFileBytes(key: string): Promise<{ data: Uint8Array; contentTyp
     ogg: "audio/ogg", mp4: "audio/mp4", mp3: "audio/mpeg",
   };
   const contentType = mimeMap[ext] ?? "application/octet-stream";
-  return { data: value, contentType };
+  const bytes: Uint8Array = Array.isArray(value) ? Buffer.concat(value as Buffer[]) : value as unknown as Uint8Array;
+  return { data: bytes, contentType };
 }
 
 async function validateCode(code: string) {
@@ -147,6 +148,14 @@ router.put("/theke/profil", async (req: Request, res: Response) => {
     .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
     .limit(1);
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+
+  // Content fields require consent A (sichtbarkeit_zugestimmt_am)
+  const CONTENT_FIELDS = ["vorstellung", "jahr_1985", "lauter_song", "f_tontraeger", "f_abends", "f_untersatz", "f_musik", "f_getraenk", "foto_frueher_jahr", "foto_heute_jahr"] as const;
+  const hasContentFields = CONTENT_FIELDS.some(f => parsed.data[f] !== undefined);
+  if (hasContentFields && !profile.sichtbarkeit_zugestimmt_am) {
+    res.status(403).json({ error: "Bitte zuerst Einwilligung A setzen." });
+    return;
+  }
 
   const [updated] = await db
     .update(thekeProfileTable)

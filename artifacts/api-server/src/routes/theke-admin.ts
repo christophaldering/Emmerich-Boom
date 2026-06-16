@@ -15,7 +15,7 @@ function requireAdmin(req: Request, res: Response): boolean {
   return true;
 }
 
-// GET /api/theke-admin/uebersicht  — per-ticket profile overview
+// ─── GET /api/theke-admin/uebersicht — per-ticket profile overview ─────────────
 router.get("/theke-admin/uebersicht", async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
   try {
@@ -31,23 +31,18 @@ router.get("/theke-admin/uebersicht", async (req: Request, res: Response) => {
       .from(anmeldungTicketsTable)
       .orderBy(anmeldungTicketsTable.id);
 
-    const profiles = await db
-      .select()
-      .from(thekeProfileTable);
+    const profiles = await db.select().from(thekeProfileTable);
 
     const botschaften = await db
       .select({ anmeldung_ticket_id: thekeBotschaftenTable.anmeldung_ticket_id })
       .from(thekeBotschaftenTable);
 
     const galerien = await db
-      .select({
-        anmeldung_ticket_id: thekeFotosTable.anmeldung_ticket_id,
-      })
+      .select({ anmeldung_ticket_id: thekeFotosTable.anmeldung_ticket_id })
       .from(thekeFotosTable);
 
     const profileMap = new Map(profiles.map(p => [p.anmeldung_ticket_id, p]));
     const botschaftSet = new Set(botschaften.map(b => b.anmeldung_ticket_id));
-
     const galerieCount = new Map<number, number>();
     for (const g of galerien) {
       galerieCount.set(g.anmeldung_ticket_id, (galerieCount.get(g.anmeldung_ticket_id) ?? 0) + 1);
@@ -78,7 +73,7 @@ router.get("/theke-admin/uebersicht", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/theke-admin/einladungen  — per-ticket invitation targets (email from parent anmeldung)
+// ─── GET /api/theke-admin/einladungen — per-ticket with full invitation protocol ──
 router.get("/theke-admin/einladungen", async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
   try {
@@ -98,10 +93,16 @@ router.get("/theke-admin/einladungen", async (req: Request, res: Response) => {
       .from(anmeldungenTable)
       .where(isNull(anmeldungenTable.storniert_am));
 
-    const einladungen = await db
+    const alleEinladungen = await db
       .select({
-        ticket_codes: thekeEinladungenTable.ticket_codes,
-        versendet_am: thekeEinladungenTable.versendet_am,
+        id:               thekeEinladungenTable.id,
+        ticket_codes:     thekeEinladungenTable.ticket_codes,
+        versendet_am:     thekeEinladungenTable.versendet_am,
+        typ:              thekeEinladungenTable.typ,
+        status:           thekeEinladungenTable.status,
+        fehler_text:      thekeEinladungenTable.fehler_text,
+        empfaenger_email: thekeEinladungenTable.empfaenger_email,
+        anzahl_tickets:   thekeEinladungenTable.anzahl_tickets,
       })
       .from(thekeEinladungenTable)
       .orderBy(desc(thekeEinladungenTable.versendet_am));
@@ -109,26 +110,42 @@ router.get("/theke-admin/einladungen", async (req: Request, res: Response) => {
     const emailMap = new Map(anmeldungen.map(a => [a.id, a.email]));
     const anmeldungSet = new Set(anmeldungen.map(a => a.id));
 
-    // Build a map: ticket_code -> latest versendet_am
-    const latestByCode = new Map<string, Date>();
-    for (const e of einladungen) {
+    // Map einladungen rows to ticket codes
+    // One einladung row may contain multiple ticket codes (bulk send)
+    const einladungenByCode = new Map<string, typeof alleEinladungen>();
+    for (const e of alleEinladungen) {
       const codes = Array.isArray(e.ticket_codes) ? (e.ticket_codes as string[]) : [];
       for (const code of codes) {
-        if (!latestByCode.has(code)) {
-          latestByCode.set(code, e.versendet_am ?? new Date(0));
-        }
+        const list = einladungenByCode.get(code) ?? [];
+        list.push(e);
+        einladungenByCode.set(code, list);
       }
     }
 
     const result = tickets
       .filter(t => anmeldungSet.has(t.anmeldung_id))
-      .map(t => ({
-        id:                     t.id,
-        ticket_nummer:          t.ticket_nummer,
-        person_name:            t.person_name,
-        email:                  emailMap.get(t.anmeldung_id) ?? "",
-        einladung_versendet_am: latestByCode.get(t.ticket_code)?.toISOString() ?? null,
-      }));
+      .map(t => {
+        const versendungen = (einladungenByCode.get(t.ticket_code) ?? []).map(e => ({
+          id:               e.id,
+          versendet_am:     e.versendet_am?.toISOString() ?? null,
+          typ:              e.typ,
+          status:           e.status,
+          fehler_text:      e.fehler_text ?? null,
+          empfaenger_email: e.empfaenger_email,
+          anzahl_tickets:   e.anzahl_tickets,
+        }));
+        const letzteVersendung = versendungen[0] ?? null;
+        return {
+          id:                     t.id,
+          ticket_nummer:          t.ticket_nummer,
+          person_name:            t.person_name,
+          email:                  emailMap.get(t.anmeldung_id) ?? "",
+          einladung_versendet_am: letzteVersendung?.versendet_am ?? null,
+          versendungen_gesamt:    versendungen.length,
+          letzter_status:         letzteVersendung?.status ?? null,
+          versendungen,
+        };
+      });
 
     res.json(result);
   } catch (err) {
@@ -137,96 +154,135 @@ router.get("/theke-admin/einladungen", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/theke-admin/einladung/senden — per-ticket invitation (or per-anmeldung)
-// Body: { ticket_id: number } — sends the magic link for one ticket
+// ─── POST /api/theke-admin/einladung/senden ────────────────────────────────────
+// Body variants:
+//   { ticket_id: number }              — single ticket
+//   { ticket_ids: number[] }           — selected tickets (checkbox bulk)
+//   { alle: true }                     — all tickets
+//   { nur_nicht_eingeladene: true }    — only tickets never invited yet
 router.post("/theke-admin/einladung/senden", async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
-  const body = req.body as { ticket_id?: number; anmeldung_ids?: number[]; alle?: boolean };
+  const body = req.body as {
+    ticket_id?: number;
+    ticket_ids?: number[];
+    alle?: boolean;
+    nur_nicht_eingeladene?: boolean;
+  };
 
   try {
+    // Resolve which tickets to send to
+    let ticketsToSend: { id: number; anmeldung_id: number; person_name: string; ticket_code: string }[] = [];
+
     if (body.ticket_id) {
-      const [ticket] = await db
+      const [t] = await db
         .select()
         .from(anmeldungTicketsTable)
         .where(eq(anmeldungTicketsTable.id, body.ticket_id))
         .limit(1);
+      if (!t) { res.status(404).json({ error: "Ticket nicht gefunden" }); return; }
+      ticketsToSend = [t];
 
-      if (!ticket) { res.status(404).json({ error: "Ticket nicht gefunden" }); return; }
+    } else if (Array.isArray(body.ticket_ids) && body.ticket_ids.length > 0) {
+      ticketsToSend = await db
+        .select()
+        .from(anmeldungTicketsTable)
+        .where(sql`${anmeldungTicketsTable.id} = ANY(ARRAY[${sql.raw(body.ticket_ids.map(Number).join(","))}]::int[])`);
 
-      const [anmeldung] = await db
-        .select({ email: anmeldungenTable.email })
-        .from(anmeldungenTable)
-        .where(eq(anmeldungenTable.id, ticket.anmeldung_id))
-        .limit(1);
+    } else if (body.alle || body.nur_nicht_eingeladene) {
+      const allTickets = await db
+        .select({
+          id:           anmeldungTicketsTable.id,
+          anmeldung_id: anmeldungTicketsTable.anmeldung_id,
+          person_name:  anmeldungTicketsTable.person_name,
+          ticket_code:  anmeldungTicketsTable.ticket_code,
+        })
+        .from(anmeldungTicketsTable)
+        // only tickets from non-cancelled anmeldungen
+        .where(sql`${anmeldungTicketsTable.anmeldung_id} IN (
+          SELECT id FROM ${anmeldungenTable} WHERE storniert_am IS NULL
+        )`);
 
-      if (!anmeldung) { res.status(404).json({ error: "Anmeldung nicht gefunden" }); return; }
-
-      let status = "ok";
-      let fehler_text: string | null = null;
-      try {
-        await sendThekeEinladung({
-          to: anmeldung.email,
-          tickets: [{ name: ticket.person_name, code: ticket.ticket_code }],
-        });
-      } catch (err) {
-        status = "fehler";
-        fehler_text = String(err);
+      if (body.nur_nicht_eingeladene) {
+        const bereitsEingeladen = await db
+          .select({ ticket_codes: thekeEinladungenTable.ticket_codes })
+          .from(thekeEinladungenTable);
+        const eingeladeneCodesSet = new Set<string>();
+        for (const e of bereitsEingeladen) {
+          const codes = Array.isArray(e.ticket_codes) ? (e.ticket_codes as string[]) : [];
+          for (const c of codes) eingeladeneCodesSet.add(c);
+        }
+        ticketsToSend = allTickets.filter(t => !eingeladeneCodesSet.has(t.ticket_code));
+      } else {
+        ticketsToSend = allTickets;
       }
 
-      await db.insert(thekeEinladungenTable).values({
-        anmeldung_id:     ticket.anmeldung_id,
-        empfaenger_email: anmeldung.email,
-        anzahl_tickets:   1,
-        ticket_codes:     [ticket.ticket_code],
-        typ:              "einzeln",
-        status,
-        fehler_text,
-        versendet_am:     new Date(),
-      });
-
-      res.json({ ok: status === "ok", ticket_id: ticket.id });
-      return;
-    }
-
-    // legacy: send per anmeldung
-    let anmeldungenToSend: { id: number; email: string }[] = [];
-    if (body.alle) {
-      anmeldungenToSend = await db
-        .select({ id: anmeldungenTable.id, email: anmeldungenTable.email })
-        .from(anmeldungenTable)
-        .where(isNull(anmeldungenTable.storniert_am));
-    } else if (Array.isArray(body.anmeldung_ids) && body.anmeldung_ids.length > 0) {
-      anmeldungenToSend = await db
-        .select({ id: anmeldungenTable.id, email: anmeldungenTable.email })
-        .from(anmeldungenTable)
-        .where(sql`${anmeldungenTable.id} = ANY(ARRAY[${sql.raw(body.anmeldung_ids.map(Number).join(","))}]::int[])`);
     } else {
       res.status(400).json({ error: "Keine Angaben" });
       return;
     }
 
-    const results: { id: number; status: string }[] = [];
-    for (const a of anmeldungenToSend) {
-      const tickets = await db
-        .select()
-        .from(anmeldungTicketsTable)
-        .where(eq(anmeldungTicketsTable.anmeldung_id, a.id));
-      if (tickets.length === 0) { results.push({ id: a.id, status: "fehler" }); continue; }
-      let status = "ok";
-      try {
-        await sendThekeEinladung({
-          to: a.email,
-          tickets: tickets.map(t => ({ name: t.person_name, code: t.ticket_code })),
-        });
-      } catch { status = "fehler"; }
-      await db.insert(thekeEinladungenTable).values({
-        anmeldung_id: a.id, empfaenger_email: a.email,
-        anzahl_tickets: tickets.length, ticket_codes: tickets.map(t => t.ticket_code),
-        typ: "gesamt", status, versendet_am: new Date(),
-      });
-      results.push({ id: a.id, status });
+    if (ticketsToSend.length === 0) {
+      res.json({ ok: true, gesendet: 0, fehler: 0, details: [] });
+      return;
     }
-    res.json({ ok: true, gesendet: results.filter(r => r.status === "ok").length });
+
+    // Get emails for all involved anmeldungen
+    const anmeldungIds = [...new Set(ticketsToSend.map(t => t.anmeldung_id))];
+    const anmeldungen = await db
+      .select({ id: anmeldungenTable.id, email: anmeldungenTable.email })
+      .from(anmeldungenTable)
+      .where(sql`${anmeldungenTable.id} = ANY(ARRAY[${sql.raw(anmeldungIds.join(","))}]::int[])`);
+    const emailMap = new Map(anmeldungen.map(a => [a.id, a.email]));
+
+    // Group tickets by anmeldung (one email send per anmeldung for bulk, one per ticket for single)
+    const isSingle = !!(body.ticket_id);
+    const results: { ticket_id: number; status: string; fehler?: string }[] = [];
+
+    if (isSingle) {
+      // Single-ticket send
+      const t = ticketsToSend[0]!;
+      const email = emailMap.get(t.anmeldung_id) ?? "";
+      let status = "ok";
+      let fehler_text: string | null = null;
+      try {
+        await sendThekeEinladung({ to: email, tickets: [{ name: t.person_name, code: t.ticket_code }] });
+      } catch (err) { status = "fehler"; fehler_text = String(err); }
+      await db.insert(thekeEinladungenTable).values({
+        anmeldung_id: t.anmeldung_id, empfaenger_email: email,
+        anzahl_tickets: 1, ticket_codes: [t.ticket_code],
+        typ: "einzeln", status, fehler_text, versendet_am: new Date(),
+      });
+      results.push({ ticket_id: t.id, status, fehler: fehler_text ?? undefined });
+
+    } else {
+      // Group by anmeldung → one email per anmeldung with all selected tickets
+      const byAnmeldung = new Map<number, typeof ticketsToSend>();
+      for (const t of ticketsToSend) {
+        const list = byAnmeldung.get(t.anmeldung_id) ?? [];
+        list.push(t);
+        byAnmeldung.set(t.anmeldung_id, list);
+      }
+      for (const [anmeldung_id, aTickets] of byAnmeldung) {
+        const email = emailMap.get(anmeldung_id) ?? "";
+        let status = "ok";
+        let fehler_text: string | null = null;
+        try {
+          await sendThekeEinladung({ to: email, tickets: aTickets.map(t => ({ name: t.person_name, code: t.ticket_code })) });
+        } catch (err) { status = "fehler"; fehler_text = String(err); }
+        await db.insert(thekeEinladungenTable).values({
+          anmeldung_id, empfaenger_email: email,
+          anzahl_tickets: aTickets.length, ticket_codes: aTickets.map(t => t.ticket_code),
+          typ: body.alle ? "alle" : body.nur_nicht_eingeladene ? "nur_nicht_eingeladene" : "ausgewaehlt",
+          status, fehler_text, versendet_am: new Date(),
+        });
+        for (const t of aTickets) results.push({ ticket_id: t.id, status, fehler: fehler_text ?? undefined });
+      }
+    }
+
+    const gesendet = results.filter(r => r.status === "ok").length;
+    const fehler = results.filter(r => r.status !== "ok").length;
+    res.json({ ok: true, gesendet, fehler, details: results });
+
   } catch (err) {
     req.log.error(err, "theke-admin/einladung/senden failed");
     res.status(500).json({ error: "Versand fehlgeschlagen" });

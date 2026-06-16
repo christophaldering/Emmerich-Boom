@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -1364,77 +1364,98 @@ interface ThekeUebersichtEntry {
   created_at: string;
 }
 
+interface ThekeEinladungVersendung {
+  id: number;
+  versendet_am: string | null;
+  typ: string;
+  status: string;
+  fehler_text: string | null;
+  empfaenger_email: string;
+  anzahl_tickets: number;
+}
+
 interface ThekeEinladungTarget {
   id: number;
   ticket_nummer: string;
   person_name: string;
   email: string;
   einladung_versendet_am: string | null;
+  versendungen_gesamt: number;
+  letzter_status: string | null;
+  versendungen: ThekeEinladungVersendung[];
 }
+
+const dtFmt = (s: string | null) => s ? new Date(s).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "–";
 
 function ThekeAdminSection() {
   const [uebersicht, setUebersicht] = useState<ThekeUebersichtEntry[]>([]);
   const [targets, setTargets] = useState<ThekeEinladungTarget[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState<number | null>(null);
-  const [sentIds, setSentIds] = useState<number[]>([]);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [singleSending, setSingleSending] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [subTab, setSubTab] = useState<"uebersicht" | "einladungen">("uebersicht");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [r1, r2] = await Promise.all([
-          fetch(`${BASE}/api/theke-admin/uebersicht`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
-          fetch(`${BASE}/api/theke-admin/einladungen`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
-        ]);
-        if (r1.ok) setUebersicht(await r1.json() as ThekeUebersichtEntry[]);
-        if (r2.ok) setTargets(await r2.json() as ThekeEinladungTarget[]);
-      } catch {
-        setError("Ladefehler");
-      }
-      setLoading(false);
-    };
-    load();
-  }, []);
-
-  const sendEinladung = async (ticketId: number) => {
-    setSending(ticketId);
-    setError("");
+  const reload = async () => {
+    setLoading(true); setError("");
     try {
-      const res = await fetch(`${BASE}/api/theke-admin/einladung/senden`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-secret": "emmerich-orga-stats-2026" },
-        body: JSON.stringify({ ticket_id: ticketId }),
-      });
-      const data = await res.json() as { ok?: boolean; error?: string };
-      if (data.ok) {
-        setSentIds(prev => [...prev, ticketId]);
-        setTargets(prev => prev.map(t => t.id === ticketId
-          ? { ...t, einladung_versendet_am: new Date().toISOString() }
-          : t));
-      } else {
-        setError(data.error ?? "Fehler");
-      }
-    } catch {
-      setError("Verbindungsfehler");
-    }
-    setSending(null);
+      const [r1, r2] = await Promise.all([
+        fetch(`${BASE}/api/theke-admin/uebersicht`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
+        fetch(`${BASE}/api/theke-admin/einladungen`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
+      ]);
+      if (r1.ok) setUebersicht(await r1.json() as ThekeUebersichtEntry[]);
+      if (r2.ok) setTargets(await r2.json() as ThekeEinladungTarget[]);
+    } catch { setError("Ladefehler"); }
+    setLoading(false);
+  };
+  useEffect(() => { void reload(); }, []);
+
+  const apiSend = async (body: Record<string, unknown>) => {
+    const res = await fetch(`${BASE}/api/theke-admin/einladung/senden`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-secret": "emmerich-orga-stats-2026" },
+      body: JSON.stringify(body),
+    });
+    return await res.json() as { ok?: boolean; gesendet?: number; fehler?: number; error?: string };
   };
 
-  const sendAlle = async () => {
-    const unsent = targets.filter(t => !t.einladung_versendet_am && !sentIds.includes(t.id));
-    for (const t of unsent) {
-      await sendEinladung(t.id);
-      await new Promise(r => setTimeout(r, 300));
-    }
+  const sendEinzeln = async (ticketId: number) => {
+    setSingleSending(ticketId); setError("");
+    const data = await apiSend({ ticket_id: ticketId }).catch(() => ({ ok: false, error: "Fehler" }));
+    if (!data.ok) setError(data.error ?? "Fehler beim Senden");
+    setSingleSending(null);
+    await reload();
   };
 
-  const bestaetigt = uebersicht.filter(e => e.bestaetigt).length;
-  const mitFoto    = uebersicht.filter(e => e.foto_frueher_key || e.foto_heute_key).length;
-  const mitBotsch  = uebersicht.filter(e => e.hat_botschaft).length;
-  const eingeladen = targets.filter(t => t.einladung_versendet_am).length;
+  const sendBulk = async (mode: "alle" | "nur_nicht_eingeladene" | "ausgewaehlt") => {
+    setBulkSending(true); setError("");
+    let body: Record<string, unknown>;
+    if (mode === "alle") body = { alle: true };
+    else if (mode === "nur_nicht_eingeladene") body = { nur_nicht_eingeladene: true };
+    else body = { ticket_ids: [...selected] };
+    const data = await apiSend(body).catch(() => ({ ok: false, error: "Fehler" }));
+    if (!data.ok) setError(data.error ?? "Fehler");
+    setBulkSending(false);
+    setSelected(new Set());
+    await reload();
+  };
+
+  const toggleRow = (id: number) =>
+    setExpandedRows(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleSelect = (id: number) =>
+    setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleAll = () => {
+    if (selected.size === targets.length) setSelected(new Set());
+    else setSelected(new Set(targets.map(t => t.id)));
+  };
+
+  const bestaetigt   = uebersicht.filter(e => e.bestaetigt).length;
+  const mitFoto      = uebersicht.filter(e => e.foto_frueher_key || e.foto_heute_key).length;
+  const mitBotsch    = uebersicht.filter(e => e.hat_botschaft).length;
+  const eingeladen   = targets.filter(t => !!t.einladung_versendet_am).length;
+  const nochNicht    = targets.filter(t => !t.einladung_versendet_am).length;
 
   return (
     <div>
@@ -1449,8 +1470,8 @@ function ThekeAdminSection() {
             <StatCard n={bestaetigt} label="Bestätigt" />
             <StatCard n={mitFoto} label="Mit Foto" />
             <StatCard n={mitBotsch} label="Mit Botschaft" />
-            <StatCard n={eingeladen} label="Einladungen versendet" />
-            <StatCard n={targets.length - eingeladen} label="Noch nicht eingeladen" />
+            <StatCard n={eingeladen} label="Eingeladen" />
+            <StatCard n={nochNicht} label="Noch nicht eingeladen" />
           </div>
 
           <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${am(0.2)}`, marginBottom: "1.5rem" }}>
@@ -1494,56 +1515,113 @@ function ThekeAdminSection() {
 
           {subTab === "einladungen" && (
             <div>
-              <div style={{ marginBottom: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-                <button onClick={sendAlle}
-                  disabled={targets.every(t => !!t.einladung_versendet_am || sentIds.includes(t.id))}
-                  style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.9rem", padding: "0.65rem 1.5rem", cursor: "pointer", opacity: targets.every(t => !!t.einladung_versendet_am || sentIds.includes(t.id)) ? 0.5 : 1 }}>
-                  Alle ausstehenden einladen
+              {/* ── Bulk-Aktionen ── */}
+              <div style={{ marginBottom: "1.25rem", display: "flex", gap: "0.6rem", flexWrap: "wrap", alignItems: "center" }}>
+                <button onClick={() => sendBulk("alle")} disabled={bulkSending}
+                  style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.55rem 1.2rem", cursor: bulkSending ? "wait" : "pointer", opacity: bulkSending ? 0.6 : 1 }}>
+                  An alle senden
                 </button>
-                <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.5) }}>
-                  {eingeladen}/{targets.length} eingeladen
-                </span>
+                <button onClick={() => sendBulk("nur_nicht_eingeladene")} disabled={bulkSending || nochNicht === 0}
+                  style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.45)}`, borderRadius: "4px", color: A, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.55rem 1.2rem", cursor: (bulkSending || nochNicht === 0) ? "not-allowed" : "pointer", opacity: (bulkSending || nochNicht === 0) ? 0.5 : 1 }}>
+                  An alle nicht eingeladenen ({nochNicht})
+                </button>
+                {selected.size > 0 && (
+                  <button onClick={() => sendBulk("ausgewaehlt")} disabled={bulkSending}
+                    style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.45)}`, borderRadius: "4px", color: A, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.55rem 1.2rem", cursor: bulkSending ? "wait" : "pointer" }}>
+                    Ausgewählte einladen ({selected.size})
+                  </button>
+                )}
+                {bulkSending && <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.5) }}>Wird gesendet …</span>}
               </div>
+
+              {/* ── Tabelle ── */}
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.83rem" }}>
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${am(0.3)}` }}>
-                      {["#", "Ticket", "Name", "E-Mail", "Eingeladen am", "Aktion"].map(h => (
-                        <th key={h} style={{ padding: "0.5rem 0.75rem", color: am(0.8), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
+                      <th style={{ padding: "0.45rem 0.5rem", textAlign: "center" }}>
+                        <input type="checkbox" checked={selected.size === targets.length && targets.length > 0} onChange={toggleAll} style={{ accentColor: A }} />
+                      </th>
+                      {["Ticket", "Name", "E-Mail", "Zuletzt eingeladen", "Versendungen", "Status", "Protokoll", "Aktion"].map(h => (
+                        <th key={h} style={{ padding: "0.45rem 0.6rem", color: am(0.8), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {targets.map((t, i) => {
-                      const istVersendet = !!t.einladung_versendet_am || sentIds.includes(t.id);
+                      const isExpanded = expandedRows.has(t.id);
                       return (
-                        <tr key={t.id} style={{ borderBottom: `1px solid ${am(0.1)}`, background: i % 2 === 0 ? "transparent" : am(0.03) }}>
-                          <td style={{ padding: "0.5rem 0.75rem 0.5rem 0", color: fg(0.4) }}>{i + 1}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", color: fg(0.6), fontFamily: "monospace", fontSize: "0.8rem" }}>{t.ticket_nummer}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", color: FG }}>{t.person_name}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", color: fg(0.8), wordBreak: "break-all" }}>{t.email}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", color: fg(0.55), whiteSpace: "nowrap" }}>
-                            {t.einladung_versendet_am ? new Date(t.einladung_versendet_am).toLocaleDateString("de-DE") : sentIds.includes(t.id) ? <span style={{ color: "#2ecc71" }}>Gerade ✓</span> : "–"}
-                          </td>
-                          <td style={{ padding: "0.5rem 0" }}>
-                            {!istVersendet ? (
-                              <button onClick={() => sendEinladung(t.id)} disabled={sending === t.id}
-                                style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.4)}`, borderRadius: "3px", color: A, padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", cursor: sending === t.id ? "wait" : "pointer", opacity: sending === t.id ? 0.5 : 1 }}>
-                                {sending === t.id ? "…" : "Einladen"}
-                              </button>
-                            ) : (
-                              <button onClick={() => sendEinladung(t.id)} disabled={sending === t.id}
-                                style={{ background: "transparent", border: `1px solid ${fg(0.2)}`, borderRadius: "3px", color: fg(0.4), padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", cursor: "pointer" }}>
-                                Nochmals
-                              </button>
-                            )}
-                          </td>
-                        </tr>
+                        <Fragment key={t.id}>
+                          <tr style={{ borderBottom: isExpanded ? "none" : `1px solid ${am(0.1)}`, background: i % 2 === 0 ? "transparent" : am(0.03) }}>
+                            <td style={{ padding: "0.45rem 0.5rem", textAlign: "center" }}>
+                              <input type="checkbox" checked={selected.has(t.id)} onChange={() => toggleSelect(t.id)} style={{ accentColor: A }} />
+                            </td>
+                            <td style={{ padding: "0.45rem 0.6rem", color: fg(0.6), fontFamily: "monospace", fontSize: "0.78rem" }}>{t.ticket_nummer}</td>
+                            <td style={{ padding: "0.45rem 0.6rem", color: FG }}>{t.person_name}</td>
+                            <td style={{ padding: "0.45rem 0.6rem", color: fg(0.75), wordBreak: "break-all" }}>{t.email}</td>
+                            <td style={{ padding: "0.45rem 0.6rem", color: fg(0.6), whiteSpace: "nowrap" }}>{dtFmt(t.einladung_versendet_am)}</td>
+                            <td style={{ padding: "0.45rem 0.6rem", textAlign: "center", fontVariantNumeric: "tabular-nums", color: t.versendungen_gesamt > 0 ? A : fg(0.35) }}>{t.versendungen_gesamt}</td>
+                            <td style={{ padding: "0.45rem 0.6rem", whiteSpace: "nowrap" }}>
+                              {t.letzter_status ? (
+                                <span style={{ color: t.letzter_status === "ok" ? "#2ecc71" : "#e05a3a", fontWeight: 600 }}>{t.letzter_status}</span>
+                              ) : <span style={{ color: fg(0.3) }}>–</span>}
+                            </td>
+                            <td style={{ padding: "0.45rem 0.6rem" }}>
+                              {t.versendungen.length > 0 && (
+                                <button onClick={() => toggleRow(t.id)}
+                                  style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "3px", color: fg(0.6), fontFamily: "'Lora', serif", fontSize: "0.75rem", padding: "0.15rem 0.5rem", cursor: "pointer" }}>
+                                  {isExpanded ? "▲ zuklappen" : "▼ Protokoll"}
+                                </button>
+                              )}
+                            </td>
+                            <td style={{ padding: "0.45rem 0" }}>
+                              <div style={{ display: "flex", gap: "0.4rem" }}>
+                                {!t.einladung_versendet_am ? (
+                                  <button onClick={() => sendEinzeln(t.id)} disabled={singleSending === t.id}
+                                    style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.4)}`, borderRadius: "3px", color: A, padding: "0.2rem 0.55rem", fontFamily: "'Lora', serif", fontSize: "0.75rem", cursor: singleSending === t.id ? "wait" : "pointer", opacity: singleSending === t.id ? 0.5 : 1, whiteSpace: "nowrap" }}>
+                                    {singleSending === t.id ? "…" : "Einladen"}
+                                  </button>
+                                ) : (
+                                  <button onClick={() => sendEinzeln(t.id)} disabled={singleSending === t.id}
+                                    style={{ background: "transparent", border: `1px solid ${fg(0.2)}`, borderRadius: "3px", color: fg(0.45), padding: "0.2rem 0.55rem", fontFamily: "'Lora', serif", fontSize: "0.75rem", cursor: singleSending === t.id ? "wait" : "pointer", opacity: singleSending === t.id ? 0.5 : 1, whiteSpace: "nowrap" }}>
+                                    {singleSending === t.id ? "…" : "Erneut senden"}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                          {isExpanded && t.versendungen.length > 0 && (
+                            <tr key={`${t.id}-proto`} style={{ borderBottom: `1px solid ${am(0.1)}`, background: i % 2 === 0 ? am(0.04) : am(0.07) }}>
+                              <td colSpan={9} style={{ padding: "0.5rem 0.75rem 0.75rem 2rem" }}>
+                                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.78rem" }}>
+                                  <thead>
+                                    <tr style={{ borderBottom: `1px solid ${am(0.15)}` }}>
+                                      {["Zeitpunkt", "Empfänger", "Typ", "Status", "Fehler"].map(h => (
+                                        <th key={h} style={{ padding: "0.25rem 0.5rem", color: am(0.65), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left" }}>{h}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {t.versendungen.map(v => (
+                                      <tr key={v.id} style={{ borderBottom: `1px solid ${am(0.08)}` }}>
+                                        <td style={{ padding: "0.2rem 0.5rem", color: fg(0.55), whiteSpace: "nowrap" }}>{dtFmt(v.versendet_am)}</td>
+                                        <td style={{ padding: "0.2rem 0.5rem", color: fg(0.7), wordBreak: "break-all" }}>{v.empfaenger_email}</td>
+                                        <td style={{ padding: "0.2rem 0.5rem", color: fg(0.55) }}>{v.typ}</td>
+                                        <td style={{ padding: "0.2rem 0.5rem" }}><span style={{ color: v.status === "ok" ? "#2ecc71" : "#e05a3a", fontWeight: 600 }}>{v.status}</span></td>
+                                        <td style={{ padding: "0.2rem 0.5rem", color: "#e05a3a", fontSize: "0.75rem" }}>{v.fehler_text ?? "–"}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
                       );
                     })}
                   </tbody>
                 </table>
-                {targets.length === 0 && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.4), marginTop: "1rem" }}>Keine Tickets mit E-Mail-Adresse gefunden.</p>}
+                {targets.length === 0 && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.4), marginTop: "1rem" }}>Keine Tickets gefunden.</p>}
               </div>
             </div>
           )}

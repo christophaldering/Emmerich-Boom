@@ -928,6 +928,40 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
 
 // ─── Swipe-Feed ───────────────────────────────────────────────────────────────
 
+type FilterMap = Partial<{ f_tontraeger: string; f_abends: string; f_untersatz: string; f_musik: string; f_getraenk: string }>;
+
+const FILTER_DEFS: { key: keyof FilterMap; label: string; opts: string[] }[] = [
+  { key: "f_tontraeger", label: "Tonträger",  opts: TONTRAEGER_OPTS },
+  { key: "f_abends",     label: "Abends",     opts: ABENDS_OPTS },
+  { key: "f_untersatz",  label: "Untersatz",  opts: UNTERSATZ_OPTS },
+  { key: "f_musik",      label: "Musik",      opts: MUSIK_OPTS },
+  { key: "f_getraenk",   label: "Getränk",    opts: GETRAENK_OPTS },
+];
+
+function FilterDropdown({ label, opts, value, onChange }: { label: string; opts: string[]; value: string; onChange: (v: string) => void }) {
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      style={{
+        background: value ? A : am(0.07),
+        border: `1px solid ${value ? A : am(0.3)}`,
+        borderRadius: "4px",
+        color: value ? BG : fg(0.7),
+        fontFamily: "'Lora', serif",
+        fontSize: "0.82rem",
+        padding: "0.45rem 0.6rem",
+        outline: "none",
+        cursor: "pointer",
+        flexShrink: 0,
+      }}
+    >
+      <option value="">{label}</option>
+      {opts.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  );
+}
+
 function SwipeFeed({ token }: { token: string }) {
   const [feed, setFeed] = useState<FeedEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -935,6 +969,7 @@ function SwipeFeed({ token }: { token: string }) {
   const [suche, setSuche] = useState("");
   const [nurFoto, setNurFoto] = useState(false);
   const [nurBotschaft, setNurBotschaft] = useState(false);
+  const [filters, setFilters] = useState<FilterMap>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -944,10 +979,19 @@ function SwipeFeed({ token }: { token: string }) {
       .catch(() => setLoading(false));
   }, [token]);
 
+  const setFilter = (key: keyof FilterMap, v: string) =>
+    setFilters(f => ({ ...f, [key]: v || undefined }));
+
+  const hasFilters = suche || nurFoto || nurBotschaft || Object.values(filters).some(Boolean);
+
   const filtered = feed.filter(e => {
     if (suche && !e.anzeige_name.toLowerCase().includes(suche.toLowerCase())) return false;
     if (nurFoto && !e.foto_frueher_key && !e.foto_heute_key && e.fotos.length === 0) return false;
     if (nurBotschaft && !e.hat_botschaft) return false;
+    for (const { key } of FILTER_DEFS) {
+      const fv = filters[key];
+      if (fv && (e as unknown as Record<string, unknown>)[key] !== fv) return false;
+    }
     return true;
   });
 
@@ -960,9 +1004,16 @@ function SwipeFeed({ token }: { token: string }) {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.25rem", flexWrap: "wrap", alignItems: "center" }}>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
         <input type="text" placeholder="Name suchen …" value={suche} onChange={e => setSuche(e.target.value)}
-          style={{ flex: 1, minWidth: "160px", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.9rem", padding: "0.55rem 0.8rem", outline: "none" }} />
+          style={{ flex: 1, minWidth: "140px", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.9rem", padding: "0.45rem 0.75rem", outline: "none" }} />
+        {FILTER_DEFS.map(fd => (
+          <FilterDropdown key={fd.key} label={fd.label} opts={fd.opts}
+            value={filters[fd.key] ?? ""}
+            onChange={v => setFilter(fd.key, v)} />
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
         <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
           <input type="checkbox" checked={nurFoto} onChange={e => setNurFoto(e.target.checked)} style={{ accentColor: A }} />
           <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.7) }}>nur mit Foto</span>
@@ -971,6 +1022,12 @@ function SwipeFeed({ token }: { token: string }) {
           <input type="checkbox" checked={nurBotschaft} onChange={e => setNurBotschaft(e.target.checked)} style={{ accentColor: A }} />
           <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.7) }}>nur mit Sprachnachricht</span>
         </label>
+        {hasFilters && (
+          <button onClick={() => { setSuche(""); setNurFoto(false); setNurBotschaft(false); setFilters({}); }}
+            style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: fg(0.55), fontFamily: "'Lora', serif", fontSize: "0.8rem", padding: "0.3rem 0.7rem", cursor: "pointer" }}>
+            × Filter zurücksetzen
+          </button>
+        )}
       </div>
       <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.45), marginBottom: "1rem" }}>{filtered.length} von {feed.length} Gästen</p>
       <div ref={scrollRef} style={{ display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "1rem", WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory" }}>
