@@ -1,0 +1,106 @@
+# HARDPROMPT — „Die Theke” als echter Raum (Kulissen-Bühne)
+
+**Visueller Umbau der bestehenden Szene. Funktionen/Endpunkte, Auth (Großschreibung) und Dauerzugang bleiben — nur die Darstellung wird vom Listen-Layout zu einem begehbar wirkenden Raum. Exakt an Verbote und Checkliste halten.**
+
+## 0. Ziel & Problem
+
+Die aktuelle Szene liest sich wie eine Liste mit Überschriften („DIE WAND”, „DER TRESEN”, Emoji-Symbole). Das ist Etikett, kein Ort. Es soll sich anfühlen, als blicke man in das Lokal: **Tiefe, warmes Licht, eine echte Wand, an der die Gesichter in Rahmen hängen, ein Tresen im Vordergrund.** Keine Abschnittsüberschriften — der Raum spricht für sich.
+
+Grundprinzip: **Ein einziges Kulissenbild ist die Bühne.** Alles Interaktive wird *in dieses Bild eingebettet* (Porträts hängen an der gemalten Wand, Gegenstände stehen auf dem gemalten Tresen), mit Parallaxe und Schärfentiefe für Raumwirkung.
+
+Design-Tokens unverändert: `#0A0704` / `#E8991A` / `#F5E8C8`, Playfair + Lora.
+
+## 1. VERBOTEN
+
+- **KEINE Abschnittsüberschriften** wie „DIE WAND” / „DER TRESEN” und keine Emoji-Platzhalter (🍺☎️) als Bedienelemente.
+- **KEIN literaler 3D-Flip der Karten** (der spiegelt auf iOS und klemmt). Stattdessen „Bild kommt von der Wand nach vorn” (siehe §4).
+- **KEINE 3D-Engine / three.js / WebGL** und kein begehbarer Avatar — das ist Stufe 2.
+- **Auth/`toUpperCase()`, Dauerzugang, Demo-Ausschluss, bestehende Endpunkte** NICHT verändern (nur wiederverwenden: auth, profil, profil/foto, foto, botschaft, feed, botschaften, datei, ping).
+- **KEINE neuen Farben/Fonts**, keine Tabs.
+
+## 2. DIE BÜHNE (swappbares Kulissenbild)
+
+- Das Bild wird als Asset abgelegt unter **`artifacts/emmerich/public/theke/backdrop.jpg`** (Vite serviert es unter `/theke/backdrop.jpg`). *(Christoph legt die Datei dort ab.)*
+- Eine neue Konfig-Datei **`artifacts/emmerich/src/config/theke-szene.ts`** mit klar kommentierten, prozentbasierten Konstanten — **das ist die einzige Stelle, die beim späteren Tausch gegen echte Kapaunenberg-Fotos angepasst werden muss:**
+  
+  ```ts
+  export const THEKE_SZENE = {
+    BACKDROP_URL: "/theke/backdrop.jpg",
+    // Bereich der Rückwand, in dem die Porträtrahmen hängen (% des Bildes):
+    WALL_REGION: { top: 18, left: 8, width: 84, height: 40 },
+    // Bereich des Tresens im Vordergrund, auf dem die Gegenstände stehen:
+    BAR_REGION:  { top: 64, left: 6, width: 88, height: 30 },
+  } as const;
+  ```
+  
+  Mit Kommentar: „Beim Wechsel auf ein echtes Foto nur BACKDROP_URL und diese beiden Bereiche anpassen.” Mehrere Hintergründe (z. B. später je Phase) wären eine triviale Erweiterung — jetzt **ein** aktiver Backdrop.
+- Das Bild füllt den Bildschirm formatfüllend (cover), Hochformat-Handy: sinnvoll zentriert, Tresen unten sichtbar. **Fallback**, falls Datei fehlt: warmer Dunkelverlauf (#0A0704 → wärmeres Braun), damit nie eine kaputte Seite erscheint.
+
+## 3. DER RAUM (Komposition mit Tiefe)
+
+- **Vollflächige Bühne** statt gestapelter Kästen. Auf dem Bild liegen zwei Ebenen:
+  - **Wand-Ebene** (hinten, im `WALL_REGION`): die Porträts (§4).
+  - **Tresen-Ebene** (vorn, im `BAR_REGION`): dein Bierdeckel + das Telefon (§5).
+- **Schärfentiefe:** Vordergrund (Tresen, Gegenstände) gestochen; Wand minimal weicher und etwas dunkler → Raumtiefe.
+- **Parallaxe:** Beim Scrollen/Neigen bewegen sich Wand und Tresen leicht unterschiedlich, sodass Tiefe entsteht (dezent, nicht wackelig). Auf schwachen Geräten automatisch reduzieren.
+- **Begrüßung** dezent oben eingeblendet: „Schön, dass du da bist, [Name].” und der Anwesenheits-Hinweis „[n] gerade an der Theke” mit pulsierendem Amber-Punkt — als zarte Overlay-Schrift, **nicht** als Listenkopf.
+
+## 4. PORTRÄTS AN DER WAND
+
+- Im `WALL_REGION` hängt eine **horizontal scrollbare Bilderleiste** gerahmter Porträts (man pant der Wand entlang) — so funktioniert es auch bei vielen Teilnehmern, ohne den Raum zu sprengen. Neueste zuerst.
+- Jedes Porträt sitzt in einem **gemalt/holz-/goldfarben gerahmten Bild** (CSS-Rahmen + weicher Schlagschatten darunter → „hängt an der Wand”). Leichte Perspektive zu den Rändern (Bilder am Rand minimal gekippt/abgedunkelt) verstärkt die Tiefe.
+- Gezeigt wird das **Heute-Foto** (fällt es weg: Früher-Foto; fehlt beides: Initialen auf Amber-Grund — nie ein leerer Rahmen).
+- **Anwesende** (per Ping, < 90 s gesehen) bekommen einen warm glühenden, leise pulsierenden Rahmen; Abwesende ruhig/leicht gedimmt.
+- **Antippen = das Bild kommt von der Wand nach vorn:** das Porträt animiert in den Fokus (skaliert nach vorn, Wand dahinter unscharf/abgedunkelt), zeigt den Steckbrief + Knopf „Bandnachricht hören”. Tippen außerhalb / Schließen-Geste = Bild kehrt an die Wand zurück. **Kein 3D-Flip** (umgeht den iOS-Spiegelbug vollständig).
+
+## 5. DER TRESEN (Gegenstände im Vordergrund)
+
+Im `BAR_REGION`, scharf und „auf” dem gemalten Tresen platziert — als gezeichnete/gerenderte Objekte, **nicht** als Emoji:
+
+- **Dein Bierdeckel (= dein Profil):** liegt auf dem Tresen, trägt deinen Namen. Antippen öffnet das „Einrichten” (Bist du [Name]? → 5 Auswahl-Fragen → Früher/Heute-Fotos mit Jahres-Overlay → die drei getrennten Häkchen, Wortlaut unverändert). Nach Häkchen A wandert dein Porträt sichtbar an die Wand.
+- **Das Telefon (= Anrufbeantworter):** steht auf dem Tresen und **blinkt**, wenn ungehörte Nachrichten da sind („[n] neue Nachrichten”). Antippen → Band spielt nacheinander mit Piep dazwischen; Knopf „selbst aufs Band sprechen” → bestehende 60-Sekunden-Aufnahme.
+
+## 6. FOTOS ZUVERLÄSSIG (falls noch hakelig)
+
+- **Object Storage** muss aktiv sein; schlägt der Upload fehl, **sichtbare Fehlermeldung** statt stillem Scheitern.
+- Upload (`profil/foto`, slot frueher/heute) speichert das Objekt und setzt die Keys; `feed` liefert `foto_frueher_key`/`foto_heute_key`; Anzeige via `<img src="${BASE}/api/theke/datei?t=${code}&key=${enc(key)}" style="object-fit:cover">`.
+- Ohne Foto: Initialen-Platzhalter.
+
+## 7. PHASEN
+
+Wie gehabt nur angedeutet, jetzt als Teil des Raums: „Der Abend” als geschlossene Tür im Bild mit „öffnet am 18. Juli 2026”, „Danach” als Uhr an der Wand — nicht betretbar.
+
+## 8. PERFORMANCE / MOBIL
+
+Backdrop in vernünftiger Größe (≈1920 px), `loading`/Dekodierung schonend, Parallaxe/Blur auf schwächeren Geräten reduzieren. Muss auf älteren iPhones flüssig bleiben.
+
+## 9. ERLAUBTE DATEIEN
+
+- `artifacts/emmerich/src/pages/ThekePage.tsx` (Raum-Komposition)
+- `artifacts/emmerich/src/pages/ThekeWandPage.tsx` (Beamer-Wand analog auf die Bühne stellen)
+- `artifacts/emmerich/src/config/theke-szene.ts` (neu)
+- `artifacts/emmerich/public/theke/backdrop.jpg` (Asset)
+- bei Bedarf additiv `theke.ts` (nur falls `feed` die Foto-Keys noch nicht liefert)
+
+## 10. CHECKLISTE
+
+- [ ] Beim Öffnen blickt man in einen Raum (Kulissenbild als Bühne), keine Abschnittsüberschriften, keine Emoji-Buttons.
+- [ ] Backdrop + Regionen in `theke-szene.ts`; Tausch dokumentiert; Fallback-Verlauf wenn Bild fehlt.
+- [ ] Porträts hängen gerahmt an der Wand (Bilderleiste), Tiefe/Perspektive, Anwesende glühen.
+- [ ] Antippen holt das Bild nach vorn (Wand unscharf), zeigt Steckbrief + Band; Schließen bringt es zurück. Kein 3D-Flip.
+- [ ] Bierdeckel & Telefon als Objekte auf dem Tresen, scharf im Vordergrund; Telefon blinkt bei neuen Nachrichten.
+- [ ] Foto-Upload + Anzeige funktionieren, Fehler sichtbar, Initialen-Fallback.
+- [ ] Schärfentiefe + dezente Parallaxe; auf schwachen Geräten reduziert.
+- [ ] Auth/Großschreibung, Dauerzugang, Demo-Ausschluss, Endpunkte unverändert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## 11. PFLICHT-ABSCHLUSSERKLÄRUNG
+
+> **THEKE ALS RAUM FERTIG.**
+> Kulissenbild als Bühne, Inhalte eingebettet (keine Listen-Optik): ja/nein
+> Backdrop + Regionen swappbar in einer Konfig-Datei: ja/nein
+> Porträts an der Wand mit Tiefe; Antippen holt Bild nach vorn (kein Flip): ja/nein
+> Tresen-Objekte im Vordergrund, Telefon blinkt: ja/nein
+> Fotos funktionieren + Fallback: ja/nein
+> Auth/Dauerzugang/Endpunkte unangetastet: ja/nein
+> Geänderte Dateien / Abweichungen: …

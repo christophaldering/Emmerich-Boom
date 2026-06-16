@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { THEKE_SZENE } from "../config/theke-szene";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const A = "#E8991A";
@@ -909,160 +910,186 @@ function DasBand({ token }: { token: string }) {
   );
 }
 
-// ─── Gesicht-Karte (Flip) ─────────────────────────────────────────────────────
+// ─── Porträt-Rahmen (kein Flip — Bild kommt nach vorn) ───────────────────────
 
-function GesichtKarte({ entry, token, anwesend, onOpenDetail }: {
+function PorträtRahmen({ entry, token, anwesend, rotation, onFokus }: {
   entry: FeedEntry;
   token: string;
   anwesend: boolean;
-  onOpenDetail: (e: FeedEntry) => void;
+  rotation: number;
+  onFokus: (e: FeedEntry) => void;
 }) {
-  const [flipped, setFlipped] = useState(false);
-  const hauptFoto = entry.foto_frueher_key ?? entry.foto_heute_key;
-  const initials = entry.anzeige_name
-    .split(/\s+/).slice(0, 2)
-    .map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
+  const [hovered, setHovered] = useState(false);
+  const hauptFoto = entry.foto_heute_key ?? entry.foto_frueher_key;
+  const initials = entry.anzeige_name.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
 
   return (
     <div
-      className="gesicht-karte"
-      style={{ perspective: "1000px", aspectRatio: "3/4", cursor: "pointer" }}
-      onClick={() => setFlipped(f => !f)}
+      onClick={() => onFokus(entry)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        flexShrink: 0,
+        width: "clamp(80px, 18vw, 130px)",
+        aspectRatio: "3/4",
+        position: "relative",
+        cursor: "pointer",
+        transform: `rotate(${rotation}deg) scale(${hovered ? 1.06 : 1})`,
+        transition: "transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        userSelect: "none",
+      }}
     >
+      {/* Rahmen */}
       <div style={{
-        position: "relative", width: "100%", height: "100%",
-        transformStyle: "preserve-3d",
-        WebkitTransformStyle: "preserve-3d",
-        transition: "transform 0.55s cubic-bezier(0.4,0,0.2,1)",
-        transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-      }}>
-        {/* ── Vorderseite ── */}
-        <div className="karte-face" style={{
-          position: "absolute", inset: 0,
-          borderRadius: "6px", overflow: "hidden",
-          background: hauptFoto ? BG : A,
-          border: anwesend ? `1px solid ${am(0.55)}` : `1px solid ${am(0.13)}`,
-        }}>
-          {anwesend && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 1, borderRadius: "6px", pointerEvents: "none",
-              boxShadow: `inset 0 0 20px ${am(0.25)}`,
-              animation: "thekeGlow 2.8s ease-in-out infinite",
-            }} />
-          )}
-          {hauptFoto ? (
-            <>
-              <img src={fotoUrl(hauptFoto, token)} alt={entry.anzeige_name}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: anwesend ? "none" : "brightness(0.62)" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.88) 0%, transparent 52%)", zIndex: 2 }} />
-            </>
-          ) : (
-            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: A }}>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "clamp(1.4rem, 5vw, 2.2rem)", color: BG, letterSpacing: "0.04em", userSelect: "none" }}>{initials}</span>
-            </div>
-          )}
-          {anwesend && (
-            <div style={{
-              position: "absolute", top: "0.45rem", right: "0.45rem", zIndex: 5,
-              width: "8px", height: "8px", borderRadius: "50%", background: A,
-              animation: "thekePuls 2.5s ease-in-out infinite",
-            }} />
-          )}
-          <div style={{ position: "absolute", bottom: "0.5rem", left: "0.5rem", right: "0.5rem", zIndex: 3 }}>
-            <p style={{
-              fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.78rem",
-              color: FG, margin: 0, lineHeight: 1.25,
-              textShadow: "0 1px 5px rgba(0,0,0,0.85)",
-            }}>{entry.anzeige_name}</p>
-            {entry.hat_botschaft && (
-              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.62rem", color: am(0.9) }}>🎙</span>
-            )}
+        position: "absolute", inset: 0, zIndex: 3, borderRadius: "2px",
+        border: `6px solid ${anwesend ? "#c8941a" : "#4a3308"}`,
+        boxShadow: anwesend
+          ? `0 6px 22px rgba(0,0,0,0.9), 0 0 20px rgba(232,153,26,0.4), inset 0 0 0 1px rgba(232,153,26,0.2)`
+          : `0 6px 22px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(0,0,0,0.5)`,
+        pointerEvents: "none",
+        animation: anwesend ? "thekeGlow 2.8s ease-in-out infinite" : "none",
+      }} />
+      {/* Porträt */}
+      <div style={{ position: "absolute", inset: "6px", overflow: "hidden", borderRadius: "1px" }}>
+        {hauptFoto ? (
+          <>
+            <img src={fotoUrl(hauptFoto, token)} alt={entry.anzeige_name}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
+                filter: anwesend ? "brightness(1)" : "brightness(0.6) sepia(0.15)" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.82) 0%, transparent 55%)" }} />
+          </>
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: A, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "clamp(1rem, 3.5vw, 1.6rem)", color: BG, letterSpacing: "0.04em" }}>
+              {initials}
+            </span>
           </div>
-        </div>
-
-        {/* ── Rückseite (Steckbrief) ── */}
-        <div className="karte-face" style={{
-          position: "absolute", inset: 0,
-          transform: "rotateY(180deg)",
-          borderRadius: "6px",
-          background: "linear-gradient(140deg, #190f04 0%, #0f0803 100%)",
-          border: `1px solid ${am(0.38)}`,
-          padding: "0.7rem 0.65rem",
-          display: "flex", flexDirection: "column", gap: "0.28rem",
-          overflow: "hidden",
-        }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.8rem", color: A, margin: 0, lineHeight: 1.2 }}>
+        )}
+        <div style={{ position: "absolute", bottom: "0.35rem", left: "0.35rem", right: "0.35rem", zIndex: 4 }}>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.62rem", color: FG, margin: 0, lineHeight: 1.2, textShadow: "0 1px 5px rgba(0,0,0,0.95)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {entry.anzeige_name}
           </p>
-          {entry.f_musik && (
-            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.67rem", color: fg(0.65), margin: 0, lineHeight: 1.3 }}>♪ {entry.f_musik}</p>
-          )}
-          {entry.f_getraenk && (
-            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.67rem", color: fg(0.65), margin: 0, lineHeight: 1.3 }}>🥂 {entry.f_getraenk}</p>
-          )}
-          {entry.f_abends && (
-            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.67rem", color: fg(0.5), margin: 0, lineHeight: 1.3 }}>🌙 {entry.f_abends}</p>
-          )}
-          {entry.vorstellung && (
-            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.63rem", color: fg(0.45), margin: 0, lineHeight: 1.35, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
-              {entry.vorstellung}
-            </p>
-          )}
-          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "0.28rem" }}>
-            {entry.hat_botschaft && (
-              <button
-                onClick={e => { e.stopPropagation(); onOpenDetail(entry); }}
-                style={{
-                  background: am(0.13), border: `1px solid ${am(0.42)}`, borderRadius: "3px",
-                  color: A, fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.63rem",
-                  padding: "0.3rem 0.4rem", cursor: "pointer", textAlign: "left",
-                }}>
-                🎙 Bandnachricht hören
-              </button>
-            )}
-            <button
-              onClick={e => { e.stopPropagation(); setFlipped(false); }}
-              style={{
-                background: "transparent", border: "none", color: fg(0.28),
-                fontFamily: "'Lora', serif", fontSize: "0.6rem", cursor: "pointer",
-                padding: "0.1rem 0", textAlign: "left",
-              }}>
-              ← umdrehen
-            </button>
-          </div>
+          {entry.hat_botschaft && <span style={{ fontSize: "0.55rem", color: am(0.9) }}>🎙</span>}
         </div>
+        {anwesend && (
+          <div style={{ position: "absolute", top: "0.35rem", right: "0.35rem", width: "7px", height: "7px", borderRadius: "50%", background: A, animation: "thekePuls 2.5s ease-in-out infinite", zIndex: 4 }} />
+        )}
       </div>
     </div>
   );
 }
 
-// ─── Wand der Gesichter ───────────────────────────────────────────────────────
+// ─── Porträt-Streifen (Wand) ──────────────────────────────────────────────────
 
-function WandDerGesichter({ feed, token, now, onOpenDetail }: {
+function PorträtStreifen({ feed, token, now, onFokus }: {
   feed: FeedEntry[];
   token: string;
   now: number;
-  onOpenDetail: (e: FeedEntry) => void;
+  onFokus: (e: FeedEntry) => void;
 }) {
   if (feed.length === 0) {
     return (
-      <div style={{ padding: "2rem 0", textAlign: "center" }}>
-        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.38), fontSize: "0.92rem" }}>
-          Noch niemand hat sich vorgestellt. Sei der Erste.
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", padding: "0 1rem" }}>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.45), fontSize: "0.82rem", textAlign: "center", textShadow: "0 1px 8px rgba(0,0,0,0.95)" }}>
+          Noch niemand an der Wand. Richte deinen Steckbrief ein.
         </p>
       </div>
     );
   }
-
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(128px, 1fr))", gap: "0.55rem", animation: "wandAtmung 9s ease-in-out infinite" }}>
-      {feed.map(e => {
+    <div style={{
+      display: "flex", gap: "clamp(0.75rem, 2.5vw, 1.75rem)",
+      alignItems: "flex-end", padding: "0.5rem 1rem 1.5rem",
+      overflowX: "auto", overflowY: "visible", height: "100%",
+      WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
+      msOverflowStyle: "none",
+    }}>
+      {feed.map((e, i) => {
+        const rot = (((e.id * 3 + i * 7) % 9) - 4) * 0.85;
         const anwesend = !!(e.zuletzt_gesehen_am && (now - new Date(e.zuletzt_gesehen_am).getTime()) < 90_000);
-        return (
-          <GesichtKarte key={e.id} entry={e} token={token} anwesend={anwesend} onOpenDetail={onOpenDetail} />
-        );
+        return <PorträtRahmen key={e.id} entry={e} token={token} anwesend={anwesend} rotation={rot} onFokus={onFokus} />;
       })}
     </div>
+  );
+}
+
+// ─── Bierdeckel-Objekt ────────────────────────────────────────────────────────
+
+function BierdeckelObjekt({ name, onClick }: { name: string; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: "clamp(90px, 20vw, 148px)",
+        aspectRatio: "1",
+        borderRadius: "50%",
+        background: "radial-gradient(ellipse at 35% 30%, #f5e8c8 0%, #e8d4a0 45%, #c8ad6e 100%)",
+        border: "none",
+        boxShadow: hovered
+          ? `0 8px 26px rgba(0,0,0,0.85), 0 0 18px rgba(232,153,26,0.3), inset 0 1px 0 rgba(255,255,255,0.3)`
+          : `0 6px 20px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.2)`,
+        cursor: "pointer",
+        position: "relative",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.2rem",
+        transform: `scale(${hovered ? 1.07 : 1}) rotate(${hovered ? 2 : 0}deg)`,
+        transition: "transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s",
+        padding: "1rem 0.75rem",
+        outline: "none",
+      }}
+    >
+      <div style={{ position: "absolute", inset: "10px", borderRadius: "50%", border: "1px solid rgba(139,100,15,0.3)", pointerEvents: "none" }} />
+      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(0.68rem, 2.2vw, 0.9rem)", color: "#3d2a04", lineHeight: 1.2, textAlign: "center", position: "relative", zIndex: 1 }}>
+        {name}
+      </span>
+      <span style={{ fontFamily: "'Lora', serif", fontSize: "0.58rem", color: "rgba(61,42,4,0.6)", fontStyle: "italic", position: "relative", zIndex: 1 }}>
+        Mein Steckbrief
+      </span>
+    </button>
+  );
+}
+
+// ─── Telefon-Objekt ───────────────────────────────────────────────────────────
+
+function TelefonObjekt({ bandCount, onClick }: { bandCount: number; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  const hat = bandCount > 0;
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: "clamp(70px, 15vw, 110px)",
+        aspectRatio: "2/3",
+        borderRadius: "10px 10px 16px 16px",
+        background: "linear-gradient(160deg, #2a1a0a 0%, #1a0e05 55%, #120b03 100%)",
+        border: `2px solid ${hat ? am(0.7) : am(0.25)}`,
+        boxShadow: hovered || hat
+          ? `0 8px 24px rgba(0,0,0,0.88), 0 0 22px ${am(0.35)}`
+          : `0 6px 20px rgba(0,0,0,0.75)`,
+        cursor: "pointer",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.35rem",
+        animation: hat ? "telefonBlink 3.5s ease-in-out infinite" : "none",
+        transform: `scale(${hovered ? 1.07 : 1})`,
+        transition: "transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s",
+        padding: "0.75rem 0.5rem",
+        outline: "none",
+      }}
+    >
+      <div style={{ width: "45%", height: "3px", borderRadius: "2px", background: hat ? am(0.6) : am(0.18), marginBottom: "0.3rem" }} />
+      {hat && <div style={{ width: "9px", height: "9px", borderRadius: "50%", background: A, animation: "thekePuls 1.8s ease-in-out infinite" }} />}
+      <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(0.6rem, 1.8vw, 0.78rem)", color: hat ? A : fg(0.45), lineHeight: 1.3, textAlign: "center", whiteSpace: "pre-line" }}>
+        {hat ? `${bandCount} ${bandCount === 1 ? "Nachricht" : "Nachrichten"}` : "Anruf-\nbeantworter"}
+      </span>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 7px)", gap: "3px", marginTop: "0.2rem" }}>
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} style={{ width: "7px", height: "7px", borderRadius: "50%", background: am(0.14), border: `1px solid ${am(0.2)}` }} />
+        ))}
+      </div>
+    </button>
   );
 }
 
@@ -1194,10 +1221,47 @@ export default function ThekePage() {
   const [bierdeckelOffen, setBierdeckelOffen] = useState(false);
   const [telefonOffen, setTelefonOffen] = useState(false);
   const [bandCount, setBandCount] = useState(0);
+  const [backdropFailed, setBackdropFailed] = useState(false);
+  const [tiltX, setTiltX] = useState(0);
+  const [tiltY, setTiltY] = useState(0);
 
   useEffect(() => {
     noindex();
     return () => removeNoindex();
+  }, []);
+
+  // Parallax (Maus + Geräteneigung)
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    const lowPerf = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency < 4;
+    const factor = lowPerf ? 0.4 : 1;
+    let rafId = 0;
+    let targetX = 0, targetY = 0;
+    let curX = 0, curY = 0;
+    const tick = () => {
+      curX += (targetX - curX) * 0.08;
+      curY += (targetY - curY) * 0.08;
+      setTiltX(curX);
+      setTiltY(curY);
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    const onMove = (e: MouseEvent) => {
+      targetX = ((e.clientX / window.innerWidth) - 0.5) * 14 * factor;
+      targetY = ((e.clientY / window.innerHeight) - 0.5) * 10 * factor;
+    };
+    const onOrientation = (e: DeviceOrientationEvent) => {
+      targetX = Math.max(-7, Math.min(7, ((e.gamma ?? 0) / 45) * 7 * factor));
+      targetY = Math.max(-5, Math.min(5, ((e.beta ?? 0) / 90) * 5 * factor));
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    window.addEventListener("deviceorientation", onOrientation, { passive: true });
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("deviceorientation", onOrientation);
+    };
   }, []);
 
   useEffect(() => {
@@ -1329,173 +1393,139 @@ export default function ThekePage() {
 
   const anwesendCount = feed.filter(e => e.zuletzt_gesehen_am && (feedNow - new Date(e.zuletzt_gesehen_am).getTime()) < 90_000).length;
 
+  const W = THEKE_SZENE.WALL_REGION;
+  const B = THEKE_SZENE.BAR_REGION;
+
   return (
-    <div style={{ background: BG, minHeight: "100svh", color: FG }}>
+    <div style={{ position: "fixed", inset: 0, background: BG, overflow: "hidden", touchAction: "pan-x" }}>
       <style>{`
-        .karte-face { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
         @keyframes thekePuls { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.45;transform:scale(0.78)} }
-        @keyframes thekeGlow { 0%,100%{box-shadow:inset 0 0 14px rgba(232,153,26,0.18)} 50%{box-shadow:inset 0 0 28px rgba(232,153,26,0.42)} }
-        @keyframes telefonBlink { 0%,70%,100%{opacity:1} 80%,90%{opacity:0.25} }
-        @keyframes thekeBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
-        @keyframes wandAtmung { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-3px)} }
+        @keyframes thekeGlow { 0%,100%{box-shadow:0 6px 22px rgba(0,0,0,0.9),0 0 14px rgba(232,153,26,0.28)} 50%{box-shadow:0 6px 22px rgba(0,0,0,0.9),0 0 26px rgba(232,153,26,0.55)} }
+        @keyframes telefonBlink { 0%,70%,100%{opacity:1} 80%,90%{opacity:0.28} }
+        .porträt-streifen::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* ── Atmosphäre Kopf ── */}
-      <div style={{ position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "600px", height: "220px", background: `radial-gradient(ellipse at center, ${am(0.12)} 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ maxWidth: "720px", margin: "0 auto", padding: "2.5rem 1.25rem 1.75rem" }}>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.2em", textTransform: "uppercase", color: am(0.6), marginBottom: "0.35rem" }}>
-            Die Theke
-          </p>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(1.4rem, 5vw, 2rem)", color: A, marginBottom: "0.5rem", lineHeight: 1.15 }}>
-            Schön, dass du da bist, {profile.anzeige_name}.
-          </p>
 
-          {/* Anwesenheits-Puls */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
-            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: A, animation: "thekePuls 2.5s ease-in-out infinite", flexShrink: 0 }} />
-            <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55) }}>
-              {anwesendCount > 0
-                ? `${anwesendCount} ${anwesendCount === 1 ? "Person" : "Personen"} gerade an der Theke`
-                : "Sei dabei — die anderen kommen gleich"}
-            </span>
-          </div>
+      {/* ── Backdrop (Kulissenbild) ── */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute", inset: 0, zIndex: 0,
+          background: backdropFailed
+            ? "linear-gradient(180deg, #0a0704 0%, #1c0e05 45%, #2a1508 65%, #150a03 100%)"
+            : `center/cover no-repeat url(${THEKE_SZENE.BACKDROP_URL})`,
+          transform: `translate(${-tiltX * 0.3}px, ${-tiltY * 0.25}px) scale(1.05)`,
+        }}
+      >
+        {!backdropFailed && (
+          <img src={THEKE_SZENE.BACKDROP_URL} alt="" onError={() => setBackdropFailed(true)} style={{ display: "none" }} />
+        )}
+      </div>
+
+      {/* Tiefengradienten: Decke + Boden abdunkeln */}
+      <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+        background: "linear-gradient(to bottom, rgba(10,7,4,0.55) 0%, rgba(10,7,4,0) 22%, rgba(10,7,4,0) 52%, rgba(10,7,4,0.72) 80%, rgba(10,7,4,0.92) 100%)" }} />
+
+      {/* ── Grußzeile (oben, über Backdrop) ── */}
+      <div style={{
+        position: "absolute", top: "max(1.25rem, env(safe-area-inset-top, 0px))", left: 0, right: 0,
+        zIndex: 10, textAlign: "center", padding: "0 1rem", pointerEvents: "none",
+      }}>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic",
+          fontSize: "clamp(1rem, 3.8vw, 1.6rem)", color: A, margin: 0,
+          textShadow: "0 2px 14px rgba(0,0,0,0.95), 0 0 40px rgba(10,7,4,0.7)" }}>
+          Schön, dass du da bist, {profile.anzeige_name}.
+        </p>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "0.3rem" }}>
+          <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: A, animation: "thekePuls 2.5s ease-in-out infinite", flexShrink: 0 }} />
+          <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem",
+            color: fg(0.62), textShadow: "0 1px 8px rgba(0,0,0,0.95)" }}>
+            {anwesendCount > 0
+              ? `${anwesendCount} ${anwesendCount === 1 ? "Person" : "Personen"} gerade an der Theke`
+              : "Du bist der Erste heute"}
+          </span>
         </div>
       </div>
 
-      <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 1.25rem 5rem" }}>
+      {/* ── Wand-Region: Porträtrahmen (horizontal scrollbar) ── */}
+      <div
+        style={{
+          position: "absolute",
+          top: `${W.top}%`, left: `${W.left}%`,
+          width: `${W.width}%`, height: `${W.height}%`,
+          zIndex: 3,
+          transform: `translate(${-tiltX * 0.55}px, ${-tiltY * 0.45}px)`,
+          filter: "blur(0.35px)",
+          overflow: "visible",
+        }}
+      >
+        <PorträtStreifen feed={feed} token={token} now={feedNow} onFokus={setSelectedEntry} />
+      </div>
 
-        {/* ── §2.2 Wand der Gesichter ── */}
-        <div style={{ marginBottom: "3rem" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", marginBottom: "1rem" }}>
-            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.55) }}>
-              Die Wand
-            </p>
-            {feed.length > 0 && (
-              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.3) }}>
-                {feed.length} {feed.length === 1 ? "Person" : "Personen"} · Karte antippen zum Umdrehen
-              </p>
-            )}
+      {/* ── Tresen-Region: Bierdeckel + Telefon (scharf, vorne) ── */}
+      <div
+        style={{
+          position: "absolute",
+          top: `${B.top}%`, left: `${B.left}%`,
+          width: `${B.width}%`, height: `${B.height}%`,
+          zIndex: 5,
+          transform: `translate(${-tiltX * 1.0}px, ${-tiltY * 0.85}px)`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          gap: "clamp(1.5rem, 6vw, 5rem)",
+        }}
+      >
+        <BierdeckelObjekt name={profile.anzeige_name} onClick={() => setBierdeckelOffen(true)} />
+        <TelefonObjekt bandCount={bandCount} onClick={() => setTelefonOffen(true)} />
+      </div>
+
+      {/* ── Phasen-Andeutungen (unten, ambient) ── */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute", bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
+          left: 0, right: 0, zIndex: 4,
+          display: "flex", justifyContent: "center", gap: "3rem",
+          pointerEvents: "none",
+        }}
+      >
+        {/* Geschlossene Tür: Der Abend */}
+        <div style={{ textAlign: "center", opacity: 0.38 }}>
+          <div style={{ width: "28px", height: "38px", margin: "0 auto 0.35rem",
+            border: `1.5px solid ${am(0.4)}`, borderRadius: "14px 14px 0 0",
+            display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: am(0.55) }} />
           </div>
-          <WandDerGesichter feed={feed} token={token} now={feedNow} onOpenDetail={setSelectedEntry} />
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.62rem", color: fg(0.38), margin: 0 }}>Der Abend</p>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.54rem", color: fg(0.22), margin: 0 }}>18. Juli 2026</p>
         </div>
-
-        {/* ── §2.3 Der Tresen ── */}
-        <div style={{ marginBottom: "3rem" }}>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.55), marginBottom: "1.25rem" }}>
-            Der Tresen
-          </p>
-          <div style={{
-            background: "linear-gradient(to bottom, rgba(232,153,26,0.06) 0%, rgba(10,7,4,0.97) 100%)",
-            border: `1px solid ${am(0.18)}`,
-            borderTop: `2px solid ${am(0.28)}`,
-            borderRadius: "6px",
-            padding: "1.75rem 1.5rem",
-            display: "flex", gap: "1.25rem", flexWrap: "wrap",
-            boxShadow: `0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 ${am(0.15)}`,
-          }}>
-
-            {/* Bierdeckel — Mein Steckbrief */}
-            <button
-              onClick={() => setBierdeckelOffen(true)}
-              style={{
-                flex: "1 1 180px",
-                background: "radial-gradient(ellipse at 35% 35%, rgba(232,153,26,0.14) 0%, rgba(10,7,4,0.9) 75%)",
-                border: `1px solid ${am(0.35)}`,
-                borderRadius: "50% / 40%",
-                padding: "1.5rem 1rem",
-                cursor: "pointer",
-                textAlign: "center",
-                minHeight: "120px",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-                transition: "border-color 0.2s, box-shadow 0.2s",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = am(0.65); (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 18px ${am(0.18)}`; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = am(0.35); (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
-            >
-              <span style={{ fontSize: "1.5rem", opacity: 0.55 }}>🍺</span>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.88rem", color: A, lineHeight: 1.2, display: "block" }}>
-                {profile.anzeige_name}
-              </span>
-              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.4), fontStyle: "italic" }}>
-                Dein Steckbrief
-              </span>
-            </button>
-
-            {/* Telefon — Anrufbeantworter */}
-            <button
-              onClick={() => setTelefonOffen(true)}
-              style={{
-                flex: "1 1 180px",
-                background: "radial-gradient(ellipse at 65% 35%, rgba(232,153,26,0.09) 0%, rgba(10,7,4,0.9) 75%)",
-                border: `1px solid ${bandCount > 0 ? am(0.45) : am(0.22)}`,
-                borderRadius: "8px",
-                padding: "1.5rem 1rem",
-                cursor: "pointer",
-                textAlign: "center",
-                minHeight: "120px",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-                transition: "border-color 0.2s, box-shadow 0.2s",
-                animation: bandCount > 0 ? "telefonBlink 3.5s ease-in-out infinite" : "none",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = am(0.65); (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 18px ${am(0.15)}`; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = bandCount > 0 ? am(0.45) : am(0.22); (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
-            >
-              <span style={{ fontSize: "1.5rem", opacity: bandCount > 0 ? 0.85 : 0.4 }}>☎</span>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.88rem", color: bandCount > 0 ? A : fg(0.5), lineHeight: 1.2, display: "block" }}>
-                {bandCount > 0 ? `${bandCount} ${bandCount === 1 ? "Nachricht" : "Nachrichten"}` : "Anrufbeantworter"}
-              </span>
-              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.4), fontStyle: "italic" }}>
-                Das Band
-              </span>
-            </button>
-
+        {/* Uhr: Danach */}
+        <div style={{ textAlign: "center", opacity: 0.25 }}>
+          <div style={{ width: "28px", height: "28px", borderRadius: "50%",
+            border: `1.5px solid ${am(0.3)}`, margin: "0 auto 0.35rem",
+            position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "absolute", width: "1.5px", height: "9px", background: am(0.45),
+              bottom: "50%", left: "50%", transformOrigin: "bottom center",
+              transform: "translateX(-50%) rotate(-45deg)" }} />
+            <div style={{ position: "absolute", width: "1.5px", height: "6px", background: am(0.35),
+              bottom: "50%", left: "50%", transformOrigin: "bottom center",
+              transform: "translateX(-50%) rotate(90deg)" }} />
           </div>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.62rem", color: fg(0.25), margin: 0 }}>Danach</p>
         </div>
+      </div>
 
-        {/* ── §2.4 Phasen (Hinweise, nicht interaktiv) ── */}
-        <div style={{ marginBottom: "2.5rem" }}>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.35), marginBottom: "1rem" }}>
-            Was noch kommt
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-            {/* Geschlossene Tür — Der Abend */}
-            <div style={{
-              position: "relative",
-              border: `1px solid ${am(0.13)}`,
-              borderTop: `2px solid ${am(0.18)}`,
-              borderRadius: "4px 4px 0 0",
-              padding: "1.75rem 1rem 1.5rem",
-              background: "linear-gradient(to bottom, rgba(232,153,26,0.03) 0%, rgba(10,7,4,0.99) 100%)",
-              textAlign: "center",
-            }}>
-              <div style={{ position: "absolute", right: "1.25rem", top: "50%", transform: "translateY(-50%)", width: "9px", height: "9px", borderRadius: "50%", background: am(0.18), border: `1px solid ${am(0.28)}` }} />
-              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: fg(0.22), fontSize: "0.9rem", margin: "0 0 0.35rem" }}>Der Abend</p>
-              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.7rem", color: fg(0.18), margin: 0 }}>öffnet am 18. Juli 2026</p>
-            </div>
-            {/* Danach */}
-            <div style={{
-              border: `1px dashed ${am(0.1)}`,
-              borderRadius: "4px",
-              padding: "1.75rem 1rem 1.5rem",
-              textAlign: "center",
-            }}>
-              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: fg(0.16), fontSize: "0.9rem", margin: "0 0 0.35rem" }}>🕰 Danach</p>
-              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.7rem", color: fg(0.13), margin: 0 }}>kommt nach dem Abend</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Footer ── */}
-        <div style={{ paddingTop: "1.5rem", borderTop: `1px solid ${am(0.1)}` }}>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: fg(0.28), textAlign: "center" }}>
-            EMMERICH BOOMT! · 18. Juli 2026 · Nur für Ticketinhaber ·{" "}
-            <a href={`${BASE}/`} style={{ color: am(0.45), textDecoration: "none" }}>Zur Startseite</a>
-          </p>
-        </div>
+      {/* ── Startseiten-Link ── */}
+      <div style={{ position: "absolute", bottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))", right: "1rem", zIndex: 6 }}>
+        <a href={`${BASE}/`} style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.65rem", color: am(0.32), textDecoration: "none" }}>
+          Zur Startseite
+        </a>
       </div>
 
       {/* ── Overlays ── */}
+
+      {selectedEntry && (
+        <FeedDetail entry={selectedEntry} token={token} onClose={() => setSelectedEntry(null)} />
+      )}
 
       {bierdeckelOffen && profile && (
         <ProfilOverlay
@@ -1518,10 +1548,6 @@ export default function ThekePage() {
           onClose={() => setTelefonOffen(false)}
           onBotschaftChange={b => { setBotschaft(b); setBandCount(n => b ? n + 1 : Math.max(0, n - 1)); }}
         />
-      )}
-
-      {selectedEntry && (
-        <FeedDetail entry={selectedEntry} token={token} onClose={() => setSelectedEntry(null)} />
       )}
     </div>
   );
