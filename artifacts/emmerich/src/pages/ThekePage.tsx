@@ -35,6 +35,7 @@ interface Botschaft { id: number; datei_key: string; dauer_sek: number; anmeldun
 interface FeedEntry extends Profile {
   fotos: Foto[];
   hat_botschaft: boolean;
+  zuletzt_gesehen_am?: string | null;
 }
 interface BandEntry {
   id: number; datei_key: string; dauer_sek: number;
@@ -174,7 +175,7 @@ function AuswahlFeld({ label, opts, value, onChange }: { label: string; opts: st
   );
 }
 
-// ─── Foto-Slot (Früher/Heute) ──────────────────────────────────────────────────
+// ─── Foto-Slot ────────────────────────────────────────────────────────────────
 
 function FotoSlot({ label, fileKey, jahr, token, onUpload, accept = "image/*" }: {
   label: string; fileKey?: string | null; jahr?: number | null;
@@ -300,7 +301,7 @@ function Anrufbeantworter({ token, botschaft, onUploaded, onDeleted }: {
           if (timerRef.current) clearInterval(timerRef.current);
         }
       }, 1000);
-    } catch (err) {
+    } catch {
       setError("Mikrofon-Zugriff verweigert.");
       setPhase("idle");
     }
@@ -395,7 +396,7 @@ function Anrufbeantworter({ token, botschaft, onUploaded, onDeleted }: {
       {phase === "aufnahme" && (
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#e05a3a", animation: "blink 1s steps(1) infinite" }} />
+            <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: "#e05a3a", animation: "thekeBlink 1s steps(1) infinite" }} />
             <span style={{ fontFamily: "'Lora', serif", fontWeight: 700, fontSize: "1.1rem", color: FG, fontVariantNumeric: "tabular-nums" }}>
               {String(Math.floor(sek / 60)).padStart(2, "0")}:{String(sek % 60).padStart(2, "0")} / 01:00
             </span>
@@ -426,7 +427,6 @@ function Anrufbeantworter({ token, botschaft, onUploaded, onDeleted }: {
       {phase === "speichern" && (
         <div style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.6) }}>Wird gespeichert …</div>
       )}
-      <style>{`@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }`}</style>
     </div>
   );
 }
@@ -599,43 +599,9 @@ function EinwilligungsBlock({ token, profile, onUpdated }: { token: string; prof
   );
 }
 
-// ─── Feed-Karte ───────────────────────────────────────────────────────────────
-
-function FeedKarte({ entry, token, onClick }: { entry: FeedEntry; token: string; onClick: () => void }) {
-  const hauptFoto = entry.foto_frueher_key ?? entry.foto_heute_key ?? entry.fotos[0]?.datei_key;
-  return (
-    <div onClick={onClick} style={{ background: am(0.06), border: `1px solid ${am(0.25)}`, borderRadius: "10px", overflow: "hidden", cursor: "pointer", flexShrink: 0, width: "260px" }}>
-      {hauptFoto ? (
-        <div style={{ position: "relative", aspectRatio: "3/4", background: BG }}>
-          <img src={fotoUrl(hauptFoto, token)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.8) 0%, transparent 55%)" }} />
-          {entry.hat_botschaft && (
-            <div style={{ position: "absolute", top: "0.75rem", right: "0.75rem", background: am(0.85), borderRadius: "20px", padding: "0.25rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.75rem", color: BG, fontWeight: 600 }}>
-              🎙
-            </div>
-          )}
-          <div style={{ position: "absolute", bottom: "0.75rem", left: "0.75rem", right: "0.75rem" }}>
-            <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1.15rem", color: FG, margin: 0, lineHeight: 1.2 }}>{entry.anzeige_name}</p>
-          </div>
-        </div>
-      ) : (
-        <div style={{ padding: "1.25rem" }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "1.1rem", color: A, margin: "0 0 0.5rem" }}>{entry.anzeige_name}</p>
-          {entry.hat_botschaft && <p style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.6) }}>🎙 Hat eine Sprachnachricht hinterlassen</p>}
-        </div>
-      )}
-      <div style={{ padding: "0.75rem 1rem", borderTop: `1px solid ${am(0.18)}` }}>
-        {entry.f_musik && <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.65), margin: "0 0 0.25rem" }}>♪ {entry.f_musik}</p>}
-        {entry.f_getraenk && <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.65), margin: 0 }}>🥂 {entry.f_getraenk}</p>}
-      </div>
-    </div>
-  );
-}
-
 // ─── Feed-Detail ──────────────────────────────────────────────────────────────
 
 function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string; onClose: () => void }) {
-  const botschaftUrl = entry.hat_botschaft ? null : null;
   const [botschaftUrl2, setBotschaftUrl2] = useState<string | null>(null);
 
   useEffect(() => {
@@ -715,43 +681,7 @@ function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string
   );
 }
 
-// ─── Das Band ─────────────────────────────────────────────────────────────────
-
-function DasBand({ token }: { token: string }) {
-  const [band, setBand] = useState<BandEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`${BASE}/api/theke/band`, { headers: { "x-theke-token": token } })
-      .then(r => r.json())
-      .then((data: BandEntry[]) => { setBand(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [token]);
-
-  if (loading) return <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.5) }}>Lädt …</p>;
-  if (band.length === 0) return <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.45), fontSize: "0.9rem" }}>Noch keine Botschaften hinterlassen.</p>;
-
-  return (
-    <div>
-      <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.55), marginBottom: "1.25rem" }}>
-        {band.length} Botschaft{band.length !== 1 ? "en" : ""} — von allen hörbar:
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-        {band.map(b => (
-          <div key={b.id} style={{ border: `1px solid ${am(0.2)}`, borderRadius: "6px", padding: "1rem", background: am(0.05) }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1rem", color: A }}>{b.anzeige_name}</span>
-              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.45) }}>{b.dauer_sek}s</span>
-            </div>
-            <audio controls src={fotoUrl(b.datei_key, token)} style={{ width: "100%" }} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Mein Steckbrief ─────────────────────────────────────────────────────────
+// ─── Mein Steckbrief ──────────────────────────────────────────────────────────
 
 function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange }: {
   token: string;
@@ -926,123 +856,307 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
   );
 }
 
-// ─── Swipe-Feed ───────────────────────────────────────────────────────────────
+// ─── Das Band ─────────────────────────────────────────────────────────────────
 
-type FilterMap = Partial<{ f_tontraeger: string; f_abends: string; f_untersatz: string; f_musik: string; f_getraenk: string }>;
-
-const FILTER_DEFS: { key: keyof FilterMap; label: string; opts: string[] }[] = [
-  { key: "f_tontraeger", label: "Tonträger",  opts: TONTRAEGER_OPTS },
-  { key: "f_abends",     label: "Abends",     opts: ABENDS_OPTS },
-  { key: "f_untersatz",  label: "Untersatz",  opts: UNTERSATZ_OPTS },
-  { key: "f_musik",      label: "Musik",      opts: MUSIK_OPTS },
-  { key: "f_getraenk",   label: "Getränk",    opts: GETRAENK_OPTS },
-];
-
-function FilterDropdown({ label, opts, value, onChange }: { label: string; opts: string[]; value: string; onChange: (v: string) => void }) {
-  return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        background: value ? A : am(0.07),
-        border: `1px solid ${value ? A : am(0.3)}`,
-        borderRadius: "4px",
-        color: value ? BG : fg(0.7),
-        fontFamily: "'Lora', serif",
-        fontSize: "0.82rem",
-        padding: "0.45rem 0.6rem",
-        outline: "none",
-        cursor: "pointer",
-        flexShrink: 0,
-      }}
-    >
-      <option value="">{label}</option>
-      {opts.map(o => <option key={o} value={o}>{o}</option>)}
-    </select>
-  );
-}
-
-function SwipeFeed({ token }: { token: string }) {
-  const [feed, setFeed] = useState<FeedEntry[]>([]);
+function DasBand({ token }: { token: string }) {
+  const [band, setBand] = useState<BandEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [detailEntry, setDetailEntry] = useState<FeedEntry | null>(null);
-  const [suche, setSuche] = useState("");
-  const [nurFoto, setNurFoto] = useState(false);
-  const [nurBotschaft, setNurBotschaft] = useState(false);
-  const [filters, setFilters] = useState<FilterMap>({});
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`${BASE}/api/theke/feed`, { headers: { "x-theke-token": token } })
+    fetch(`${BASE}/api/theke/band`, { headers: { "x-theke-token": token } })
       .then(r => r.json())
-      .then((data: FeedEntry[]) => { setFeed(data); setLoading(false); })
+      .then((data: BandEntry[]) => { setBand(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [token]);
 
-  const setFilter = (key: keyof FilterMap, v: string) =>
-    setFilters(f => ({ ...f, [key]: v || undefined }));
-
-  const hasFilters = suche || nurFoto || nurBotschaft || Object.values(filters).some(Boolean);
-
-  const filtered = feed.filter(e => {
-    if (suche && !e.anzeige_name.toLowerCase().includes(suche.toLowerCase())) return false;
-    if (nurFoto && !e.foto_frueher_key && !e.foto_heute_key && e.fotos.length === 0) return false;
-    if (nurBotschaft && !e.hat_botschaft) return false;
-    for (const { key } of FILTER_DEFS) {
-      const fv = filters[key];
-      if (fv && (e as unknown as Record<string, unknown>)[key] !== fv) return false;
-    }
-    return true;
-  });
-
   if (loading) return <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.5) }}>Lädt …</p>;
-  if (feed.length === 0) return (
-    <div style={{ padding: "2rem 0", textAlign: "center" }}>
-      <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.45) }}>Noch niemand hat sich vorgestellt.</p>
-    </div>
-  );
+  if (band.length === 0) return <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.45), fontSize: "0.9rem" }}>Noch keine Botschaften hinterlassen.</p>;
 
   return (
     <div>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-        <input type="text" placeholder="Name suchen …" value={suche} onChange={e => setSuche(e.target.value)}
-          style={{ flex: 1, minWidth: "140px", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.9rem", padding: "0.45rem 0.75rem", outline: "none" }} />
-        {FILTER_DEFS.map(fd => (
-          <FilterDropdown key={fd.key} label={fd.label} opts={fd.opts}
-            value={filters[fd.key] ?? ""}
-            onChange={v => setFilter(fd.key, v)} />
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
-          <input type="checkbox" checked={nurFoto} onChange={e => setNurFoto(e.target.checked)} style={{ accentColor: A }} />
-          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.7) }}>nur mit Foto</span>
-        </label>
-        <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer" }}>
-          <input type="checkbox" checked={nurBotschaft} onChange={e => setNurBotschaft(e.target.checked)} style={{ accentColor: A }} />
-          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.7) }}>nur mit Sprachnachricht</span>
-        </label>
-        {hasFilters && (
-          <button onClick={() => { setSuche(""); setNurFoto(false); setNurBotschaft(false); setFilters({}); }}
-            style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: fg(0.55), fontFamily: "'Lora', serif", fontSize: "0.8rem", padding: "0.3rem 0.7rem", cursor: "pointer" }}>
-            × Filter zurücksetzen
-          </button>
-        )}
-      </div>
-      <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.45), marginBottom: "1rem" }}>{filtered.length} von {feed.length} Gästen</p>
-      <div ref={scrollRef} style={{ display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "1rem", WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory" }}>
-        {filtered.map(e => (
-          <div key={e.id} style={{ scrollSnapAlign: "start" }}>
-            <FeedKarte entry={e} token={token} onClick={() => setDetailEntry(e)} />
+      <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.55), marginBottom: "1.25rem" }}>
+        {band.length} Botschaft{band.length !== 1 ? "en" : ""} — von allen hörbar:
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        {band.map(b => (
+          <div key={b.id} style={{ border: `1px solid ${am(0.2)}`, borderRadius: "6px", padding: "1rem", background: am(0.05) }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1rem", color: A }}>{b.anzeige_name}</span>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.45) }}>{b.dauer_sek}s</span>
+            </div>
+            <audio controls src={fotoUrl(b.datei_key, token)} style={{ width: "100%" }} />
           </div>
         ))}
       </div>
-      {detailEntry && <FeedDetail entry={detailEntry} token={token} onClose={() => setDetailEntry(null)} />}
     </div>
   );
 }
 
-// ─── Haupt-Theke ──────────────────────────────────────────────────────────────
+// ─── Gesicht-Karte (Flip) ─────────────────────────────────────────────────────
+
+function GesichtKarte({ entry, token, anwesend, onOpenDetail }: {
+  entry: FeedEntry;
+  token: string;
+  anwesend: boolean;
+  onOpenDetail: (e: FeedEntry) => void;
+}) {
+  const [flipped, setFlipped] = useState(false);
+  const hauptFoto = entry.foto_frueher_key ?? entry.foto_heute_key;
+
+  return (
+    <div
+      className="gesicht-karte"
+      style={{ perspective: "700px", aspectRatio: "3/4", cursor: "pointer" }}
+      onClick={() => { if (!flipped) setFlipped(true); }}
+    >
+      <div style={{
+        position: "relative", width: "100%", height: "100%",
+        transformStyle: "preserve-3d",
+        transition: "transform 0.55s cubic-bezier(0.4,0,0.2,1)",
+        transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+      }}>
+        {/* ── Vorderseite ── */}
+        <div className="karte-face" style={{
+          position: "absolute", inset: 0,
+          borderRadius: "6px", overflow: "hidden",
+          background: hauptFoto ? BG : am(0.08),
+          border: anwesend ? `1px solid ${am(0.55)}` : `1px solid ${am(0.13)}`,
+        }}>
+          {anwesend && (
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 1, borderRadius: "6px", pointerEvents: "none",
+              boxShadow: `inset 0 0 20px ${am(0.25)}`,
+              animation: "thekeGlow 2.8s ease-in-out infinite",
+            }} />
+          )}
+          {hauptFoto ? (
+            <>
+              <img src={fotoUrl(hauptFoto, token)} alt={entry.anzeige_name}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: anwesend ? "none" : "brightness(0.62)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.88) 0%, transparent 52%)", zIndex: 2 }} />
+            </>
+          ) : (
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(145deg, ${am(0.06)} 0%, ${am(0.03)} 100%)` }}>
+              <span style={{ fontSize: "2.2rem", opacity: 0.2 }}>👤</span>
+            </div>
+          )}
+          {anwesend && (
+            <div style={{
+              position: "absolute", top: "0.45rem", right: "0.45rem", zIndex: 5,
+              width: "8px", height: "8px", borderRadius: "50%", background: A,
+              animation: "thekePuls 2.5s ease-in-out infinite",
+            }} />
+          )}
+          <div style={{ position: "absolute", bottom: "0.5rem", left: "0.5rem", right: "0.5rem", zIndex: 3 }}>
+            <p style={{
+              fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.78rem",
+              color: FG, margin: 0, lineHeight: 1.25,
+              textShadow: "0 1px 5px rgba(0,0,0,0.85)",
+            }}>{entry.anzeige_name}</p>
+            {entry.hat_botschaft && (
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.62rem", color: am(0.9) }}>🎙</span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Rückseite (Steckbrief) ── */}
+        <div className="karte-face" style={{
+          position: "absolute", inset: 0,
+          transform: "rotateY(180deg)",
+          borderRadius: "6px",
+          background: "linear-gradient(140deg, #190f04 0%, #0f0803 100%)",
+          border: `1px solid ${am(0.38)}`,
+          padding: "0.7rem 0.65rem",
+          display: "flex", flexDirection: "column", gap: "0.28rem",
+          overflow: "hidden",
+        }}>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.8rem", color: A, margin: 0, lineHeight: 1.2 }}>
+            {entry.anzeige_name}
+          </p>
+          {entry.f_musik && (
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.67rem", color: fg(0.65), margin: 0, lineHeight: 1.3 }}>♪ {entry.f_musik}</p>
+          )}
+          {entry.f_getraenk && (
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.67rem", color: fg(0.65), margin: 0, lineHeight: 1.3 }}>🥂 {entry.f_getraenk}</p>
+          )}
+          {entry.f_abends && (
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.67rem", color: fg(0.5), margin: 0, lineHeight: 1.3 }}>🌙 {entry.f_abends}</p>
+          )}
+          {entry.vorstellung && (
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.63rem", color: fg(0.45), margin: 0, lineHeight: 1.35, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+              {entry.vorstellung}
+            </p>
+          )}
+          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "0.28rem" }}>
+            {entry.hat_botschaft && (
+              <button
+                onClick={e => { e.stopPropagation(); onOpenDetail(entry); }}
+                style={{
+                  background: am(0.13), border: `1px solid ${am(0.42)}`, borderRadius: "3px",
+                  color: A, fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.63rem",
+                  padding: "0.3rem 0.4rem", cursor: "pointer", textAlign: "left",
+                }}>
+                🎙 Bandnachricht hören
+              </button>
+            )}
+            <button
+              onClick={e => { e.stopPropagation(); setFlipped(false); }}
+              style={{
+                background: "transparent", border: "none", color: fg(0.28),
+                fontFamily: "'Lora', serif", fontSize: "0.6rem", cursor: "pointer",
+                padding: "0.1rem 0", textAlign: "left",
+              }}>
+              ← umdrehen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Wand der Gesichter ───────────────────────────────────────────────────────
+
+function WandDerGesichter({ feed, token, now, onOpenDetail }: {
+  feed: FeedEntry[];
+  token: string;
+  now: number;
+  onOpenDetail: (e: FeedEntry) => void;
+}) {
+  if (feed.length === 0) {
+    return (
+      <div style={{ padding: "2rem 0", textAlign: "center" }}>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.38), fontSize: "0.92rem" }}>
+          Noch niemand hat sich vorgestellt. Sei der Erste.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(128px, 1fr))", gap: "0.55rem", animation: "wandAtmung 9s ease-in-out infinite" }}>
+      {feed.map(e => {
+        const anwesend = !!(e.zuletzt_gesehen_am && (now - new Date(e.zuletzt_gesehen_am).getTime()) < 90_000);
+        return (
+          <GesichtKarte key={e.id} entry={e} token={token} anwesend={anwesend} onOpenDetail={onOpenDetail} />
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Profil-Overlay (Bierdeckel) ──────────────────────────────────────────────
+
+function ProfilOverlay({ token, profile, fotos, botschaft, onClose, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange }: {
+  token: string;
+  profile: Profile;
+  fotos: Foto[];
+  botschaft: Botschaft | null;
+  onClose: () => void;
+  onProfileChange: (p: Profile) => void;
+  onFotoAdded: (f: Foto) => void;
+  onFotoDeleted: (id: number) => void;
+  onBotschaftChange: (b: Botschaft | null) => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 8000, background: "rgba(10,7,4,0.88)", overflowY: "auto" }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxWidth: "640px", margin: "0 auto", minHeight: "100svh",
+          background: "linear-gradient(to bottom, #110a03 0%, #0a0704 100%)",
+          borderLeft: `1px solid ${am(0.18)}`, borderRight: `1px solid ${am(0.18)}`,
+          padding: "0 1.5rem 4rem",
+        }}
+      >
+        <div style={{ position: "sticky", top: 0, zIndex: 1, background: "linear-gradient(to bottom, #110a03 80%, transparent 100%)", padding: "1.25rem 0 0.75rem", marginBottom: "1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.6), margin: 0 }}>Dein Steckbrief</p>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "1.25rem", color: A, margin: 0, lineHeight: 1.2 }}>
+              {profile.anzeige_name}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: fg(0.55), fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem", cursor: "pointer" }}>
+            Schließen
+          </button>
+        </div>
+        <MeinSteckbrief
+          token={token}
+          profile={profile}
+          fotos={fotos}
+          botschaft={botschaft}
+          onProfileChange={onProfileChange}
+          onFotoAdded={onFotoAdded}
+          onFotoDeleted={onFotoDeleted}
+          onBotschaftChange={onBotschaftChange}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Telefon-Overlay ──────────────────────────────────────────────────────────
+
+function TelefonOverlay({ token, botschaft, onClose, onBotschaftChange }: {
+  token: string;
+  botschaft: Botschaft | null;
+  onClose: () => void;
+  onBotschaftChange: (b: Botschaft | null) => void;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 8000, background: "rgba(10,7,4,0.88)", overflowY: "auto" }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          maxWidth: "640px", margin: "0 auto", minHeight: "100svh",
+          background: "linear-gradient(to bottom, #110a03 0%, #0a0704 100%)",
+          borderLeft: `1px solid ${am(0.18)}`, borderRight: `1px solid ${am(0.18)}`,
+          padding: "0 1.5rem 4rem",
+        }}
+      >
+        <div style={{ position: "sticky", top: 0, zIndex: 1, background: "linear-gradient(to bottom, #110a03 80%, transparent 100%)", padding: "1.25rem 0 0.75rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.6), margin: 0 }}>Das Band</p>
+            <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "1.25rem", color: A, margin: 0, lineHeight: 1.2 }}>
+              Sprachnachrichten
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: fg(0.55), fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem", cursor: "pointer" }}>
+            Schließen
+          </button>
+        </div>
+
+        <div style={{ marginBottom: "2.5rem" }}>
+          <DasBand token={token} />
+        </div>
+
+        <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem" }}>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: A, marginBottom: "0.75rem" }}>
+            Deine Nachricht
+          </p>
+          <Anrufbeantworter
+            token={token}
+            botschaft={botschaft}
+            onUploaded={onBotschaftChange}
+            onDeleted={() => onBotschaftChange(null)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Haupt-Theke (Szene) ──────────────────────────────────────────────────────
 
 export default function ThekePage() {
   const [token, setToken] = useState<string | null>(null);
@@ -1053,7 +1167,12 @@ export default function ThekePage() {
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [botschaft, setBotschaft] = useState<Botschaft | null>(null);
   const [needsNameConfirm, setNeedsNameConfirm] = useState(false);
-  const [tab, setTab] = useState<"steckbrief" | "feed" | "band">("steckbrief");
+  const [feed, setFeed] = useState<FeedEntry[]>([]);
+  const [feedNow, setFeedNow] = useState(Date.now());
+  const [selectedEntry, setSelectedEntry] = useState<FeedEntry | null>(null);
+  const [bierdeckelOffen, setBierdeckelOffen] = useState(false);
+  const [telefonOffen, setTelefonOffen] = useState(false);
+  const [bandCount, setBandCount] = useState(0);
 
   useEffect(() => {
     noindex();
@@ -1130,6 +1249,47 @@ export default function ThekePage() {
     } catch { }
   };
 
+  // Feed laden
+  useEffect(() => {
+    if (!token) return;
+    const load = () => {
+      fetch(`${BASE}/api/theke/feed`, { headers: { "x-theke-token": token } })
+        .then(r => r.json())
+        .then((data: FeedEntry[]) => { setFeed(data); setFeedNow(Date.now()); })
+        .catch(() => {});
+    };
+    load();
+    const id = setInterval(load, 60_000);
+    return () => clearInterval(id);
+  }, [token]);
+
+  // Band-Anzahl laden (für Telefon-Blink)
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${BASE}/api/theke/band`, { headers: { "x-theke-token": token } })
+      .then(r => r.json())
+      .then((data: BandEntry[]) => setBandCount(data.length))
+      .catch(() => {});
+  }, [token]);
+
+  // Präsenz-Ping alle 25 Sekunden
+  useEffect(() => {
+    if (!token) return;
+    const ping = () => fetch(`${BASE}/api/theke/ping`, {
+      method: "POST",
+      headers: { "x-theke-token": token },
+    }).catch(() => {});
+    ping();
+    const id = setInterval(ping, 25_000);
+    return () => clearInterval(id);
+  }, [token]);
+
+  // Anwesend-Zähler aktuell halten
+  useEffect(() => {
+    const id = setInterval(() => setFeedNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+
   if (loading) {
     return (
       <div style={{ background: BG, minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1146,92 +1306,202 @@ export default function ThekePage() {
 
   if (!profile || !token) return <Sperrseite />;
 
-  const TABS = [
-    { id: "steckbrief", label: "Vorher" },
-    { id: "feed",       label: "Alle" },
-    { id: "band",       label: "Das Band" },
-  ] as const;
-
-  const LOCKED_TABS = [
-    { id: "abend", label: "Der Abend", sperrtext: "Geht am 18. Juli 2026 online. Bis dahin noch ein bisschen Geduld." },
-    { id: "danach", label: "Danach", sperrtext: "Kommt nach dem Abend." },
-  ];
+  const anwesendCount = feed.filter(e => e.zuletzt_gesehen_am && (feedNow - new Date(e.zuletzt_gesehen_am).getTime()) < 90_000).length;
 
   return (
     <div style={{ background: BG, minHeight: "100svh", color: FG }}>
-      <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 1.25rem 4rem" }}>
-        <div style={{ padding: "2rem 0 1.5rem" }}>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.7), marginBottom: "0.4rem" }}>
+      <style>{`
+        .karte-face { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+        @keyframes thekePuls { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.45;transform:scale(0.78)} }
+        @keyframes thekeGlow { 0%,100%{box-shadow:inset 0 0 14px rgba(232,153,26,0.18)} 50%{box-shadow:inset 0 0 28px rgba(232,153,26,0.42)} }
+        @keyframes telefonBlink { 0%,70%,100%{opacity:1} 80%,90%{opacity:0.25} }
+        @keyframes thekeBlink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+        @keyframes wandAtmung { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-3px)} }
+      `}</style>
+
+      {/* ── Atmosphäre Kopf ── */}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: "600px", height: "220px", background: `radial-gradient(ellipse at center, ${am(0.12)} 0%, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ maxWidth: "720px", margin: "0 auto", padding: "2.5rem 1.25rem 1.75rem" }}>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.2em", textTransform: "uppercase", color: am(0.6), marginBottom: "0.35rem" }}>
             Die Theke
           </p>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(1.4rem, 5vw, 2rem)", color: A, marginBottom: "0.25rem", lineHeight: 1.15 }}>
-            Hallo, {profile.anzeige_name}.
+          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(1.4rem, 5vw, 2rem)", color: A, marginBottom: "0.5rem", lineHeight: 1.15 }}>
+            Schön, dass du da bist, {profile.anzeige_name}.
           </p>
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.5) }}>
-            Ticket #{ticket?.ticket_nummer} · nur für Ticketinhaber
-          </p>
+
+          {/* Anwesenheits-Puls */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: A, animation: "thekePuls 2.5s ease-in-out infinite", flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: fg(0.55) }}>
+              {anwesendCount > 0
+                ? `${anwesendCount} ${anwesendCount === 1 ? "Person" : "Personen"} gerade an der Theke`
+                : "Sei dabei — die anderen kommen gleich"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: "720px", margin: "0 auto", padding: "0 1.25rem 5rem" }}>
+
+        {/* ── §2.2 Wand der Gesichter ── */}
+        <div style={{ marginBottom: "3rem" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", marginBottom: "1rem" }}>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.55) }}>
+              Die Wand
+            </p>
+            {feed.length > 0 && (
+              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.3) }}>
+                {feed.length} {feed.length === 1 ? "Person" : "Personen"} · Karte antippen zum Umdrehen
+              </p>
+            )}
+          </div>
+          <WandDerGesichter feed={feed} token={token} now={feedNow} onOpenDetail={setSelectedEntry} />
         </div>
 
-        <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${am(0.2)}`, marginBottom: "2rem", overflowX: "auto" }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id as typeof tab)}
+        {/* ── §2.3 Der Tresen ── */}
+        <div style={{ marginBottom: "3rem" }}>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.55), marginBottom: "1.25rem" }}>
+            Der Tresen
+          </p>
+          <div style={{
+            background: "linear-gradient(to bottom, rgba(232,153,26,0.06) 0%, rgba(10,7,4,0.97) 100%)",
+            border: `1px solid ${am(0.18)}`,
+            borderTop: `2px solid ${am(0.28)}`,
+            borderRadius: "6px",
+            padding: "1.75rem 1.5rem",
+            display: "flex", gap: "1.25rem", flexWrap: "wrap",
+            boxShadow: `0 8px 32px rgba(0,0,0,0.65), inset 0 1px 0 ${am(0.15)}`,
+          }}>
+
+            {/* Bierdeckel — Mein Steckbrief */}
+            <button
+              onClick={() => setBierdeckelOffen(true)}
               style={{
-                background: "transparent",
-                border: "none",
-                borderBottom: tab === t.id ? `2px solid ${A}` : "2px solid transparent",
-                color: tab === t.id ? A : fg(0.55),
-                fontFamily: "'Playfair Display', serif",
-                fontStyle: "italic",
-                fontSize: "1rem",
-                padding: "0.7rem 1.25rem",
+                flex: "1 1 180px",
+                background: "radial-gradient(ellipse at 35% 35%, rgba(232,153,26,0.14) 0%, rgba(10,7,4,0.9) 75%)",
+                border: `1px solid ${am(0.35)}`,
+                borderRadius: "50% / 40%",
+                padding: "1.5rem 1rem",
                 cursor: "pointer",
-                flexShrink: 0,
-                transition: "color 0.15s",
-              }}>
-              {t.label}
+                textAlign: "center",
+                minHeight: "120px",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                transition: "border-color 0.2s, box-shadow 0.2s",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = am(0.65); (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 18px ${am(0.18)}`; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = am(0.35); (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
+            >
+              <span style={{ fontSize: "1.5rem", opacity: 0.55 }}>🍺</span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.88rem", color: A, lineHeight: 1.2, display: "block" }}>
+                {profile.anzeige_name}
+              </span>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.4), fontStyle: "italic" }}>
+                Dein Steckbrief
+              </span>
             </button>
-          ))}
-          {LOCKED_TABS.map(t => (
-            <button key={t.id} disabled
-              title={t.sperrtext}
+
+            {/* Telefon — Anrufbeantworter */}
+            <button
+              onClick={() => setTelefonOffen(true)}
               style={{
-                background: "transparent",
-                border: "none",
-                borderBottom: "2px solid transparent",
-                color: fg(0.25),
-                fontFamily: "'Playfair Display', serif",
-                fontStyle: "italic",
-                fontSize: "1rem",
-                padding: "0.7rem 1.25rem",
-                cursor: "not-allowed",
-                flexShrink: 0,
-              }}>
-              {t.label} 🔒
+                flex: "1 1 180px",
+                background: "radial-gradient(ellipse at 65% 35%, rgba(232,153,26,0.09) 0%, rgba(10,7,4,0.9) 75%)",
+                border: `1px solid ${bandCount > 0 ? am(0.45) : am(0.22)}`,
+                borderRadius: "8px",
+                padding: "1.5rem 1rem",
+                cursor: "pointer",
+                textAlign: "center",
+                minHeight: "120px",
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                transition: "border-color 0.2s, box-shadow 0.2s",
+                animation: bandCount > 0 ? "telefonBlink 3.5s ease-in-out infinite" : "none",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = am(0.65); (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 18px ${am(0.15)}`; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = bandCount > 0 ? am(0.45) : am(0.22); (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
+            >
+              <span style={{ fontSize: "1.5rem", opacity: bandCount > 0 ? 0.85 : 0.4 }}>☎</span>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.88rem", color: bandCount > 0 ? A : fg(0.5), lineHeight: 1.2, display: "block" }}>
+                {bandCount > 0 ? `${bandCount} ${bandCount === 1 ? "Nachricht" : "Nachrichten"}` : "Anrufbeantworter"}
+              </span>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.4), fontStyle: "italic" }}>
+                Das Band
+              </span>
             </button>
-          ))}
+
+          </div>
         </div>
 
-        {tab === "steckbrief" && (
-          <MeinSteckbrief
-            token={token}
-            profile={profile}
-            fotos={fotos}
-            botschaft={botschaft}
-            onProfileChange={p => setProfile(p)}
-            onFotoAdded={f => setFotos(fs => [f, ...fs])}
-            onFotoDeleted={id => setFotos(fs => fs.filter(f => f.id !== id))}
-            onBotschaftChange={b => setBotschaft(b)}
-          />
-        )}
-        {tab === "feed" && <SwipeFeed token={token} />}
-        {tab === "band" && <DasBand token={token} />}
+        {/* ── §2.4 Phasen (Hinweise, nicht interaktiv) ── */}
+        <div style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: am(0.35), marginBottom: "1rem" }}>
+            Was noch kommt
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            {/* Geschlossene Tür — Der Abend */}
+            <div style={{
+              position: "relative",
+              border: `1px solid ${am(0.13)}`,
+              borderTop: `2px solid ${am(0.18)}`,
+              borderRadius: "4px 4px 0 0",
+              padding: "1.75rem 1rem 1.5rem",
+              background: "linear-gradient(to bottom, rgba(232,153,26,0.03) 0%, rgba(10,7,4,0.99) 100%)",
+              textAlign: "center",
+            }}>
+              <div style={{ position: "absolute", right: "1.25rem", top: "50%", transform: "translateY(-50%)", width: "9px", height: "9px", borderRadius: "50%", background: am(0.18), border: `1px solid ${am(0.28)}` }} />
+              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: fg(0.22), fontSize: "0.9rem", margin: "0 0 0.35rem" }}>Der Abend</p>
+              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.7rem", color: fg(0.18), margin: 0 }}>öffnet am 18. Juli 2026</p>
+            </div>
+            {/* Danach */}
+            <div style={{
+              border: `1px dashed ${am(0.1)}`,
+              borderRadius: "4px",
+              padding: "1.75rem 1rem 1.5rem",
+              textAlign: "center",
+            }}>
+              <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: fg(0.16), fontSize: "0.9rem", margin: "0 0 0.35rem" }}>🕰 Danach</p>
+              <p style={{ fontFamily: "'Lora', serif", fontSize: "0.7rem", color: fg(0.13), margin: 0 }}>kommt nach dem Abend</p>
+            </div>
+          </div>
+        </div>
 
-        <div style={{ marginTop: "3rem", padding: "1.5rem 0", borderTop: `1px solid ${am(0.12)}` }}>
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: fg(0.3), textAlign: "center" }}>
-            EMMERICH BOOMT! · 18. Juli 2026 · Nur für Ticketinhaber · <a href={`${BASE}/`} style={{ color: am(0.5), textDecoration: "none" }}>Zur Startseite</a>
+        {/* ── Footer ── */}
+        <div style={{ paddingTop: "1.5rem", borderTop: `1px solid ${am(0.1)}` }}>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.78rem", color: fg(0.28), textAlign: "center" }}>
+            EMMERICH BOOMT! · 18. Juli 2026 · Nur für Ticketinhaber ·{" "}
+            <a href={`${BASE}/`} style={{ color: am(0.45), textDecoration: "none" }}>Zur Startseite</a>
           </p>
         </div>
       </div>
+
+      {/* ── Overlays ── */}
+
+      {bierdeckelOffen && profile && (
+        <ProfilOverlay
+          token={token}
+          profile={profile}
+          fotos={fotos}
+          botschaft={botschaft}
+          onClose={() => setBierdeckelOffen(false)}
+          onProfileChange={p => setProfile(p)}
+          onFotoAdded={f => setFotos(fs => [f, ...fs])}
+          onFotoDeleted={id => setFotos(fs => fs.filter(f => f.id !== id))}
+          onBotschaftChange={b => setBotschaft(b)}
+        />
+      )}
+
+      {telefonOffen && (
+        <TelefonOverlay
+          token={token}
+          botschaft={botschaft}
+          onClose={() => setTelefonOffen(false)}
+          onBotschaftChange={b => { setBotschaft(b); setBandCount(n => b ? n + 1 : Math.max(0, n - 1)); }}
+        />
+      )}
+
+      {selectedEntry && (
+        <FeedDetail entry={selectedEntry} token={token} onClose={() => setSelectedEntry(null)} />
+      )}
     </div>
   );
 }

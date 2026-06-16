@@ -1,0 +1,139 @@
+# HARDPROMPT — „Die Theke” als Ort (Stufe 1) + permanenter Orga-Zugang
+
+**Umbau der bestehenden Theke. Bestehende Backend-Endpunkte wiederverwenden. Kein Scope Creep. Exakt an Wortlaut, Verbote und Checkliste halten.**
+
+## 0. Ziel
+
+Aus der Reiter-/Menüstruktur der Theke wird **ein Ort, den man betritt** — eine einzige warme Szene statt Tabs. Dazu zwei harte Anforderungen: ein **Anwesenheits-Puls** („wer ist gerade da”) und ein **permanenter, sich selbst reparierender Orga-Zugang** (der gleichzeitig den aktuellen Groß-/Kleinschreibung-Fehler des Demo-Codes behebt).
+
+Design unverändert: Hintergrund `#0A0704`, Akzent `#E8991A`, Text `#F5E8C8`, Playfair Display + Lora, Inline-Styles. **Keine** neuen Farben, **kein** Inter, **keine** Tailwind-Color-Classes. Mobile-first.
+
+-----
+
+## 1. VERBOTEN
+
+- **KEINE Reiter/Tabs mehr.** Die bisherige „Vorher / Der Abend / Danach”-Reiterleiste wird durch die Szene ersetzt.
+- **KEIN Avatar-Herumlaufen, kein 3D, keine begehbare Karte.** Das ist Stufe 2/3, nicht jetzt. Stufe 1 bewegt sich mit dem Blick, nicht mit einer Spielfigur.
+- **KEIN Echtzeit-Server, kein WebSocket, kein WebRTC.** Anwesenheit ist ausschließlich ein simpler „zuletzt gesehen”-Ping.
+- **`validateCode` / `getCode` in `theke.ts` NICHT verändern** — die Großschreibung (`toUpperCase()`) ist für echte Tickets korrekt.
+- **Bestehende Theke-Endpunkte NICHT umschreiben** (auth, profil, profil/foto, foto, botschaft, feed, botschaften, datei) — nur additiv ergänzen (Ping, `zuletzt_gesehen_am` im Feed).
+- **KEINE neuen Inhaltstypen** (keine Kreidetafel, kein Wunschsong-Voting, kein Massen-Abend-Foto-Upload).
+- **Demo-/Orga-Profil** bleibt aus öffentlichem Feed, Wand, Band, allen Zählungen und jedem Einladungsversand ausgeschlossen.
+- **`config/phase2.ts`-Schalter** unangetastet.
+
+-----
+
+## 2. DIE SZENE (Frontend — `ThekePage.tsx` umbauen)
+
+Beim Betreten (gültiger `?t=`-Code) lädt **keine Seite mit Tabs**, sondern eine Szene baut sich auf: dunkler, warmer Raum, Amber-Glühen über einem Tresen, angedeutete Lampe, im Hintergrund eine sehr dezente Rhein-/Lokal-Silhouette (rein per CSS/Verlauf, keine schweren Assets). Aufbau von oben nach unten auf dem Handy:
+
+### 2.1 Ankommen (Kopf)
+
+- Begrüßung beim Namen: **„Schön, dass du da bist, [Name].”**
+- Kleiner Anwesenheits-Hinweis: **„[n] gerade an der Theke”** (siehe §3), mit leise pulsierendem Amber-Punkt.
+
+### 2.2 Die Wand der Gesichter
+
+- Mosaik/Raster der Früher/Heute-Porträts aller **sichtbaren** Profile (`sichtbarkeit_zugestimmt_am` gesetzt), neueste zuerst.
+- Die Wand **driftet sanft und „atmet”** (dezente CSS-Animation, kein Geflacker).
+- Wer **gerade anwesend** ist (§3), **glüht warm und pulsiert leise**; abwesende Porträts ruhig/etwas gedimmt.
+- Tippt man ein Porträt an, **dreht es sich um wie ein Bierdeckel** (Flip-Animation) und zeigt auf der Rückseite den Steckbrief + Knopf **„Bandnachricht hören”** (falls vorhanden).
+
+### 2.3 Der Tresen mit Gegenständen
+
+Eine dunkle Fläche mit Amber-Lichtkante. Darauf liegen **antippbare Gegenstände** statt Menüpunkten:
+
+**a) Dein Bierdeckel (= dein Profil).** Antippen öffnet das „Einrichten” als warme Einblendung (kein nüchternes Formular):
+
+1. **„Bist du [Name]?”** → „Ja, das bin ich” (`bestaetigt = true`) / „Nein, ich heiße anders” (umbenennen).
+1. Die fünf Auswahl-Fragen als schnelle Tipp-Auswahl (bestehende Optionen unverändert).
+1. Früher/Heute-Fotos hochladen (Jahres-Overlay im 80er-Filmdatum-Look wie bisher).
+1. Die drei getrennten Häkchen wie bisher — Häkchen A als Teil des „Einrichtens”: erst danach wandert dein Porträt sichtbar an die Wand. Wortlaut **unverändert** übernehmen.
+   Nach dem Speichern: sichtbares Feedback „dein Platz an der Theke” — Porträt erscheint an der Wand, Bierdeckel trägt deinen Namen.
+
+**b) Das Telefon (= Anrufbeantworter).** Steht auf dem Tresen und **blinkt**, wenn es ungehörte Nachrichten gibt: **„[n] neue Nachrichten”**. Antippen → die freigegebenen Bandnachrichten spielen nacheinander mit einem Piep dazwischen; Knopf **„selbst aufs Band sprechen”** → die bestehende 60-Sekunden-Aufnahme. Funktion und Endpunkte bleiben, nur die Einbettung wird zur Theken-Geste.
+
+### 2.4 Die drei Phasen als Zustände, nicht als Reiter
+
+- **Jetzt:** warmes Vorabend-Licht, „die Theke füllt sich”.
+- **„Der Abend”** als angedeutete **geschlossene Tür** mit Label **„öffnet am 18. Juli 2026”** — nicht betretbar.
+- **„Danach”** als **Uhr/Hinweis an der Wand** — nicht betretbar.
+  Beide sind nur visuelle Andeutungen desselben Lokals zu anderer Zeit, kein Klickziel.
+
+-----
+
+## 3. ANWESENHEITS-PULS (die eine neue Backend-Zutat)
+
+- Schema: Spalte **`zuletzt_gesehen_am timestamp`** zu `lib/db/src/schema/theke_profile.ts` ergänzen, danach `pnpm --filter @workspace/db run push`.
+- Endpunkt **`POST /api/theke/ping`** (Code wie üblich): setzt `zuletzt_gesehen_am = now` für das Profil des Tickets. Existiert noch kein Profil, ohne Fehler ignorieren.
+- Frontend pingt, **solange die Theke offen ist, alle ~25 Sekunden** (Intervall beim Verlassen/Tab-Wechsel sauber stoppen).
+- `GET /api/theke/feed` zusätzlich `zuletzt_gesehen_am` je Profil zurückgeben. Frontend wertet **„innerhalb der letzten 90 Sekunden gesehen”** als anwesend (glühend) und zählt daraus die Zahl „[n] gerade an der Theke”.
+- Demo-/Orga-Ticket bleibt aus dieser Zählung und der Wand ausgeschlossen (wie bisher per `THEKE_DEMO_CODE`).
+
+-----
+
+## 4. PERMANENTER ORGA-ZUGANG (+ Behebung des Code-Bugs)
+
+**Ursache des aktuellen „Kein Zugang”:** Codes werden in GROSSBUCHSTABEN gespeichert und gesucht (`validateCode` nutzt `toUpperCase()`). `THEKE_DEMO_CODE` steht klein in der Config und matcht deshalb nie.
+
+1. In `artifacts/api-server/src/config.ts` den Code auf **GROSSBUCHSTABEN** setzen:
+   
+   ```
+   THEKE_DEMO_CODE: "00000000DEADBEEF"
+   ```
+   
+   (Seed und alle Ausschluss-Filter lesen die Konstante und passen sich automatisch an.)
+1. **Selbstheilung beim Serverstart** in `seedThekeDemoIfMissing()` (`index.ts`):
+- Falls ein **klein** geschriebenes Alt-Ticket `'00000000deadbeef'` existiert: zugehörige `theke_profile/_fotos/_botschaften`-Zeilen und die Demo-Bestellung (E-Mail `orga-vorschau@emmerich-boomt.de`) entfernen.
+- Anschließend sicherstellen, dass genau **ein** großgeschriebenes Demo-/Orga-Ticket (`ticket_code = THEKE_DEMO_CODE`, `person_name = "Orga-Vorschau"`, `ticket_nummer = "DEMO-0000"`) existiert. Idempotent, keine Duplikate. Läuft bei **jedem** Start → der Zugang ist dauerhaft garantiert.
+1. **Im Admin** (`AdminPage.tsx`) eine deutlich beschriftete Box **„Theke — Dein Dauerzugang (Orga)”**:
+- der **vollständige Link als kopierbarer Text** anzeigen: `https://emmerich-boomt.de/theke?t=<code>` (Code aus `demo_code` der `theke-admin/uebersicht`-Antwort, **nicht** hardcoden),
+- Buttons **„Theke betreten”** → `/theke?t=<code>` und **„Beamer-Wand öffnen”** → `/theke/wand?t=<code>`, jeweils neuer Tab.
+- Kurzer Hinweis darunter: „Dieser Zugang ist dauerhaft und nur für die Orga. Er erscheint nicht in der Wand, im Band oder in Zählungen.”
+1. **Auth lässt diesen Code normal zu** (kein Ausschluss im Auth-Pfad). Über `/theke?t=00000000DEADBEEF` (oder klein — Auth schreibt intern groß) muss der Zugang ab sofort und dauerhaft funktionieren.
+
+-----
+
+## 5. ERLAUBTE ÄNDERUNGEN (nur diese Dateien)
+
+- `artifacts/emmerich/src/pages/ThekePage.tsx` — Szene statt Tabs (§2), Ping-Logik (§3).
+- `artifacts/emmerich/src/pages/ThekeWandPage.tsx` — nur falls nötig, Anwesenheits-Glühen analog.
+- `artifacts/emmerich/src/pages/AdminPage.tsx` — Dauerzugang-Box (§4.3).
+- `artifacts/api-server/src/routes/theke.ts` — `POST /api/theke/ping`, `zuletzt_gesehen_am` im Feed (additiv).
+- `artifacts/api-server/src/config.ts` — `THEKE_DEMO_CODE` auf Großbuchstaben.
+- `artifacts/api-server/src/index.ts` — Selbstheilung im Seed (§4.2).
+- `lib/db/src/schema/theke_profile.ts` — Spalte `zuletzt_gesehen_am`.
+
+Alles andere unverändert.
+
+-----
+
+## 6. CHECKLISTE
+
+- [ ] Theke öffnet als **Szene** (Begrüßung, Gesichterwand, Tresen mit Gegenständen) — keine Reiter mehr.
+- [ ] Eigenes Profil als „Bierdeckel einrichten”; nach Häkchen A erscheint das Porträt an der Wand.
+- [ ] Telefon blinkt bei neuen Nachrichten, spielt Band ab, Aufnahme über dasselbe 60-s-Verfahren.
+- [ ] Fremdes Porträt antippen → Bierdeckel-Flip → Steckbrief + „Bandnachricht hören”.
+- [ ] Phasen „Der Abend” (geschlossene Tür, „öffnet am 18. Juli 2026”) und „Danach” (Uhr) nur angedeutet, nicht betretbar.
+- [ ] `zuletzt_gesehen_am`-Spalte + `db push`; `POST /api/theke/ping`; Feed liefert das Feld.
+- [ ] Frontend pingt alle ~25 s, stoppt beim Verlassen; „[n] gerade an der Theke” aus „<90 s gesehen”.
+- [ ] `THEKE_DEMO_CODE` GROSS; Selbstheilung entfernt das alte kleingeschriebene Ticket.
+- [ ] Seed legt den Orga-Zugang bei jedem Start idempotent an → dauerhaft.
+- [ ] Admin-Box „Dein Dauerzugang” mit kopierbarem Link + „Theke betreten” + „Beamer-Wand öffnen”, Code vom Backend.
+- [ ] `/theke?t=00000000DEADBEEF` gewährt Zugang; Orga-Profil aus Wand/Band/Zählungen/Versand ausgeschlossen.
+- [ ] Keine Tabs, kein 3D/Avatar, kein WebSocket, keine neuen Farben/Fonts.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+-----
+
+## 7. PFLICHT-ABSCHLUSSERKLÄRUNG
+
+> **THEKE STUFE 1 + DAUERZUGANG FERTIG.**
+> Geänderte Dateien: …
+> Szene statt Reiter (Wand, Tresen, Bierdeckel-Flip, blinkendes Telefon): ja/nein
+> Anwesenheits-Puls (Ping + Glühen + Zählung): ja/nein
+> `THEKE_DEMO_CODE` großgeschrieben, Alt-Ticket bereinigt: ja/nein
+> Orga-Dauerzugang bei jedem Start garantiert + Admin-Box mit Link: ja/nein
+> `/theke?t=00000000DEADBEEF` getestet, Zugang funktioniert: ja/nein
+> Orga-Profil aus Wand/Band/Zählungen/Versand ausgeschlossen: ja/nein
+> Abweichungen (falls vorhanden, begründet): …

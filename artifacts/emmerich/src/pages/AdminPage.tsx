@@ -1467,20 +1467,38 @@ function ThekeAdminSection() {
     <div>
       <SectionTitle>Die Theke</SectionTitle>
 
-      {/* ── Theke — Vorschau (Orga) ── */}
+      {/* ── Theke — Dein Dauerzugang (Orga) ── */}
       {demoCode && (
         <div style={{ marginBottom: "1.5rem", padding: "1rem 1.25rem", background: am(0.08), border: `1px solid ${am(0.3)}`, borderRadius: "6px" }}>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: A, fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.65rem" }}>Theke — Vorschau (Orga)</div>
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", color: A, fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.65rem" }}>
+            Theke — Dein Dauerzugang (Orga)
+          </div>
+          <div style={{ marginBottom: "0.85rem" }}>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.5), letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.3rem" }}>Dein persönlicher Link</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <code style={{ fontFamily: "monospace", fontSize: "0.78rem", color: fg(0.75), background: "rgba(0,0,0,0.35)", border: `1px solid ${am(0.2)}`, borderRadius: "4px", padding: "0.3rem 0.6rem", wordBreak: "break-all" }}>
+                {`${window.location.origin}/theke?t=${demoCode}`}
+              </code>
+              <button
+                onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/theke?t=${demoCode}`).catch(() => {}); }}
+                style={{ background: am(0.12), border: `1px solid ${am(0.35)}`, borderRadius: "4px", color: A, fontFamily: "'Lora', serif", fontSize: "0.75rem", padding: "0.3rem 0.7rem", cursor: "pointer", flexShrink: 0 }}>
+                Kopieren
+              </button>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.85rem" }}>
             <a href={`/theke?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
               style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1.1rem", textDecoration: "none", display: "inline-block" }}>
-              Vorschau öffnen
+              Theke betreten
             </a>
             <a href={`/theke/wand?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
               style={{ background: "transparent", border: `1px solid ${am(0.5)}`, borderRadius: "4px", color: A, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1.1rem", textDecoration: "none", display: "inline-block" }}>
               Beamer-Wand öffnen
             </a>
           </div>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: fg(0.35), lineHeight: 1.55, margin: 0 }}>
+            Dieser Zugang ist dauerhaft und nur für die Orga. Er erscheint nicht in der Wand, im Band oder in Zählungen.
+          </p>
         </div>
       )}
 

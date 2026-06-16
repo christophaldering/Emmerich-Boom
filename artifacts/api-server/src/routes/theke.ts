@@ -448,6 +448,22 @@ router.get("/theke/datei/*key", async (req: Request, res: Response) => {
   res.send(Buffer.from(result.data));
 });
 
+// ─── POST /api/theke/ping ─────────────────────────────────────────────────────
+router.post("/theke/ping", async (req: Request, res: Response) => {
+  const code = req.headers["x-theke-token"] as string | undefined ?? req.query["t"] as string | undefined;
+  const ticket = code ? await validateCode(code) : null;
+  if (!ticket) { res.status(401).json({ error: "Zugang verweigert" }); return; }
+  try {
+    await db
+      .update(thekeProfileTable)
+      .set({ zuletzt_gesehen_am: new Date() })
+      .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id));
+  } catch (err) {
+    req.log.error(err, "theke/ping failed");
+  }
+  res.json({ ok: true });
+});
+
 // ─── GET /api/theke/feed ──────────────────────────────────────────────────────
 router.get("/theke/feed", async (req: Request, res: Response) => {
   const code = req.headers["x-theke-token"] as string | undefined ?? req.query["t"] as string | undefined;

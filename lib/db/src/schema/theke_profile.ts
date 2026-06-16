@@ -22,6 +22,7 @@ export const thekeProfileTable = pgTable("theke_profile", {
   foto_heute_jahr:           integer("foto_heute_jahr"),
   sichtbarkeit_zugestimmt_am: timestamp("sichtbarkeit_zugestimmt_am"),
   abendfotos_ok:             boolean("abendfotos_ok").notNull().default(false),
+  zuletzt_gesehen_am:        timestamp("zuletzt_gesehen_am"),
   created_at:                timestamp("created_at").defaultNow(),
   updated_at:                timestamp("updated_at").defaultNow(),
 });
