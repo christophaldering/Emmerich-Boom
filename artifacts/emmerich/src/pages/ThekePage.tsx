@@ -107,23 +107,8 @@ function NamenseingabeDialog({ personName, onConfirm }: { personName: string; on
   return (
     <div style={{ background: BG, minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ maxWidth: "480px", width: "100%" }}>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.4rem, 5vw, 2rem)", color: A, marginBottom: "1.4rem" }}>
-          Vorfreude ist ja bekanntlich die schönste Freude.
-        </p>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "1.5rem" }}>
-          Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
-        </p>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "1.5rem" }}>
-          Damit das ein bisschen leichter wird, kommt hier eine Idee: die digitale Theke.
-        </p>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "1.5rem" }}>
-          Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")
-        </p>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "1.5rem" }}>
-          Schön wäre, wenn möglichst viele mitmachen. Müssen tut aber niemand. Wer keine Lust hat, lässt es einfach. Wer es sich anders überlegt, löscht sein Profil mit einem Klick wieder. Alles freiwillig, alles in deiner Hand.
-        </p>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "2rem" }}>
-          Schau ruhig immer wieder mal rein. Die Theke füllt sich mit jedem Tag, und es macht Spaß zu sehen, wer alles dazukommt.
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.4rem, 5vw, 2rem)", color: A, marginBottom: "1.6rem" }}>
+          Bevor's losgeht:
         </p>
         <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "2rem" }}>
           Du bist eingetragen als: <strong style={{ color: FG }}>{personName}</strong>. Stimmt das so?

@@ -1,0 +1,40 @@
+AUFGABE
+Auf der Namens-Bestätigungsseite (Komponente NamenseingabeDialog) den langen
+Einladungstext entfernen, weil er die Einladungsmail wortgleich wiederholt. Statt der
+Überschrift „Vorfreude …" und der fünf Pitch-Absätze kommt EINE kurze Überschrift. Die
+Namensfrage „Du bist eingetragen als …" und die Buttons bleiben unverändert.
+
+DATEI
+artifacts/emmerich/src/pages/ThekePage.tsx
+(Nur die Komponente NamenseingabeDialog anfassen.)
+
+VORGEHEN
+Ersetze den kompletten Block von der Überschrift bis zum Ende des letzten Pitch-Absatzes
+— also vom <p> mit „Vorfreude ist ja bekanntlich die schönste Freude." bis einschließlich
+des schließenden </p> des Absatzes, der mit „Schau ruhig immer wieder mal rein." beginnt
+und mit „… wer alles dazukommt." endet — durch GENAU dieses eine Element:
+
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "clamp(1.4rem, 5vw, 2rem)", color: A, marginBottom: "1.6rem" }}>
+          Bevor's losgeht:
+        </p>
+
+Die unmittelbar folgende Zeile „Du bist eingetragen als: <strong …>{personName}</strong>.
+Stimmt das so?" bleibt UNVERÄNDERT stehen, ebenso alle Buttons und der Rest der Komponente.
+
+VERBOTEN
+- KEINE Änderung an der Namensfrage, den Buttons, der Editier-Logik oder sonstigem Code.
+- KEINE Änderung an anderen Komponenten oder Dateien.
+- KEINE Änderung an Styling/Layout außerhalb des ersetzten Blocks.
+- KEINE neue Variante des Pitch-Textes einfügen — er wird ersatzlos durch die eine Überschrift ersetzt.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] In NamenseingabeDialog steht jetzt nur noch die kurze Überschrift „Bevor's losgeht:".
+[ ] Die fünf Pitch-Absätze und die alte „Vorfreude …"-Überschrift sind weg.
+[ ] „Du bist eingetragen als: …" und die Buttons sind unverändert.
+[ ] Keine andere Datei/Komponente angefasst. Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem Dateipfad: artifacts/emmerich/src/pages/ThekePage.tsx
+2. Der wörtlichen Bestätigung: „Nur der Intro-Block in NamenseingabeDialog wurde gekürzt, sonst nichts."
+3. Falls der zu ersetzende Block nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.
