@@ -43,7 +43,7 @@ router.get("/admin/export", async (req: Request, res: Response) => {
 
   try {
     const [anmeldungen, warteliste] = await Promise.all([
-      db.select().from(anmeldungenTable).where(and(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_FARZIN_EMAIL))).orderBy(anmeldungenTable.created_at),
+      db.select().from(anmeldungenTable).where(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL)).orderBy(anmeldungenTable.created_at),
       db.select().from(wartelisteTable).orderBy(wartelisteTable.created_at),
     ]);
 

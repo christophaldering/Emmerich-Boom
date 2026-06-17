@@ -30,7 +30,7 @@ router.get("/theke-admin/uebersicht", async (req: Request, res: Response) => {
         created_at:    anmeldungTicketsTable.created_at,
       })
       .from(anmeldungTicketsTable)
-      .where(and(ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_DEMO_CODE), ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_FARZIN_CODE)))
+      .where(ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_DEMO_CODE))
       .orderBy(anmeldungTicketsTable.id);
 
     const profiles = await db.select().from(thekeProfileTable);
@@ -89,7 +89,7 @@ router.get("/theke-admin/einladungen", async (req: Request, res: Response) => {
         ticket_code:   anmeldungTicketsTable.ticket_code,
       })
       .from(anmeldungTicketsTable)
-      .where(and(ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_DEMO_CODE), ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_FARZIN_CODE)))
+      .where(ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_DEMO_CODE))
       .orderBy(anmeldungTicketsTable.id);
 
     const anmeldungen = await db
@@ -184,8 +184,8 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
         .where(eq(anmeldungTicketsTable.id, body.ticket_id))
         .limit(1);
       if (!t) { res.status(404).json({ error: "Ticket nicht gefunden" }); return; }
-      if (t.ticket_code === SERVER_CONFIG.THEKE_DEMO_CODE || t.ticket_code === SERVER_CONFIG.THEKE_FARZIN_CODE) {
-        res.status(400).json({ error: "Vorschau-Ticket wird nie eingeladen" });
+      if (t.ticket_code === SERVER_CONFIG.THEKE_DEMO_CODE) {
+        res.status(400).json({ error: "Demo-Ticket wird nie eingeladen" });
         return;
       }
       ticketsToSend = [t];
@@ -195,7 +195,7 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
         .select()
         .from(anmeldungTicketsTable)
         .where(sql`${anmeldungTicketsTable.id} = ANY(ARRAY[${sql.raw(body.ticket_ids.map(Number).join(","))}]::int[])`);
-      ticketsToSend = fetched.filter(t => t.ticket_code !== SERVER_CONFIG.THEKE_DEMO_CODE && t.ticket_code !== SERVER_CONFIG.THEKE_FARZIN_CODE);
+      ticketsToSend = fetched.filter(t => t.ticket_code !== SERVER_CONFIG.THEKE_DEMO_CODE);
 
     } else if (body.alle || body.nur_nicht_eingeladene) {
       const allTickets = await db
@@ -206,11 +206,10 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
           ticket_code:  anmeldungTicketsTable.ticket_code,
         })
         .from(anmeldungTicketsTable)
-        // only tickets from non-cancelled anmeldungen, never preview tickets
+        // only tickets from non-cancelled anmeldungen, never the demo ticket
         .where(sql`${anmeldungTicketsTable.anmeldung_id} IN (
           SELECT id FROM ${anmeldungenTable} WHERE storniert_am IS NULL
-        ) AND ${anmeldungTicketsTable.ticket_code} <> ${SERVER_CONFIG.THEKE_DEMO_CODE}
-          AND ${anmeldungTicketsTable.ticket_code} <> ${SERVER_CONFIG.THEKE_FARZIN_CODE}`);
+        ) AND ${anmeldungTicketsTable.ticket_code} <> ${SERVER_CONFIG.THEKE_DEMO_CODE}`);
 
       if (body.nur_nicht_eingeladene) {
         const bereitsEingeladen = await db

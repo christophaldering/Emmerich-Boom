@@ -51,7 +51,7 @@ router.get("/admin/anmeldungen", async (req: Request, res: Response) => {
         created_at:           anmeldungenTable.created_at,
       })
       .from(anmeldungenTable)
-      .where(and(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_FARZIN_EMAIL)))
+      .where(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL))
       .orderBy(anmeldungenTable.created_at);
 
     const ticketRows = await db
