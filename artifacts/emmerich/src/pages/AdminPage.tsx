@@ -133,6 +133,12 @@ const BG = "#0a0704";
 const fg = (o: number) => `rgba(245,232,200,${o})`;
 const am = (o: number) => `rgba(232,153,26,${o})`;
 
+/** Macht aus einem Personen-Eintrag (string ODER altes {name:…}-Objekt) sicher einen String. */
+const personName = (p: unknown): string =>
+  typeof p === "string" ? p
+  : (p && typeof p === "object" && "name" in p) ? String((p as { name: unknown }).name ?? "")
+  : String(p ?? "");
+
 function fmt(sec: number) { return sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${sec % 60}s`; }
 function when(iso: string | null) {
   if (!iso) return "—";
@@ -563,7 +569,7 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
   const [saveNamesMsg, setSaveNamesMsg] = useState("");
 
   const startEditNames = () => {
-    setEditedNames(Array.isArray(row.personen) ? [...(row.personen as string[])] : []);
+    setEditedNames((Array.isArray(row.personen) ? row.personen : []).map(personName));
     setSaveNamesMsg("");
     setEditNames(true);
   };
@@ -620,7 +626,7 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
     });
   };
 
-  const personen = Array.isArray(row.personen) ? row.personen : [];
+  const personen = (Array.isArray(row.personen) ? row.personen : []).map(personName);
   const bezahlt = !!row.bezahlt_am;
   const versendet = !!row.ticket_versendet_am;
   const storniert = !!row.storniert_am;
@@ -1956,7 +1962,7 @@ export default function AdminPage() {
       const q = filterText.trim().toLowerCase();
       rows = rows.filter(r =>
         r.email.toLowerCase().includes(q) ||
-        r.personen.some(p => p.toLowerCase().includes(q)) ||
+        r.personen.some(p => personName(p).toLowerCase().includes(q)) ||
         String(r.id).includes(q)
       );
     }

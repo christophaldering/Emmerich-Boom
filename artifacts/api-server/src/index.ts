@@ -4,7 +4,7 @@ import cron from "node-cron";
 import { buildAndSendDailyReport } from "./services/dailyReport.js";
 import { db, anmeldungenTable, anmeldungTicketsTable, thekeProfileTable, thekeFotosTable, thekeBotschaftenTable } from "@workspace/db";
 import { kiRequests } from "@workspace/db";
-import { count, eq } from "drizzle-orm";
+import { count, eq, and } from "drizzle-orm";
 import { SERVER_CONFIG } from "./config.js";
 
 async function seedKaiIfEmpty() {
@@ -83,6 +83,34 @@ async function seedThekeDemoIfMissing() {
   }
 }
 
+async function repairFreikartenPersonen() {
+  const freikarten = [
+    { email: "akyel.events@gmail.com",       name: "Farzin" },
+    { email: "Sarah.Eul@funkemedien.de",      name: "Sarah Eul" },
+    { email: "emmerich@rheinische-post.de",   name: "Christian Hagemann" },
+  ];
+  for (const f of freikarten) {
+    try {
+      const [row] = await db
+        .select({ id: anmeldungenTable.id, personen: anmeldungenTable.personen })
+        .from(anmeldungenTable)
+        .where(and(eq(anmeldungenTable.email, f.email), eq(anmeldungenTable.bezahlweg, "freiticket")))
+        .limit(1);
+      if (!row) continue;
+      const personen = row.personen as unknown[];
+      const needsRepair = personen.some(p => typeof p !== "string");
+      if (!needsRepair) continue;
+      await db
+        .update(anmeldungenTable)
+        .set({ personen: [f.name] })
+        .where(eq(anmeldungenTable.id, row.id));
+      logger.info({ email: f.email }, "[Freiticket] personen-Feld repariert");
+    } catch (err) {
+      logger.error({ err, email: f.email }, "[Freiticket] Reparatur fehlgeschlagen");
+    }
+  }
+}
+
 async function seedFreikartenIfMissing() {
   const freikarten = [
     { email: "akyel.events@gmail.com",        name: "Farzin",            nummer: "PREV-0001", code: SERVER_CONFIG.THEKE_FARZIN_CODE },
@@ -153,6 +181,7 @@ app.listen(port, (err) => {
   seedKaiIfEmpty();
   seedThekeDemoIfMissing();
   seedFreikartenIfMissing();
+  repairFreikartenPersonen();
 
   cron.schedule(
     "0 8 * * *",

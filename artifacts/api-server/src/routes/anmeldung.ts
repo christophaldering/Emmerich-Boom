@@ -81,7 +81,7 @@ router.post("/anmeldung", async (req, res) => {
     const capacityResult = await db
       .select({ total: sum(anmeldungenTable.personen_anzahl) })
       .from(anmeldungenTable)
-      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), notInArray(anmeldungenTable.email, [...SERVER_CONFIG.THEKE_FREIKARTEN_EMAILS])));
+      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.bezahlweg, "freiticket"), notInArray(anmeldungenTable.email, [...SERVER_CONFIG.THEKE_FREIKARTEN_EMAILS])));
     const currentTotal = Number(capacityResult[0]?.total ?? 0);
     if (currentTotal + d.personen_anzahl > KAPAZITAET) {
       res.status(409).json({
