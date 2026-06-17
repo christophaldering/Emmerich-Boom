@@ -676,6 +676,7 @@ export function GalerieWand({
               speedMulRef.current = SPEED_STUFEN[n].mul;
               return n;
             })}
+            onPointerDown={e => e.stopPropagation()}
             style={{
               position: "absolute", bottom: "0.6rem", left: "0.75rem", zIndex: 10,
               background: "rgba(10,7,4,0.72)", border: `1px solid ${am(0.32)}`,

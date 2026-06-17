@@ -1,0 +1,46 @@
+AUFGABE
+Der „Tempo"-Knopf in der Galerie lässt sich nicht umschalten, weil ein Tipp darauf von
+der schiebbaren Wand abgefangen wird (sie stoppt die Wiedergabe und der Knopf
+verschwindet). Fix: Der Knopf soll das Pointer-Ereignis nicht an die Wand weiterreichen.
+EINE Zeile ergänzen.
+
+DATEI
+artifacts/emmerich/src/pages/Galerie.tsx
+
+VORGEHEN
+Suche den „Tempo"-Knopf — das ist der <button> mit dem onClick, der setSpeedStufe
+aufruft (Text „Tempo: {SPEED_STUFEN[speedStufe].label}"). Suche dort EXAKT diesen
+onClick-Block:
+
+            onClick={() => setSpeedStufe(s => {
+              const n = (s + 1) % SPEED_STUFEN.length;
+              speedMulRef.current = SPEED_STUFEN[n].mul;
+              return n;
+            })}
+
+Ersetze ihn EXAKT durch (dieselbe onClick-Logik, plus eine neue Zeile darunter):
+
+            onClick={() => setSpeedStufe(s => {
+              const n = (s + 1) % SPEED_STUFEN.length;
+              speedMulRef.current = SPEED_STUFEN[n].mul;
+              return n;
+            })}
+            onPointerDown={e => e.stopPropagation()}
+
+VERBOTEN
+- KEINE Änderung an anderen Buttons (Abspielen, Pause), Komponenten oder Dateien.
+- KEINE Änderung an der Autoplay-Logik, an SPEED_STUFEN, an den Geschwindigkeitswerten.
+- KEINE Änderung an Styling/Layout des Knopfes.
+- NUR die eine neue Zeile onPointerDown ergänzen, sonst nichts.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Nur der Tempo-Knopf wurde um onPointerDown={e => e.stopPropagation()} ergänzt.
+[ ] Während die Show läuft, schaltet ein Klick auf „Tempo" zwischen langsam / normal / schnell um, ohne die Wiedergabe zu stoppen.
+[ ] Pause und Abspielen funktionieren wie zuvor.
+[ ] Keine andere Datei/Funktion angefasst. Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem Dateipfad: artifacts/emmerich/src/pages/Galerie.tsx
+2. Der wörtlichen Bestätigung: „Nur der Tempo-Knopf wurde um onPointerDown ergänzt, sonst nichts."
+3. Falls der onClick-Block nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.
