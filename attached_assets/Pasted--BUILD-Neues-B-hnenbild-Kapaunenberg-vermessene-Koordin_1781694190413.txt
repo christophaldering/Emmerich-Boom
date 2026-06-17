@@ -1,0 +1,55 @@
+# BUILD — Neues Bühnenbild (Kapaunenberg) + vermessene Koordinaten
+
+**Nur die Szene-Konfiguration anpassen. Galerie-/Tresen-Logik, Auth, Daten unverändert.**
+
+## Bild
+
+Das neue Kulissenfoto (großer Saal Kapaunenberg, schwarze Bühnenöffnung mit Kronleuchter und Holzfront) liegt unter `public/` — Dateiname exakt so setzen, wie hochgeladen, z. B. `public/theke-buehne.png`.
+
+## Konzept
+
+Die Porträtrahmen hängen **in der schwarzen Bühnenöffnung** (Gold + Gesichter heben sich stark ab). Bierdeckel + Telefon sitzen auf der **Holz-Bühnenfront** darunter. Der Kronleuchter oben bleibt freier Blickfang.
+
+## Änderungen NUR in `artifacts/emmerich/src/config/theke-szene.ts`
+
+Vermessen am Bild (% der Bildmaße):
+
+- Schwarze Bühne: horizontal 22–73 %, vertikal 33–78 %.
+- Holz-Bühnenfront (Tresen): vertikal ~79–91 %.
+
+Werte setzen:
+
+```ts
+export const THEKE_SZENE = {
+  BACKDROP_URL: "/theke-buehne.png",   // exakt an Dateinamen anpassen
+  // Rahmen hängen IN der Bühnenöffnung (leicht eingerückt):
+  WALL_REGION: { top: 36, left: 25, width: 46, height: 38 },
+  // Tresen = Holz-Bühnenfront:
+  BAR_REGION:  { top: 80, left: 6,  width: 88, height: 14 },
+} as const;
+```
+
+## Feinschliff (nur falls nötig)
+
+- Falls die Rahmen über die Holzkanten der Bühnenöffnung hinausragen: `WALL_REGION` minimal verkleinern oder die Porträtgröße (`PORTRAIT_W/H` bzw. `ITEM_STRIDE` in `Galerie.tsx`) etwas reduzieren, sodass die Reihe sauber in der schwarzen Fläche sitzt.
+- Backdrop soll formatfüllend liegen (`object-fit: cover`), zentriert — der Kronleuchter bleibt mittig oben, die Bühne mittig.
+
+## VERBOTEN
+
+- Keine Änderung an Galerie-Scroll/Autoplay-Logik, Feed, Auth, Speichern/Upload, Steckbrief.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] `BACKDROP_URL` zeigt auf das neue Bild (korrekter Dateiname).
+- [ ] Rahmen hängen sichtbar in der schwarzen Bühnenöffnung.
+- [ ] Bierdeckel + Telefon sitzen auf der Holz-Bühnenfront.
+- [ ] Nichts überlappt die Bühnenkanten unschön; Backdrop formatfüllend.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Neues Bild aktiv: ja/nein
+> WALL_REGION/BAR_REGION gesetzt wie vermessen: ja/nein
+> Rahmen in Bühne, Tresen auf Holzfront: ja/nein
+> Geänderte Dateien: …

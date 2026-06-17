@@ -1,0 +1,74 @@
+# BUILD — Hausmeister permanent an der Wand (für ALLE sichtbar)
+
+**Befund: Der dauerhafte Hausmeister ist noch NICHT im Code (nur die 5 Beispiele + Leer-Rahmen). Der „Hausmeister”, den man bisher sah, ist das Demo-/Login-Profil — und das ist für andere ausgeblendet. Jetzt eine echte, permanente Figur einbauen, die JEDER sieht (auch wenn man als Christoph eingeloggt ist).**
+
+## 1. Permanente Figur als Frontend-Fixture
+
+In `artifacts/emmerich/src/pages/beispielProfile.ts` einen neuen Export `HAUSMEISTER` anlegen — analog zu `LEER_RAHMEN`, aber als sichtbare Porträt-Figur. Neues Flag `istInventar: true` (statt `istBeispiel`), damit er **nicht** entsättigt wird und ein eigenes Bändchen bekommt:
+
+```ts
+export const HAUSMEISTER: GalerieEntry = {
+  id: -77, anmeldung_ticket_id: -77,
+  anzeige_name: "Hausmeister Krause",
+  vorstellung: "Passt auf, dass keiner die Füße auf die Bänke legt. War schon am Bölt, bevor die Theke stand. Geht grundsätzlich als Letzter — und kehrt dann noch durch.",
+  lauter_song:  "Über sieben Brücken — aber nur nach Dienstschluss",
+  f_tontraeger: "Schlüsselbund",
+  f_abends:     "Macht erst Feierabend, wenn alle weg sind",
+  f_untersatz:  "Fahrrad mit Werkzeugkiste",
+  f_musik:      "Schlager, leise gestellt",
+  f_getraenk:   "Ein Pils zum Feierabend",
+  fotos: [], hat_botschaft: false, zuletzt_gesehen_am: null,
+  foto_frueher_key: null, foto_frueher_jahr: null,
+  foto_heute_key: null, foto_heute_jahr: null,
+  istBeispiel: false, istLeerRahmen: false,
+  istInventar: true,
+};
+```
+
+Das Feld `istInventar?: boolean` zum `GalerieEntry`-Typ in `Galerie.tsx` ergänzen.
+
+## 2. Immer anzeigen (unabhängig von der Beispiel-Schwelle)
+
+In `Galerie.tsx`, `alleEntries`-`useMemo` (≈ Zeile 450): den Hausmeister **immer** ans Ende hängen — sowohl wenn Beispiele gezeigt werden als auch wenn nicht:
+
+```ts
+const alleEntries = useMemo<GalerieEntry[]>(() => {
+  const showBeispiel = entries.length < BEISPIEL_SCHWELLE;
+  const base = showBeispiel
+    ? [...entries, ...(beamer ? BEISPIEL_PROFILE : [...BEISPIEL_PROFILE, LEER_RAHMEN])]
+    : [...entries];
+  return [...base, HAUSMEISTER];   // Hausmeister immer, ganz rechts
+}, [entries, beamer]);
+```
+
+## 3. Darstellung
+
+- Porträt: statisches Bild `public/theke/hausmeister.jpg`, falls vorhanden; sonst Initialen „HK” auf Amber (NICHT entsättigt — er ist Inventar, kein Beispiel).
+- Bändchen: statt „Beispiel” ein Bändchen **„Inventar”** (oder „gehört zum Haus”). Im Antipp-Fokus klar als Figur erkennbar.
+- Behandlung wie ein normales Porträt bei der Sichtbarkeit (Rahmen sichtbar, z-index korrekt — Porträt über der Rahmenfläche).
+
+## 4. Niemals zählen / nie „anwesend”
+
+- Aus Präsenz/„X gerade an der Theke”, Band, Feed, DB und allen Statistiken heraushalten (wie die Beispiele). `anwesend` für `istInventar` immer `false` (glüht nie).
+- Antippen: zeigt seinen Gag-Steckbrief im selben Overlay wie die Beispiele (kein echter Gast).
+
+## VERBOTEN
+
+- Feed/DB/Auth/Zählungen/Tresen/Speichern/Upload unverändert.
+- Hausmeister in KEINER Zahl (Kapazität, Personen, Präsenz, Band, Admin).
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Hausmeister erscheint IMMER (auch als Christoph eingeloggt, auch bei ≥10 echten Profilen), ganz rechts.
+- [ ] Bändchen „Inventar”; Porträt aus `hausmeister.jpg` sonst „HK”; nicht entsättigt.
+- [ ] Glüht nie als anwesend; taucht in keiner Zählung/Band/Präsenz auf.
+- [ ] Antippen zeigt seinen Steckbrief; Rahmen-Inhalt sichtbar (nicht schwarz).
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Hausmeister für alle sichtbar (auch als Christoph), permanent: ja/nein
+> In keiner Zählung/Präsenz/Band: ja/nein
+> Porträt/HK + „Inventar”-Bändchen: ja/nein
+> Geänderte Dateien: …
