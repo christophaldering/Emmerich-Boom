@@ -97,6 +97,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
 <html lang="de">
 <head><meta charset="utf-8"><title>Emmerich boomt! — Anmeldung</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;"><tr><td bgcolor="#0a0704" style="background-color:#0a0704;">
 <div style="max-width:600px;margin:0 auto;">
 
   <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
@@ -175,6 +176,7 @@ export async function sendBestaetigung(opts: BestaetigungsMailOptions): Promise<
 
   </div>
 </div>
+</td></tr></table>
 </body>
 </html>`;
 
@@ -281,6 +283,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 <html lang="de">
 <head><meta charset="utf-8"><title>${mehrereTickets ? "Eure Tickets" : "Dein Ticket"} \u2014 EMMERICH BOOMT!</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;font-family:Georgia,'Times New Roman',serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;"><tr><td bgcolor="#0a0704" style="background-color:#0a0704;">
   <div style="max-width:580px;margin:0 auto;">
 
     <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="580"
@@ -341,6 +344,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
     </div>
   </div>
   </div>
+</td></tr></table>
 </body>
 </html>`;
 
@@ -419,6 +423,7 @@ export async function sendWartelisteBestaetigung(opts: WartelisteMailOptions): P
 <html lang="de">
 <head><meta charset="utf-8"><title>Warteliste · EMMERICH BOOMT!</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;"><tr><td bgcolor="#0a0704" style="background-color:#0a0704;">
 <div style="max-width:600px;margin:0 auto;">
 
   <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
@@ -453,6 +458,7 @@ export async function sendWartelisteBestaetigung(opts: WartelisteMailOptions): P
 
   </div>
 </div>
+</td></tr></table>
 </body>
 </html>`;
 
@@ -516,6 +522,7 @@ export async function sendNachrueckerEinladung(opts: NachrueckerMailOptions): Pr
 <html lang="de">
 <head><meta charset="utf-8"><title>Nachrücker · EMMERICH BOOMT!</title></head>
 <body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;"><tr><td bgcolor="#0a0704" style="background-color:#0a0704;">
 <div style="max-width:600px;margin:0 auto;">
 
   <img src="cid:${POSTER_CID}" alt="BoomerParty — Emmerich boomt!" width="600"
@@ -571,6 +578,7 @@ export async function sendNachrueckerEinladung(opts: NachrueckerMailOptions): Pr
 
   </div>
 </div>
+</td></tr></table>
 </body>
 </html>`;
 

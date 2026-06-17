@@ -1,0 +1,46 @@
+KONTEXT
+Repo: Emmerich-Boom. Du fasst GENAU EINE Datei an:
+artifacts/api-server/src/services/mailer.ts
+Problem: In allen fünf HTML-Mails steht heller Text auf einem nur per <body>
+gesetzten dunklen Hintergrund. Manche Clients (Apple Mail, Outlook) ignorieren
+den <body>-Hintergrund → Text auf Weiß, unlesbar. Fix: den kompletten Inhalt
+jeder Mail in eine dunkle bgcolor-Tabellenzelle einwickeln.
+
+BETRIFFT GENAU DIESE FÜNF FUNKTIONEN (je ein HTML-Template mit <body>…</body>):
+  1. sendBestaetigung
+  2. sendTicketMail
+  3. sendWartelisteBestaetigung
+  4. sendNachrueckerEinladung
+  5. sendThekeEinladung
+
+VERBOTEN
+- KEINE andere Datei anfassen (insb. NICHT services/dailyReport.ts — der
+  Tagesbericht hat bewusst ein helles Design und bleibt unverändert).
+- KEINE Texte, Farben, Beträge, Links, Bilder oder Innenstrukturen ändern.
+- Die bestehenden inneren <div>-Wrapper (max-width 600px/580px, Paddings,
+  Ticket-/Signaturkästen) NICHT verändern.
+- NUR die unten genannten zwei Schnipsel je Mail einfügen — sonst nichts.
+
+UMSETZUNG — in JEDER der fünf Funktionen:
+
+a) UNMITTELBAR NACH dem öffnenden <body …>-Tag diese Zeile einfügen:
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;"><tr><td bgcolor="#0a0704" style="background-color:#0a0704;">
+
+b) UNMITTELBAR VOR dem schließenden </body>-Tag diese Zeile einfügen:
+</td></tr></table>
+
+(Die bestehenden <div>…</div> bleiben dazwischen exakt erhalten und liegen
+jetzt innerhalb der dunklen Tabellenzelle.)
+
+CHECKLISTE
+[ ] In allen 5 Funktionen Schnipsel (a) nach <body> eingefügt
+[ ] In allen 5 Funktionen Schnipsel (b) vor </body> eingefügt
+[ ] dailyReport.ts NICHT angefasst
+[ ] Keine Texte/Farben/Strukturen geändert
+[ ] pnpm run typecheck grün
+[ ] git status zeigt NUR mailer.ts
+
+ABSCHLUSSERKLÄRUNG (wörtlich)
+"Erledigt: Alle fünf Mails (Bestätigung, Ticket, Warteliste, Nachrücker, Theke)
+in dunkle bgcolor-Tabelle eingewickelt — heller Text jetzt überall auf dunklem
+Grund lesbar. Tagesbericht unverändert. Nur mailer.ts. typecheck grün."
