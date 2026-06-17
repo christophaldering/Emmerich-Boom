@@ -1397,7 +1397,7 @@ export default function ThekePage() {
         .catch(() => {});
     };
     load();
-    const id = setInterval(load, 60_000);
+    const id = setInterval(load, 10_000);
     return () => clearInterval(id);
   }, [token]);
 
