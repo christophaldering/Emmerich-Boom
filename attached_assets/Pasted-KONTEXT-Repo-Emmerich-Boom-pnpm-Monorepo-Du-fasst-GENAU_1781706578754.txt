@@ -1,0 +1,83 @@
+KONTEXT
+Repo: Emmerich-Boom (pnpm-Monorepo). Du fasst GENAU EINE Datei an:
+artifacts/api-server/src/routes/theke.ts
+Problem: Theke-Fotos werden im Originalzustand (bis 10 MB, volle Handy-
+Auflösung) in den Object-Storage geschrieben und in voller Größe wieder
+ausgeliefert. Deshalb laden die Bilder auf der Theke-Wand sehr langsam.
+
+ZIEL (PFLICHT, genau diese zwei Punkte)
+1. Hochgeladene Theke-FOTOS vor dem Speichern serverseitig verkleinern und
+   neu komprimieren. sharp ist bereits Dependency in artifacts/api-server
+   (siehe ticket-render.ts), KEINE neue Abhängigkeit installieren.
+2. Den Cache-Header der Datei-Ausliefer-Route verlängern.
+
+VERBOTEN
+- KEINE andere Datei anfassen als theke.ts.
+- AUDIO/Sprachnachrichten NICHT verändern: alles, was über audioUpload läuft,
+  bleibt unangetastet. sharp NUR auf Bilder anwenden.
+- KEINE Thumbnails, KEINE zweite Bildvariante, KEINE Frontend-Änderung,
+  KEINE Schema-Änderung, KEINE Änderung der Multer-Limits, KEINE neuen Routen.
+- Signatur von storeFile() NICHT ändern. Keine Funktionen/Routen umbenennen.
+
+UMSETZUNG PUNKT 1 — Foto-Resize
+a) Ganz oben den Import ergänzen:
+   import sharp from "sharp";
+
+b) Direkt NACH der bestehenden Funktion storeFile diese Helper einfügen:
+
+async function verkleinereBild(buffer: Buffer): Promise<{ buffer: Buffer; ext: string }> {
+  try {
+    const out = await sharp(buffer)
+      .rotate()                                          // EXIF-Ausrichtung (Handyfotos!)
+      .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer();
+    return { buffer: out, ext: "jpg" };
+  } catch {
+    return { buffer, ext: "jpg" };                       // Fallback: Original speichern
+  }
+}
+
+c) In ALLEN DREI Bild-Upload-Routen (/theke/foto/profil-frueher,
+   /theke/foto/profil-heute, /theke/foto/galerie) diesen exakt dreimal
+   identisch vorkommenden Block:
+
+  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
+  const key = `theke/foto/${randomUUID()}.${ext}`;
+  try {
+    await storeFile(req.file.buffer, key, req.file.mimetype);
+  } catch {
+    res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
+  }
+
+ersetzen durch:
+
+  const verkleinert = await verkleinereBild(req.file.buffer);
+  const key = `theke/foto/${randomUUID()}.${verkleinert.ext}`;
+  try {
+    await storeFile(verkleinert.buffer, key, "image/jpeg");
+  } catch {
+    res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
+  }
+
+UMSETZUNG PUNKT 2 — Cache-Header
+In der Route GET /theke/datei/*key die Zeile
+  res.setHeader("Cache-Control", "private, max-age=3600");
+ersetzen durch
+  res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
+
+PFLICHT-CHECKLISTE
+[ ] import sharp ergänzt
+[ ] Helper verkleinereBild eingefügt
+[ ] Block in /theke/foto/profil-frueher ersetzt
+[ ] Block in /theke/foto/profil-heute ersetzt
+[ ] Block in /theke/foto/galerie ersetzt
+[ ] Audio-/Sprachnachricht-Route NICHT verändert
+[ ] Cache-Header der Datei-Route angepasst
+[ ] pnpm run typecheck läuft fehlerfrei durch
+[ ] git status zeigt NUR theke.ts als geändert
+
+ABSCHLUSSERKLÄRUNG (wörtlich ausgeben, wenn fertig)
+"Erledigt: Theke-Fotos werden beim Upload auf max. 1600px / JPEG q80
+verkleinert, Cache-Header verlängert. Nur theke.ts geändert. Audio
+unangetastet. typecheck grün."

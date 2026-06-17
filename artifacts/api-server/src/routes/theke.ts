@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
+import sharp from "sharp";
 import { z } from "zod/v4";
 import { randomUUID } from "crypto";
 import { db, anmeldungTicketsTable, thekeProfileTable, thekeBotschaftenTable, thekeFotosTable, thekeVerteilerTable } from "@workspace/db";
@@ -34,6 +35,19 @@ async function storeFile(buffer: Buffer, key: string, _mimeType: string): Promis
   const client = getObjectStorage();
   const { ok, error } = await client.uploadFromBytes(key, buffer);
   if (!ok) throw new Error(`Upload fehlgeschlagen: ${error}`);
+}
+
+async function verkleinereBild(buffer: Buffer): Promise<{ buffer: Buffer; ext: string }> {
+  try {
+    const out = await sharp(buffer)
+      .rotate()
+      .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer();
+    return { buffer: out, ext: "jpg" };
+  } catch {
+    return { buffer, ext: "jpg" };
+  }
 }
 
 async function deleteFile(key: string): Promise<void> {
@@ -278,10 +292,10 @@ router.post("/theke/foto/profil-frueher", upload.single("foto"), async (req: Req
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
   if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
-  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
-  const key = `theke/foto/${randomUUID()}.${ext}`;
+  const verkleinert = await verkleinereBild(req.file.buffer);
+  const key = `theke/foto/${randomUUID()}.${verkleinert.ext}`;
   try {
-    await storeFile(req.file.buffer, key, req.file.mimetype);
+    await storeFile(verkleinert.buffer, key, "image/jpeg");
   } catch {
     res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
   }
@@ -320,10 +334,10 @@ router.post("/theke/foto/profil-heute", upload.single("foto"), async (req: Reque
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
   if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
-  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
-  const key = `theke/foto/${randomUUID()}.${ext}`;
+  const verkleinert = await verkleinereBild(req.file.buffer);
+  const key = `theke/foto/${randomUUID()}.${verkleinert.ext}`;
   try {
-    await storeFile(req.file.buffer, key, req.file.mimetype);
+    await storeFile(verkleinert.buffer, key, "image/jpeg");
   } catch {
     res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
   }
@@ -388,10 +402,10 @@ router.post("/theke/foto/galerie", upload.single("foto"), async (req: Request, r
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
   if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
-  const ext = req.file.mimetype.split("/")[1] ?? "jpg";
-  const key = `theke/foto/${randomUUID()}.${ext}`;
+  const verkleinert = await verkleinereBild(req.file.buffer);
+  const key = `theke/foto/${randomUUID()}.${verkleinert.ext}`;
   try {
-    await storeFile(req.file.buffer, key, req.file.mimetype);
+    await storeFile(verkleinert.buffer, key, "image/jpeg");
   } catch {
     res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
   }
@@ -527,7 +541,7 @@ router.get("/theke/datei/*key", async (req: Request, res: Response) => {
   if (!result) { res.status(404).json({ error: "Datei nicht gefunden" }); return; }
 
   res.setHeader("Content-Type", result.contentType);
-  res.setHeader("Cache-Control", "private, max-age=3600");
+  res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
   res.send(Buffer.from(result.data));
 });
 
