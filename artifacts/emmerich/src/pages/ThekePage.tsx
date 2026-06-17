@@ -182,9 +182,9 @@ function AuswahlFeld({ label, opts, value, onChange }: { label: string; opts: st
 
 // ─── Foto-Slot ────────────────────────────────────────────────────────────────
 
-function FotoSlot({ label, fileKey, jahr, token, onUpload, accept = "image/*", disabled = false }: {
+function FotoSlot({ label, fileKey, jahr, token, onUpload, onDelete, accept = "image/*", disabled = false }: {
   label: string; fileKey?: string | null; jahr?: number | null;
-  token: string; onUpload: (file: File, jahr?: number) => void; accept?: string; disabled?: boolean;
+  token: string; onUpload: (file: File, jahr?: number) => void; onDelete?: () => void; accept?: string; disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [jahrInput, setJahrInput] = useState(String(jahr ?? ""));
@@ -204,6 +204,18 @@ function FotoSlot({ label, fileKey, jahr, token, onUpload, accept = "image/*", d
           <div style={{ position: "absolute", top: "0.5rem", right: "0.5rem", background: am(0.7), borderRadius: "3px", padding: "0.2rem 0.5rem", fontFamily: "'Lora', serif", fontSize: "0.75rem", color: BG }}>
             Ändern
           </div>
+          {onDelete && (
+            <button
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+              title="Foto löschen"
+              style={{
+                position: "absolute", top: "0.5rem", left: "0.5rem", zIndex: 3,
+                background: "rgba(10,7,4,0.8)", border: `1px solid ${am(0.4)}`, borderRadius: "3px",
+                padding: "0.2rem 0.5rem", fontFamily: "'Lora', serif", fontSize: "0.75rem",
+                color: fg(0.85), cursor: "pointer",
+              }}
+            >🗑 Löschen</button>
+          )}
         </>
       ) : (
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
@@ -816,6 +828,26 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
     return () => { if (saveTimer.current) { clearTimeout(saveTimer.current); void save(); } };
   }, [save]);
 
+  const deleteFoto = async (slot: "frueher" | "heute") => {
+    if (!window.confirm("Dieses Foto wirklich löschen?")) return;
+    setFotoMsg({ text: "Foto wird gelöscht …", ok: true });
+    try {
+      const res = await fetch(`/api/theke/foto/profil/${slot}`, {
+        method: "DELETE", headers: { "x-theke-token": token },
+      });
+      const data = await res.json() as { ok?: boolean; profile?: Profile; error?: string };
+      if (data.ok && data.profile) {
+        onProfileChange(data.profile);
+        setFotoMsg({ text: "Foto gelöscht ✓", ok: true });
+        setTimeout(() => setFotoMsg(null), 3000);
+      } else {
+        setFotoMsg({ text: data.error ?? "Foto konnte nicht gelöscht werden.", ok: false });
+      }
+    } catch {
+      setFotoMsg({ text: "Foto konnte nicht gelöscht werden.", ok: false });
+    }
+  };
+
   const uploadFoto = async (slot: "profil-frueher" | "profil-heute", file: File, jahr?: number) => {
     setFotoMsg({ text: "Foto wird hochgeladen …", ok: true });
     try {
@@ -929,6 +961,7 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
             token={token}
             disabled={!hatEinwilligung}
             onUpload={(file, jahr) => uploadFoto("profil-frueher", file, jahr)}
+            onDelete={profile.foto_frueher_key ? () => deleteFoto("frueher") : undefined}
           />
           <FotoSlot
             label="Heute"
@@ -937,6 +970,7 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
             token={token}
             disabled={!hatEinwilligung}
             onUpload={(file, jahr) => uploadFoto("profil-heute", file, jahr)}
+            onDelete={profile.foto_heute_key ? () => deleteFoto("heute") : undefined}
           />
         </div>
       </div>

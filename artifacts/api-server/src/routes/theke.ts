@@ -346,6 +346,32 @@ router.post("/theke/foto/profil-heute", upload.single("foto"), async (req: Reque
   res.json({ ok: true, key, profile: updated });
 });
 
+// ─── DELETE /api/theke/foto/profil/:slot  (slot = frueher | heute) ───────────
+router.delete("/theke/foto/profil/:slot", async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const slot = req.params["slot"];
+  if (slot !== "frueher" && slot !== "heute") { res.status(400).json({ error: "Ungültiger Slot" }); return; }
+
+  const [profile] = await db.select().from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id)).limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+
+  const key = slot === "frueher" ? profile.foto_frueher_key : profile.foto_heute_key;
+  if (key) await deleteFile(key).catch(() => {});
+
+  const updates = slot === "frueher"
+    ? { foto_frueher_key: null, foto_frueher_jahr: null, updated_at: new Date() }
+    : { foto_heute_key: null, foto_heute_jahr: null, updated_at: new Date() };
+
+  const [updated] = await db.update(thekeProfileTable).set(updates)
+    .where(eq(thekeProfileTable.id, profile.id)).returning();
+  res.json({ ok: true, profile: updated });
+});
+
 // ─── POST /api/theke/foto/galerie ────────────────────────────────────────────
 router.post("/theke/foto/galerie", upload.single("foto"), async (req: Request, res: Response) => {
   const code = getCode(req);

@@ -1,0 +1,111 @@
+# BUILD — Früher/Heute-Foto löschen können
+
+Bisher haben die Früher/Heute-Fotos nur „Ändern” (neu hochladen), aber kein Löschen. Das ergänzen wir — Papierkorb im Bild + Lösch-Route im Backend.
+
+-----
+
+## TEIL 1 — Backend: Lösch-Route (`artifacts/api-server/src/routes/theke.ts`)
+
+Nach den beiden Upload-Routen (`/theke/foto/profil-frueher` und `/theke/foto/profil-heute`) eine Lösch-Route ergänzen. Muster wie die Upload-Handler (`getCode`, `validateCode`, `deleteFile`, `db`, `eq`, `thekeProfileTable` sind vorhanden):
+
+```ts
+// ─── DELETE /api/theke/foto/profil/:slot  (slot = frueher | heute) ───────────
+router.delete("/theke/foto/profil/:slot", async (req: Request, res: Response) => {
+  const code = getCode(req);
+  if (!code) { res.status(400).json({ error: "Kein Token" }); return; }
+  const ticket = await validateCode(code);
+  if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
+
+  const slot = req.params.slot;
+  if (slot !== "frueher" && slot !== "heute") { res.status(400).json({ error: "Ungültiger Slot" }); return; }
+
+  const [profile] = await db.select().from(thekeProfileTable)
+    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id)).limit(1);
+  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+
+  const key = slot === "frueher" ? profile.foto_frueher_key : profile.foto_heute_key;
+  if (key) await deleteFile(key).catch(() => {});
+
+  const updates = slot === "frueher"
+    ? { foto_frueher_key: null, foto_frueher_jahr: null, updated_at: new Date() }
+    : { foto_heute_key: null, foto_heute_jahr: null, updated_at: new Date() };
+
+  const [updated] = await db.update(thekeProfileTable).set(updates)
+    .where(eq(thekeProfileTable.id, profile.id)).returning();
+  res.json({ ok: true, profile: updated });
+});
+```
+
+-----
+
+## TEIL 2 — Frontend (`artifacts/emmerich/src/pages/ThekePage.tsx`)
+
+### 2a. `FotoSlot`: Lösch-Knopf
+
+- Prop ergänzen: `onDelete?: () => void;` (im Typ und in der Destrukturierung).
+- Innerhalb des `fileKey ? (<> … </>)`-Blocks, NACH dem „Ändern”-Badge, einen Papierkorb-Knopf oben links einfügen:
+
+```tsx
+{onDelete && (
+  <button
+    onClick={e => { e.stopPropagation(); onDelete(); }}
+    title="Foto löschen"
+    style={{
+      position: "absolute", top: "0.5rem", left: "0.5rem", zIndex: 3,
+      background: "rgba(10,7,4,0.8)", border: `1px solid ${am(0.4)}`, borderRadius: "3px",
+      padding: "0.2rem 0.5rem", fontFamily: "'Lora', serif", fontSize: "0.75rem",
+      color: fg(0.85), cursor: "pointer",
+    }}
+  >🗑 Löschen</button>
+)}
+```
+
+### 2b. `MeinSteckbrief`: Lösch-Helfer (analog zu `uploadFoto`)
+
+```ts
+const deleteFoto = async (slot: "frueher" | "heute") => {
+  if (!window.confirm("Dieses Foto wirklich löschen?")) return;
+  setFotoMsg({ text: "Foto wird gelöscht …", ok: true });
+  try {
+    const res = await fetch(`/api/theke/foto/profil/${slot}`, {
+      method: "DELETE", headers: { "x-theke-token": token },
+    });
+    const data = await res.json() as { ok?: boolean; profile?: Profile; error?: string };
+    if (data.ok && data.profile) {
+      onProfileChange(data.profile);
+      setFotoMsg({ text: "Foto gelöscht ✓", ok: true });
+      setTimeout(() => setFotoMsg(null), 3000);
+    } else {
+      setFotoMsg({ text: data.error ?? "Foto konnte nicht gelöscht werden.", ok: false });
+    }
+  } catch {
+    setFotoMsg({ text: "Foto konnte nicht gelöscht werden.", ok: false });
+  }
+};
+```
+
+### 2c. Den beiden `FotoSlot` das `onDelete` übergeben
+
+- Bei „Früher”: `onDelete={() => deleteFoto("frueher")}`
+- Bei „Heute”:  `onDelete={() => deleteFoto("heute")}`
+
+-----
+
+## VERBOTEN
+
+- Die Galerie-„weitere Fotos”-Löschung, Audio, Upload-Routen NICHT verändern.
+- Keine neuen Farben/Fonts (`A`, `BG`, `am()`, `fg()` vorhanden).
+- Beispiel-/Hausmeister-Bilder sind Frontend-Dateien und haben hier nichts zu suchen.
+
+## CHECKLISTE
+
+- [ ] Bei vorhandenem Früher- bzw. Heute-Foto erscheint ein „🗑 Löschen” oben links im Bild.
+- [ ] Klick fragt kurz nach, löscht dann Bild + Jahr; der Slot zeigt wieder das leere 📷-Feld.
+- [ ] Datei wird auch im Speicher entfernt (deleteFile).
+- [ ] „Ändern” (neu hochladen) funktioniert weiterhin.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Früher/Heute-Foto löschbar (Bild + Jahr leer danach): ja/nein
+> Geänderte Dateien: …
