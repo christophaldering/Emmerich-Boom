@@ -734,10 +734,13 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
     if (saveInProgressRef.current) return;
     saveInProgressRef.current = true;
     setSaving(true); setSavedMsg("");
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
     try {
       const res = await fetch(`/api/theke/profil`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-theke-token": token },
+        signal: controller.signal,
         body: JSON.stringify({
           anzeige_name:      localRef.current.anzeige_name,
           vorstellung:       localRef.current.vorstellung,
@@ -755,9 +758,17 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
       const data = await res.json() as { ok?: boolean; profile?: Profile };
       if (data.ok && data.profile) { onProfileChange(data.profile); setSavedMsg("Gespeichert ✓"); }
       else { setSavedMsg("Konnte nicht gespeichert werden"); }
-    } catch { setSavedMsg("Konnte nicht gespeichert werden"); }
-    setSaving(false);
-    saveInProgressRef.current = false;
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        setSavedMsg("Konnte nicht gespeichert werden (Zeitüberschreitung)");
+      } else {
+        setSavedMsg("Konnte nicht gespeichert werden");
+      }
+    } finally {
+      clearTimeout(timeoutId);
+      setSaving(false);
+      saveInProgressRef.current = false;
+    }
   }, [token, onProfileChange]);
 
   const debouncedSave = useCallback(() => {

@@ -1,0 +1,54 @@
+# FIX & DIAGNOSE — Steckbrief-Speichern hängt bei „Speichern …"
+
+**Der Speichern-Button bleibt dauerhaft auf „Speichern …" — die Anfrage bekommt keine Antwort (sie hängt). Das ist server-seitig. Bitte live diagnostizieren und beheben.**
+
+## 1. LIVE-DIAGNOSE (im laufenden Projekt, mit Server-Log)
+Schick einen Test-Request und lies die **echte** Antwort + das Server-Log:
+```
+PUT /api/theke/profil
+Header: x-theke-token: 00000000DEADBEEF, Content-Type: application/json
+Body: {
+  "anzeige_name": "Hausmeister",
+  "vorstellung": null, "jahr_1985": null, "lauter_song": null,
+  "f_tontraeger": null, "f_abends": "Kneipe", "f_untersatz": "Moped/Motorrad",
+  "f_musik": "Schlager", "f_getraenk": "Bier",
+  "foto_frueher_jahr": null, "foto_heute_jahr": null
+}
+```
+Berichte konkret:
+- Kommt **überhaupt** eine HTTP-Antwort? Welcher Status / welcher Body?
+- Falls keine Antwort: an welcher Stelle bleibt der Handler hängen? (Logging am Handler-Eintritt, vor/nach `validateCode`, vor/nach `db.select`, vor/nach `db.update`.)
+- Zeigt das Server-Log einen Fehler/Stacktrace oder einen Prozess-Neustart bei diesem Request?
+
+## 2. Mögliche Ursachen (prüfen)
+- **DB-Query hängt** (`db.select`/`db.update` auf `theke_profile`) — Connection-Pool erschöpft, Lock, oder eine zuvor hängende Anfrage. Pool-/Verbindungslage prüfen.
+- **Kein Response auf einem Pfad** — sicherstellen, dass wirklich jeder Codepfad ein `res.*` sendet (auch bei geworfenen Fehlern → 500 zurückgeben, nicht still hängen).
+- **Unhandled Rejection**, die den Dev-Server blockiert/neustartet.
+Behebe die gefundene Ursache, sodass `PUT /api/theke/profil` zuverlässig 200 (oder einen klaren Fehlerstatus) zurückgibt.
+
+## 3. Frontend-Schutz — Button darf NIE hängen
+In `ThekePage.tsx` `save()`:
+- Der `fetch` bekommt einen **AbortController mit Timeout (~10 s)**. Bei Timeout/Abbruch: Fehlermeldung „Konnte nicht gespeichert werden (Zeitüberschreitung)".
+- `setSaving(false)` und `saveInProgressRef.current = false` in einen **`finally`-Block** verschieben, damit sie auch bei Timeout/Abbruch immer laufen. So bleibt der Button nie mehr dauerhaft auf „Speichern …".
+
+## 4. Verifizieren
+- Steckbrief mit Auswahl (Musik/Getränk/Untersatz/Abends) speichern → „Gespeichert ✓".
+- Seite neu laden → Auswahl bleibt erhalten.
+- Bei künstlich erzwungenem Serverfehler erscheint eine klare Fehlermeldung statt eines hängenden Buttons.
+
+## VERBOTEN
+- Auth/`toUpperCase()`, `profilSchema` (ist bereits nullable), Szenendesign, Object Storage unverändert.
+
+## CHECKLISTE
+- [ ] Live-Diagnose ausgeführt; Status/Log im Abschluss berichtet.
+- [ ] Ursache des Hängers behoben; `PUT /api/theke/profil` antwortet zuverlässig.
+- [ ] `save()` mit Timeout/Abort + `finally`-Reset; Button hängt nie mehr.
+- [ ] Speichern „Gespeichert ✓"; Auswahl bleibt nach Reload.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> Live-Diagnose PUT /theke/profil: Status __ ; Antwort/Log: __
+> Ursache des Hängers: __ ; behoben: ja/nein
+> Frontend-Timeout + finally-Reset: ja/nein
+> Speichern funktioniert, Auswahl bleibt nach Reload: ja/nein
+> Geänderte Dateien: …

@@ -143,28 +143,33 @@ router.put("/theke/profil", async (req: Request, res: Response) => {
   const parsed = profilSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Ungültige Felder" }); return; }
 
-  const [profile] = await db
-    .select()
-    .from(thekeProfileTable)
-    .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
-    .limit(1);
-  if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
+  try {
+    const [profile] = await db
+      .select()
+      .from(thekeProfileTable)
+      .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
+      .limit(1);
+    if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
 
-  // Content fields require consent A (sichtbarkeit_zugestimmt_am)
-  const CONTENT_FIELDS = ["vorstellung", "jahr_1985", "lauter_song", "f_tontraeger", "f_abends", "f_untersatz", "f_musik", "f_getraenk", "foto_frueher_jahr", "foto_heute_jahr"] as const;
-  const hasContentFields = CONTENT_FIELDS.some(f => parsed.data[f] !== undefined);
-  if (hasContentFields && !profile.sichtbarkeit_zugestimmt_am) {
-    res.status(403).json({ error: "Bitte zuerst Einwilligung A setzen." });
-    return;
+    // Content fields require consent A (sichtbarkeit_zugestimmt_am)
+    const CONTENT_FIELDS = ["vorstellung", "jahr_1985", "lauter_song", "f_tontraeger", "f_abends", "f_untersatz", "f_musik", "f_getraenk", "foto_frueher_jahr", "foto_heute_jahr"] as const;
+    const hasContentFields = CONTENT_FIELDS.some(f => parsed.data[f] !== undefined);
+    if (hasContentFields && !profile.sichtbarkeit_zugestimmt_am) {
+      res.status(403).json({ error: "Bitte zuerst Einwilligung A setzen." });
+      return;
+    }
+
+    const [updated] = await db
+      .update(thekeProfileTable)
+      .set({ ...parsed.data, updated_at: new Date() })
+      .where(eq(thekeProfileTable.id, profile.id))
+      .returning();
+
+    res.json({ ok: true, profile: updated });
+  } catch (err) {
+    req.log.error(err, "PUT /theke/profil db error");
+    res.status(500).json({ error: "Datenbankfehler" });
   }
-
-  const [updated] = await db
-    .update(thekeProfileTable)
-    .set({ ...parsed.data, updated_at: new Date() })
-    .where(eq(thekeProfileTable.id, profile.id))
-    .returning();
-
-  res.json({ ok: true, profile: updated });
 });
 
 // ─── POST /api/theke/einwilligung ────────────────────────────────────────────
