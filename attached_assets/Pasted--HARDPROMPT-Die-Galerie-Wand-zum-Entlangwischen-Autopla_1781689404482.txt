@@ -1,0 +1,70 @@
+# HARDPROMPT — Die Galerie: Wand zum Entlangwischen + Autoplay/Beamer + Beispiel-Profile
+
+**Großer visueller Schritt, aber eng begrenzt: NUR der Wand-Bereich der Theke wird zur begehbaren Galerie. Tresen (Bierdeckel/Profil-Einrichten, Telefon/Anrufbeantworter), Speichern, Upload, Einwilligungen, Feed-Endpunkt, Auth, Demo-Ausschluss bleiben UNVERÄNDERT.**
+
+## 0. Ausgangslage (vorhanden, wiederverwenden)
+- Bühnenbild liegt unter `public/theke/backdrop.jpg`, positioniert über `config/theke-szene.ts` (`BACKDROP_URL`, `WALL_REGION`, `BAR_REGION`).
+- `GET /api/theke/feed` liefert sichtbare Profile (neueste zuerst) inkl. `foto_*_key`, `zuletzt_gesehen_am`, Auswahl-Feldern.
+- Antippen-im-Fokus (FeedDetail-Overlay) existiert — wird wiederverwendet.
+- Präsenz-Glühen (Ping, <90 s) existiert.
+
+Design unverändert: `#0A0704` / `#E8991A` / `#F5E8C8`, Playfair + Lora. Keine neuen Farben/Fonts.
+
+## 1. VERBOTEN
+- Tresen-Bereich, Profil-Einrichten, Telefon, Speichern/Upload/Einwilligungen, Feed-/datei-Endpunkte NICHT anfassen.
+- KEINE Listen-/Reiter-Optik. KEINE 3D-Engine / three.js / WebGL. KEIN echtes Herumlaufen mit Avatar.
+- KEIN literaler Karten-Flip (Antippen = Fokus nach vorn, wie gehabt).
+- Demo-/Orga-Profil bleibt aus Wand, Feed, Präsenz, Band, Zählungen ausgeschlossen.
+
+## 2. DIE WAND ALS GALERIE (Entlangwischen mit Tiefe)
+Im `WALL_REGION` wird aus der seitlich scrollbaren Leiste eine **begehbare Galerie**:
+
+- **Horizontales Wischen** entlang der Wand (Touch-Swipe + Trackpad). Die Porträts hängen in einer Reihe (leicht gestaffelt in der Höhe), neueste zuerst (links).
+- **Parallaxe-Tiefe:** Das Bühnenbild dahinter scrollt **langsamer** als die Porträtrahmen (Faktor ≈ 0,4) und wird dafür horizontal nahtlos wiederholt/gespiegelt, sodass die Wand „endlos" weiterläuft. So entsteht Tiefe — Vordergrund-Rahmen wandern schneller als die Wand.
+- **Gerahmte Porträts als selbst gezeichnete SVG-Rahmen:** verschiedene Formen (rechteckig, oval, verziert, gold) im Stil klassischer Bilderrahmen, je Profil **deterministisch** (gleicher Rahmen pro Person, abgeleitet aus der id). Weicher Schlagschatten darunter → „hängt an der Wand". Leichte, dezente Größen-/Höhen-/Rotationsvariation und sanfte Schärfentiefe (entferntere etwas kleiner/weicher), aber sparsam, damit es ruhig bleibt.
+- **Porträtinhalt:** das Heute-Foto (sonst Früher, sonst Initialen auf Amber-Grund).
+- **Anwesende glühen** (vorhandene Präsenzlogik): warmer, leise pulsierender Rahmen; Abwesende ruhig.
+- **Antippen holt das Bild nach vorn** (vorhandenes Fokus-Overlay mit Steckbrief + „Bandnachricht hören"); Schließen bringt es zurück.
+- **Performance:** bei vielen Profilen nur die im Sichtbereich + Puffer gerendert (Fenster/Windowing), Bilder lazy laden. Muss auf älteren iPhones flüssig wischen.
+
+## 3. AUTOPLAY / „LEHN DICH ZURÜCK" (= zugleich Beamer-Modus)
+- Standard ist **Wischen** (Nutzer steuert).
+- Ein Knopf **„Lehn dich zurück"** startet Autoplay: die Galerie fährt **von allein** langsam an den Porträts entlang (neueste zuerst), mit sanftem **Ken-Burns** (leichtes Zoomen/Schwenken) über das jeweils zentrale Porträt. Jede Nutzer-Interaktion (Wischen/Tippen) pausiert Autoplay.
+- **Beamer-Wand (`/theke/wand`)** nutzt **genau diesen** Autoplay-Modus: Vollbild, 16:9, ohne Bedienelemente, dauerhaft laufend. Ein Mechanismus, zwei Zwecke — keine zweite Implementierung.
+
+## 4. BEISPIEL-PROFILE (Leerzustand, Sog erzeugen)
+Solange **weniger als 10 echte** Profile sichtbar sind, zeigt die Wand zusätzlich **5 Beispiel-Profile**. Ab dem 10. echten Profil verschwinden sie automatisch. (Schwelle als Konstante `BEISPIEL_SCHWELLE = 10`, leicht änderbar.)
+
+- **Rein im Frontend** als feste Beispiel-Daten — **nicht** in der DB, **nicht** im Feed-Endpunkt, **nicht** in Zählungen, Präsenz oder Band. Reine Schaufenster-Dekoration.
+- **Klar als Beispiel erkennbar:** kleines „Beispiel"-Bändchen am Rahmen, leicht entsättigt. Beim Antippen öffnet sich der (fiktive) Steckbrief im Fokus, oben deutlich „Beispiel-Profil".
+- **Porträt:** stilisierter Platzhalter (Initialen auf Amber bzw. schlichte Retro-Silhouette) — kein externes Bild nötig.
+- **Charme + Appell:** liebevolle Boomer-Steckbriefe, z. B. „Renate — Hüterin der Schallplatte", „Manfred — kennt jede Theke am Niederrhein". Zusätzlich **ein einladender leerer Rahmen** „Dein Platz an der Wand — häng dich dazu", der direkt das eigene Profil-Einrichten öffnet.
+- Vorschläge für die 5 (gern anpassen): Renate (Schallplatte/Schlager/Wein), Manfred (Mofa/Bier/„1985 war ich gerade verliebt"), Gisela (Tanzfläche/Disco/Sekt), Wolfgang (Klassik/Auto/„kennt alle Strophen"), Helga (Kneipe/„alles irgendwie"/Softdrink).
+
+## 5. ERLAUBTE DATEIEN
+- `artifacts/emmerich/src/pages/ThekePage.tsx` (Wand-Bereich → Galerie; Tresen unverändert lassen).
+- `artifacts/emmerich/src/pages/ThekeWandPage.tsx` (Beamer = Autoplay-Galerie Vollbild).
+- ggf. neue Komponente `Galerie.tsx` + `beispielProfile.ts` (Frontend-Daten).
+- `config/theke-szene.ts` nur falls Feinjustage nötig.
+Sonst nichts.
+
+## 6. CHECKLISTE
+- [ ] Wand ist horizontal wischbar; Bühnenbild läuft mit Parallaxe (langsamer) endlos weiter.
+- [ ] Porträts in selbst gezeichneten, variierenden SVG-Goldrahmen (deterministisch pro Person), Schatten, dezente Tiefe; neueste zuerst.
+- [ ] Anwesende glühen; Antippen holt das Bild nach vorn (Fokus-Overlay), Schließen zurück.
+- [ ] „Lehn dich zurück"-Autoplay mit Ken-Burns; Interaktion pausiert; `/theke/wand` ist derselbe Autoplay in Vollbild 16:9.
+- [ ] <10 echte Profile → 5 Beispiel-Profile + einladender Leer-Rahmen; ab 10 echten weg.
+- [ ] Beispiele nur Frontend, nicht in DB/Feed/Zählungen/Präsenz/Band; klar als „Beispiel" markiert.
+- [ ] Performant bei vielen Profilen (Windowing, lazy Bilder), flüssig auf älteren iPhones.
+- [ ] Tresen, Speichern, Upload, Einwilligungen, Endpunkte, Auth, Demo-Ausschluss unverändert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## 7. PFLICHT-ABSCHLUSSERKLÄRUNG
+> **GALERIE FERTIG.**
+> Wand wischbar mit Parallaxe-Tiefe: ja/nein
+> SVG-Goldrahmen (variierend, deterministisch) + Glühen + Fokus-Antippen: ja/nein
+> Autoplay „Lehn dich zurück" = Beamer-Wand (ein Mechanismus): ja/nein
+> 5 Beispiel-Profile <10 echte, ab 10 weg, rein Frontend, als Beispiel markiert: ja/nein
+> Tresen/Speichern/Upload/Einwilligungen/Endpunkte unangetastet: ja/nein
+> Performance ok (Windowing/lazy): ja/nein
+> Geänderte Dateien / Abweichungen: …
