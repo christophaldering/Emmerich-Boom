@@ -1,0 +1,90 @@
+AUFGABE
+Die Auswahl-Chip-Gruppen im Steckbrief sollen zusätzlich ein freies Texteingabefeld
+bekommen, damit man statt eines Chips auch eine eigene Angabe eintippen kann.
+Umsetzung über GENAU EINE Komponente (AuswahlFeld) in EINER Datei. Dadurch gilt die
+Erweiterung automatisch für alle fünf Felder (Tonträger, Damals abends, Untersatz,
+Musik heute, Lieblingsgetränk). KEINE Datenbank-Änderung – die Felder sind bereits
+freier Text.
+
+DATEI
+artifacts/emmerich/src/pages/ThekePage.tsx
+
+VORGEHEN
+Ersetze die KOMPLETTE bestehende Funktion „AuswahlFeld" (von der Zeile
+`function AuswahlFeld({ label, opts, value, onChange }` bis zur zugehörigen
+schließenden Klammer `}` der Funktion) EXAKT durch die folgende neue Fassung:
+
+function AuswahlFeld({ label, opts, value, onChange }: { label: string; opts: string[]; value: string | null | undefined; onChange: (v: string) => void }) {
+  const istEigen = !!value && !opts.includes(value);
+  return (
+    <div style={{ marginBottom: "1.5rem" }}>
+      <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.8), marginBottom: "0.75rem" }}>{label}</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+        {opts.map(opt => {
+          const sel = value === opt;
+          return (
+            <button key={opt} onClick={() => onChange(opt)}
+              style={{
+                background: sel ? A : am(0.08),
+                border: `1px solid ${sel ? A : am(0.3)}`,
+                borderRadius: "20px",
+                color: sel ? BG : fg(0.8),
+                fontFamily: "'Lora', serif",
+                fontSize: "0.9rem",
+                padding: "0.4rem 1rem",
+                cursor: "pointer",
+                fontWeight: sel ? 700 : 400,
+                transition: "all 0.15s",
+              }}>
+              {opt}
+            </button>
+          );
+        })}
+      </div>
+      <input
+        type="text"
+        value={istEigen ? value! : ""}
+        onChange={e => onChange(e.target.value)}
+        maxLength={40}
+        placeholder="… oder was Eigenes eintippen"
+        style={{
+          marginTop: "0.6rem",
+          width: "100%",
+          maxWidth: "20rem",
+          boxSizing: "border-box",
+          background: istEigen ? am(0.16) : am(0.08),
+          border: `1px solid ${istEigen ? A : am(0.3)}`,
+          borderRadius: "20px",
+          color: fg(0.9),
+          fontFamily: "'Lora', serif",
+          fontSize: "0.9rem",
+          padding: "0.4rem 1rem",
+          outline: "none",
+        }}
+      />
+    </div>
+  );
+}
+
+VERBOTEN
+- KEINE Änderung an irgendeiner anderen Funktion, Komponente oder Datei.
+- KEINE Datenbank-/Schema-Änderung, KEINE Migration.
+- KEINE Änderung an den Options-Arrays (TONTRAEGER_OPTS usw.).
+- KEINE Änderung an den fünf <AuswahlFeld …>-Aufrufen weiter unten – die bleiben 1:1.
+- KEINE Änderung an Speichern-Logik, Feldnamen (f_tontraeger usw.) oder Anzeige.
+- KEINE neuen Pakete, keine zusätzlichen UI-Elemente außerhalb dieser Funktion.
+- Helfer A, BG, am(), fg() existieren bereits – NICHT neu definieren.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Nur die Funktion AuswahlFeld in ThekePage.tsx wurde ersetzt.
+[ ] Chips funktionieren weiter wie zuvor (Antippen wählt aus).
+[ ] Unter den Chips steht jetzt ein Texteingabefeld.
+[ ] Tippt man eigenen Text, ist kein Chip mehr markiert und das Feld ist hervorgehoben.
+[ ] Tippt man einen Chip an, leert sich das eigene Textfeld wieder.
+[ ] Keine anderen Dateien/Funktionen angefasst. App baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem Dateipfad: artifacts/emmerich/src/pages/ThekePage.tsx
+2. Der wörtlichen Bestätigung: „Nur die Funktion AuswahlFeld wurde ersetzt, sonst nichts."
+3. Falls die Funktion nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.

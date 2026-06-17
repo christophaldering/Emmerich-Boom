@@ -166,6 +166,7 @@ function NamenseingabeDialog({ personName, onConfirm }: { personName: string; on
 // ─── Auswahl-Feld ─────────────────────────────────────────────────────────────
 
 function AuswahlFeld({ label, opts, value, onChange }: { label: string; opts: string[]; value: string | null | undefined; onChange: (v: string) => void }) {
+  const istEigen = !!value && !opts.includes(value);
   return (
     <div style={{ marginBottom: "1.5rem" }}>
       <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.8), marginBottom: "0.75rem" }}>{label}</p>
@@ -191,6 +192,27 @@ function AuswahlFeld({ label, opts, value, onChange }: { label: string; opts: st
           );
         })}
       </div>
+      <input
+        type="text"
+        value={istEigen ? value! : ""}
+        onChange={e => onChange(e.target.value)}
+        maxLength={40}
+        placeholder="… oder was Eigenes eintippen"
+        style={{
+          marginTop: "0.6rem",
+          width: "100%",
+          maxWidth: "20rem",
+          boxSizing: "border-box",
+          background: istEigen ? am(0.16) : am(0.08),
+          border: `1px solid ${istEigen ? A : am(0.3)}`,
+          borderRadius: "20px",
+          color: fg(0.9),
+          fontFamily: "'Lora', serif",
+          fontSize: "0.9rem",
+          padding: "0.4rem 1rem",
+          outline: "none",
+        }}
+      />
     </div>
   );
 }
