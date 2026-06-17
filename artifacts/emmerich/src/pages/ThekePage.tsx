@@ -934,10 +934,6 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
       </div>
 
       <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
-        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
-      </div>
-
-      <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
         <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: A, marginBottom: "1.25rem" }}>
           Früher &amp; Heute — Fotos
         </p>
@@ -992,6 +988,10 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
         ) : (
           <Anrufbeantworter token={token} botschaft={botschaft} onUploaded={onBotschaftChange} onDeleted={() => onBotschaftChange(null)} />
         )}
+      </div>
+
+      <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
+        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
       </div>
     </div>
   );
