@@ -9,6 +9,7 @@
     "generate-muster-ticket": "tsx ./src/generate-muster-ticket.ts",
     "generate-plakat": "tsx ./src/generate-plakat.ts",
     "renumber-tickets": "tsx src/renumber-tickets.ts",
+    "create-farzin-ticket": "tsx src/create-farzin-ticket.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

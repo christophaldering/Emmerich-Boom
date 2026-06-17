@@ -13,4 +13,6 @@ export const SERVER_CONFIG = {
   THEKE_BASE_URL:          "https://emmerich-boomt.de",
   THEKE_DEMO_CODE:         "00000000DEADBEEF",
   THEKE_DEMO_EMAIL:        "orga-vorschau@emmerich-boomt.de",
+  THEKE_FARZIN_CODE:       "FARZIN2026PREV00",
+  THEKE_FARZIN_EMAIL:      "akyel.events@gmail.com",
 } as const;

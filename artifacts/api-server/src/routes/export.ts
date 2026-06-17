@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import * as XLSX from "xlsx";
 import { db, anmeldungenTable, wartelisteTable } from "@workspace/db";
-import { isNull, sum, ne } from "drizzle-orm";
+import { isNull, sum, ne, and } from "drizzle-orm";
 import { SERVER_CONFIG } from "../config.js";
 
 const router = Router();
@@ -43,7 +43,7 @@ router.get("/admin/export", async (req: Request, res: Response) => {
 
   try {
     const [anmeldungen, warteliste] = await Promise.all([
-      db.select().from(anmeldungenTable).where(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL)).orderBy(anmeldungenTable.created_at),
+      db.select().from(anmeldungenTable).where(and(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_FARZIN_EMAIL))).orderBy(anmeldungenTable.created_at),
       db.select().from(wartelisteTable).orderBy(wartelisteTable.created_at),
     ]);
 

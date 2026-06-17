@@ -528,6 +528,7 @@ router.get("/theke/feed", async (req: Request, res: Response) => {
     .where(and(
       isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am),
       sql`${thekeProfileTable.anmeldung_ticket_id} NOT IN (SELECT id FROM anmeldung_tickets WHERE ticket_code = ${SERVER_CONFIG.THEKE_DEMO_CODE})`,
+      sql`${thekeProfileTable.anmeldung_ticket_id} NOT IN (SELECT id FROM anmeldung_tickets WHERE ticket_code = ${SERVER_CONFIG.THEKE_FARZIN_CODE})`,
     ))
     .orderBy(desc(thekeProfileTable.updated_at));
 
@@ -612,6 +613,7 @@ router.get("/theke/band", async (req: Request, res: Response) => {
       eq(thekeBotschaftenTable.abspielen_ok, true),
       isNotNull(thekeProfileTable.sichtbarkeit_zugestimmt_am),
       sql`${thekeBotschaftenTable.anmeldung_ticket_id} NOT IN (SELECT id FROM anmeldung_tickets WHERE ticket_code = ${SERVER_CONFIG.THEKE_DEMO_CODE})`,
+      sql`${thekeBotschaftenTable.anmeldung_ticket_id} NOT IN (SELECT id FROM anmeldung_tickets WHERE ticket_code = ${SERVER_CONFIG.THEKE_FARZIN_CODE})`,
     ))
     .orderBy(desc(thekeBotschaftenTable.created_at));
 

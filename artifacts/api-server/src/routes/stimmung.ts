@@ -62,7 +62,7 @@ export async function generateKaiComment(): Promise<void> {
         song: anmeldungenTable.song,
       })
       .from(anmeldungenTable)
-      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL)))
+      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_FARZIN_EMAIL)))
       .orderBy(desc(anmeldungenTable.created_at));
 
     const phase2Eintraege: Phase2Entry[] = anmeldungRows
@@ -104,7 +104,7 @@ router.post("/stimmung/regenerate", async (req, res) => {
         song: anmeldungenTable.song,
       })
       .from(anmeldungenTable)
-      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL)))
+      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_FARZIN_EMAIL)))
       .orderBy(desc(anmeldungenTable.created_at));
 
     const phase2EintraegeRegen: Phase2Entry[] = anmeldungRowsRegen
