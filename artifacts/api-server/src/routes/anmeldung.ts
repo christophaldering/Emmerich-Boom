@@ -43,7 +43,7 @@ router.get("/anmeldung/stats", async (req, res) => {
     const result = await db
       .select({ total: sum(anmeldungenTable.personen_anzahl) })
       .from(anmeldungenTable)
-      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), notInArray(anmeldungenTable.email, [...SERVER_CONFIG.THEKE_FREIKARTEN_EMAILS])));
+      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.bezahlweg, "freiticket"), notInArray(anmeldungenTable.email, [...SERVER_CONFIG.THEKE_FREIKARTEN_EMAILS])));
     const angemeldete_personen = Number(result[0]?.total ?? 0);
     const verfuegbar = Math.max(0, KAPAZITAET - angemeldete_personen);
     res.json({ angemeldete_personen, kapazitaet: KAPAZITAET, verfuegbar });

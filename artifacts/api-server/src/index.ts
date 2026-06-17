@@ -103,7 +103,7 @@ async function seedFreikartenIfMissing() {
         .values({
           email:           f.email,
           personen_anzahl: 1,
-          personen:        [{ name: f.name }],
+          personen:        [f.name],
           betrag_gesamt:   0,
           bezahlweg:       "freiticket",
           statement:       "Presse-/Vorschau-Freiticket (nicht zählen)",

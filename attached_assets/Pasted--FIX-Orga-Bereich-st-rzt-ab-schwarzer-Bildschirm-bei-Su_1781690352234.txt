@@ -1,0 +1,58 @@
+# FIX — Orga-Bereich stürzt ab (schwarzer Bildschirm) bei Suche & Namen-Bearbeiten
+
+**Ursache: Die Freiticket-Funktion speichert `personen` als Objekt statt als Text. Drei Teile: Ursache fixen, Altdaten reparieren, Oberfläche absichern.**
+
+## Befund
+In `artifacts/api-server/src/index.ts`, Funktion `seedFreikartenIfMissing()`:
+```ts
+personen: [{ name: f.name }],   // FALSCH: Array mit Objekt
+```
+Überall sonst ist `personen` ein **`string[]`** (z. B. `["Farzin"]`). Im Admin (`AdminPage.tsx`) rendert die Liste den Namen aus `personen` und die Suche macht `r.personen.some(p => p.toLowerCase()...)`. Auf einem Objekt wirft `.toLowerCase()` → React-Absturz → schwarzer Bildschirm. Daher auch „[object Object]" als Name bei den drei Presse-Freitickets.
+
+## Fix 1 — Ursache (Freiticket-Insert)
+In `seedFreikartenIfMissing()` `personen` als String-Array speichern:
+```ts
+personen: [f.name],
+```
+
+## Fix 2 — Altdaten reparieren (einmalig, idempotent)
+Die drei bereits angelegten Anmeldungen haben `personen = [{name:…}]`. Korrigiere sie zu String-Arrays — am besten beim Serverstart defensiv: Wenn eine Freiticket-Anmeldung `personen`-Einträge als Objekt hat, in `[<name>]` umschreiben. Zuordnung:
+- `akyel.events@gmail.com` → `["Farzin"]`
+- `Sarah.Eul@funkemedien.de` → `["Sarah Eul"]`
+- `emmerich@rheinische-post.de` → `["Christian Hagemann"]`
+(Alternativ ein kurzes Korrektur-Script; Hauptsache, die drei Zeilen haben danach saubere String-Arrays.)
+
+## Fix 3 — Oberfläche absichern (nie wieder Absturz)
+In `AdminPage.tsx` überall, wo Personennamen gelesen/gefiltert/gerendert/bearbeitet werden, defensiv auf Text zwingen. Kleiner Helfer:
+```ts
+const personName = (p: unknown): string =>
+  typeof p === "string" ? p
+  : (p && typeof p === "object" && "name" in p) ? String((p as { name: unknown }).name ?? "")
+  : String(p ?? "");
+```
+- **Suche:** `r.personen.some(p => personName(p).toLowerCase().includes(q))`.
+- **Namen-Bearbeiten (Init):** `setEditedNames((Array.isArray(row.personen) ? row.personen : []).map(personName))`.
+- **Anzeige** der Namen ebenfalls über `personName(...)`.
+So crasht der Bereich selbst bei unerwarteten Daten nicht mehr, sondern zeigt nur Text.
+
+## Fix 4 — Freitickets nicht mitzählen (laut eigenem Vermerk „nicht zählen")
+Die drei Freitickets (`bezahlweg = "freiticket"`) erhöhen aktuell die öffentliche Zahl und die Kapazität (Admin zeigt „-3 Noch verfügbar"). Da sie ausdrücklich nicht zählen sollen: in der **öffentlichen** Summe (`GET /api/anmeldung/stats`) und in der **Kapazitätsprüfung** zusätzlich `bezahlweg <> "freiticket"` ausschließen — analog zur bestehenden Demo-Ausnahme. Im Admin dürfen sie sichtbar bleiben (gern als „Freiticket" gekennzeichnet), aber nicht in „Noch verfügbar"/„Personen gesamt" für die Kapazität hineinrechnen.
+
+## VERBOTEN
+- Theke (Galerie/Steckbrief/Upload/Einwilligungen), Auth, Szenendesign unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+- [ ] `seedFreikartenIfMissing` speichert `personen: [f.name]` (String-Array).
+- [ ] Drei vorhandene Freiticket-Zeilen haben saubere String-Namen (kein „[object Object]" mehr).
+- [ ] Suche im Anmeldungen-Tab funktioniert ohne schwarzen Bildschirm.
+- [ ] Namen-Bearbeiten funktioniert ohne Absturz.
+- [ ] Freitickets zählen nicht in öffentliche Zahl/Kapazität; „Noch verfügbar" stimmt wieder.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> personen als String-Array gespeichert: ja/nein
+> Drei Altzeilen repariert: ja/nein
+> Suche + Namen-Bearbeiten ohne Absturz: ja/nein
+> Freitickets aus Zählung/Kapazität ausgeschlossen: ja/nein
+> Geänderte Dateien: …
