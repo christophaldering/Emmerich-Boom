@@ -790,6 +790,9 @@ importers:
 
   scripts:
     dependencies:
+      '@replit/object-storage':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@types/pdfkit':
         specifier: ^0.17.6
         version: 0.17.6
@@ -805,6 +808,9 @@ importers:
       resend:
         specifier: ^6.12.3
         version: 6.12.3
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
