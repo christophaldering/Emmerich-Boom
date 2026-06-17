@@ -351,96 +351,61 @@ function BeispielDetailOverlay({ entry, onClose }: { entry: GalerieEntry; onClos
     ["Musik heute",      entry.f_musik],
     ["Lieblingsgetränk", entry.f_getraenk],
   ];
+  const hasBoth = !!(entry.foto_frueher_url && entry.foto_heute_url);
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        background: "rgba(10,7,4,0.88)", overflowY: "auto", padding: "2rem 1rem",
-        display: "flex", alignItems: "flex-start", justifyContent: "center",
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: "480px",
-          background: "#0e0905", border: `1px solid ${am(0.28)}`,
-          borderRadius: "10px", padding: "1.75rem", position: "relative", marginTop: "2rem",
-        }}
-      >
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute", top: "1rem", right: "1rem",
-            background: "transparent", border: "none",
-            color: fg(0.5), fontSize: "1.4rem", cursor: "pointer", lineHeight: 1,
-          }}
-        >×</button>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(10,7,4,0.9)", overflowY: "auto", padding: "2rem 1rem" }}>
+      <div onClick={e => e.stopPropagation()} style={{ maxWidth: "540px", margin: "0 auto", background: "#100a05", border: `1px solid ${am(0.3)}`, borderRadius: "10px", padding: "2rem", position: "relative" }}>
+        <button onClick={onClose} style={{ position: "absolute", top: "1rem", right: "1rem", background: "transparent", border: "none", color: fg(0.5), fontSize: "1.4rem", cursor: "pointer", lineHeight: 1 }}>×</button>
 
-        {/* Beispiel-Banner */}
-        <div style={{
-          display: "inline-block", background: am(0.18), border: `1px solid ${am(0.35)}`,
-          borderRadius: "4px", padding: "0.2rem 0.6rem", marginBottom: "1rem",
-        }}>
-          <span style={{
-            fontFamily: "'Lora', serif", fontSize: "0.72rem",
-            letterSpacing: "0.12em", textTransform: "uppercase", color: am(0.85),
-          }}>
+        {/* Name */}
+        <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "1.5rem", color: A, marginBottom: "0.5rem" }}>{entry.anzeige_name}</p>
+
+        {/* Beispiel-Schildchen */}
+        <div style={{ display: "inline-block", background: am(0.18), border: `1px solid ${am(0.35)}`, borderRadius: "4px", padding: "0.2rem 0.6rem", marginBottom: "1.25rem" }}>
+          <span style={{ fontFamily: "'Lora', serif", fontSize: "0.68rem", letterSpacing: "0.12em", textTransform: "uppercase", color: am(0.85) }}>
             Beispiel-Profil
           </span>
         </div>
 
-        <p style={{
-          fontFamily: "'Playfair Display', serif", fontWeight: 700,
-          fontStyle: "italic", fontSize: "1.5rem", color: A, marginBottom: "0.75rem",
-        }}>
-          {entry.anzeige_name}
-        </p>
-
-        {entry.vorstellung && (
-          <p style={{
-            fontFamily: "'Lora', serif", fontStyle: "italic",
-            fontSize: "0.92rem", color: fg(0.78), lineHeight: 1.7,
-            borderLeft: `2px solid ${am(0.35)}`, paddingLeft: "0.75rem",
-            marginBottom: "1.25rem",
-          }}>
-            {entry.vorstellung}
-          </p>
-        )}
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 1.5rem", marginBottom: "1rem" }}>
-          {felder.filter(([,v]) => v).map(([l, v]) => (
-            <div key={l}>
-              <div style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.65), marginBottom: "0.2rem" }}>{l}</div>
-              <div style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.82) }}>{v}</div>
-            </div>
-          ))}
-        </div>
-
-        {entry.lauter_song && (
-          <div>
-            <div style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.65), marginBottom: "0.2rem" }}>Lautester Song</div>
-            <div style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.82) }}>♪ {entry.lauter_song}</div>
-          </div>
-        )}
-
+        {/* Früher/Heute-Bildpaar oben, volle Helligkeit */}
         {(entry.foto_frueher_url || entry.foto_heute_url) && (
-          <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
-            {[["Früher", entry.foto_frueher_url], ["Heute", entry.foto_heute_url]].map(([label, url]) =>
-              url ? (
-                <div key={label as string} style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Lora', serif", fontSize: "0.65rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.6), marginBottom: "0.3rem", textAlign: "center" }}>{label}</div>
-                  <img src={url as string} alt={label as string} style={{ width: "100%", borderRadius: "4px", objectFit: "cover", aspectRatio: "3/4", filter: "saturate(0.4) brightness(0.75)" }} />
-                </div>
-              ) : null
+          <div style={{ display: "grid", gridTemplateColumns: hasBoth ? "1fr 1fr" : "1fr", gap: "0.75rem", marginBottom: "1.5rem" }}>
+            {entry.foto_frueher_url && (
+              <div style={{ borderRadius: "6px", overflow: "hidden", aspectRatio: "3/4" }}>
+                <img src={entry.foto_frueher_url} alt="Früher" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
+            )}
+            {entry.foto_heute_url && (
+              <div style={{ borderRadius: "6px", overflow: "hidden", aspectRatio: "3/4" }}>
+                <img src={entry.foto_heute_url} alt="Heute" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              </div>
             )}
           </div>
         )}
 
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: fg(0.35), fontStyle: "italic", marginTop: "1.5rem", textAlign: "center" }}>
-          Richte deinen Steckbrief ein — dann hängst du hier.
-        </p>
+        {/* Vorstellung */}
+        {entry.vorstellung && (
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.95rem", color: fg(0.8), lineHeight: 1.7, borderLeft: `2px solid ${am(0.4)}`, paddingLeft: "0.75rem", marginBottom: "1.25rem" }}>{entry.vorstellung}</p>
+        )}
+
+        {/* Felder-Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem 1.5rem" }}>
+          {felder.filter(([, v]) => v).map(([l, v]) => (
+            <div key={l}>
+              <div style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.7), marginBottom: "0.2rem" }}>{l}</div>
+              <div style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85) }}>{v}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Lautester Song */}
+        {entry.lauter_song && (
+          <div style={{ marginTop: "1rem" }}>
+            <div style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.7), marginBottom: "0.2rem" }}>Lautester Song</div>
+            <div style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85) }}>♪ {entry.lauter_song}</div>
+          </div>
+        )}
       </div>
     </div>
   );

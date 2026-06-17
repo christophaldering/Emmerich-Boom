@@ -1,0 +1,46 @@
+# FIX — Beispiel-Overlay ans Format des echten Profil-Overlays angleichen
+
+**Datei: `artifacts/emmerich/src/pages/Galerie.tsx`, Funktion `BeispielDetailOverlay`.**
+**Vorlage: `FeedDetail` in `ThekePage.tsx` (das gute Overlay, das bei echten Profilen wie Christoph erscheint).**
+
+## Problem
+
+Antippen eines echten Profils öffnet `FeedDetail` (lesbar). Antippen eines Beispiels öffnet `BeispielDetailOverlay` — anderes Format, schlecht lesbar: Früher/Heute-Bilder stehen **unten** und sind **abgedunkelt/entsättigt** (`filter: saturate(0.4) brightness(0.75)`), Gesichter kaum erkennbar.
+
+## Ziel
+
+`BeispielDetailOverlay` exakt im Format von `FeedDetail` neu aufbauen — gleiche Karte, gleiche Reihenfolge, gleiche Lesbarkeit. Einziger Unterschied: ein kleines „Beispiel”-Schildchen unter dem Namen; keine Sprachnachricht.
+
+## Konkret (Werte 1:1 von FeedDetail übernehmen)
+
+- **Backdrop:** `rgba(10,7,4,0.9)`, `overflowY:auto`, `padding:"2rem 1rem"`.
+- **Karte:** `maxWidth:"540px"`, `margin:"0 auto"`, `background:"#100a05"`, `border:1px solid ${am(0.3)}`, `borderRadius:"10px"`, `padding:"2rem"`, `position:relative`. Schließen-× wie gehabt.
+- **Reihenfolge (wie FeedDetail):**
+1. **Name** (Playfair, italic, 700, `1.5rem`, color `A`, `marginBottom:"0.5rem"`).
+1. **Kleines „Beispiel”-Schildchen** direkt darunter (dezent: `am(0.18)`-Hintergrund, `am(0.35)`-Rand, `borderRadius:4px`, kleine Lora-Versalien `0.68rem`, `am(0.85)`), `marginBottom:"1.25rem"`.
+1. **Früher/Heute-Bildpaar OBEN**, identisch zu FeedDetail: `display:grid`, `gridTemplateColumns` = `"1fr 1fr"` wenn beide Bilder, sonst `"1fr"`; `gap:"0.75rem"`; `marginBottom:"1.5rem"`. Jedes Bild: Wrapper `borderRadius:6px`, `overflow:hidden`, `aspectRatio:"3/4"`; `<img>` `width/height:100%`, `objectFit:"cover"`. **Voller Farb-/Helligkeitswert — KEIN `saturate`/`brightness`-Filter.** Quelle: `entry.foto_frueher_url` / `entry.foto_heute_url` als direktes `<img src={url}>` (kein Token, kein `fotoUrl`). Kleines Label „Früher” / „Heute” unten links im Bild (Playfair italic, `A`, `textShadow` wie FeedDetails Jahreszahl).
+1. **vorstellung** (Lora italic, `0.95rem`, `fg(0.8)`, `lineHeight:1.7`, `borderLeft:2px solid ${am(0.4)}`, `paddingLeft:"0.75rem"`, `marginBottom:"1.25rem"`).
+1. **Felder-Grid** identisch: `gridTemplateColumns:"1fr 1fr"`, `gap:"0.75rem 1.5rem"`; Label `0.75rem` Versalien `am(0.7)`; Wert `0.9rem` `fg(0.85)`. Felder: Tonträger, Abends, Untersatz, Musik heute, Lieblingsgetränk (nur befüllte).
+1. **Lautester Song** (wenn vorhanden) wie FeedDetail: `marginTop:"1rem"`, Label `am(0.7)`, Wert `♪ …` `fg(0.85)`.
+- **Keine** Sprachnachricht/Audio im Beispiel-Overlay.
+
+## VERBOTEN
+
+- `FeedDetail` (ThekePage.tsx) NICHT anfassen — echtes Profil-Overlay bleibt exakt wie es ist.
+- Galerie-Wand NICHT ändern (dort dürfen Beispiel-Porträts weiter entsättigt sein).
+- Feed, Auth, Routing, andere Overlays unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Beispiel-Overlay sieht aus wie Christophs Overlay: Bilder oben, groß, in voller Helligkeit.
+- [ ] „Beispiel”-Schildchen unter dem Namen bleibt.
+- [ ] Karte 540px / `#100a05` / padding 2rem — identisch zu FeedDetail.
+- [ ] Kein Abdunkeln/Entsättigen der Bilder im Overlay.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Beispiel-Overlay jetzt im selben Format wie Christophs: ja/nein
+> FeedDetail unangetastet: ja/nein
+> Geänderte Dateien: …
