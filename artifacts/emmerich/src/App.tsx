@@ -45,7 +45,7 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 function getRoute(): { page: string; param?: string } {
   const path = window.location.pathname;
   const stripped = path.startsWith(BASE) ? path.slice(BASE.length) : path;
-  const clean = stripped.replace(/^\/+/, "");
+  const clean = stripped.replace(/^\/+|\/+$/g, "");
 
   if (clean === ADMIN_SLUG) return { page: "admin" };
   if (clean === `${ADMIN_SLUG}/einlass`) return { page: "einlass" };

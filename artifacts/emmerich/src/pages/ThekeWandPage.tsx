@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { THEKE_SZENE } from "../config/theke-szene";
+
 const A = "#E8991A";
 const BG = "#0A0704";
 
@@ -25,7 +26,7 @@ interface FeedEntry {
 }
 
 function fotoUrl(key: string, token: string) {
-  return `${BASE}/api/theke/datei/${key}?t=${encodeURIComponent(token)}`;
+  return `/api/theke/datei/${key}?t=${encodeURIComponent(token)}`;
 }
 
 function noindex() {
@@ -64,7 +65,7 @@ export default function ThekeWandPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`${BASE}/api/theke/feed`, { headers: { "x-theke-token": token } })
+    fetch(`/api/theke/feed`, { headers: { "x-theke-token": token } })
       .then(r => r.json())
       .then((data: FeedEntry[]) => {
         const withFotos = data.filter(p => p.foto_frueher_key || p.foto_heute_key || p.fotos.length > 0);
@@ -98,9 +99,19 @@ export default function ThekeWandPage() {
 
   if (!token || feed.length === 0) {
     return (
-      <div style={{ background: BG, minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.4rem", color: A, opacity: 0.6 }}>
-          Die Theke füllt sich …
+      <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: BG }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          background: `center/cover no-repeat url(${THEKE_SZENE.BACKDROP_URL})`,
+        }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(10,7,4,0.45) 0%, rgba(10,7,4,0) 30%, rgba(10,7,4,0.7) 75%, rgba(10,7,4,0.92) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 3vw, 2rem)", color: A, opacity: 0.7, textShadow: "0 2px 14px rgba(0,0,0,0.95)", textAlign: "center", padding: "0 2rem" }}>
+            {token ? "Noch füllt sich die Theke …" : "Verbinde …"}
+          </p>
+        </div>
+        <div style={{ position: "absolute", top: "1.5rem", right: "2rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.9rem", color: "rgba(232,153,26,0.4)" }}>
+          EMMERICH BOOMT!
         </div>
       </div>
     );

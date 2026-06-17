@@ -54,7 +54,7 @@ const GETRAENK_OPTS     = ["Bier", "Wein", "Sekt / Prosecco", "Cocktail / Longdr
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fotoUrl(key: string, token: string) {
-  return `${BASE}/api/theke/datei/${key}?t=${encodeURIComponent(token)}`;
+  return `/api/theke/datei/${key}?t=${encodeURIComponent(token)}`;
 }
 
 function noindex() {
@@ -329,7 +329,7 @@ function Anrufbeantworter({ token, botschaft, onUploaded, onDeleted }: {
       const ext = audioBlob.type.includes("ogg") ? "ogg" : audioBlob.type.includes("mp4") ? "mp4" : "webm";
       form.append("audio", audioBlob, `botschaft.${ext}`);
       form.append("dauer_sek", String(sek));
-      const res = await fetch(`${BASE}/api/theke/audio`, {
+      const res = await fetch(`/api/theke/audio`, {
         method: "POST",
         headers: { "x-theke-token": token },
         body: form,
@@ -352,14 +352,14 @@ function Anrufbeantworter({ token, botschaft, onUploaded, onDeleted }: {
 
   const loeschen = async () => {
     if (!botschaft) return;
-    await fetch(`${BASE}/api/theke/audio/${botschaft.id}`, {
+    await fetch(`/api/theke/audio/${botschaft.id}`, {
       method: "DELETE",
       headers: { "x-theke-token": token },
     });
     onDeleted();
   };
 
-  const botschaftUrl = botschaft ? `${BASE}/api/theke/datei/${botschaft.datei_key}?t=${encodeURIComponent(token)}` : null;
+  const botschaftUrl = botschaft ? `/api/theke/datei/${botschaft.datei_key}?t=${encodeURIComponent(token)}` : null;
 
   return (
     <div style={{ border: `1px solid ${am(0.3)}`, borderRadius: "8px", padding: "1.5rem", background: am(0.06) }}>
@@ -455,7 +455,7 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
       if (bildunterschrift.trim()) form.append("bildunterschrift", bildunterschrift.trim());
       const j = parseInt(jahr, 10);
       if (!isNaN(j)) form.append("jahr", String(j));
-      const res = await fetch(`${BASE}/api/theke/foto/galerie`, {
+      const res = await fetch(`/api/theke/foto/galerie`, {
         method: "POST",
         headers: { "x-theke-token": token },
         body: form,
@@ -472,7 +472,7 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
   };
 
   const loeschen = async (id: number) => {
-    await fetch(`${BASE}/api/theke/foto/${id}`, {
+    await fetch(`/api/theke/foto/${id}`, {
       method: "DELETE",
       headers: { "x-theke-token": token },
     });
@@ -544,7 +544,7 @@ function EinwilligungsBlock({ token, profile, onUpdated }: { token: string; prof
   const save = async () => {
     setSaving(true); setSaved(false);
     try {
-      const res = await fetch(`${BASE}/api/theke/einwilligung`, {
+      const res = await fetch(`/api/theke/einwilligung`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-theke-token": token },
         body: JSON.stringify({ a, b, b_email: bEmail, c }),
@@ -607,7 +607,7 @@ function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string
 
   useEffect(() => {
     if (!entry.hat_botschaft) return;
-    fetch(`${BASE}/api/theke/band`, { headers: { "x-theke-token": token } })
+    fetch(`/api/theke/band`, { headers: { "x-theke-token": token } })
       .then(r => r.json())
       .then((data: BandEntry[]) => {
         const match = data.find(b => b.anmeldung_ticket_id === entry.anmeldung_ticket_id);
@@ -707,7 +707,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
   const save = useCallback(async () => {
     setSaving(true); setSavedMsg("");
     try {
-      const res = await fetch(`${BASE}/api/theke/profil`, {
+      const res = await fetch(`/api/theke/profil`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-theke-token": token },
         body: JSON.stringify({
@@ -741,7 +741,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
       const form = new FormData();
       form.append("foto", file);
       if (jahr) form.append("jahr", String(jahr));
-      const res = await fetch(`${BASE}/api/theke/foto/${slot}`, {
+      const res = await fetch(`/api/theke/foto/${slot}`, {
         method: "POST",
         headers: { "x-theke-token": token },
         body: form,
@@ -881,7 +881,7 @@ function DasBand({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${BASE}/api/theke/band`, { headers: { "x-theke-token": token } })
+    fetch(`/api/theke/band`, { headers: { "x-theke-token": token } })
       .then(r => r.json())
       .then((data: BandEntry[]) => { setBand(data); setLoading(false); })
       .catch(() => setLoading(false));
@@ -1273,7 +1273,7 @@ export default function ThekePage() {
 
     const init = async () => {
       try {
-        const res = await fetch(`${BASE}/api/theke/auth`, {
+        const res = await fetch(`/api/theke/auth`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ t: code }),
@@ -1298,7 +1298,7 @@ export default function ThekePage() {
 
   const loadMeinProfil = async (code: string) => {
     try {
-      const res = await fetch(`${BASE}/api/theke/mein-profil`, { headers: { "x-theke-token": code } });
+      const res = await fetch(`/api/theke/mein-profil`, { headers: { "x-theke-token": code } });
       const data = await res.json() as { profile: Profile; fotos: Foto[]; botschaft: Botschaft | null };
       setProfile(data.profile);
       setFotos(data.fotos);
@@ -1309,7 +1309,7 @@ export default function ThekePage() {
   const confirmName = async (name: string) => {
     if (!token) return;
     try {
-      const res = await fetch(`${BASE}/api/theke/auth`, {
+      const res = await fetch(`/api/theke/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ t: token, anzeige_name: name }),
@@ -1318,12 +1318,12 @@ export default function ThekePage() {
       setProfile(data.profile);
       setTicket(data.ticket);
       setNeedsNameConfirm(false);
-      await fetch(`${BASE}/api/theke/profil`, {
+      await fetch(`/api/theke/profil`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-theke-token": token },
         body: JSON.stringify({ anzeige_name: name }),
       });
-      const upd = await fetch(`${BASE}/api/theke/auth`, {
+      const upd = await fetch(`/api/theke/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ t: token }),
@@ -1338,7 +1338,7 @@ export default function ThekePage() {
   useEffect(() => {
     if (!token) return;
     const load = () => {
-      fetch(`${BASE}/api/theke/feed`, { headers: { "x-theke-token": token } })
+      fetch(`/api/theke/feed`, { headers: { "x-theke-token": token } })
         .then(r => r.json())
         .then((data: FeedEntry[]) => { setFeed(data); setFeedNow(Date.now()); })
         .catch(() => {});
@@ -1351,7 +1351,7 @@ export default function ThekePage() {
   // Band-Anzahl laden (für Telefon-Blink)
   useEffect(() => {
     if (!token) return;
-    fetch(`${BASE}/api/theke/band`, { headers: { "x-theke-token": token } })
+    fetch(`/api/theke/band`, { headers: { "x-theke-token": token } })
       .then(r => r.json())
       .then((data: BandEntry[]) => setBandCount(data.length))
       .catch(() => {});
@@ -1360,7 +1360,7 @@ export default function ThekePage() {
   // Präsenz-Ping alle 25 Sekunden
   useEffect(() => {
     if (!token) return;
-    const ping = () => fetch(`${BASE}/api/theke/ping`, {
+    const ping = () => fetch(`/api/theke/ping`, {
       method: "POST",
       headers: { "x-theke-token": token },
     }).catch(() => {});

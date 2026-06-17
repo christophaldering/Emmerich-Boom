@@ -11,6 +11,51 @@ const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const ADMIN_PW = "#Boomer2026";
 const PW_KEY = "emmerich_admin_auth";
 
+function KopierenButton({ text, style }: { text: string; style?: React.CSSProperties }) {
+  const [kopiert, setKopiert] = useState(false);
+  const [fehler, setFehler] = useState(false);
+  const [zeigLink, setZeigLink] = useState(false);
+  const copy = () => {
+    const done = () => { setKopiert(true); setTimeout(() => setKopiert(false), 1500); };
+    const fallback = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.cssText = "position:fixed;opacity:0;top:0;left:0";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        done();
+      } catch {
+        setFehler(true);
+        setZeigLink(true);
+      }
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  };
+  const A = "#E8991A";
+  const am = (o: number) => `rgba(232,153,26,${o})`;
+  const fg = (o: number) => `rgba(245,232,200,${o})`;
+  return (
+    <span style={{ display: "inline-flex", flexDirection: "column", gap: "0.35rem", flexShrink: 0 }}>
+      <button
+        onClick={copy}
+        style={{ background: kopiert ? am(0.22) : am(0.12), border: `1px solid ${kopiert ? am(0.6) : am(0.35)}`, borderRadius: "4px", color: A, fontFamily: "'Lora', serif", fontSize: "0.75rem", padding: "0.3rem 0.7rem", cursor: "pointer", transition: "all 0.2s", minWidth: "5rem", ...style }}
+      >
+        {kopiert ? "Kopiert!" : fehler ? "Fehlgeschlagen" : "Kopieren"}
+      </button>
+      {zeigLink && (
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.55), userSelect: "all", background: `rgba(0,0,0,0.3)`, border: `1px solid ${am(0.2)}`, borderRadius: "3px", padding: "0.25rem 0.5rem", wordBreak: "break-all" }}>
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function PasswordGate({ onAuth }: { onAuth: () => void }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
@@ -1477,21 +1522,17 @@ function ThekeAdminSection() {
             <p style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.5), letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.3rem" }}>Dein persönlicher Link</p>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
               <code style={{ fontFamily: "monospace", fontSize: "0.78rem", color: fg(0.75), background: "rgba(0,0,0,0.35)", border: `1px solid ${am(0.2)}`, borderRadius: "4px", padding: "0.3rem 0.6rem", wordBreak: "break-all" }}>
-                {`${window.location.origin}/theke?t=${demoCode}`}
+                {`${window.location.origin}${BASE}/theke?t=${demoCode}`}
               </code>
-              <button
-                onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/theke?t=${demoCode}`).catch(() => {}); }}
-                style={{ background: am(0.12), border: `1px solid ${am(0.35)}`, borderRadius: "4px", color: A, fontFamily: "'Lora', serif", fontSize: "0.75rem", padding: "0.3rem 0.7rem", cursor: "pointer", flexShrink: 0 }}>
-                Kopieren
-              </button>
+              <KopierenButton text={`${window.location.origin}${BASE}/theke?t=${demoCode}`} />
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.85rem" }}>
-            <a href={`/theke?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
+            <a href={`${BASE}/theke?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
               style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1.1rem", textDecoration: "none", display: "inline-block" }}>
               Theke betreten
             </a>
-            <a href={`/theke/wand?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
+            <a href={`${BASE}/theke/wand?t=${demoCode}`} target="_blank" rel="noopener noreferrer"
               style={{ background: "transparent", border: `1px solid ${am(0.5)}`, borderRadius: "4px", color: A, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.85rem", padding: "0.45rem 1.1rem", textDecoration: "none", display: "inline-block" }}>
               Beamer-Wand öffnen
             </a>
@@ -1548,7 +1589,7 @@ function ThekeAdminSection() {
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{e.hat_botschaft ? <span style={{ color: A }}>🎙</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center", color: e.galerie_count > 0 ? A : fg(0.35) }}>{e.galerie_count > 0 ? e.galerie_count : "–"}</td>
                       <td style={{ padding: "0.5rem 0.5rem" }}>
-                        <a href={`/theke?t=${e.ticket_code}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`${BASE}/theke?t=${e.ticket_code}`} target="_blank" rel="noopener noreferrer"
                           style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.35)}`, borderRadius: "3px", color: A, padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>
                           Öffnen ↗
                         </a>

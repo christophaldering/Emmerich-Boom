@@ -1,0 +1,74 @@
+# FIX & DIAGNOSE — Zugang zur Theke (Buttons, Routing, Leerzustand)
+
+**Punktuelle Korrektur + Live-Diagnose. Szenendesign, Auth-Großschreibung und Dauerzugang-Logik NICHT verändern.**
+
+## Symptome (vom Nutzer berichtet)
+
+1. Im Admin „Theke betreten” → landet auf der normalen Startseite statt in der Theke.
+1. „Kopieren” beim persönlichen Link bewirkt sichtbar nichts.
+1. „Beamer-Wand öffnen” zeigt nur das Bühnenbild / „Die Theke füllt sich …”.
+
+## Zuerst: LIVE-DIAGNOSE (im laufenden Projekt)
+
+Öffne im laufenden Deployment `/theke?t=00000000DEADBEEF` und berichte konkret:
+
+- Was rendert (Szene / Startseite / „Kein Zugang” / Dauerladen)?
+- Liefert `POST /api/theke/auth` (Body `{ "t": "00000000DEADBEEF" }`) **HTTP 200** mit `ticket` + `profile`? Wenn nicht: welcher Status / welche URL wird tatsächlich aufgerufen?
+- Was ist der Wert von `import.meta.env.BASE_URL` im Build?
+
+## Fix 1 — API-Aufrufe origin-relativ (wahrscheinliche Hauptursache)
+
+In `artifacts/emmerich/src/pages/ThekePage.tsx` und `ThekeWandPage.tsx` wird `const BASE = import.meta.env.BASE_URL.replace(/\/$/, "")` für **API-Aufrufe** benutzt. Das ist der Asset-Basispfad, nicht die API-Adresse — bei nicht-leerem Basispfad zeigen die `/api`-Aufrufe ins Leere.
+
+- Die API ist immer unter `/api` am selben Origin gemountet. Daher **alle** `fetch`-Aufrufe auf `/api/theke/...` **origin-relativ** machen (führendes `/api/...`, ohne `BASE`-Präfix). Das gilt für auth, profil, profil/foto, foto, botschaft, botschaften, ping und die `datei`-URLs.
+- `import.meta.env.BASE_URL` darf weiterhin für **interne Navigation/Asset-Pfade** genutzt werden, aber **nicht** als Präfix für `/api`.
+
+## Fix 2 — Admin-Links basis-bewusst (behebt „→ Startseite”)
+
+In `AdminPage.tsx` zeigen die Dauerzugang-Links auf `/theke?t=…` / `/theke/wand?t=…` **ohne** den App-Basispfad. Bei nicht-leerem Basispfad verlassen sie damit die SPA und landen auf der Startseite.
+
+- Links und kopierten Link konsistent mit Basispfad bauen, gleiches Muster wie der bestehende „Zur Startseite”-Button:
+  `const APP = import.meta.env.BASE_URL.replace(/\/$/, "");`
+  → „Theke betreten” `href = `${APP}/theke?t=${demoCode}` → „Beamer-Wand" `href = `${APP}/theke/wand?t=${demoCode}`
+  → kopierter Link `${window.location.origin}${APP}/theke?t=${demoCode}`
+
+## Fix 3 — SPA-Fallback serverseitig sicherstellen
+
+Sicherstellen, dass ein **direkter** Aufruf (neuer Tab / Reload) von `/theke` und `/theke/wand` die SPA `index.html` ausliefert (Client-Routing), nicht die Startseite oder 404. Falls der statische Handler kein Catch-all-Fallback auf `index.html` hat, ergänzen.
+Außerdem in `App.tsx` das Routing **tolerant gegen abschließenden Slash** machen (`theke/` wie `theke`, `theke/wand/` wie `theke/wand`).
+
+## Fix 4 — „Kopieren” mit Rückmeldung + Fallback
+
+- Nach erfolgreichem Kopieren sichtbar **„Kopiert!”** für ~1,5 s am Button anzeigen.
+- Fallback, wenn `navigator.clipboard` fehlt/blockiert ist (häufig im mobilen/eingebetteten Browser): unsichtbares `<textarea>` mit dem Link füllen, selektieren, `document.execCommand("copy")`, wieder entfernen. Schlägt auch das fehl: Hinweis „Bitte Link manuell kopieren” + den Link markierbar darstellen.
+
+## Fix 5 — Leerzustand statt „kaputt”
+
+- **Theke-Szene (`ThekePage`):** Der Raum (Bühnenbild + Tresen + eigener Bierdeckel + Telefon) muss **immer** rendern, auch wenn der Feed leer ist. Bei leerer Wand ein freundlicher Hinweis im Wandbereich: „Noch hängt niemand an der Wand — richte deinen Platz ein.” Niemals nur eine leere/ladende Fläche.
+  - Wichtig: Der Orga-/Dauerzugang ist aus dem Feed ausgeschlossen — er muss die Szene trotzdem voll sehen (Raum + eigener Bierdeckel + Telefon).
+- **Beamer-Wand (`ThekeWandPage`):** Bei leerem Feed das **Bühnenbild** zeigen mit ruhigem Text „Noch füllt sich die Theke …” statt einer schwarzen Fläche.
+
+## VERBOTEN
+
+- Auth/`toUpperCase()`, Demo-Seed/Dauerzugang-Logik, Szenendesign, andere Seiten NICHT verändern.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Live-Diagnose ausgeführt und Ergebnis im Abschluss notiert.
+- [ ] Alle `/api/theke/...`-Aufrufe origin-relativ (kein `BASE`-Präfix).
+- [ ] Admin-Links + kopierter Link basis-bewusst; „Theke betreten” öffnet die Szene.
+- [ ] Direkter Aufruf von `/theke` und `/theke/wand` liefert die SPA (Fallback ok); Routing tolerant gegen Slash.
+- [ ] „Kopieren” zeigt „Kopiert!” + funktioniert mit Fallback.
+- [ ] Szene rendert auch bei leerem Feed; Orga sieht den Raum; Wand zeigt Bühnenbild + freundlichen Leertext.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Live-Diagnose `/theke?t=00000000DEADBEEF`: rendert __ ; /api/theke/auth Status __ ; BASE_URL = __
+> API-Aufrufe origin-relativ: ja/nein
+> Admin-Links basis-bewusst, „Theke betreten” öffnet Szene: ja/nein
+> SPA-Fallback für /theke & /theke/wand: ja/nein
+> Kopieren mit Feedback + Fallback: ja/nein
+> Szene/Wand mit Leerzustand: ja/nein
+> Geänderte Dateien / Abweichungen: …
