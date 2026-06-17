@@ -43,6 +43,9 @@ const sections = [
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Rechtsgrundlage</strong><br />
         Die Verarbeitung erfolgt auf Grundlage Ihrer freiwilligen Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO durch Absenden des Formulars.</p>
         <br />
+        <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Anonyme Reichweitenmessung</strong><br />
+        Auf der Startseite messen wir anonym, wie oft und wie lange sie besucht wird und woher Besucher kommen (z. B. Gerät, Browser, Verweisquelle). Dabei werden keine dauerhaften Kennungen, keine IP-Adressen und keine personenbezogenen Profile gespeichert; einzelne Personen werden nicht wiedererkannt. Rechtsgrundlage ist unser berechtigtes Interesse an einer technisch fehlerfreien und bedarfsgerechten Website (Art. 6 Abs. 1 lit. f DSGVO).</p>
+        <br />
         <p><strong style={{ color: "var(--fg-70)", fontWeight: 600 }}>Ihre Rechte</strong><br />
         Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) sowie Widerspruch (Art. 21). Anfragen bitte per E-Mail an die oben genannte Adresse. Sie haben zudem das Recht, sich bei einer Datenschutzaufsichtsbehörde zu beschweren.</p>
         <br />
