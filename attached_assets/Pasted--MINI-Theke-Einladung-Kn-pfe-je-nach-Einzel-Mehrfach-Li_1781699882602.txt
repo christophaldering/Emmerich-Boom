@@ -1,0 +1,58 @@
+# MINI — Theke-Einladung: Knöpfe je nach Einzel-/Mehrfach-Link beschriften
+
+**Datei: `artifacts/api-server/src/services/mailer.ts`, Funktion `sendThekeEinladung`.**
+
+Ziel: In der Einladungsmail sollen die Weiterleiten-Knöpfe erkennen, ob die Mail **einen** Link (eine Person) oder **mehrere** Links (mehrere Personen einer Anmeldung) enthält — und entsprechend anders heißen.
+
+## Änderungen
+
+### 1. `mehrere` VOR den Ticketblöcken verfügbar machen
+
+Aktuell wird `const mehrere = opts.tickets.length > 1;` erst NACH `const ticketBloecke = …` definiert. Verschiebe diese Zeile **nach oben**, direkt **vor** `const ticketBloecke = opts.tickets.map(t => {`. (Die spätere doppelte Definition entfernen, damit es kein `const`-Doppel gibt.)
+
+### 2. Vorausgefüllten WhatsApp-Text abhängig machen
+
+Ersetze die Zeile
+
+```ts
+    const waLink = `https://wa.me/?text=${encodeURIComponent(`Hier ist dein Zugang zur Theke: ${link}`)}`;
+```
+
+durch
+
+```ts
+    const waText = mehrere ? `Hier ist dein Zugang zur Theke: ${link}` : `Mein Zugang zur Theke: ${link}`;
+    const waLink = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+```
+
+### 3. Knopf-Beschriftungen kontextabhängig
+
+Im Ticketblock die beiden Knopf-Texte ändern:
+
+- WhatsApp-Knopf: aus `>WhatsApp</a>` wird `>${mehrere ? "Weiterleiten" : "Aufs Handy"}</a>`
+- E-Mail-Knopf: aus `>E-Mail</a>` wird `>${mehrere ? "Per Mail" : "An mich"}</a>`
+
+(Der „Zur Theke”-Knopf bleibt unverändert.)
+
+## Ergebnis
+
+- **Einzel-Link** (eine Person): Knöpfe „Aufs Handy” / „An mich” — zum Holen auf das eigene Gerät.
+- **Mehrere Links** (Anmeldung mit Begleitung, Sammelversand): Knöpfe „Weiterleiten” / „Per Mail” — zum Verteilen an die jeweilige Person.
+
+## VERBOTEN
+
+- Betreff, Plakat, Fließtext, andere Mails (Bestätigung/Ticket/Warteliste/Nachrücker) — unverändert.
+- Keine Layout-/Farb-/Fontänderungen.
+
+## CHECKLISTE
+
+- [ ] `mehrere` ist vor `ticketBloecke` definiert, keine doppelte Deklaration.
+- [ ] Einzel-Mail zeigt „Aufs Handy” / „An mich”.
+- [ ] Mehrfach-Mail zeigt „Weiterleiten” / „Per Mail”.
+- [ ] WhatsApp-Text: einzeln „Mein Zugang…”, mehrere „Hier ist dein Zugang…”.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Knöpfe schalten je nach Einzel/Mehrfach um: ja/nein
+> Geänderte Datei: …
