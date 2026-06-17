@@ -1,0 +1,72 @@
+# MINI — Profil-Overlay leichter schließen (Quer + Hoch)
+
+Betrifft die beiden Profil-Overlays:
+
+- `FeedDetail` in `artifacts/emmerich/src/pages/ThekePage.tsx`
+- `BeispielDetailOverlay` in `artifacts/emmerich/src/pages/Galerie.tsx`
+
+Problem: Das Schließen-„×” sitzt klein/blass oben in der Karte und scrollt im Querformat weg. Tippen daneben schließt zwar schon, ist aber nicht erkennbar.
+
+## In BEIDEN Overlays gleich umsetzen
+
+### 1. Schließen-Knopf prominent und fixiert
+
+Den bestehenden „×”-Button (aktuell `position:absolute; top:1rem; right:1rem; color:fg(0.5); fontSize:1.4rem`) ersetzen durch einen **immer sichtbaren, fixierten** Knopf:
+
+```tsx
+<button onClick={onClose} aria-label="Schließen" style={{
+  position:"fixed", top:"max(0.8rem, env(safe-area-inset-top,0px))", right:"0.8rem",
+  zIndex:10000, width:"2.5rem", height:"2.5rem", borderRadius:"50%",
+  background:"rgba(10,7,4,0.72)", border:`1px solid ${am(0.5)}`, color:A,
+  fontSize:"1.4rem", lineHeight:1, cursor:"pointer", backdropFilter:"blur(4px)",
+  display:"flex", alignItems:"center", justifyContent:"center",
+}}>×</button>
+```
+
+(`position:fixed` statt `absolute` — so bleibt es sichtbar, auch wenn die Karte scrollt.)
+
+### 2. Außerhalb tippen schließt — sicherstellen
+
+Das äußere Overlay-`<div>` hat bereits `onClick={onClose}`, die innere Karte `onClick={e => e.stopPropagation()}`. Bitte so belassen — Tippen neben die Karte schließt damit.
+
+### 3. Escape schließt (Desktop)
+
+In beiden Overlays ergänzen:
+
+```tsx
+useEffect(() => {
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+  window.addEventListener("keydown", onKey);
+  return () => window.removeEventListener("keydown", onKey);
+}, [onClose]);
+```
+
+### 4. Dezenter Hinweis am Kartenende
+
+Ganz unten in der Karte, klein und gedämpft:
+
+```tsx
+<p style={{ fontFamily:"'Lora', serif", fontStyle:"italic", fontSize:"0.72rem",
+  color:fg(0.4), textAlign:"center", margin:"1.5rem 0 0" }}>
+  Tippe daneben oder oben auf ×, um zu schließen.
+</p>
+```
+
+## VERBOTEN
+
+- Inhalt/Aufbau der Karten (Name, Bilder, Felder) sonst NICHT ändern.
+- Galerie-Wand, Feed, Auth unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Schließen-„×” oben rechts groß, amberfarben, immer sichtbar (auch beim Scrollen, quer).
+- [ ] Tippen neben die Karte schließt.
+- [ ] Esc schließt.
+- [ ] Gilt für echtes Profil UND Beispiel/Hausmeister-Overlay.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Overlay quer leicht schließbar (×, daneben, Esc): ja/nein
+> Geänderte Dateien: …

@@ -634,6 +634,12 @@ function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string
   const [botschaftUrl2, setBotschaftUrl2] = useState<string | null>(null);
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  useEffect(() => {
     if (!entry.hat_botschaft) return;
     fetch(`/api/theke/band`, { headers: { "x-theke-token": token } })
       .then(r => r.json())
@@ -655,7 +661,7 @@ function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(10,7,4,0.9)", overflowY: "auto", padding: "2rem 1rem" }}>
       <div onClick={e => e.stopPropagation()} style={{ maxWidth: "540px", margin: "0 auto", background: "#100a05", border: `1px solid ${am(0.3)}`, borderRadius: "10px", padding: "2rem", position: "relative" }}>
-        <button onClick={onClose} style={{ position: "absolute", top: "1rem", right: "1rem", background: "transparent", border: "none", color: fg(0.5), fontSize: "1.4rem", cursor: "pointer", lineHeight: 1 }}>×</button>
+        <button onClick={onClose} aria-label="Schließen" style={{ position: "fixed", top: "max(0.8rem, env(safe-area-inset-top,0px))", right: "0.8rem", zIndex: 10000, width: "2.5rem", height: "2.5rem", borderRadius: "50%", background: "rgba(10,7,4,0.72)", border: `1px solid ${am(0.5)}`, color: A, fontSize: "1.4rem", lineHeight: 1, cursor: "pointer", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
 
         <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "1.5rem", color: A, marginBottom: "1.25rem" }}>{entry.anzeige_name}</p>
 
@@ -705,6 +711,7 @@ function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string
             <div style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85) }}>♪ {entry.lauter_song}</div>
           </div>
         )}
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.72rem", color: fg(0.4), textAlign: "center", margin: "1.5rem 0 0" }}>Tippe daneben oder oben auf ×, um zu schließen.</p>
       </div>
     </div>
   );
