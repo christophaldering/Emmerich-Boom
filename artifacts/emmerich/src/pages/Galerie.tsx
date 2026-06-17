@@ -40,6 +40,8 @@ export interface GalerieEntry {
   istBeispiel?:         boolean;
   istLeerRahmen?:       boolean;
   istInventar?:         boolean;
+  foto_frueher_url?:    string | null;
+  foto_heute_url?:      string | null;
 }
 
 export interface GalerieWandProps {
@@ -203,7 +205,8 @@ function PorträtKarte({
   onAntippen:    (e: GalerieEntry) => void;
 }) {
   const isOval    = Math.abs(entry.id) % 4 === 2;
-  const hauptFoto = entry.foto_heute_key ?? entry.foto_frueher_key;
+  const hauptFotoUrl = entry.foto_heute_url ?? entry.foto_frueher_url ?? null;
+  const hauptFoto    = hauptFotoUrl ? null : (entry.foto_heute_key ?? entry.foto_frueher_key);
   const init      = initials(entry.anzeige_name);
 
   const insetPx =
@@ -257,10 +260,10 @@ function PorträtKarte({
               Häng dich dazu
             </span>
           </div>
-        ) : hauptFoto ? (
+        ) : (hauptFotoUrl ?? hauptFoto) ? (
           <>
             <img
-              src={fotoUrl(hauptFoto, token)}
+              src={hauptFotoUrl ?? fotoUrl(hauptFoto!, token)}
               alt={entry.anzeige_name}
               loading="lazy"
               style={{
@@ -419,6 +422,19 @@ function BeispielDetailOverlay({ entry, onClose }: { entry: GalerieEntry; onClos
           <div>
             <div style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.65), marginBottom: "0.2rem" }}>Lautester Song</div>
             <div style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: fg(0.82) }}>♪ {entry.lauter_song}</div>
+          </div>
+        )}
+
+        {(entry.foto_frueher_url || entry.foto_heute_url) && (
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
+            {[["Früher", entry.foto_frueher_url], ["Heute", entry.foto_heute_url]].map(([label, url]) =>
+              url ? (
+                <div key={label as string} style={{ flex: 1 }}>
+                  <div style={{ fontFamily: "'Lora', serif", fontSize: "0.65rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.6), marginBottom: "0.3rem", textAlign: "center" }}>{label}</div>
+                  <img src={url as string} alt={label as string} style={{ width: "100%", borderRadius: "4px", objectFit: "cover", aspectRatio: "3/4", filter: "saturate(0.4) brightness(0.75)" }} />
+                </div>
+              ) : null
+            )}
           </div>
         )}
 

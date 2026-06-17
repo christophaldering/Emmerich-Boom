@@ -25,6 +25,8 @@ export const BEISPIEL_PROFILE: GalerieEntry[] = [
     f_untersatz:   "Fahrrad",
     f_musik:       "Neue Deutsche Welle",
     f_getraenk:    "Weinschorle",
+    foto_frueher_url: "/theke/beispiel/IMG_8945.png",
+    foto_heute_url:   "/theke/beispiel/IMG_8946.png",
     ...base,
   },
   {
@@ -37,6 +39,8 @@ export const BEISPIEL_PROFILE: GalerieEntry[] = [
     f_untersatz:   "Moped/Motorrad",
     f_musik:       "Rock / Metal",
     f_getraenk:    "Bier",
+    foto_frueher_url: "/theke/beispiel/IMG_8947.png",
+    foto_heute_url:   "/theke/beispiel/IMG_8948.png",
     ...base,
   },
   {
@@ -49,6 +53,8 @@ export const BEISPIEL_PROFILE: GalerieEntry[] = [
     f_untersatz:   "Bus & Bahn",
     f_musik:       "Pop",
     f_getraenk:    "Sekt / Prosecco",
+    foto_frueher_url: "/theke/beispiel/IMG_8949.png",
+    foto_heute_url:   "/theke/beispiel/IMG_8950.png",
     ...base,
   },
   {
@@ -61,6 +67,8 @@ export const BEISPIEL_PROFILE: GalerieEntry[] = [
     f_untersatz:   "Auto",
     f_musik:       "Klassik",
     f_getraenk:    "Rotwein",
+    foto_frueher_url: "/theke/beispiel/IMG_8951.png",
+    foto_heute_url:   "/theke/beispiel/IMG_8952.png",
     ...base,
   },
   {
@@ -73,6 +81,8 @@ export const BEISPIEL_PROFILE: GalerieEntry[] = [
     f_untersatz:   "Zu Fuß",
     f_musik:       "Alles irgendwie",
     f_getraenk:    "Softdrink / Wasser",
+    foto_frueher_url: "/theke/beispiel/IMG_8954.png",
+    foto_heute_url:   "/theke/beispiel/IMG_8955.png",
     ...base,
   },
 ];

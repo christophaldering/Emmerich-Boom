@@ -1,0 +1,53 @@
+# BUILD — Beispielbilder zuordnen (Original-Dateinamen, kein Umbenennen)
+
+**Kleine, klar abgegrenzte Ergänzung. Nur Beispiel-Daten + Bildanzeige für Beispiele. Sonst nichts.**
+
+## Bilder ablegen (ohne Umbenennen)
+
+Die zehn hochgeladenen Bilder unverändert in den Ordner `public/theke/beispiel/` legen. Dateinamen exakt wie hochgeladen (Groß-/Kleinschreibung muss mit dem Replit-Dateibaum übereinstimmen):
+`IMG_8945.png … IMG_8952.png` sowie `IMG_8954.png`, `IMG_8955.png`.
+
+## Datenmodell
+
+Beispielprofile sind **Frontend-Daten** (kein Object Storage) und brauchen einen direkten Bildpfad, KEINEN Token-Key. Im `GalerieEntry` zwei optionale Felder ergänzen:
+`foto_frueher_url?: string | null;` und `foto_heute_url?: string | null;`
+
+## Zuordnung in `beispielProfile.ts`
+
+|Profil  |foto_frueher_url              |foto_heute_url                |
+|--------|------------------------------|------------------------------|
+|Renate  |`/theke/beispiel/IMG_8945.png`|`/theke/beispiel/IMG_8946.png`|
+|Manfred |`/theke/beispiel/IMG_8947.png`|`/theke/beispiel/IMG_8948.png`|
+|Gisela  |`/theke/beispiel/IMG_8949.png`|`/theke/beispiel/IMG_8950.png`|
+|Wolfgang|`/theke/beispiel/IMG_8951.png`|`/theke/beispiel/IMG_8952.png`|
+|Helga   |`/theke/beispiel/IMG_8954.png`|`/theke/beispiel/IMG_8955.png`|
+
+## Anzeige in `Galerie.tsx`
+
+Beim Bestimmen des Porträts: wenn `*_url` gesetzt ist (Beispiele), dieses **direkt** als `<img src>` verwenden (kein `fotoUrl()`/Token). Reihenfolge:
+`foto_heute_url ?? foto_frueher_url ?? (foto_heute_key über fotoUrl) ?? foto_frueher_key ?? Initialen`.
+
+- Wand zeigt „Heute” (`foto_heute_url`).
+- Antipp-Fokus (Beispiel-Overlay) zeigt das **Früher/Heute-Paar** nebeneinander, wenn beide `*_url` vorhanden — gern mit kleinen Labels „Früher” / „Heute”.
+- Leichte Entsättigung der Beispiele (`saturate(0.35) brightness(0.7)`) + „Beispiel”-Bändchen bleiben.
+
+## VERBOTEN
+
+- Echte Profile, Feed, Object Storage, Auth, Tresen, Speichern/Upload, Hausmeister, Szene unverändert.
+- Beispiele weiterhin nur Frontend, nicht in DB/Zählungen/Präsenz/Band.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Zehn Bilder unter `public/theke/beispiel/` (Originalnamen, Groß-/Kleinschreibung exakt).
+- [ ] `foto_frueher_url`/`foto_heute_url` im Typ + bei allen 5 Beispielen gesetzt (Tabelle oben).
+- [ ] Wand zeigt die „Heute”-Bilder (entsättigt, „Beispiel”-Bändchen).
+- [ ] Antippen zeigt das Früher/Heute-Paar mit Labels.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Beispielbilder sichtbar (Wand = Heute): ja/nein
+> Früher/Heute-Paar im Fokus: ja/nein
+> Beispiele weiterhin nur Frontend, entsättigt, „Beispiel”: ja/nein
+> Geänderte Dateien: …
