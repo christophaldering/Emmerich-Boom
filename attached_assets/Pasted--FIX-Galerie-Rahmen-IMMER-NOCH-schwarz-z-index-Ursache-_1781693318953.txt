@@ -1,0 +1,51 @@
+# FIX — Galerie-Rahmen IMMER NOCH schwarz: z-index-Ursache
+
+**Die Reihenfolge wurde gedreht, aber die z-index-Werte machen es zunichte. Nur die Ebenen korrigieren — sonst nichts.**
+
+## Befund (genau)
+
+In `artifacts/emmerich/src/pages/Galerie.tsx`:
+
+- `SvgBilderrahmen`-Wrapper hat `position: absolute; inset: 0; zIndex: 3` (≈ Zeile 99–101). Der Rahmen füllt seine Innenfläche **deckend** mit `BG` (`fill={BG}`, Zeilen ≈121/133/151/175).
+- Die **Porträt-Inhalt**-`div` (Foto/Initialen) hat `zIndex: 1` (≈ Zeile 236–240).
+
+`zIndex` schlägt die DOM-Reihenfolge: Der Rahmen (z3) liegt **über** dem Porträt (z1) → die dunkle Innenfläche verdeckt Foto/Initialen → schwarz.
+
+## Fix (bevorzugt: Ebenen tauschen)
+
+Das Porträt muss **über** der deckenden Rahmenfläche liegen, der Goldrand rahmt es weiterhin ein:
+
+- `SvgBilderrahmen`-Wrapper: `zIndex` von `3` → **`1`**.
+- Porträt-Inhalt-`div`: `zIndex` von `1` → **`2`**.
+- Anwesend-Puls (`zIndex: 4`) und „Beispiel”/„Inventar”-Bändchen (`zIndex: 6`) bleiben darüber — unverändert lassen.
+
+Da die Porträt-`div` weiterhin `inset: ${insetPx}px` + `clipPath` hat, sitzt das Porträt sauber im Fenster; der Goldrand (am äußeren Rand des Rahmens) bleibt rundum sichtbar, die dunkle Innenfläche wirkt nur noch als schmale Passepartout-Kante. Oval bleibt oval (clipPath bleibt).
+
+## Alternative (optional, edler): Rahmenmitte transparent
+
+Statt Ebenentausch die deckenden `fill={BG}`-Flächen im `SvgBilderrahmen` entfernen/auf transparent setzen und den Gold-Verlauf nur als Rand (nicht als Vollfläche) zeichnen — dann scheint das darunterliegende Porträt durch und der Goldrand liegt sauber darüber. Nur wählen, wenn schnell sauber umsetzbar; sonst Ebenentausch.
+
+## Verifizieren
+
+- Eigenes Profil ohne Foto → **Initialen auf Amber** sichtbar (nicht schwarz).
+- Mit Foto → Foto sichtbar.
+- Beispiele → Initialen + „Beispiel”-Bändchen; Hausmeister → „HK”/Foto + „Inventar”.
+- Goldrand rahmt sauber; Oval bleibt oval; Glühen/Puls weiter sichtbar.
+
+## VERBOTEN
+
+- Datenfluss/Feed, Auth, Tresen, Speichern/Upload, Autoplay-Logik, Szene-Hintergrund unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Porträt-`div` liegt über der deckenden Rahmenfläche (z-index korrigiert).
+- [ ] Rahmen nicht mehr schwarz — Foto/Initialen sichtbar.
+- [ ] Goldrand + Oval + Glühen + Bändchen weiterhin korrekt.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> z-index korrigiert (Porträt über Rahmenfläche): ja/nein
+> Foto/Initialen jetzt sichtbar: ja/nein
+> Geänderte Dateien / Zeilen: …

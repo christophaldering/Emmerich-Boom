@@ -98,7 +98,7 @@ function SvgBilderrahmen({ id, glow, isBeispiel }: { id: number; glow: boolean; 
   const svgStyle: React.CSSProperties = {
     position: "absolute", inset: 0,
     width: "100%", height: "100%",
-    zIndex: 3, filter,
+    zIndex: 1, filter,
     pointerEvents: "none",
     overflow: "visible",
   };
@@ -237,7 +237,7 @@ function PorträtKarte({
         inset:      `${insetPx}px`,
         overflow:   "hidden",
         clipPath,
-        zIndex:     1,
+        zIndex:     2,
         filter:     entry.istBeispiel ? "saturate(0.35) brightness(0.7)" : undefined,
       }}>
         {entry.istLeerRahmen ? (
