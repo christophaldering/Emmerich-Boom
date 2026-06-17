@@ -37,11 +37,9 @@ export default function Beacon() {
     sent.current = true;
 
     const sessionId = getId("emmerich_session", sessionStorage);
-    const visitorId = getId("emmerich_visitor", localStorage);
 
     const payload = {
       sessionId,
-      visitorId,
       referrer:      document.referrer || null,
       entryPath:     window.location.pathname + window.location.search,
       lang:          navigator.language || null,

@@ -1,0 +1,71 @@
+AUFGABE
+Das Reichweiten-Tracking der Startseite datenschutzkonform anonymisieren: keine
+dauerhafte Besucher-Kennung mehr, keine IP-Speicherung, kein roher User-Agent — damit
+keine Einwilligung nötig ist. Anonyme Aggregat-Messung (Besuche, Zeitpunkt, Dauer pro
+Sitzung, Herkunft, Gerät) bleibt erhalten. Drei Teile.
+
+TEIL 1 — Client: dauerhafte Kennung entfernen
+DATEI: artifacts/emmerich/src/components/Beacon.tsx
+Suche EXAKT:
+
+    const sessionId = getId("emmerich_session", sessionStorage);
+    const visitorId = getId("emmerich_visitor", localStorage);
+
+    const payload = {
+      sessionId,
+      visitorId,
+      referrer:      document.referrer || null,
+
+Ersetze EXAKT durch:
+
+    const sessionId = getId("emmerich_session", sessionStorage);
+
+    const payload = {
+      sessionId,
+      referrer:      document.referrer || null,
+
+(Die sitzungsbezogene sessionId in sessionStorage bleibt — sie ist nicht dauerhaft und
+dient nur dazu, die Verweildauer innerhalb EINES Besuchs zu messen.)
+
+TEIL 2 — Server: IP, dauerhafte Kennung und rohen User-Agent nicht mehr speichern
+DATEI: artifacts/api-server/src/routes/beacon.ts
+2a) Entferne im /beacon-Handler EXAKT die Zeile:
+    const ip = getIp(req);
+2b) Im Block `await db.insert(pageViews).values({ … })` ersetze EXAKT:
+        visitorId: visitorId ?? null,
+        ip,
+        userAgent,
+   durch EXAKT:
+        visitorId: null,
+        ip: null,
+        userAgent: null,
+(Die Variablen browser/os werden weiterhin aus dem User-Agent berechnet und gespeichert —
+nur der ROHE User-Agent wird nicht mehr abgelegt. Die Funktion getIp darf ungenutzt
+stehen bleiben.)
+
+TEIL 3 — Altdaten anonymisieren (einmalig)
+Setze in der bestehenden Tabelle pageViews bei ALLEN vorhandenen Zeilen die Felder
+visitorId, ip und userAgent auf null. Nutze dafür ein TEMPORÄRES Skript mit dem
+vorhandenen db-Client (z. B. db.update(pageViews).set({ visitorId: null, ip: null,
+userAgent: null })), führe es einmal aus, melde die Anzahl geänderter Zeilen und lösche
+das Skript danach. KEINE neue Tabelle, keine Schema-Migration.
+
+VERBOTEN
+- KEINE Änderung an der sessionId-Logik, an der Dauer-/Ping-Messung, an Referrer/UTM/Gerät/OS/Browser-Aggregaten.
+- KEINE Änderung an anderen Routen, Komponenten oder Dateien (Theke bleibt unangetastet).
+- KEIN Banner, kein Consent-Dialog in diesem Schritt.
+- KEINE Schema-/Spaltenänderung; nur Werte auf null setzen.
+- KEINE dauerhaftes neues Skript zurücklassen.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Beacon sendet keine localStorage-„visitorId" mehr; nichts Dauerhaftes im Browser.
+[ ] Neue Besuche speichern visitorId, ip und rohen userAgent als null.
+[ ] browser/os/Dauer/Referrer/UTM werden weiterhin (anonym) erfasst.
+[ ] Altdaten: visitorId/ip/userAgent in allen pageViews-Zeilen auf null gesetzt (Anzahl gemeldet).
+[ ] Projekt baut/läuft fehlerfrei; temporäres Skript gelöscht.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Den geänderten Dateipfaden + Anzahl rückwirkend anonymisierter Zeilen.
+2. Der wörtlichen Bestätigung: „Tracking anonymisiert: keine dauerhafte Kennung, keine IP, kein roher User-Agent — Theke unverändert."
+3. Falls eine zu ersetzende Stelle nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.

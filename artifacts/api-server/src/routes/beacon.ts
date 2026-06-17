@@ -47,7 +47,6 @@ router.post("/beacon", async (req, res) => {
     const { sessionId, visitorId, referrer, action } = req.body;
     if (!sessionId) { res.json({ ok: false }); return; }
 
-    const ip = getIp(req);
     const userAgent = (req.headers["user-agent"] ?? "").slice(0, 512);
     const ref = (referrer ?? "").slice(0, 512);
 
@@ -74,9 +73,9 @@ router.post("/beacon", async (req, res) => {
 
       await db.insert(pageViews).values({
         sessionId,
-        visitorId: visitorId ?? null,
-        ip,
-        userAgent,
+        visitorId: null,
+        ip: null,
+        userAgent: null,
         referrer: ref || null,
         entryPath: (entryPath ?? "").slice(0, 512) || null,
         lang: (lang ?? "").slice(0, 16) || null,
