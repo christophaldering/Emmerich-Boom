@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import { db, anmeldungenTable, anmeldungTicketsTable, scanLog, tickets as legacyTicketsTable } from "@workspace/db";
-import { eq, sql, desc, isNull } from "drizzle-orm";
+import { eq, sql, desc, isNull, ne } from "drizzle-orm";
+import { SERVER_CONFIG } from "../config.js";
 import crypto from "crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -50,6 +51,7 @@ router.get("/admin/anmeldungen", async (req: Request, res: Response) => {
         created_at:           anmeldungenTable.created_at,
       })
       .from(anmeldungenTable)
+      .where(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL))
       .orderBy(anmeldungenTable.created_at);
 
     const ticketRows = await db

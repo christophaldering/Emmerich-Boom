@@ -12,4 +12,5 @@ export const SERVER_CONFIG = {
   ABSENDER_NAME:           "Boomerparty Emmerich",
   THEKE_BASE_URL:          "https://emmerich-boomt.de",
   THEKE_DEMO_CODE:         "00000000DEADBEEF",
+  THEKE_DEMO_EMAIL:        "orga-vorschau@emmerich-boomt.de",
 } as const;

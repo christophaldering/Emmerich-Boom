@@ -1,0 +1,33 @@
+# FIX — Demo-Bestellung „Orga-Vorschau" aus allen Zählungen ausschließen
+
+**Kleiner, chirurgischer Fix. Die Demo-Bestellung NICHT löschen — der Theke-Dauerzugang braucht sie. Sie darf nur nirgends mitgezählt werden.**
+
+## Befund
+Die öffentliche Landingpage-Zahl kommt aus `GET /api/anmeldung/stats` (`artifacts/api-server/src/routes/anmeldung.ts`): dort wird `personen_anzahl` über alle nicht stornierten Anmeldungen summiert — die Demo-Bestellung (E-Mail `orga-vorschau@emmerich-boomt.de`, Ticket `THEKE_DEMO_CODE`) wird mitgezählt → 276 statt 275. Dieselbe Summe steckt in der Kapazitätsprüfung beim Anmelden.
+
+## Stabiler Marker
+Die Demo-Bestellung ist eindeutig identifizierbar über die E-Mail `orga-vorschau@emmerich-boomt.de` **bzw.** über das ihr gehörende Ticket mit `ticket_code = THEKE_DEMO_CODE`. Lege dafür eine Konstante an (z. B. `THEKE_DEMO_EMAIL = "orga-vorschau@emmerich-boomt.de"` in `config.ts`, neben `THEKE_DEMO_CODE`) und nutze sie überall — keine doppelte Hardcodierung. E-Mail-Vergleich case-insensitiv.
+
+## Fix — Demo aus Zählungen ausschließen
+1. **`GET /api/anmeldung/stats`**: die Summe um die Demo bereinigen, z. B. `where(and(isNull(storniert_am), ne(lower(email), THEKE_DEMO_EMAIL)))`. Ergebnis: `angemeldete_personen` zählt die Demo nicht mehr.
+2. **Kapazitätsprüfung beim Anmelden** (die `sum(personen_anzahl)`-Abfragen im POST `/anmeldung`): dieselbe Ausschlussbedingung, damit die Demo keinen realen Platz belegt.
+3. **Admin-Übersicht/Headline** (`anmeldung-admin.ts` und alle Stellen, die Anmeldungen/Personen für Gesamtzahlen summieren oder auflisten): die Demo ebenfalls ausschließen, damit auch intern keine „+1" entsteht und sie nicht in der Anmeldungsliste auftaucht.
+4. Prüfe, ob es weitere Stellen gibt, die Anmeldungen für **angezeigte Summen** auswerten (Export-Gesamtzahlen, Stimmung/Beacon nur falls betroffen) und schließe die Demo dort konsistent aus.
+
+## VERBOTEN
+- Die Demo-Bestellung / das Demo-Ticket NICHT löschen oder stornieren — nur aus Zählungen herausfiltern.
+- Theke-Logik, Auth, Szenendesign unverändert.
+
+## CHECKLISTE
+- [ ] `THEKE_DEMO_EMAIL`-Konstante angelegt, einmalige Quelle.
+- [ ] `GET /api/anmeldung/stats` zählt die Demo nicht mehr (Landingpage zeigt 275 statt 276).
+- [ ] Kapazitätsprüfung schließt die Demo aus (kein belegter Platz).
+- [ ] Admin-Gesamtzahlen + Anmeldungsliste ohne Demo.
+- [ ] Demo-Bestellung existiert weiterhin, Theke-Dauerzugang funktioniert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> Landingpage-Zahl ohne Demo (z. B. 275): ja/nein
+> Kapazitätsprüfung + Admin-Summen ohne Demo: ja/nein
+> Demo-Bestellung unangetastet, Dauerzugang funktioniert: ja/nein
+> Geänderte Dateien / Abweichungen: …

@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { kiRequests, anmeldungenTable } from "@workspace/db";
-import { desc, gte, count, isNull } from "drizzle-orm";
+import { desc, gte, count, isNull, and, ne } from "drizzle-orm";
+import { SERVER_CONFIG } from "../config.js";
 import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router = Router();
@@ -61,7 +62,7 @@ export async function generateKaiComment(): Promise<void> {
         song: anmeldungenTable.song,
       })
       .from(anmeldungenTable)
-      .where(isNull(anmeldungenTable.storniert_am))
+      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL)))
       .orderBy(desc(anmeldungenTable.created_at));
 
     const phase2Eintraege: Phase2Entry[] = anmeldungRows
@@ -103,7 +104,7 @@ router.post("/stimmung/regenerate", async (req, res) => {
         song: anmeldungenTable.song,
       })
       .from(anmeldungenTable)
-      .where(isNull(anmeldungenTable.storniert_am))
+      .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL)))
       .orderBy(desc(anmeldungenTable.created_at));
 
     const phase2EintraegeRegen: Phase2Entry[] = anmeldungRowsRegen
