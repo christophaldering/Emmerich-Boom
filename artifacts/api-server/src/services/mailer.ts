@@ -669,13 +669,17 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
   const html = `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="utf-8"><title>Die Theke ist offen \u2014 EMMERICH BOOMT!</title></head>
-<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
-<div style="max-width:600px;margin:0 auto;">
+<body style="margin:0;padding:0;background-color:#0a0704;color:#f5e8c8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;margin:0;padding:0;">
+<tr><td align="center" bgcolor="#0a0704" style="padding:0;background-color:#0a0704;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="width:100%;max-width:600px;background-color:#0a0704;">
 
-  <img src="cid:${POSTER_CID}" alt="BoomerParty \u2014 Emmerich boomt!" width="600"
-    style="display:block;width:100%;height:auto;" />
+  <tr><td style="padding:0;font-size:0;line-height:0;">
+    <img src="cid:${POSTER_CID}" alt="BoomerParty \u2014 Emmerich boomt!" width="600"
+      style="display:block;width:100%;max-width:600px;height:auto;" />
+  </td></tr>
 
-  <div style="padding:40px 32px 48px;">
+  <tr><td bgcolor="#0a0704" style="padding:40px 32px 48px;background-color:#0a0704;">
 
     <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
       Die Tür öffnet sich ein kleines bisschen.
@@ -706,8 +710,11 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
       EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; Bölt / Gaststätte Kapaunenberg &bull; Emmerich am Rhein
     </p>
 
-  </div>
-</div>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
 </body>
 </html>`;
 
