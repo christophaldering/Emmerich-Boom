@@ -690,15 +690,27 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
   <tr><td bgcolor="#0a0704" style="padding:40px 32px 48px;background-color:#0a0704;">
 
     <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
-      Die Tür öffnet sich ein kleines bisschen.
+      Vorfreude ist ja bekanntlich die schönste Freude.
     </h1>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinschauen kann man trotzdem schon.
+      Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Drinnen findest Du schon ein paar digitale Profile — und vielleicht hinterlässt Du auch Dein eigenes (?) — am Handy, in zwei Minuten. Das wäre schön!!
+      Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Schön wäre, wenn möglichst viele mitmachen. Müssen tut aber niemand. Wer keine Lust hat, lässt es einfach. Wer es sich anders überlegt, löscht sein Profil mit einem Klick wieder. Alles freiwillig, alles in deiner Hand.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Schau ruhig immer wieder mal rein. Die Theke füllt sich mit jedem Tag, und es macht Spaß zu sehen, wer alles dazukommt.
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
@@ -726,11 +738,17 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
 </body>
 </html>`;
 
-  const text = `Die Tür öffnet sich ein kleines bisschen.
+  const text = `Vorfreude ist ja bekanntlich die schönste Freude.
 
-Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinschauen kann man trotzdem schon.
+Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
 
-Drinnen findest Du schon ein paar digitale Profile — und vielleicht hinterlässt Du auch Dein eigenes (?) — am Handy, in zwei Minuten. Das wäre schön!!
+Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+
+Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")
+
+Schön wäre, wenn möglichst viele mitmachen. Müssen tut aber niemand. Wer keine Lust hat, lässt es einfach. Wer es sich anders überlegt, löscht sein Profil mit einem Klick wieder. Alles freiwillig, alles in deiner Hand.
+
+Schau ruhig immer wieder mal rein. Die Theke füllt sich mit jedem Tag, und es macht Spaß zu sehen, wer alles dazukommt.
 
 ${mehrere ? "Du hast mehrere Zugänge bekommen — leite jeden Link einfach an die passende Person weiter." : "Der Link gehört nur dir."}
 
@@ -745,7 +763,7 @@ EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg ·
     from: `"${ABSENDER_NAME}" <${ABSENDER_MAIL}>`,
     to: opts.to,
     replyTo: ABSENDER_MAIL,
-    subject: "Die Tür zur BoomerParty öffnet sich ein kleines bisschen \u2026",
+    subject: "Vorfreude ist die schönste Freude: die Theke füllt sich",
     html,
     text,
     attachments: [

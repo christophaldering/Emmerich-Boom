@@ -1,0 +1,66 @@
+AUFGABE
+In der Theke-Einladungsmail (Funktion sendThekeEinladung) den bisherigen Mailtext
+durch den neuen Wortlaut ersetzen. Betrifft DREI Stellen in EINER Datei: die HTML-
+Variante, die Nur-Text-Variante und den Betreff. Alle funktionalen Teile bleiben
+unverändert (Poster, Link-Kasten ${ticketBloecke}, die "mehrere/Der Link gehört nur
+dir"-Zeile, die Grußformel, die Fußzeile).
+
+DATEI
+artifacts/api-server/src/services/mailer.ts
+(Nur die Funktion sendThekeEinladung anfassen — KEINE der anderen fünf Mail-Funktionen.)
+
+ÄNDERUNG 1 — HTML-Überschrift + Fließtext
+Suche im HTML-Block diese Überschrift und die ZWEI darauf folgenden <p>-Absätze
+(Überschrift „Die Tür öffnet sich ein kleines bisschen.", danach der Absatz
+„Noch sind nicht alle da …" und der Absatz „Drinnen findest Du …").
+Ersetze GENAU diese drei Elemente (h1 + die zwei <p>) durch: die neue Überschrift
+plus FÜNF neue <p>-Absätze. Verwende für jedes neue <p> EXAKT denselben style-Wrapper,
+den die bestehenden Body-Absätze benutzen:
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+
+Die Überschrift (im bestehenden <h1>-Wrapper) lautet neu:
+Vorfreude ist ja bekanntlich die schönste Freude.
+
+Die fünf Absätze lauten (in dieser Reihenfolge, Wortlaut zeichengenau):
+1) Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
+2) Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+3) Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")
+4) Schön wäre, wenn möglichst viele mitmachen. Müssen tut aber niemand. Wer keine Lust hat, lässt es einfach. Wer es sich anders überlegt, löscht sein Profil mit einem Klick wieder. Alles freiwillig, alles in deiner Hand.
+5) Schau ruhig immer wieder mal rein. Die Theke füllt sich mit jedem Tag, und es macht Spaß zu sehen, wer alles dazukommt.
+
+WICHTIG: Die unmittelbar darauf folgende Zeile mit dem ${mehrere ? … : "Der Link gehört nur dir."}
+bleibt UNVERÄNDERT stehen. Ebenso ${ticketBloecke}, die Grußformel-Box und die Fußzeile.
+
+ÄNDERUNG 2 — Nur-Text-Variante (const text = `…`)
+Ersetze dort die Kopfzeile „Die Tür öffnet sich ein kleines bisschen." und die zwei
+folgenden Absätze („Noch sind nicht alle da …" und „Drinnen findest Du …") durch
+denselben neuen Wortlaut: die Überschriftzeile „Vorfreude ist ja bekanntlich die
+schönste Freude." und dieselben fünf Absätze wie oben (durch je eine Leerzeile getrennt,
+ohne HTML-Tags). Die ${mehrere ? … : "Der Link gehört nur dir."}-Zeile, ${ticketBloeckeText},
+die Grußformel und die Fußzeile bleiben UNVERÄNDERT.
+
+ÄNDERUNG 3 — Betreff
+Ersetze EXAKT diese Zeile:
+    subject: "Die Tür zur BoomerParty öffnet sich ein kleines bisschen \u2026",
+durch EXAKT:
+    subject: "Vorfreude ist die schönste Freude: die Theke füllt sich",
+
+VERBOTEN
+- KEINE Änderung an einer der anderen fünf Mail-Funktionen.
+- KEINE Änderung an ${ticketBloecke}, ${ticketBloeckeText}, der "Der Link gehört nur dir"-Zeile, der Grußformel-Box oder der Fußzeile.
+- KEINE Änderung am Poster/Anhang, am Absender, an Resend-Logik, an replyTo.
+- KEINE Umformulierung, Kürzung oder „Verbesserung" der Texte — Wortlaut zeichengenau, inkl. „–", Anführungszeichen und Klammern.
+- KEINE neuen Felder, keine geänderten Funktionssignaturen, keine neuen Pakete.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Nur sendThekeEinladung in mailer.ts wurde geändert.
+[ ] HTML: neue Überschrift + fünf neue Absätze stehen drin; „Der Link gehört nur dir" + Link-Kasten unverändert dahinter.
+[ ] Nur-Text: dieselbe neue Überschrift + fünf Absätze; Rest unverändert.
+[ ] Betreff ist neu gesetzt.
+[ ] Keine andere Datei/Funktion angefasst. Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem Dateipfad: artifacts/api-server/src/services/mailer.ts
+2. Der wörtlichen Bestätigung: „Nur sendThekeEinladung (HTML, Text, Betreff) wurde geändert, sonst nichts."
+3. Falls eine der zu ersetzenden Stellen nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.
