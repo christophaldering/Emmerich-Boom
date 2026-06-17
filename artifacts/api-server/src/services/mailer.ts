@@ -678,35 +678,19 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
   <div style="padding:40px 32px 48px;">
 
     <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
-      Die Theke ist offen.
+      Die Tür öffnet sich ein kleines bisschen.
     </h1>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinkommen kann man trotzdem schon.
+      Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinschauen kann man trotzdem schon.
     </p>
-
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 12px;">
-      Drinnen wartet ein <strong>digitaler Steckbrief</strong> — am Handy, in zwei Minuten:
-    </p>
-
-    <ul style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.7;color:rgba(245,232,200,.9);margin:0 0 20px;padding-left:20px;">
-      <li style="margin-bottom:6px;">Ein Bild von früher, eins von heute — der Name ist geblieben, das Gesicht nicht immer</li>
-      <li style="margin-bottom:6px;">Wer schon dabei ist — und auf wen man sich freuen darf</li>
-      <li>Ein paar Zeilen zu dir, eine Stimme aufs Band, wenn dir danach ist</li>
-    </ul>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Kein Muss — wer sich lieber zurückhält: auch ok. Aber Hand aufs Herz: Je mehr mitmachen, desto schöner das Wiedersehen. Und keiner muss am Abend rätseln, wer der nette Mensch von damals heute ist.
+      Drinnen findest Du schon ein paar digitale Profile — und vielleicht hinterlässt Du auch Dein eigenes (?) — am Handy, in zwei Minuten. Das wäre schön!!
     </p>
 
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 24px;">
-      Schau die nächsten Tage ruhig nochmal rein: Mit jedem neuen Steckbrief wird's voller an der Theke.
-    </p>
-
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 24px;">
-      ${mehrere
-        ? "Unten findest du für jede Person einen eigenen Zugang — gib die Links einfach weiter, jeder gilt nur für eine."
-        : "Dein Zugang gehört nur dir. Mach einfach mal auf:"}
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      ${mehrere ? "Du hast mehrere Zugänge bekommen — leite jeden Link einfach an die passende Person weiter." : "Der Link gehört nur dir."}
     </p>
 
     ${ticketBloecke}
@@ -727,22 +711,13 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
 </body>
 </html>`;
 
-  const text = `Die Theke ist offen.
+  const text = `Die Tür öffnet sich ein kleines bisschen.
 
-Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinkommen kann man trotzdem schon.
+Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinschauen kann man trotzdem schon.
 
-Drinnen wartet ein digitaler Steckbrief — am Handy, in zwei Minuten:
-- Ein Bild von früher, eins von heute — der Name ist geblieben, das Gesicht nicht immer
-- Wer schon dabei ist — und auf wen man sich freuen darf
-- Ein paar Zeilen zu dir, eine Stimme aufs Band, wenn dir danach ist
+Drinnen findest Du schon ein paar digitale Profile — und vielleicht hinterlässt Du auch Dein eigenes (?) — am Handy, in zwei Minuten. Das wäre schön!!
 
-Kein Muss — wer sich lieber zurückhält: auch ok. Aber Hand aufs Herz: Je mehr mitmachen, desto schöner das Wiedersehen. Und keiner muss am Abend rätseln, wer der nette Mensch von damals heute ist.
-
-Schau die nächsten Tage ruhig nochmal rein: Mit jedem neuen Steckbrief wird's voller an der Theke.
-
-${mehrere
-  ? "Unten findest du für jede Person einen eigenen Zugang — gib die Links einfach weiter, jeder gilt nur für eine."
-  : "Dein Zugang gehört nur dir. Mach einfach mal auf:"}
+${mehrere ? "Du hast mehrere Zugänge bekommen — leite jeden Link einfach an die passende Person weiter." : "Der Link gehört nur dir."}
 
 ${ticketBloeckeText}
 Bis bald auf dem Bölt.
@@ -755,7 +730,7 @@ EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg ·
     from: `"${ABSENDER_NAME}" <${ABSENDER_MAIL}>`,
     to: opts.to,
     replyTo: ABSENDER_MAIL,
-    subject: "Die Theke ist offen — schau mal rein",
+    subject: "Die Tür zur BoomerParty öffnet sich ein kleines bisschen \u2026",
     html,
     text,
     attachments: [

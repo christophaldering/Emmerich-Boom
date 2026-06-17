@@ -1,0 +1,82 @@
+KONTEXT
+Repo: Emmerich-Boom. Du fasst GENAU EINE Datei an:
+artifacts/api-server/src/services/mailer.ts
+Es geht NUR um die Funktion sendThekeEinladung (Theke-Einladungsmail).
+Betreff + Überschrift + Einleitungstext werden ausgetauscht.
+
+VERBOTEN
+- KEINE andere Funktion, KEINE andere Datei anfassen.
+- Ticket-Blöcke (ticketBloecke / ticketBloeckeText), Datenschutz-Hinweis
+  ("Den Link bitte nicht öffentlich teilen ..."), Signaturblock und Footer
+  NICHT verändern.
+- Poster/Attachment-Logik, Absender, replyTo NICHT verändern.
+
+ÄNDERUNG 1 — Betreff
+ALT:
+  subject: "Die Theke ist offen \u2014 dein Zugang zur Boomerparty",
+NEU:
+  subject: "Die T\u00fcr zur BoomerParty \u00f6ffnet sich ein kleines bisschen \u2026",
+
+ÄNDERUNG 2 — HTML-Einleitung
+ALT (h1 + drei <p>-Blöcke):
+    <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
+      Die Theke ist offen.
+    </h1>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Ein bisschen wie beim echten Treffen: Man kommt rein, stellt sich vor, h\u00f6rt rein, wer noch so dabei ist. Nur halt schon heute und nicht erst am 18.&nbsp;Juli.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Wir haben f\u00fcr ${mehrere ? "euch" : "dich"} einen pers\u00f6nlichen Zugang eingerichtet. ${mehrere ? "Bitte leite die Links an die jeweiligen Personen weiter \u2014 jeder Link gilt nur f\u00fcr eine Person." : "Der Link geh\u00f6rt nur dir."}
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      Was ${mehrere ? "ihr" : "dich"} erwartet: Steckbriefe, alte Fotos, Sprachnachrichten, und sp\u00e4ter mehr. Mach einfach mal auf.
+    </p>
+
+NEU:
+    <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
+      Die T\u00fcr \u00f6ffnet sich ein kleines bisschen.
+    </h1>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Noch sind nicht alle da \u2014 so ein Abend f\u00e4ngt ja immer langsam an. Reinschauen kann man trotzdem schon.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Drinnen findest Du schon ein paar digitale Profile \u2014 und vielleicht hinterl\u00e4sst Du auch Dein eigenes (?) \u2014 am Handy, in zwei Minuten. Das w\u00e4re sch\u00f6n!!
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
+      ${mehrere ? "Du hast mehrere Zug\u00e4nge bekommen \u2014 leite jeden Link einfach an die passende Person weiter." : "Der Link geh\u00f6rt nur dir."}
+    </p>
+
+ÄNDERUNG 3 — Text-Variante (Plaintext)
+ALT:
+  const text = `Die Theke ist offen.
+
+Ein bisschen wie beim echten Treffen: Man kommt rein, stellt sich vor, hört rein, wer noch so dabei ist. Nur halt schon heute und nicht erst am 18. Juli.
+
+${mehrere ? "Bitte leite die Links an die jeweiligen Personen weiter — jeder Link gilt nur für eine Person." : "Der Link gehört nur dir."}
+
+NEU:
+  const text = `Die Tür öffnet sich ein kleines bisschen.
+
+Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinschauen kann man trotzdem schon.
+
+Drinnen findest Du schon ein paar digitale Profile — und vielleicht hinterlässt Du auch Dein eigenes (?) — am Handy, in zwei Minuten. Das wäre schön!!
+
+${mehrere ? "Du hast mehrere Zugänge bekommen — leite jeden Link einfach an die passende Person weiter." : "Der Link gehört nur dir."}
+
+CHECKLISTE
+[ ] Betreff ersetzt
+[ ] HTML-Einleitung (h1 + 3 Absätze) ersetzt
+[ ] Text-Variante ersetzt
+[ ] Ticket-Blöcke, Datenschutz-Hinweis, Signatur, Footer unverändert
+[ ] pnpm run typecheck grün
+[ ] git status zeigt NUR mailer.ts
+
+ABSCHLUSSERKLÄRUNG (wörtlich)
+"Erledigt: Theke-Einladungsmail — Betreff, Überschrift und Einleitung
+ausgetauscht. Ticket-Blöcke und Signatur unverändert. Nur mailer.ts. typecheck grün."
