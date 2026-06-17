@@ -1,0 +1,49 @@
+AUFGABE
+Auf der Galerie-/Beamer-Wand kleben die Porträts am linken Rand, wenn nur wenige da
+sind — rechts bleibt großer leerer Raum. Fix: Wenn alle Porträts zusammen schmaler
+sind als die Wand, sollen sie horizontal ZENTRIERT werden. Überläuft die Wand (viele
+Profile), bleibt alles exakt wie bisher. Zwei kleine Ergänzungen in EINER Datei.
+
+DATEI
+artifacts/emmerich/src/pages/Galerie.tsx
+
+ÄNDERUNG 1 — Zentrier-Versatz berechnen
+Suche EXAKT diesen Block:
+
+  // Windowing
+  const containerW   = containerRef.current?.clientWidth ?? 380;
+
+Ersetze ihn EXAKT durch:
+
+  // Windowing
+  const containerW   = containerRef.current?.clientWidth ?? 380;
+  const centerShift  = Math.max(0, (containerW - totalWidth) / 2);
+
+ÄNDERUNG 2 — Versatz auf die Porträt-Reihe anwenden
+Suche EXAKT diesen Block:
+
+        {/* Porträt-Reihe */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
+
+Ersetze ihn EXAKT durch:
+
+        {/* Porträt-Reihe */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 2, transform: `translateX(${centerShift}px)` }}>
+
+VERBOTEN
+- KEINE Änderung an der Autoplay-/Scroll-Logik, an den Geschwindigkeiten oder am Drag.
+- KEINE Änderung an den Hintergrund-/Vignette-Ebenen, an Größen, Rotationen oder Abständen der Porträts.
+- KEINE Änderung an anderen Dateien oder Komponenten.
+- Nur die zwei genannten Blöcke anfassen.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] centerShift wird berechnet und als translateX auf die Porträt-Reihe angewendet.
+[ ] Bei wenigen Porträts sitzen sie jetzt mittig statt links; rechts ist kein großer Leerraum mehr.
+[ ] Bei vielen Porträts (Überlauf) ist das Verhalten unverändert (Scrollen/Fahren wie zuvor).
+[ ] Keine andere Datei/Logik angefasst. Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem Dateipfad: artifacts/emmerich/src/pages/Galerie.tsx
+2. Der wörtlichen Bestätigung: „Nur die Zentrierung wurde ergänzt, sonst nichts."
+3. Falls einer der beiden Blöcke nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.

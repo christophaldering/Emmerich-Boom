@@ -522,6 +522,7 @@ export function GalerieWand({
 
   // Windowing
   const containerW   = containerRef.current?.clientWidth ?? 380;
+  const centerShift  = Math.max(0, (containerW - totalWidth) / 2);
   const startIdx     = Math.max(0, Math.floor(scrollOffset / ITEM_STRIDE) - BUFFER);
   const endIdx       = Math.min(alleEntries.length - 1, Math.ceil((scrollOffset + containerW) / ITEM_STRIDE) + BUFFER);
 
@@ -592,7 +593,7 @@ export function GalerieWand({
         }} />
 
         {/* Porträt-Reihe */}
-        <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 2, transform: `translateX(${centerShift}px)` }}>
           {alleEntries.slice(startIdx, endIdx + 1).map((e, relIdx) => {
             const absIdx   = startIdx + relIdx;
             const physX    = absIdx * ITEM_STRIDE + 20;
