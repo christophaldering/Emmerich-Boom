@@ -15,6 +15,11 @@ const PORTRAIT_H     = 157;
 const GAP            = 26;
 const ITEM_STRIDE    = PORTRAIT_W + GAP;
 const AUTOPLAY_SPEED = 42;   // px/s
+const SPEED_STUFEN = [
+  { label: "langsam", mul: 0.55 },
+  { label: "normal",  mul: 1 },
+  { label: "schnell", mul: 1.9 },
+] as const;
 const BUFFER         = 3;    // extra items links/rechts vom Viewport rendern
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -429,11 +434,13 @@ export function GalerieWand({
   const containerRef    = useRef<HTMLDivElement>(null);
   const rafRef          = useRef<number | undefined>(undefined);
   const autoplayDirRef  = useRef(1);
+  const speedMulRef     = useRef<number>(SPEED_STUFEN[1].mul);
   const dragRef         = useRef<{ startX: number; startOffset: number } | null>(null);
   const lastTRef        = useRef<number | null>(null);
 
   const [scrollOffset,   setScrollOffset]   = useState(0);
   const [autoplay,       setAutoplay]        = useState(beamer);
+  const [speedStufe,     setSpeedStufe]     = useState(1);
   const [beispielDetail, setBeispielDetail] = useState<GalerieEntry | null>(null);
 
   // Alle anzuzeigenden Einträge
@@ -467,7 +474,7 @@ export function GalerieWand({
       setScrollOffset(prev => {
         const containerW = containerRef.current?.clientWidth ?? 380;
         const maxOffset  = Math.max(0, totalWidth - containerW + 40);
-        const next = prev + (dt / 1000) * AUTOPLAY_SPEED * autoplayDirRef.current;
+        const next = prev + (dt / 1000) * AUTOPLAY_SPEED * speedMulRef.current * autoplayDirRef.current;
         if (next >= maxOffset) { autoplayDirRef.current = -1; return maxOffset; }
         if (next <= 0)         { autoplayDirRef.current =  1; return 0; }
         return next;
@@ -647,6 +654,26 @@ export function GalerieWand({
             }}
           >
             ◼ Pause
+          </button>
+        )}
+
+        {!beamer && autoplay && (
+          <button
+            onClick={() => setSpeedStufe(s => {
+              const n = (s + 1) % SPEED_STUFEN.length;
+              speedMulRef.current = SPEED_STUFEN[n].mul;
+              return n;
+            })}
+            style={{
+              position: "absolute", bottom: "0.6rem", left: "0.75rem", zIndex: 10,
+              background: "rgba(10,7,4,0.72)", border: `1px solid ${am(0.32)}`,
+              borderRadius: "20px", padding: "0.28rem 0.75rem",
+              fontFamily: "'Lora', serif", fontStyle: "italic",
+              fontSize: "0.62rem", color: am(0.75),
+              cursor: "pointer", backdropFilter: "blur(4px)", letterSpacing: "0.03em",
+            }}
+          >
+            Tempo: {SPEED_STUFEN[speedStufe].label}
           </button>
         )}
       </div>

@@ -1,0 +1,80 @@
+# MINI — Abspiel-Tempo regelbar machen
+
+Datei: `artifacts/emmerich/src/pages/Galerie.tsx`. Ziel: Beim Abspielen ein kleiner Knopf zum Durchschalten des Tempos (langsam / normal / schnell), damit man live ausprobieren kann. Grundtempo bleibt `AUTOPLAY_SPEED`, wird nur multipliziert.
+
+## 1. Tempo-Stufen (oben, bei `const AUTOPLAY_SPEED = 42;`)
+
+```ts
+const SPEED_STUFEN = [
+  { label: "langsam", mul: 0.55 },
+  { label: "normal",  mul: 1 },
+  { label: "schnell", mul: 1.9 },
+] as const;
+```
+
+## 2. State + Ref in `GalerieWand` (useState/useRef sind schon importiert)
+
+```ts
+const [speedStufe, setSpeedStufe] = useState(1); // Default: normal
+const speedMulRef = useRef(SPEED_STUFEN[1].mul);
+```
+
+(Ref, damit der laufende Autoplay das neue Tempo sofort übernimmt, ohne neu zu starten.)
+
+## 3. Im Autoplay-Step das Tempo multiplizieren
+
+In der `step`-Funktion die Offset-Zeile
+
+```ts
+const next = prev + (dt / 1000) * AUTOPLAY_SPEED * autoplayDirRef.current;
+```
+
+ersetzen durch
+
+```ts
+const next = prev + (dt / 1000) * AUTOPLAY_SPEED * speedMulRef.current * autoplayDirRef.current;
+```
+
+## 4. Tempo-Knopf (nur sichtbar, wenn abgespielt wird)
+
+Zusätzlich zum bestehenden Autoplay-Zustand einen kleinen Knopf einfügen — **unten links** (damit er nicht mit Vorhandenem unten rechts kollidiert):
+
+```tsx
+{!beamer && autoplay && (
+  <button
+    onClick={() => setSpeedStufe(s => {
+      const n = (s + 1) % SPEED_STUFEN.length;
+      speedMulRef.current = SPEED_STUFEN[n].mul;
+      return n;
+    })}
+    style={{
+      position: "absolute", bottom: "0.6rem", left: "0.75rem", zIndex: 10,
+      background: "rgba(10,7,4,0.72)", border: `1px solid ${am(0.32)}`,
+      borderRadius: "20px", padding: "0.28rem 0.75rem",
+      fontFamily: "'Lora', serif", fontStyle: "italic",
+      fontSize: "0.62rem", color: am(0.75),
+      cursor: "pointer", backdropFilter: "blur(4px)", letterSpacing: "0.03em",
+    }}
+  >
+    Tempo: {SPEED_STUFEN[speedStufe].label}
+  </button>
+)}
+```
+
+## VERBOTEN
+
+- Den Beamer-/Wand-Modus, das Antippen, die Rahmen, den Feed NICHT verändern.
+- Kein Neustart des Autoplay beim Tempowechsel (Ref nutzen, NICHT `speedStufe` in die Effect-Deps).
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Beim Abspielen erscheint unten links „Tempo: normal”, durchklickbar zu langsam/schnell.
+- [ ] Tempo ändert sich sofort, ohne dass das Abspielen neu startet/ruckelt.
+- [ ] „▶ Abspielen” und alles andere unverändert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Tempo live umschaltbar (langsam/normal/schnell): ja/nein
+> Geänderte Datei: …
