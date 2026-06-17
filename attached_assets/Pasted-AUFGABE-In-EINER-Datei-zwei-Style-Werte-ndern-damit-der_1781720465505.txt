@@ -1,0 +1,41 @@
+AUFGABE
+In EINER Datei zwei Style-Werte ändern, damit der Hintergrund hinter den Porträt-Rahmen
+deutlich dunkler wird (der Raum darf nur noch ganz leise durchschimmern). Reiner
+Werte-Austausch, sonst nichts. Diese eine Änderung wirkt zugleich auf die Browser-
+Ansicht der Theke UND auf die Beamer-Wand, weil beide dieselbe Galerie-Komponente nutzen.
+
+DATEI
+artifacts/emmerich/src/pages/Galerie.tsx
+
+ÄNDERUNG 1 — Parallax-Hintergrund abdunkeln
+Suche EXAKT diese Zeile (im Block mit dem Kommentar „Parallax-Hintergrund"):
+          filter:              "brightness(0.28) blur(1.5px)",
+Ersetze sie EXAKT durch:
+          filter:              "brightness(0.14) blur(1.5px)",
+
+ÄNDERUNG 2 — Abdunklung über die ganze Fläche statt nur an den Rändern
+Suche EXAKT diese Zeile (im Block mit dem Kommentar „Vignette links/rechts"):
+          background: "linear-gradient(to right, rgba(10,7,4,0.65) 0%, transparent 12%, transparent 88%, rgba(10,7,4,0.65) 100%)",
+Ersetze sie EXAKT durch:
+          background: "linear-gradient(to right, rgba(10,7,4,0.82) 0%, rgba(10,7,4,0.52) 20%, rgba(10,7,4,0.52) 80%, rgba(10,7,4,0.82) 100%)",
+
+VERBOTEN
+- KEINE weiteren Änderungen in dieser oder einer anderen Datei.
+- KEINE Änderung an der Backdrop-URL, an der Szene-Config (theke-szene.ts) oder an den Rahmen/Porträts selbst.
+- KEINE Änderung an Layout, Positionen, zIndex, Größen, Fonts oder Farben der Rahmen.
+- KEINE neuen Elemente, keine entfernten Elemente.
+- KEINE Umrechnung/„Optimierung" der Werte – exakt die oben genannten Zahlen übernehmen.
+- Die Kommentare „Parallax-Hintergrund" und „Vignette links/rechts" bleiben unverändert stehen.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Nur in Galerie.tsx wurde geändert.
+[ ] Genau zwei Zeilen wurden ersetzt (brightness + background-gradient).
+[ ] Beide alten Werte waren eindeutig auffindbar und wurden 1:1 durch die neuen ersetzt.
+[ ] Keine anderen Zeilen, Dateien oder Elemente angefasst.
+[ ] App startet/baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem Dateipfad: artifacts/emmerich/src/pages/Galerie.tsx
+2. Der wörtlichen Bestätigung: „Nur die zwei genannten Werte in Galerie.tsx wurden geändert, sonst nichts."
+3. Falls eine der beiden alten Zeilen NICHT exakt gefunden wurde: STOPP, nichts ändern, und zurückfragen.
