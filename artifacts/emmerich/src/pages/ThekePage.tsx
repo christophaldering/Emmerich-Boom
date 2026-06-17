@@ -990,7 +990,7 @@ function BierdeckelObjekt({ name, onClick }: { name: string; onClick: () => void
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: "clamp(90px, 20vw, 148px)",
+        width: "clamp(64px, min(18vw, 15vh), 132px)",
         aspectRatio: "1",
         borderRadius: "50%",
         background: "radial-gradient(ellipse at 35% 30%, #f5e8c8 0%, #e8d4a0 45%, #c8ad6e 100%)",
@@ -1029,7 +1029,7 @@ function TelefonObjekt({ bandCount, onClick }: { bandCount: number; onClick: () 
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: "clamp(70px, 15vw, 110px)",
+        width: "clamp(52px, min(14vw, 12vh), 100px)",
         aspectRatio: "2/3",
         borderRadius: "10px 10px 16px 16px",
         background: "linear-gradient(160deg, #2a1a0a 0%, #1a0e05 55%, #120b03 100%)",
@@ -1382,7 +1382,7 @@ export default function ThekePage() {
           position: "absolute", inset: 0, zIndex: 0,
           background: backdropFailed
             ? "linear-gradient(180deg, #0a0704 0%, #1c0e05 45%, #2a1508 65%, #150a03 100%)"
-            : `center/cover no-repeat url(${THEKE_SZENE.BACKDROP_URL})`,
+            : `center 42% / cover no-repeat url(${THEKE_SZENE.BACKDROP_URL})`,
           transform: `translate(${-tiltX * 0.3}px, ${-tiltY * 0.25}px) scale(1.05)`,
         }}
       >
@@ -1416,12 +1416,25 @@ export default function ThekePage() {
         </div>
       </div>
 
+      {/* Scrim hinter der Rahmenreihe — hält Rahmen auf jedem Foto-Zuschnitt lesbar */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: `${W.top - 4}%`, left: `${W.left - 4}%`,
+          width: `${W.width + 8}%`, height: `${W.height + 8}%`,
+          zIndex: 2, pointerEvents: "none",
+          background: "radial-gradient(ellipse at 50% 50%, rgba(10,7,4,0.55) 0%, rgba(10,7,4,0.25) 60%, transparent 100%)",
+        }}
+      />
+
       {/* ── Wand-Region: Galerie ── */}
       <div
         style={{
           position: "absolute",
           top: `${W.top}%`, left: `${W.left}%`,
-          width: `${W.width}%`, height: `${W.height}%`,
+          width: `${W.width}%`,
+          height: `min(${W.height}%, calc(${B.top}% - ${W.top}% - 2%))`,
           zIndex: 3,
           transform: `translate(${-tiltX * 0.55}px, ${-tiltY * 0.45}px)`,
           overflow: "hidden",
@@ -1441,12 +1454,13 @@ export default function ThekePage() {
       <div
         style={{
           position: "absolute",
-          top: `${B.top}%`, left: `${B.left}%`,
-          width: `${B.width}%`, height: `${B.height}%`,
+          bottom: 0, left: `${B.left}%`,
+          width: `${B.width}%`,
+          height: `${100 - B.top}%`,
           zIndex: 5,
           transform: `translate(${-tiltX * 1.0}px, ${-tiltY * 0.85}px)`,
           display: "flex", alignItems: "center", justifyContent: "center",
-          gap: "clamp(1.5rem, 6vw, 5rem)",
+          gap: "clamp(1rem, 5vw, 4rem)",
         }}
       >
         <BierdeckelObjekt name={profile.anzeige_name} onClick={() => setBierdeckelOffen(true)} />
