@@ -489,9 +489,16 @@ export function GalerieWand({
   }, [autoplay, alleEntries.length, totalWidth]);
 
   // Pointer / Touch-Drag
+  // Tap-vs-Drag ohne setPointerCapture (Capture verschluckte sonst die Klicks
+  // auf die Porträts). bewegtRef: hat sich der Pointer bewegt? geradeGezogenRef:
+  // wird in den Klick hineingetragen, um ein Drag nicht als Tipp zu werten.
+  const bewegtRef = useRef(false);
+  const geradeGezogenRef = useRef(false);
+
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
     dragRef.current = { startX: e.clientX, startOffset: scrollOffset };
+    bewegtRef.current = false;
+    geradeGezogenRef.current = false;
     if (autoplay && !beamer) {
       setAutoplay(false);
       lastTRef.current = null;
@@ -502,12 +509,16 @@ export function GalerieWand({
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current) return;
     const delta      = dragRef.current.startX - e.clientX;
+    if (Math.abs(delta) > 6) bewegtRef.current = true;
     const containerW = containerRef.current?.clientWidth ?? 380;
     const maxOffset  = Math.max(0, totalWidth - containerW + 40);
     setScrollOffset(Math.max(0, Math.min(maxOffset, dragRef.current.startOffset + delta)));
   }, [totalWidth]);
 
-  const onPointerUp = useCallback(() => { dragRef.current = null; }, []);
+  const onPointerUp = useCallback(() => {
+    geradeGezogenRef.current = bewegtRef.current;
+    dragRef.current = null;
+  }, []);
 
   // Windowing
   const containerW   = containerRef.current?.clientWidth ?? 380;
@@ -520,6 +531,7 @@ export function GalerieWand({
   // Antippen-Handler
   function handleAntippen(e: GalerieEntry) {
     if (beamer) return;
+    if (geradeGezogenRef.current) { geradeGezogenRef.current = false; return; }
     if (e.istLeerRahmen)  { onDeinPlatzAntippen?.(); return; }
     if (e.istBeispiel || e.istInventar) { setBeispielDetail(e); return; }
     onPorträtAntippen?.(e);

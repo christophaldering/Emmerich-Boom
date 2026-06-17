@@ -1,0 +1,97 @@
+KONTEXT
+Repo: Emmerich-Boom. Du fasst GENAU EINE Datei an:
+artifacts/emmerich/src/pages/Galerie.tsx
+Problem: Ein Klick auf ein Porträt der Theke-Wand öffnet nichts. Ursache:
+Der Container ruft in onPointerDown setPointerCapture() auf — dadurch wird das
+click-Event vom Porträt weg auf den Container umgeleitet, der keinen Handler hat.
+Fix: kein Pointer-Capture mehr; stattdessen Tap-vs-Drag über Bewegungsschwelle.
+Das horizontale Ziehen der Wand MUSS weiter funktionieren.
+
+VERBOTEN
+- KEINE andere Datei anfassen.
+- Die Drag-Funktion NICHT entfernen — nur das Capture ersetzen.
+- Keine Änderung an den Porträts selbst, an handleAntippen-Zielen (Beispiel /
+  Leerrahmen / echtes Profil) oder am Beamer-Verhalten.
+
+ÄNDERUNG 1 — die drei Pointer-Callbacks
+ALT:
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId);
+    dragRef.current = { startX: e.clientX, startOffset: scrollOffset };
+    if (autoplay && !beamer) {
+      setAutoplay(false);
+      lastTRef.current = null;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    }
+  }, [scrollOffset, autoplay, beamer]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current) return;
+    const delta      = dragRef.current.startX - e.clientX;
+    const containerW = containerRef.current?.clientWidth ?? 380;
+    const maxOffset  = Math.max(0, totalWidth - containerW + 40);
+    setScrollOffset(Math.max(0, Math.min(maxOffset, dragRef.current.startOffset + delta)));
+  }, [totalWidth]);
+
+  const onPointerUp = useCallback(() => { dragRef.current = null; }, []);
+
+NEU:
+  // Tap-vs-Drag ohne setPointerCapture (Capture verschluckte sonst die Klicks
+  // auf die Porträts). bewegtRef: hat sich der Pointer bewegt? geradeGezogenRef:
+  // wird in den Klick hineingetragen, um ein Drag nicht als Tipp zu werten.
+  const bewegtRef = useRef(false);
+  const geradeGezogenRef = useRef(false);
+
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    dragRef.current = { startX: e.clientX, startOffset: scrollOffset };
+    bewegtRef.current = false;
+    geradeGezogenRef.current = false;
+    if (autoplay && !beamer) {
+      setAutoplay(false);
+      lastTRef.current = null;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    }
+  }, [scrollOffset, autoplay, beamer]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragRef.current) return;
+    const delta      = dragRef.current.startX - e.clientX;
+    if (Math.abs(delta) > 6) bewegtRef.current = true;
+    const containerW = containerRef.current?.clientWidth ?? 380;
+    const maxOffset  = Math.max(0, totalWidth - containerW + 40);
+    setScrollOffset(Math.max(0, Math.min(maxOffset, dragRef.current.startOffset + delta)));
+  }, [totalWidth]);
+
+  const onPointerUp = useCallback(() => {
+    geradeGezogenRef.current = bewegtRef.current;
+    dragRef.current = null;
+  }, []);
+
+ÄNDERUNG 2 — handleAntippen: Drag-Guard ganz oben einfügen
+ALT:
+  function handleAntippen(e: GalerieEntry) {
+    if (beamer) return;
+    if (e.istLeerRahmen)  { onDeinPlatzAntippen?.(); return; }
+    if (e.istBeispiel || e.istInventar) { setBeispielDetail(e); return; }
+    onPorträtAntippen?.(e);
+  }
+
+NEU:
+  function handleAntippen(e: GalerieEntry) {
+    if (beamer) return;
+    if (geradeGezogenRef.current) { geradeGezogenRef.current = false; return; }
+    if (e.istLeerRahmen)  { onDeinPlatzAntippen?.(); return; }
+    if (e.istBeispiel || e.istInventar) { setBeispielDetail(e); return; }
+    onPorträtAntippen?.(e);
+  }
+
+CHECKLISTE
+[ ] Die drei Pointer-Callbacks ersetzt (kein setPointerCapture mehr)
+[ ] zwei useRef (bewegtRef, geradeGezogenRef) ergänzt
+[ ] Drag-Guard in handleAntippen eingefügt
+[ ] pnpm run typecheck grün
+[ ] git status zeigt NUR Galerie.tsx
+
+ABSCHLUSSERKLÄRUNG (wörtlich)
+"Erledigt: Pointer-Capture entfernt, Tap-vs-Drag-Erkennung ergänzt. Klick auf
+Porträts öffnet wieder, Ziehen funktioniert weiter. Nur Galerie.tsx. typecheck grün."
