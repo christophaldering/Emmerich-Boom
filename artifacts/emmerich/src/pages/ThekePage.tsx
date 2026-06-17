@@ -1166,17 +1166,6 @@ function TelefonOverlay({ token, botschaft, onClose, onBotschaftChange }: {
           <DasBand token={token} />
         </div>
 
-        <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem" }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: A, marginBottom: "0.75rem" }}>
-            Deine Nachricht
-          </p>
-          <Anrufbeantworter
-            token={token}
-            botschaft={botschaft}
-            onUploaded={onBotschaftChange}
-            onDeleted={() => onBotschaftChange(null)}
-          />
-        </div>
       </div>
     </div>
   );
