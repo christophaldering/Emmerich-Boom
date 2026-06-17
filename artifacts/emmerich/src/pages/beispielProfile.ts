@@ -98,3 +98,26 @@ export const LEER_RAHMEN: GalerieEntry = {
   istBeispiel:            false,
   istLeerRahmen:          true,
 };
+
+export const HAUSMEISTER: GalerieEntry = {
+  id:                     -77,
+  anmeldung_ticket_id:    -77,
+  anzeige_name:           "Hausmeister Krause",
+  vorstellung:            "Passt auf, dass keiner die Füße auf die Bänke legt. War schon am Bölt, bevor die Theke stand. Geht grundsätzlich als Letzter — und kehrt dann noch durch.",
+  lauter_song:            "Über sieben Brücken — aber nur nach Dienstschluss",
+  f_tontraeger:           "Schlüsselbund",
+  f_abends:               "Macht erst Feierabend, wenn alle weg sind",
+  f_untersatz:            "Fahrrad mit Werkzeugkiste",
+  f_musik:                "Schlager, leise gestellt",
+  f_getraenk:             "Ein Pils zum Feierabend",
+  fotos:                  [],
+  hat_botschaft:          false,
+  zuletzt_gesehen_am:     null,
+  foto_frueher_key:       null,
+  foto_frueher_jahr:      null,
+  foto_heute_key:         null,
+  foto_heute_jahr:        null,
+  istBeispiel:            false,
+  istLeerRahmen:          false,
+  istInventar:            true,
+};

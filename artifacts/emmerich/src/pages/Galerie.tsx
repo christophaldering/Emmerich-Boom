@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { THEKE_SZENE } from "../config/theke-szene";
-import { BEISPIEL_SCHWELLE, BEISPIEL_PROFILE, LEER_RAHMEN } from "./beispielProfile";
+import { BEISPIEL_SCHWELLE, BEISPIEL_PROFILE, LEER_RAHMEN, HAUSMEISTER } from "./beispielProfile";
 
 // ─── Konstanten ───────────────────────────────────────────────────────────────
 
@@ -39,6 +39,7 @@ export interface GalerieEntry {
   zuletzt_gesehen_am?:  string | null;
   istBeispiel?:         boolean;
   istLeerRahmen?:       boolean;
+  istInventar?:         boolean;
 }
 
 export interface GalerieWandProps {
@@ -238,7 +239,7 @@ function PorträtKarte({
         overflow:   "hidden",
         clipPath,
         zIndex:     2,
-        filter:     entry.istBeispiel ? "saturate(0.35) brightness(0.7)" : undefined,
+        filter:     entry.istBeispiel && !entry.istInventar ? "saturate(0.35) brightness(0.7)" : undefined,
       }}>
         {entry.istLeerRahmen ? (
           <div style={{
@@ -320,17 +321,17 @@ function PorträtKarte({
         )}
       </div>
 
-      {/* Beispiel-Bändchen */}
-      {entry.istBeispiel && (
+      {/* Bändchen */}
+      {(entry.istBeispiel || entry.istInventar) && (
         <div style={{
           position: "absolute", top: "10px", left: "-4px", zIndex: 6,
-          background: am(0.75), padding: "1.5px 7px",
+          background: entry.istInventar ? am(0.55) : am(0.75), padding: "1.5px 7px",
           fontSize: "0.42rem", fontFamily: "'Lora', serif",
           letterSpacing: "0.12em", color: BG, textTransform: "uppercase",
           transform: "rotate(-10deg)", boxShadow: "0 2px 6px rgba(0,0,0,0.6)",
           borderRadius: "1px",
         }}>
-          Beispiel
+          {entry.istInventar ? "Inventar" : "Beispiel"}
         </div>
       )}
     </div>
@@ -450,9 +451,10 @@ export function GalerieWand({
   // Alle anzuzeigenden Einträge
   const alleEntries = useMemo<GalerieEntry[]>(() => {
     const showBeispiel = entries.length < BEISPIEL_SCHWELLE;
-    if (!showBeispiel) return entries;
-    const extras = beamer ? BEISPIEL_PROFILE : [...BEISPIEL_PROFILE, LEER_RAHMEN];
-    return [...entries, ...extras];
+    const base = showBeispiel
+      ? [...entries, ...(beamer ? BEISPIEL_PROFILE : [...BEISPIEL_PROFILE, LEER_RAHMEN])]
+      : [...entries];
+    return [...base, HAUSMEISTER];
   }, [entries, beamer]);
 
   const totalWidth = alleEntries.length * ITEM_STRIDE + 60;
@@ -524,7 +526,7 @@ export function GalerieWand({
   function handleAntippen(e: GalerieEntry) {
     if (beamer) return;
     if (e.istLeerRahmen)  { onDeinPlatzAntippen?.(); return; }
-    if (e.istBeispiel)    { setBeispielDetail(e);    return; }
+    if (e.istBeispiel || e.istInventar) { setBeispielDetail(e); return; }
     onPorträtAntippen?.(e);
   }
 
@@ -587,7 +589,7 @@ export function GalerieWand({
           {alleEntries.slice(startIdx, endIdx + 1).map((e, relIdx) => {
             const absIdx   = startIdx + relIdx;
             const physX    = absIdx * ITEM_STRIDE + 20;
-            const anwesend = !e.istBeispiel && !e.istLeerRahmen &&
+            const anwesend = !e.istBeispiel && !e.istLeerRahmen && !e.istInventar &&
               !!(e.zuletzt_gesehen_am && (now - new Date(e.zuletzt_gesehen_am).getTime()) < 90_000);
             const l = layout[absIdx]!;
 
