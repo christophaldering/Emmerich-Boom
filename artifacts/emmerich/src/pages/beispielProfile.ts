@@ -127,6 +127,8 @@ export const HAUSMEISTER: GalerieEntry = {
   foto_frueher_jahr:      null,
   foto_heute_key:         null,
   foto_heute_jahr:        null,
+  foto_frueher_url:       "/theke/Bildschirmfoto_2026-06-17_um_10_53_46.png",
+  foto_heute_url:         "/theke/Bildschirmfoto_2026-06-17_um_10_54_58.png",
   istBeispiel:            false,
   istLeerRahmen:          false,
   istInventar:            true,
