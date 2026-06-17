@@ -657,7 +657,7 @@ export function GalerieWand({
               letterSpacing: "0.03em",
             }}
           >
-            Lehn dich zurück
+            ▶ Abspielen
           </button>
         )}
 
