@@ -1538,15 +1538,18 @@ export default function ThekePage() {
       </div>
       )}
 
-      {/* Scrim hinter der Rahmenreihe — hält Rahmen auf jedem Foto-Zuschnitt lesbar */}
+      {/* Dunkle Bühnenrückwand hinter der Rahmenreihe — sorgt auf JEDEM Seiten-
+          verhältnis (auch breiter Desktop) für durchgehend dunklen Hintergrund */}
       <div
         aria-hidden
         style={{
           position: "absolute",
-          top: `${W.top - 4}%`, left: `${W.left - 4}%`,
-          width: `${W.width + 8}%`, height: `${W.height + 8}%`,
+          top: `${W.top - 5}%`, left: `${W.left - 5}%`,
+          width: `${W.width + 10}%`, height: `${W.height + 10}%`,
           zIndex: 2, pointerEvents: "none",
-          background: "radial-gradient(ellipse at 50% 50%, rgba(10,7,4,0.55) 0%, rgba(10,7,4,0.25) 60%, transparent 100%)",
+          background: "radial-gradient(ellipse at 50% 45%, rgba(10,7,4,0.97) 0%, rgba(10,7,4,0.9) 70%, rgba(10,7,4,0.82) 100%)",
+          borderRadius: "6px",
+          boxShadow: "0 0 70px 50px rgba(10,7,4,0.9)",
         }}
       />
 
