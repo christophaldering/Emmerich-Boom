@@ -32,6 +32,7 @@ interface Profile {
   foto_heute_jahr?: number | null;
   sichtbarkeit_zugestimmt_am?: string | null;
   abendfotos_ok: boolean;
+  tafel_ok?: boolean;
 }
 interface Foto { id: number; datei_key: string; bildunterschrift?: string | null; jahr?: number | null; sichtbar_ok: boolean; }
 interface Botschaft { id: number; datei_key: string; dauer_sek: number; anmeldung_ticket_id: number; }
@@ -562,6 +563,7 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
   const [b, setB] = useState(() => !!verteiler?.opted_in);
   const [bEmail, setBEmail] = useState(() => verteiler?.email ?? "");
   const [c, setC] = useState(profile.abendfotos_ok);
+  const [d, setD] = useState(profile.tafel_ok ?? false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -571,7 +573,7 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
       const res = await fetch(`/api/theke/einwilligung`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-theke-token": token },
-        body: JSON.stringify({ a, b, b_email: bEmail, c }),
+        body: JSON.stringify({ a, b, b_email: bEmail, c, d }),
       });
       const data = await res.json() as { ok?: boolean; profile?: Profile; verteiler?: VerteilerInfo };
       if (data.ok && data.profile) {
@@ -601,7 +603,7 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
         <input type="checkbox" checked={b} onChange={e => setB(e.target.checked)}
           style={{ marginTop: "0.2rem", accentColor: A, width: "18px", height: "18px", flexShrink: 0 }} />
         <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85), lineHeight: 1.65 }}>
-          <strong style={{ color: FG }}>Gelegentliche Infos (optional)</strong> — Ich möchte bei zukünftigen Boomerparty-Aktionen per E-Mail informiert werden (max. 2–3 Mal im Jahr, kein Spam, jederzeit abmeldbar).
+          <strong style={{ color: FG }}>Gelegentliche Infos (optional)</strong> — Ich möchte bei zukünftigen Boomerparty-Aktionen per E-Mail informiert werden (kein Spam, jederzeit abmeldbar).
         </span>
       </label>
       {b && (
@@ -609,11 +611,22 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
           style={{ display: "block", width: "100%", marginLeft: "calc(18px + 0.85rem)", marginBottom: "1.1rem", maxWidth: "340px", background: am(0.07), border: `1px solid ${am(0.35)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.9rem", padding: "0.6rem 0.9rem", outline: "none", boxSizing: "border-box" }} />
       )}
 
-      <label style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", marginBottom: "1.5rem", cursor: "pointer" }}>
+      <label style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", marginBottom: "1.1rem", cursor: "pointer" }}>
         <input type="checkbox" checked={c} onChange={e => setC(e.target.checked)}
           style={{ marginTop: "0.2rem", accentColor: A, width: "18px", height: "18px", flexShrink: 0 }} />
         <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85), lineHeight: 1.65 }}>
           <strong style={{ color: FG }}>Fotos vom Abend (optional)</strong> — Ich bin damit einverstanden, dass Fotos vom Abend auf denen ich zu sehen bin, in der Theke veröffentlicht werden können.
+        </span>
+      </label>
+
+      <label style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", marginBottom: "1.5rem", cursor: "pointer" }}>
+        <input type="checkbox" checked={d} onChange={e => setD(e.target.checked)}
+          style={{ marginTop: "0.2rem", accentColor: A, width: "18px", height: "18px", flexShrink: 0 }} />
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85), lineHeight: 1.65 }}>
+          <strong style={{ color: FG }}>Begrüßungstafel am Abend (optional)</strong> — Mein Name darf auf die Begrüßungstafel — schön, wenn man sieht, wer schon da ist.
+          <span style={{ display: "block", fontSize: "0.78rem", color: fg(0.45), marginTop: "0.25rem" }}>
+            Nur vor Ort, nur an dem Abend, für nichts weiter. Jederzeit widerrufbar.
+          </span>
         </span>
       </label>
 

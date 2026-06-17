@@ -189,7 +189,7 @@ router.post("/theke/einwilligung", async (req: Request, res: Response) => {
   const ticket = await validateCode(code);
   if (!ticket) { res.status(401).json({ error: "Ungültig" }); return; }
 
-  const body = req.body as { a?: boolean; b?: boolean; b_email?: string; c?: boolean };
+  const body = req.body as { a?: boolean; b?: boolean; b_email?: string; c?: boolean; d?: boolean };
 
   const [profile] = await db
     .select()
@@ -213,6 +213,11 @@ router.post("/theke/einwilligung", async (req: Request, res: Response) => {
   }
   if (body.c !== undefined) {
     updates.abendfotos_ok = body.c;
+  }
+  if (body.d !== undefined) {
+    updates.tafel_ok = body.d;
+    if (body.d === true && !profile.tafel_zugestimmt_am) updates.tafel_zugestimmt_am = now;
+    if (body.d === false) updates.tafel_zugestimmt_am = null;
   }
 
   const [updated] = await db

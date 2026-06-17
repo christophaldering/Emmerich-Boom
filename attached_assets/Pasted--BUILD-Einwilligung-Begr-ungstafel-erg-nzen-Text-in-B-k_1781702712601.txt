@@ -1,0 +1,100 @@
+# BUILD — Einwilligung „Begrüßungstafel” ergänzen + Text in B kürzen
+
+Drei Stellen: DB-Schema, Backend-Route `/theke/einwilligung`, Frontend `EinwilligungsBlock`.
+
+-----
+
+## TEIL 0 — Kleiner Textfix (Einwilligung B)
+
+Datei `artifacts/emmerich/src/pages/ThekePage.tsx`, im Block „Gelegentliche Infos (optional)”:
+
+- **Vorher:** `… informiert werden (max. 2–3 Mal im Jahr, kein Spam, jederzeit abmeldbar).`
+- **Nachher:** `… informiert werden (kein Spam, jederzeit abmeldbar).`
+  (Nur „max. 2–3 Mal im Jahr, “ entfernen.)
+
+-----
+
+## TEIL 1 — DB-Feld (`lib/db/src/schema/theke_profile.ts`)
+
+Im `thekeProfileTable` zwei Felder ergänzen (Muster wie `abendfotos_ok` / `sichtbarkeit_zugestimmt_am`):
+
+```ts
+tafel_ok:            boolean("tafel_ok").notNull().default(false),
+tafel_zugestimmt_am: timestamp("tafel_zugestimmt_am"),
+```
+
+Danach Schema anwenden (Dev: `pnpm --filter @workspace/db run push`; beim Publish übernimmt Replit die Migration). Neue Spalten haben Default → unkritisch.
+
+-----
+
+## TEIL 2 — Backend (`artifacts/api-server/src/routes/theke.ts`, POST `/theke/einwilligung`)
+
+1. Body-Typ erweitern:
+
+```ts
+const body = req.body as { a?: boolean; b?: boolean; b_email?: string; c?: boolean; d?: boolean };
+```
+
+1. Bei den Updates (wo schon `body.c` behandelt wird) ergänzen:
+
+```ts
+if (body.d !== undefined) {
+  updates.tafel_ok = body.d;
+  if (body.d === true && !profile.tafel_zugestimmt_am) updates.tafel_zugestimmt_am = now;
+  if (body.d === false) updates.tafel_zugestimmt_am = null;
+}
+```
+
+-----
+
+## TEIL 3 — Frontend (`ThekePage.tsx`)
+
+### 3a. `Profile`-Interface: Feld ergänzen (wie `abendfotos_ok`)
+
+```ts
+tafel_ok?: boolean;
+```
+
+### 3b. In `EinwilligungsBlock`:
+
+- State ergänzen: `const [d, setD] = useState(profile.tafel_ok ?? false);`
+- Im `save()` den Body erweitern: `body: JSON.stringify({ a, b, b_email: bEmail, c, d }),`
+- **Neues Kästchen** NACH dem Block „Fotos vom Abend (optional)” und VOR dem Speichern-Button einfügen (Variante 2 — warm, Rechtliches klein/grau):
+
+```tsx
+<label style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", marginBottom: "1.5rem", cursor: "pointer" }}>
+  <input type="checkbox" checked={d} onChange={e => setD(e.target.checked)}
+    style={{ marginTop: "0.2rem", accentColor: A, width: "18px", height: "18px", flexShrink: 0 }} />
+  <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85), lineHeight: 1.65 }}>
+    <strong style={{ color: FG }}>Begrüßungstafel am Abend (optional)</strong> — Mein Name darf auf die Begrüßungstafel — schön, wenn man sieht, wer schon da ist.
+    <span style={{ display: "block", fontSize: "0.78rem", color: fg(0.45), marginTop: "0.25rem" }}>
+      Nur vor Ort, nur an dem Abend, für nichts weiter. Jederzeit widerrufbar.
+    </span>
+  </span>
+</label>
+```
+
+- Damit der Abstand stimmt: beim darüberliegenden „Fotos vom Abend”-Label `marginBottom` von `1.5rem` auf `1.1rem` ändern.
+
+-----
+
+## VERBOTEN
+
+- Die anderen Einwilligungen (A Pflicht, B Infos, C Fotos) inhaltlich NICHT ändern (außer dem Textfix in Teil 0).
+- Keine Anzeige/Tafel/QR jetzt bauen — nur Zustimmung erfassen.
+- Default des neuen Häkchens MUSS leer sein.
+- Keine neuen Farben/Fonts (`A`, `FG`, `fg()`, `am()` sind vorhanden).
+
+## CHECKLISTE
+
+- [ ] B-Text ohne „max. 2–3 Mal im Jahr, “.
+- [ ] DB hat `tafel_ok` + `tafel_zugestimmt_am`; Schema angewendet.
+- [ ] Neues Kästchen erscheint unter „Fotos vom Abend”, standardmäßig leer.
+- [ ] Setzen/Speichern schreibt `tafel_ok=true` + Zeitstempel; Entfernen setzt beides zurück.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> B-Text gekürzt: ja/nein
+> Begrüßungstafel-Häkchen speichert + Zeitstempel: ja/nein
+> Geänderte/neue Dateien: …
