@@ -1,0 +1,38 @@
+# FIX — Steckbrief speichern: `null`-Werte zulassen
+
+**Winziger, chirurgischer Fix. Nur das Schema, sonst nichts.**
+
+## Befund
+`PUT /api/theke/profil` validiert mit `profilSchema` (in `artifacts/api-server/src/routes/theke.ts`, ~Zeile 123). Jedes Feld ist `.optional()` — erlaubt also `string`/`number` **oder fehlend**, aber **nicht `null`**. Das Frontend sendet jedoch alle noch leeren Felder explizit als `null` (so liegen sie in der DB). → `safeParse` schlägt fehl → 400 „Ungültige Felder" → „Konnte nicht gespeichert werden".
+
+## Fix
+In `profilSchema` jedes Feld zusätzlich **`.nullable()`** machen, damit `null` akzeptiert (und als `null` gespeichert) wird:
+```ts
+const profilSchema = z.object({
+  anzeige_name:      z.string().min(2).max(80).nullable().optional(),
+  vorstellung:       z.string().max(500).nullable().optional(),
+  jahr_1985:         z.string().max(200).nullable().optional(),
+  lauter_song:       z.string().max(200).nullable().optional(),
+  f_tontraeger:      z.string().max(100).nullable().optional(),
+  f_abends:          z.string().max(100).nullable().optional(),
+  f_untersatz:       z.string().max(100).nullable().optional(),
+  f_musik:           z.string().max(100).nullable().optional(),
+  f_getraenk:        z.string().max(100).nullable().optional(),
+  foto_frueher_jahr: z.number().int().min(1940).max(2010).nullable().optional(),
+  foto_heute_jahr:   z.number().int().min(1940).max(2030).nullable().optional(),
+});
+```
+Das bestehende `db.update(...).set({ ...parsed.data, updated_at })` bleibt unverändert — die Spalten sind nullable, `null` zu setzen ist in Ordnung.
+
+## VERBOTEN
+- Sonst nichts ändern (kein Frontend-Umbau nötig, Auth/Consent-Logik unverändert).
+
+## CHECKLISTE
+- [ ] Alle `profilSchema`-Felder zusätzlich `.nullable()`.
+- [ ] Steckbrief speichern zeigt „Gespeichert ✓"; Auswahl bleibt nach Reload erhalten.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> profilSchema akzeptiert null: ja/nein
+> Speichern funktioniert, Auswahl bleibt nach Reload: ja/nein
+> Geänderte Dateien: …

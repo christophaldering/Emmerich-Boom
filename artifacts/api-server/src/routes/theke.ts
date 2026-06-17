@@ -122,16 +122,16 @@ router.post("/theke/auth", async (req: Request, res: Response) => {
 // ─── PUT /api/theke/profil ───────────────────────────────────────────────────
 const profilSchema = z.object({
   anzeige_name:    z.string().min(2).max(80).optional(),
-  vorstellung:     z.string().max(500).optional(),
-  jahr_1985:       z.string().max(200).optional(),
-  lauter_song:     z.string().max(200).optional(),
-  f_tontraeger:    z.string().max(100).optional(),
-  f_abends:        z.string().max(100).optional(),
-  f_untersatz:     z.string().max(100).optional(),
-  f_musik:         z.string().max(100).optional(),
-  f_getraenk:      z.string().max(100).optional(),
-  foto_frueher_jahr: z.number().int().min(1940).max(2010).optional(),
-  foto_heute_jahr:   z.number().int().min(1940).max(2030).optional(),
+  vorstellung:     z.string().max(500).nullable().optional(),
+  jahr_1985:       z.string().max(200).nullable().optional(),
+  lauter_song:     z.string().max(200).nullable().optional(),
+  f_tontraeger:    z.string().max(100).nullable().optional(),
+  f_abends:        z.string().max(100).nullable().optional(),
+  f_untersatz:     z.string().max(100).nullable().optional(),
+  f_musik:         z.string().max(100).nullable().optional(),
+  f_getraenk:      z.string().max(100).nullable().optional(),
+  foto_frueher_jahr: z.number().int().min(1940).max(2010).nullable().optional(),
+  foto_heute_jahr:   z.number().int().min(1940).max(2030).nullable().optional(),
 });
 
 router.put("/theke/profil", async (req: Request, res: Response) => {
