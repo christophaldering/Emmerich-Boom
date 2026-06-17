@@ -3,7 +3,7 @@ import multer from "multer";
 import { z } from "zod/v4";
 import { randomUUID } from "crypto";
 import { db, anmeldungTicketsTable, thekeProfileTable, thekeBotschaftenTable, thekeFotosTable, thekeVerteilerTable } from "@workspace/db";
-import { eq, desc, and, isNotNull, sql } from "drizzle-orm";
+import { eq, desc, and, isNotNull, isNull, sql } from "drizzle-orm";
 import { Client } from "@replit/object-storage";
 import { SERVER_CONFIG } from "../config.js";
 
@@ -109,6 +109,15 @@ router.post("/theke/auth", async (req: Request, res: Response) => {
       .returning();
   }
 
+  const [verteilerRow] = await db
+    .select({ email: thekeVerteilerTable.email })
+    .from(thekeVerteilerTable)
+    .where(and(
+      eq(thekeVerteilerTable.anmeldung_ticket_id, ticket.id),
+      isNull(thekeVerteilerTable.abgemeldet_am),
+    ))
+    .limit(1);
+
   res.json({
     ticket: {
       id: ticket.id,
@@ -116,6 +125,7 @@ router.post("/theke/auth", async (req: Request, res: Response) => {
       ticket_nummer: ticket.ticket_nummer,
     },
     profile: profile!,
+    verteiler: verteilerRow ? { email: verteilerRow.email, opted_in: true } : null,
   });
 });
 
@@ -211,22 +221,40 @@ router.post("/theke/einwilligung", async (req: Request, res: Response) => {
     .where(eq(thekeProfileTable.id, profile.id))
     .returning();
 
+  let verteilerResult: { email: string; opted_in: boolean } | null = null;
+
   if (body.b === true && body.b_email) {
     const email = body.b_email.trim().toLowerCase();
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      await db
-        .insert(thekeVerteilerTable)
-        .values({
-          email,
-          name: profile.anzeige_name,
-          anmeldung_ticket_id: ticket.id,
-          einwilligung_am: now,
-        })
-        .onConflictDoNothing();
+      const [existing] = await db
+        .select({ id: thekeVerteilerTable.id })
+        .from(thekeVerteilerTable)
+        .where(eq(thekeVerteilerTable.anmeldung_ticket_id, ticket.id))
+        .limit(1);
+      if (existing) {
+        await db
+          .update(thekeVerteilerTable)
+          .set({ email, name: profile.anzeige_name, einwilligung_am: now, abgemeldet_am: null })
+          .where(eq(thekeVerteilerTable.id, existing.id));
+      } else {
+        await db
+          .insert(thekeVerteilerTable)
+          .values({ email, name: profile.anzeige_name, anmeldung_ticket_id: ticket.id, einwilligung_am: now })
+          .onConflictDoNothing();
+      }
+      verteilerResult = { email, opted_in: true };
     }
+  } else if (body.b === false) {
+    await db
+      .update(thekeVerteilerTable)
+      .set({ abgemeldet_am: now })
+      .where(and(
+        eq(thekeVerteilerTable.anmeldung_ticket_id, ticket.id),
+        isNull(thekeVerteilerTable.abgemeldet_am),
+      ));
   }
 
-  res.json({ ok: true, profile: updated });
+  res.json({ ok: true, profile: updated, verteiler: verteilerResult });
 });
 
 // ─── POST /api/theke/foto/profil-frueher ────────────────────────────────────

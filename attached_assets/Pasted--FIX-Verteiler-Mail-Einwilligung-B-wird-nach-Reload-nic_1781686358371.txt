@@ -1,0 +1,34 @@
+# FIX — Verteiler-Mail (Einwilligung B) wird nach Reload nicht angezeigt
+
+**Kleiner, gezielter Fix. Speichern funktioniert bereits — es fehlt nur das Zurücklesen beim Laden.**
+
+## Befund
+`POST /api/theke/einwilligung` speichert B korrekt: bei `b === true` + gültiger `b_email` wird ein Eintrag in `theke_verteiler` angelegt (`onConflictDoNothing`). **Aber:** Der Verteiler-Status steht nicht auf dem Profil, und die Lade-/Auth-Antwort gibt ihn nicht zurück. Daher initialisiert das Frontend (`EinwilligungsBlock`) das B-Häkchen + E-Mail-Feld beim Neuladen leer → wirkt „verschwunden".
+
+## Fix
+1. **Backend — Verteiler-Status beim Laden mitliefern:** In `POST /api/theke/auth` (bzw. der Stelle, die beim Betreten Profil + Zustand zurückgibt) zusätzlich den aktiven Verteiler-Eintrag dieses Tickets nachschlagen:
+   - Suche in `theke_verteiler` nach `anmeldung_ticket_id = ticket.id` mit `abgemeldet_am IS NULL`.
+   - Ergänze die Antwort um z. B. `verteiler: { email: <string>, opted_in: true } | null`.
+2. **Frontend — Häkchen + Feld vorbefüllen:** `EinwilligungsBlock` initialisiert das B-Häkchen als **angehakt**, wenn `verteiler` vorhanden ist, und füllt das E-Mail-Feld mit `verteiler.email`. So bleibt es nach Reload sichtbar.
+3. **Robustheit beim erneuten Speichern:**
+   - Wenn B = true mit (ggf. geänderter) E-Mail: bestehenden Verteiler-Eintrag dieses Tickets **aktualisieren** (Upsert nach `anmeldung_ticket_id`), statt per `onConflictDoNothing` nichts zu tun — sonst lässt sich die Adresse nie ändern.
+   - Wenn B = false: den Verteiler-Eintrag dieses Tickets als abgemeldet markieren (`abgemeldet_am = now`), damit er nicht aktiv bleibt.
+
+## Verifizieren
+- B anhaken, E-Mail eingeben, speichern → Seite neu laden → Häkchen ist gesetzt, E-Mail steht noch da.
+- E-Mail ändern + speichern → neue Adresse bleibt nach Reload.
+- B abhaken + speichern → nach Reload nicht mehr aktiv.
+
+## VERBOTEN
+- Auth/`toUpperCase()`, Szenendesign, Object Storage, Steckbrief-Speicherlogik unverändert.
+
+## CHECKLISTE
+- [ ] Lade-/Auth-Antwort liefert den aktiven Verteiler-Eintrag (`email`, opted_in).
+- [ ] `EinwilligungsBlock` füllt Häkchen + E-Mail beim Laden vor.
+- [ ] Upsert nach `anmeldung_ticket_id` (Adresse änderbar); Abmelden setzt `abgemeldet_am`.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> Verteiler-Status wird beim Laden geliefert + vorbefüllt: ja/nein
+> Adresse änderbar / Abmelden funktioniert: ja/nein
+> Geänderte Dateien: …

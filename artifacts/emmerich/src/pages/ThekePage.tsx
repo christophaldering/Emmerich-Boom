@@ -42,6 +42,7 @@ interface BandEntry {
   id: number; datei_key: string; dauer_sek: number;
   anmeldung_ticket_id: number; anzeige_name: string; created_at: string;
 }
+type VerteilerInfo = { email: string; opted_in: boolean } | null;
 
 // ─── Spec Constants ───────────────────────────────────────────────────────────
 
@@ -554,10 +555,10 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
 
 // ─── Einwilligungen ───────────────────────────────────────────────────────────
 
-function EinwilligungsBlock({ token, profile, onUpdated }: { token: string; profile: Profile; onUpdated: (p: Profile) => void }) {
+function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerChange }: { token: string; profile: Profile; onUpdated: (p: Profile) => void; verteiler: VerteilerInfo; onVerteilerChange: (v: VerteilerInfo) => void }) {
   const [a, setA] = useState(!!profile.sichtbarkeit_zugestimmt_am);
-  const [b, setB] = useState(false);
-  const [bEmail, setBEmail] = useState("");
+  const [b, setB] = useState(() => !!verteiler?.opted_in);
+  const [bEmail, setBEmail] = useState(() => verteiler?.email ?? "");
   const [c, setC] = useState(profile.abendfotos_ok);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -570,8 +571,12 @@ function EinwilligungsBlock({ token, profile, onUpdated }: { token: string; prof
         headers: { "Content-Type": "application/json", "x-theke-token": token },
         body: JSON.stringify({ a, b, b_email: bEmail, c }),
       });
-      const data = await res.json() as { ok?: boolean; profile?: Profile };
-      if (data.ok && data.profile) { onUpdated(data.profile); setSaved(true); }
+      const data = await res.json() as { ok?: boolean; profile?: Profile; verteiler?: VerteilerInfo };
+      if (data.ok && data.profile) {
+        onUpdated(data.profile);
+        onVerteilerChange(data.verteiler ?? null);
+        setSaved(true);
+      }
     } catch { }
     setSaving(false);
   };
@@ -712,11 +717,13 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
   profile: Profile;
   fotos: Foto[];
   botschaft: Botschaft | null;
+  verteiler: VerteilerInfo;
   onProfileChange: (p: Profile) => void;
   onFotoAdded: (f: Foto) => void;
   onFotoDeleted: (id: number) => void;
   onBotschaftChange: (b: Botschaft | null) => void;
-}>(function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange }, ref) {
+  onVerteilerChange: (v: VerteilerInfo) => void;
+}>(function MeinSteckbrief({ token, profile, fotos, botschaft, verteiler, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange, onVerteilerChange }, ref) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [fotoMsg, setFotoMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -873,7 +880,7 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
       </div>
 
       <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
-        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} />
+        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
       </div>
 
       <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
@@ -1155,16 +1162,18 @@ function TelefonObjekt({ bandCount, onClick }: { bandCount: number; onClick: () 
 
 // ─── Profil-Overlay (Bierdeckel) ──────────────────────────────────────────────
 
-function ProfilOverlay({ token, profile, fotos, botschaft, onClose, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange }: {
+function ProfilOverlay({ token, profile, fotos, botschaft, verteiler, onClose, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange, onVerteilerChange }: {
   token: string;
   profile: Profile;
   fotos: Foto[];
   botschaft: Botschaft | null;
+  verteiler: VerteilerInfo;
   onClose: () => void;
   onProfileChange: (p: Profile) => void;
   onFotoAdded: (f: Foto) => void;
   onFotoDeleted: (id: number) => void;
   onBotschaftChange: (b: Botschaft | null) => void;
+  onVerteilerChange: (v: VerteilerInfo) => void;
 }) {
   const steckbriefRef = useRef<MeinSteckbriefHandle>(null);
   const handleClose = useCallback(async () => {
@@ -1205,10 +1214,12 @@ function ProfilOverlay({ token, profile, fotos, botschaft, onClose, onProfileCha
           profile={profile}
           fotos={fotos}
           botschaft={botschaft}
+          verteiler={verteiler}
           onProfileChange={onProfileChange}
           onFotoAdded={onFotoAdded}
           onFotoDeleted={onFotoDeleted}
           onBotschaftChange={onBotschaftChange}
+          onVerteilerChange={onVerteilerChange}
         />
       </div>
     </div>
@@ -1279,6 +1290,7 @@ export default function ThekePage() {
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<TicketInfo | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [verteiler, setVerteiler] = useState<VerteilerInfo>(null);
   const [fotos, setFotos] = useState<Foto[]>([]);
   const [botschaft, setBotschaft] = useState<Botschaft | null>(null);
   const [needsNameConfirm, setNeedsNameConfirm] = useState(false);
@@ -1346,9 +1358,10 @@ export default function ThekePage() {
           body: JSON.stringify({ t: code }),
         });
         if (!res.ok) { setZugangFehler(true); setLoading(false); return; }
-        const data = await res.json() as { ticket: TicketInfo; profile: Profile };
+        const data = await res.json() as { ticket: TicketInfo; profile: Profile; verteiler: VerteilerInfo };
         setTicket(data.ticket);
         setProfile(data.profile);
+        setVerteiler(data.verteiler ?? null);
 
         if (!data.profile.bestaetigt) {
           setNeedsNameConfirm(true);
@@ -1600,11 +1613,13 @@ export default function ThekePage() {
           profile={profile}
           fotos={fotos}
           botschaft={botschaft}
+          verteiler={verteiler}
           onClose={() => setBierdeckelOffen(false)}
           onProfileChange={p => setProfile(p)}
           onFotoAdded={f => setFotos(fs => [f, ...fs])}
           onFotoDeleted={id => setFotos(fs => fs.filter(f => f.id !== id))}
           onBotschaftChange={b => setBotschaft(b)}
+          onVerteilerChange={v => setVerteiler(v)}
         />
       )}
 
