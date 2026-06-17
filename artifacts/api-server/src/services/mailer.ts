@@ -634,9 +634,12 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
   const resend = new Resend(apiKey);
   const baseUrl = SERVER_CONFIG.THEKE_BASE_URL;
 
+  const mehrere = opts.tickets.length > 1;
+
   const ticketBloecke = opts.tickets.map(t => {
     const link = `${baseUrl}/theke?t=${encodeURIComponent(t.code)}`;
-    const waLink = `https://wa.me/?text=${encodeURIComponent(`Hier ist dein Zugang zur Theke: ${link}`)}`;
+    const waText = mehrere ? `Hier ist dein Zugang zur Theke: ${link}` : `Mein Zugang zur Theke: ${link}`;
+    const waLink = `https://wa.me/?text=${encodeURIComponent(waText)}`;
     const mailLink = `mailto:?subject=${encodeURIComponent("Dein Zugang zur Theke – EMMERICH BOOMT!")}&body=${encodeURIComponent(`Hallo,\n\nhier ist dein persönlicher Zugang zur Theke:\n${link}\n\nBis bald auf dem Bölt!`)}`;
     return `
     <div style="margin:0 0 24px;padding:20px 24px;border:1px solid rgba(232,153,26,.35);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
@@ -648,10 +651,10 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
             <a href="${escHtml(link)}" style="display:inline-block;padding:10px 22px;background:#e8991a;color:#0a0704;font-family:Georgia,'Times New Roman',serif;font-size:14px;font-weight:bold;text-decoration:none;border-radius:3px;">Zur Theke</a>
           </td>
           <td style="padding-right:10px;">
-            <a href="${escHtml(waLink)}" style="display:inline-block;padding:10px 18px;background:transparent;color:rgba(245,232,200,.6);border:1px solid rgba(245,232,200,.2);font-family:Georgia,'Times New Roman',serif;font-size:13px;text-decoration:none;border-radius:3px;">WhatsApp</a>
+            <a href="${escHtml(waLink)}" style="display:inline-block;padding:10px 18px;background:transparent;color:rgba(245,232,200,.6);border:1px solid rgba(245,232,200,.2);font-family:Georgia,'Times New Roman',serif;font-size:13px;text-decoration:none;border-radius:3px;">${mehrere ? "Weiterleiten" : "Aufs Handy"}</a>
           </td>
           <td>
-            <a href="${escHtml(mailLink)}" style="display:inline-block;padding:10px 18px;background:transparent;color:rgba(245,232,200,.6);border:1px solid rgba(245,232,200,.2);font-family:Georgia,'Times New Roman',serif;font-size:13px;text-decoration:none;border-radius:3px;">E-Mail</a>
+            <a href="${escHtml(mailLink)}" style="display:inline-block;padding:10px 18px;background:transparent;color:rgba(245,232,200,.6);border:1px solid rgba(245,232,200,.2);font-family:Georgia,'Times New Roman',serif;font-size:13px;text-decoration:none;border-radius:3px;">${mehrere ? "Per Mail" : "An mich"}</a>
           </td>
         </tr>
       </table>
@@ -662,8 +665,6 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
     const link = `${baseUrl}/theke?t=${encodeURIComponent(t.code)}`;
     return `${t.name}\n→ ${link}\n`;
   }).join("\n");
-
-  const mehrere = opts.tickets.length > 1;
 
   const html = `<!DOCTYPE html>
 <html lang="de">
