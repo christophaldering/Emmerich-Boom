@@ -1,0 +1,47 @@
+# FIX — Foto-Upload der Theke (Speicher, Fehleranzeige, Einwilligung)
+
+**Punktueller Fix. Szenendesign, Auth, Dauerzugang NICHT verändern.**
+
+## Befund
+Foto-Uploads schlagen still fehl. Ursachen:
+1. **Object Storage:** Im Projekt ist (vermutlich) kein Bucket konfiguriert; `new Client()` / `uploadFromBytes` scheitert, `storeFile` wirft → unsauberer 500.
+2. **Einwilligung:** Die Endpunkte verlangen `sichtbarkeit_zugestimmt_am` (Häkchen A) und antworten sonst mit 403 „Einwilligung fehlt".
+3. **Frontend** verschluckt beide Fälle (`catch { }`, kein Hinweis bei `!ok`) → für den Nutzer „passiert nichts".
+
+## 0. Object Storage sicherstellen (Diagnose + Provisionierung)
+- Prüfe, ob ein Object-Storage-Bucket für dieses Projekt existiert/erreichbar ist. Falls **nicht**, richte Object Storage ein (Bucket provisionieren), sodass `new Client()` einen Standard-Bucket hat.
+- Teste konkret: ein kleines `uploadFromBytes` + `downloadAsBytes` und berichte das Ergebnis (ok / Fehlertext) im Abschluss.
+
+## 1. Backend — saubere Fehler statt Absturz
+In `artifacts/api-server/src/routes/theke.ts` in **allen** Upload-Endpunkten (`/theke/foto/profil-frueher`, `/theke/foto/profil-heute`, `/theke/foto/galerie`, Botschafts-Upload) den `storeFile`-Aufruf in `try/catch` kapseln:
+- Bei Fehler: `res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." })` (keinen ungefangenen Throw / 500-Crash).
+- Die bestehende 403-Antwort „Einwilligung fehlt" bleibt, aber mit klarem Text: `{ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }`.
+
+## 2. Frontend — Fehler sichtbar machen
+In `ThekePage.tsx` bei **allen** Foto-Uploads (Galerie **und** Früher/Heute):
+- Den leeren `catch { }` ersetzen: bei `!res.ok` bzw. `!data.ok` die `data.error`-Meldung (Fallback: „Upload fehlgeschlagen.") gut sichtbar **am Upload-Bereich** anzeigen (rote Lora-Zeile), nicht verschlucken.
+- Bei Netzwerkfehler im `catch`: „Verbindungsfehler beim Hochladen." anzeigen.
+- Erfolg: kurze Bestätigung „Foto hochgeladen."
+
+## 3. Einwilligung sichtbar erzwingen
+- Solange `sichtbarkeit_zugestimmt_am` nicht gesetzt ist: oberhalb der Foto-Bereiche ein deutlicher Hinweis „Setze zuerst das Häkchen ‚darf sichtbar gespeichert werden', dann kannst du Fotos und Sprachnachricht hochladen." und die Upload-Buttons (Früher/Heute/Galerie/Aufnahme) **deaktivieren**, bis das Häkchen gesetzt ist.
+- Das Häkchen A muss im Steckbrief gut auffindbar sein (nicht versteckt unten).
+
+## VERBOTEN
+- Auth/`toUpperCase()`, Demo/Dauerzugang, Szenendesign, andere Seiten unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+- [ ] Object Storage verfügbar; Test-Upload/-Download erfolgreich (Ergebnis berichtet).
+- [ ] Alle Upload-Endpunkte fangen Speicherfehler ab → saubere JSON-Fehlermeldung.
+- [ ] Frontend zeigt Upload-Fehler (Galerie + Früher/Heute) sichtbar an, kein stilles `catch`.
+- [ ] Ohne Häkchen A: klarer Hinweis + deaktivierte Upload-Buttons.
+- [ ] Erfolgreicher Upload zeigt Bestätigung und das Bild erscheint.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> Object Storage Bucket vorhanden/provisioniert: ja/nein — Test-Upload: ok/Fehler __
+> Upload-Endpunkte mit try/catch + JSON-Fehler: ja/nein
+> Frontend zeigt Fehler sichtbar: ja/nein
+> Einwilligung erzwungen + Buttons deaktiviert ohne Häkchen: ja/nein
+> Geänderte Dateien / Abweichungen: …

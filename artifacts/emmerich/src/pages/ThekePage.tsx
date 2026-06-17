@@ -178,16 +178,16 @@ function AuswahlFeld({ label, opts, value, onChange }: { label: string; opts: st
 
 // ─── Foto-Slot ────────────────────────────────────────────────────────────────
 
-function FotoSlot({ label, fileKey, jahr, token, onUpload, accept = "image/*" }: {
+function FotoSlot({ label, fileKey, jahr, token, onUpload, accept = "image/*", disabled = false }: {
   label: string; fileKey?: string | null; jahr?: number | null;
-  token: string; onUpload: (file: File, jahr?: number) => void; accept?: string;
+  token: string; onUpload: (file: File, jahr?: number) => void; accept?: string; disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [jahrInput, setJahrInput] = useState(String(jahr ?? ""));
 
   return (
-    <div style={{ position: "relative", background: am(0.07), border: `1px solid ${am(0.25)}`, borderRadius: "6px", overflow: "hidden", aspectRatio: "3/4", cursor: "pointer" }}
-      onClick={() => inputRef.current?.click()}>
+    <div style={{ position: "relative", background: am(0.07), border: `1px solid ${am(0.25)}`, borderRadius: "6px", overflow: "hidden", aspectRatio: "3/4", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.45 : 1 }}
+      onClick={() => !disabled && inputRef.current?.click()}>
       {fileKey ? (
         <>
           <img src={fotoUrl(fileKey, token)} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -445,10 +445,12 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
   const [bildunterschrift, setBildunterschrift] = useState("");
   const [jahr, setJahr] = useState("");
   const [pendenteFile, setPendenteFile] = useState<File | null>(null);
+  const [uploadMsg, setUploadMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const upload = async () => {
     if (!pendenteFile) return;
     setUploading(true);
+    setUploadMsg({ text: "Foto wird hochgeladen …", ok: true });
     try {
       const form = new FormData();
       form.append("foto", pendenteFile);
@@ -466,8 +468,14 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
         setPendenteFile(null);
         setBildunterschrift("");
         setJahr("");
+        setUploadMsg({ text: "Foto hochgeladen ✓", ok: true });
+        setTimeout(() => setUploadMsg(null), 3000);
+      } else {
+        setUploadMsg({ text: data.error ?? "Upload fehlgeschlagen.", ok: false });
       }
-    } catch { }
+    } catch {
+      setUploadMsg({ text: "Verbindungsfehler beim Hochladen.", ok: false });
+    }
     setUploading(false);
   };
 
@@ -520,12 +528,17 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
               style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.95rem", padding: "0.65rem 1.5rem", cursor: uploading ? "not-allowed" : "pointer", opacity: uploading ? 0.7 : 1 }}>
               {uploading ? "Lädt …" : "Hochladen"}
             </button>
-            <button onClick={() => setPendenteFile(null)}
+            <button onClick={() => { setPendenteFile(null); setUploadMsg(null); }}
               style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: fg(0.55), fontFamily: "'Lora', serif", fontSize: "0.9rem", padding: "0.65rem 1.2rem", cursor: "pointer" }}>
               Abbrechen
             </button>
           </div>
         </div>
+      )}
+      {uploadMsg && (
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", fontStyle: "italic", color: uploadMsg.ok ? "rgba(232,153,26,0.9)" : "#e05252", margin: "0.6rem 0 0" }}>
+          {uploadMsg.text}
+        </p>
       )}
     </div>
   );
@@ -817,13 +830,19 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
       </div>
 
       <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
+        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} />
+      </div>
+
+      <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
         <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: A, marginBottom: "1.25rem" }}>
           Früher &amp; Heute — Fotos
         </p>
         {!hatEinwilligung && (
-          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.9rem", color: fg(0.5), marginBottom: "1rem" }}>
-            Bitte zuerst Einwilligung A setzen (siehe unten), um Fotos hochladen zu können.
-          </p>
+          <div style={{ background: "rgba(232,153,26,0.08)", border: "1px solid rgba(232,153,26,0.3)", borderRadius: "6px", padding: "0.75rem 1rem", marginBottom: "1.25rem" }}>
+            <p style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.8), margin: 0 }}>
+              Setze zuerst das Häkchen <em>„Sichtbarkeit &amp; Upload"</em> oben — dann sind die Upload-Felder aktiv.
+            </p>
+          </div>
         )}
         {fotoMsg && (
           <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fotoMsg.ok ? am(0.9) : "#e05252", marginBottom: "0.75rem" }}>
@@ -836,14 +855,16 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
             fileKey={profile.foto_frueher_key}
             jahr={profile.foto_frueher_jahr}
             token={token}
-            onUpload={(file, jahr) => hatEinwilligung && uploadFoto("profil-frueher", file, jahr)}
+            disabled={!hatEinwilligung}
+            onUpload={(file, jahr) => uploadFoto("profil-frueher", file, jahr)}
           />
           <FotoSlot
             label="Heute"
             fileKey={profile.foto_heute_key}
             jahr={profile.foto_heute_jahr}
             token={token}
-            onUpload={(file, jahr) => hatEinwilligung && uploadFoto("profil-heute", file, jahr)}
+            disabled={!hatEinwilligung}
+            onUpload={(file, jahr) => uploadFoto("profil-heute", file, jahr)}
           />
         </div>
       </div>
@@ -865,10 +886,6 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
         ) : (
           <Anrufbeantworter token={token} botschaft={botschaft} onUploaded={onBotschaftChange} onDeleted={() => onBotschaftChange(null)} />
         )}
-      </div>
-
-      <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem" }}>
-        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} />
       </div>
     </div>
   );

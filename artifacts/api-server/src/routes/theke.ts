@@ -238,11 +238,15 @@ router.post("/theke/foto/profil-frueher", upload.single("foto"), async (req: Req
     .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
     .limit(1);
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
-  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
   const ext = req.file.mimetype.split("/")[1] ?? "jpg";
   const key = `theke/foto/${randomUUID()}.${ext}`;
-  await storeFile(req.file.buffer, key, req.file.mimetype);
+  try {
+    await storeFile(req.file.buffer, key, req.file.mimetype);
+  } catch {
+    res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
+  }
 
   if (profile.foto_frueher_key) {
     await deleteFile(profile.foto_frueher_key).catch(() => {});
@@ -276,11 +280,15 @@ router.post("/theke/foto/profil-heute", upload.single("foto"), async (req: Reque
     .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
     .limit(1);
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
-  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
   const ext = req.file.mimetype.split("/")[1] ?? "jpg";
   const key = `theke/foto/${randomUUID()}.${ext}`;
-  await storeFile(req.file.buffer, key, req.file.mimetype);
+  try {
+    await storeFile(req.file.buffer, key, req.file.mimetype);
+  } catch {
+    res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
+  }
 
   if (profile.foto_heute_key) {
     await deleteFile(profile.foto_heute_key).catch(() => {});
@@ -314,11 +322,15 @@ router.post("/theke/foto/galerie", upload.single("foto"), async (req: Request, r
     .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
     .limit(1);
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
-  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
   const ext = req.file.mimetype.split("/")[1] ?? "jpg";
   const key = `theke/foto/${randomUUID()}.${ext}`;
-  await storeFile(req.file.buffer, key, req.file.mimetype);
+  try {
+    await storeFile(req.file.buffer, key, req.file.mimetype);
+  } catch {
+    res.status(500).json({ error: "Foto konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
+  }
 
   const body = req.body as Record<string, unknown>;
   const bildunterschrift = typeof body["bildunterschrift"] === "string" ? body["bildunterschrift"].trim().slice(0, 120) : null;
@@ -375,12 +387,16 @@ router.post("/theke/audio", audioUpload.single("audio"), async (req: Request, re
     .where(eq(thekeProfileTable.anmeldung_ticket_id, ticket.id))
     .limit(1);
   if (!profile) { res.status(404).json({ error: "Kein Profil" }); return; }
-  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Einwilligung fehlt" }); return; }
+  if (!profile.sichtbarkeit_zugestimmt_am) { res.status(403).json({ error: "Bitte zuerst das Häkchen 'darf sichtbar gespeichert werden' setzen." }); return; }
 
   const mime = req.file.mimetype;
   const ext = mime.includes("ogg") ? "ogg" : mime.includes("mp4") ? "mp4" : mime.includes("mp3") || mime.includes("mpeg") ? "mp3" : "webm";
   const key = `theke/audio/${randomUUID()}.${ext}`;
-  await storeFile(req.file.buffer, key, mime);
+  try {
+    await storeFile(req.file.buffer, key, mime);
+  } catch {
+    res.status(500).json({ error: "Sprachnachricht konnte nicht gespeichert werden — Speicher nicht verfügbar." }); return;
+  }
 
   const body = req.body as Record<string, unknown>;
   const dauer = parseInt(String(body["dauer_sek"] ?? "0"), 10);

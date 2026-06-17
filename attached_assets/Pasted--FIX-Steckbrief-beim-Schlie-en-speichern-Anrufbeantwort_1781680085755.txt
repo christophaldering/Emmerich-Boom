@@ -1,0 +1,36 @@
+# FIX — Steckbrief beim Schließen speichern + Anrufbeantworter löschen
+
+**Kleiner, punktueller Fix. Szenendesign, Auth, Dauerzugang, Object-Storage-Logik NICHT verändern.**
+**Hinweis:** Foto- und Audio-„Verbindungsfehler" haben eine andere Ursache (fehlender Object-Storage-Bucket) und werden über den separaten Fix `FIX-Theke-Foto-Upload` + das Anlegen des Buckets gelöst. Dieser Prompt behandelt nur die zwei folgenden Punkte.
+
+## Bug A — „Schließen" verwirft ungespeicherte Steckbrief-Eingaben
+Im Steckbrief (`MeinSteckbrief` / `ProfilOverlay` in `ThekePage.tsx`) wird per debouncetem Timer (≈1500 ms) gespeichert. Drückt man „Schließen" (oder verlässt das Overlay) vor Ablauf des Timers, wird der ausstehende Speichervorgang verworfen → Eingaben gehen verloren.
+
+Fix:
+- Beim „Schließen"-Klick **vor** dem Schließen den ausstehenden Speichervorgang **sofort ausführen** (Timer canceln, `await save()` aufrufen, dann schließen). Gleiches beim Unmount des Overlays.
+- Zusätzlich pro Feld bei `onBlur` speichern, damit nichts verloren geht.
+- Nach erfolgreichem Speichern weiterhin sichtbar „Gespeichert ✓"; bei Fehler „Konnte nicht gespeichert werden" anzeigen (nicht still verschlucken).
+- Die 5 Auswahl-Fragen und die Textfelder müssen so zuverlässig persistiert werden.
+
+## Punkt B — Anrufbeantworter-Aufnahme löschen
+Ein „Löschen" für eine **gespeicherte** Nachricht existiert bereits, erscheint aber erst nach erfolgreichem Speichern. Sicherstellen, dass es zuverlässig funktioniert:
+- `DELETE /api/theke/audio/:id` löscht Datei (Object Storage) **und** DB-Zeile; danach UI zurück auf „noch keine Nachricht".
+- Fehler beim Löschen sichtbar melden (kein stilles `catch`).
+- Eine gerade aufgenommene, noch nicht gespeicherte Aufnahme muss sich weiterhin verwerfen lassen („Neu/Verwerfen").
+
+## VERBOTEN
+- Auth/`toUpperCase()`, Demo/Dauerzugang, Szenendesign, Object-Storage-Anbindung, andere Seiten unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+- [ ] „Schließen" speichert ausstehende Steckbrief-Änderungen, bevor es schließt (Timer-Flush).
+- [ ] Speichern auch bei `onBlur` der Felder.
+- [ ] Auswahl-Fragen + Textfelder werden zuverlässig persistiert; „Gespeichert ✓"/Fehler sichtbar.
+- [ ] `DELETE /api/theke/audio/:id` löscht Datei + Zeile; Fehler sichtbar; UI aktualisiert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> „Schließen" flusht den Speichervorgang, Eingaben bleiben erhalten: ja/nein
+> onBlur-Speichern ergänzt: ja/nein
+> AB-Löschen (Datei + Zeile) funktioniert + Fehleranzeige: ja/nein
+> Geänderte Dateien / Abweichungen: …
