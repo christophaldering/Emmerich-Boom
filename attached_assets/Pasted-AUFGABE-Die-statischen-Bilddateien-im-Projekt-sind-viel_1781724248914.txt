@@ -1,0 +1,43 @@
+AUFGABE
+Die statischen Bilddateien im Projekt sind viel zu groß (viele PNGs ~3 MB), obwohl sie
+nur klein angezeigt werden. Verkleinere sie EINMALIG „an Ort und Stelle": gleicher
+Dateiname, gleiches Format, gleicher Pfad — nur kleinere Abmessungen und stärker
+komprimiert. KEINE Code-Änderung, KEINE umbenannten Dateien.
+
+WERKZEUG
+sharp ist bereits installiert. Nutze ein TEMPORÄRES Skript (z. B. eine .mjs-Datei
+außerhalb des App-Codes), führe es aus und lösche es danach wieder. Füge dem
+Projekt KEIN neues dauerhaftes Skript hinzu.
+
+ZU VERKLEINERNDE DATEIEN
+Gruppe A — kleine Theke-Bilder, längste Kante max. 600 px:
+  alle Bilddateien in  artifacts/emmerich/public/theke/  und allen Unterordnern
+  (das sind u. a. die Beispiel-Fotos IMG_89xx.png und die Hausmeister-Screenshots).
+Gruppe B — Vollbild-Hintergründe, längste Kante max. 1600 px:
+  artifacts/emmerich/public/buehne-saal.png
+  artifacts/emmerich/public/theke-wand-bg.png
+
+KOMPRIMIERUNG
+- JPG/JPEG-Dateien:  sharp …resize(max,max,{fit:"inside",withoutEnlargement:true}).jpeg({quality:78, mozjpeg:true})
+- PNG-Dateien:       sharp …resize(max,max,{fit:"inside",withoutEnlargement:true}).png({quality:80, compressionLevel:9, palette:true})
+- Jede Datei mit ihrem ursprünglichen Format und unter ihrem ursprünglichen Namen/Pfad zurückschreiben.
+- Nur zurückschreiben, wenn die neue Datei wirklich kleiner ist (sonst Original lassen).
+
+VERBOTEN
+- KEINE Datei umbenennen, ins andere Format wandeln oder verschieben.
+- KEINE Änderung an Code, an beispielProfile.ts, an theke-szene.ts oder an irgendeiner Referenz.
+- Die Datei artifacts/emmerich/public/boomerparty-foto.jpeg NICHT anfassen (Poster, wird in voller Qualität für die Mail gebraucht).
+- KEINE neuen dauerhaften Skripte/Dateien im Projekt hinterlassen.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Alle Bilder in public/theke/** auf max. 600 px verkleinert (gleicher Name/Pfad/Format).
+[ ] buehne-saal.png und theke-wand-bg.png auf max. 1600 px verkleinert.
+[ ] Poster boomerparty-foto.jpeg unverändert.
+[ ] Keine Datei umbenannt, kein Code/keine Referenz geändert, temporäres Skript gelöscht.
+[ ] Projekt baut/läuft fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Einer Liste der verkleinerten Dateien mit „vorher → nachher" in KB.
+2. Der wörtlichen Bestätigung: „Nur Bilddateien wurden verkleinert, keine Umbenennung, kein Code geändert."
+3. Falls eine erwartete Datei fehlte: kurz benennen, aber den Rest trotzdem verkleinern.
