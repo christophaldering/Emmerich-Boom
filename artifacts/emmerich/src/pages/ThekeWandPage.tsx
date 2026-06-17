@@ -1,33 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-
+import { useEffect, useState } from "react";
 import { THEKE_SZENE } from "../config/theke-szene";
+import { GalerieWand } from "./Galerie";
+import type { GalerieEntry } from "./Galerie";
 
-const A = "#E8991A";
+const A  = "#E8991A";
 const BG = "#0A0704";
-
-interface FeedEntry {
-  id: number;
-  anmeldung_ticket_id: number;
-  anzeige_name: string;
-  vorstellung?: string;
-  f_tontraeger?: string;
-  f_abends?: string;
-  f_untersatz?: string;
-  f_musik?: string;
-  f_getraenk?: string;
-  lauter_song?: string;
-  foto_frueher_key?: string;
-  foto_frueher_jahr?: number;
-  foto_heute_key?: string;
-  foto_heute_jahr?: number;
-  fotos: { id: number; datei_key: string; bildunterschrift?: string; jahr?: number }[];
-  hat_botschaft: boolean;
-  sichtbarkeit_zugestimmt_am: string;
-}
-
-function fotoUrl(key: string, token: string) {
-  return `/api/theke/datei/${key}?t=${encodeURIComponent(token)}`;
-}
 
 function noindex() {
   let meta = document.head.querySelector<HTMLMetaElement>("meta[name='robots'][data-theke]");
@@ -44,12 +21,10 @@ function removeNoindex() {
 }
 
 export default function ThekeWandPage() {
-  const [token, setToken] = useState<string | null>(null);
+  const [token,       setToken]       = useState<string | null>(null);
   const [zugangFehler, setZugangFehler] = useState(false);
-  const [feed, setFeed] = useState<FeedEntry[]>([]);
-  const [idx, setIdx] = useState(0);
-  const [fading, setFading] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [feed,         setFeed]        = useState<GalerieEntry[]>([]);
+  const [feedNow,      setFeedNow]     = useState(Date.now());
 
   useEffect(() => {
     noindex();
@@ -65,148 +40,96 @@ export default function ThekeWandPage() {
 
   useEffect(() => {
     if (!token) return;
-    fetch(`/api/theke/feed`, { headers: { "x-theke-token": token } })
-      .then(r => r.json())
-      .then((data: FeedEntry[]) => {
-        const withFotos = data.filter(p => p.foto_frueher_key || p.foto_heute_key || p.fotos.length > 0);
-        setFeed(withFotos);
-      })
-      .catch(() => {});
+
+    function fetchFeed() {
+      fetch("/api/theke/feed", { headers: { "x-theke-token": token! } })
+        .then(r => r.json())
+        .then((data: GalerieEntry[]) => { setFeed(data); setFeedNow(Date.now()); })
+        .catch(() => {});
+    }
+
+    fetchFeed();
+    const id = setInterval(fetchFeed, 60_000);
+    return () => clearInterval(id);
   }, [token]);
-
-  const next = useCallback(() => {
-    if (feed.length <= 1) return;
-    setFading(true);
-    setTimeout(() => {
-      setIdx(i => (i + 1) % feed.length);
-      setFading(false);
-    }, 800);
-  }, [feed.length]);
-
-  useEffect(() => {
-    if (feed.length === 0) return;
-    timerRef.current = setInterval(next, 7000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [feed.length, next]);
 
   if (zugangFehler) {
     return (
       <div style={{ background: BG, minHeight: "100svh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.5)" }}>Kein gültiger Zugang.</p>
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "rgba(245,232,200,0.45)" }}>
+          Kein gültiger Zugang.
+        </p>
       </div>
     );
   }
-
-  if (!token || feed.length === 0) {
-    return (
-      <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: BG }}>
-        <div style={{
-          position: "absolute", inset: 0,
-          background: `center/cover no-repeat url(${THEKE_SZENE.BACKDROP_URL})`,
-        }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(10,7,4,0.45) 0%, rgba(10,7,4,0) 30%, rgba(10,7,4,0.7) 75%, rgba(10,7,4,0.92) 100%)" }} />
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 3vw, 2rem)", color: A, opacity: 0.7, textShadow: "0 2px 14px rgba(0,0,0,0.95)", textAlign: "center", padding: "0 2rem" }}>
-            {token ? "Noch füllt sich die Theke …" : "Verbinde …"}
-          </p>
-        </div>
-        <div style={{ position: "absolute", top: "1.5rem", right: "2rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.9rem", color: "rgba(232,153,26,0.4)" }}>
-          EMMERICH BOOMT!
-        </div>
-      </div>
-    );
-  }
-
-  const entry = feed[idx % feed.length]!;
 
   return (
-    <div style={{ background: BG, width: "100vw", height: "100svh", overflow: "hidden", position: "relative" }}>
-      <style>{`
-        .wand-card { transition: opacity 0.8s ease; }
-        .wand-card.fading { opacity: 0; }
-        .wand-card.visible { opacity: 1; }
-      `}</style>
+    <div style={{ position: "fixed", inset: 0, background: BG, overflow: "hidden" }}>
+      {/* Backdrop */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `center/cover no-repeat url(${THEKE_SZENE.BACKDROP_URL})`,
+        zIndex: 0,
+      }} />
+      {/* Abdunkelung */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
+        background: "linear-gradient(to bottom, rgba(10,7,4,0.55) 0%, rgba(10,7,4,0) 20%, rgba(10,7,4,0) 55%, rgba(10,7,4,0.75) 82%, rgba(10,7,4,0.95) 100%)",
+      }} />
 
-      <div className={`wand-card ${fading ? "fading" : "visible"}`} style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-        <div style={{ flex: 1, display: "grid", gridTemplateColumns: entry.foto_frueher_key && entry.foto_heute_key ? "1fr 1fr" : "1fr", gap: 0 }}>
-          {entry.foto_frueher_key && (
-            <div style={{ position: "relative", overflow: "hidden" }}>
-              <img
-                src={fotoUrl(entry.foto_frueher_key, token!)}
-                alt="Früher"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.7) 0%, transparent 50%)" }} />
-              {entry.foto_frueher_jahr && (
-                <div style={{
-                  position: "absolute", bottom: "1.5rem", left: "1.5rem",
-                  fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700,
-                  fontSize: "clamp(2rem, 5vw, 4rem)", color: A,
-                  textShadow: "0 2px 12px rgba(0,0,0,0.8)",
-                }}>
-                  {entry.foto_frueher_jahr}
-                </div>
-              )}
-              <div style={{ position: "absolute", top: "1rem", left: "1rem", fontFamily: "'Lora', serif", fontSize: "0.75rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(245,232,200,0.5)" }}>
-                Früher
-              </div>
-            </div>
-          )}
-          {entry.foto_heute_key && (
-            <div style={{ position: "relative", overflow: "hidden" }}>
-              <img
-                src={fotoUrl(entry.foto_heute_key, token!)}
-                alt="Heute"
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.7) 0%, transparent 50%)" }} />
-              {entry.foto_heute_jahr && (
-                <div style={{
-                  position: "absolute", bottom: "1.5rem", left: "1.5rem",
-                  fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700,
-                  fontSize: "clamp(2rem, 5vw, 4rem)", color: A,
-                  textShadow: "0 2px 12px rgba(0,0,0,0.8)",
-                }}>
-                  {entry.foto_heute_jahr}
-                </div>
-              )}
-              <div style={{ position: "absolute", top: "1rem", left: "1rem", fontFamily: "'Lora', serif", fontSize: "0.75rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(245,232,200,0.5)" }}>
-                Heute
-              </div>
-            </div>
-          )}
-          {!entry.foto_frueher_key && !entry.foto_heute_key && entry.fotos[0] && (
-            <div style={{ position: "relative", overflow: "hidden" }}>
-              <img
-                src={fotoUrl(entry.fotos[0].datei_key, token!)}
-                alt={entry.fotos[0].bildunterschrift ?? ""}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.7) 0%, transparent 50%)" }} />
-            </div>
-          )}
-        </div>
-
-        <div style={{ padding: "2rem 3rem", background: "linear-gradient(to bottom, rgba(10,7,4,0.85), #0a0704)", flexShrink: 0 }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontStyle: "italic", fontSize: "clamp(1.8rem, 4vw, 3rem)", color: "#F5E8C8", margin: "0 0 0.5rem", lineHeight: 1.1 }}>
-            {entry.anzeige_name}
+      {/* Verbinden-Spinner (nur solange kein Token) */}
+      {!token && (
+        <div style={{
+          position: "absolute", inset: 0, zIndex: 10,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <p style={{
+            fontFamily: "'Playfair Display', serif", fontStyle: "italic",
+            fontSize: "clamp(1.1rem, 2.8vw, 2rem)", color: A, opacity: 0.65,
+            textShadow: "0 2px 14px rgba(0,0,0,0.95)",
+          }}>
+            Verbinde …
           </p>
-          {entry.vorstellung && (
-            <p style={{ fontFamily: "'Lora', serif", fontSize: "clamp(0.9rem, 1.8vw, 1.2rem)", color: "rgba(245,232,200,0.7)", margin: 0, lineHeight: 1.5, maxWidth: "80ch" }}>
-              {entry.vorstellung}
-            </p>
-          )}
         </div>
-      </div>
+      )}
 
-      <div style={{ position: "absolute", bottom: "1.5rem", right: "2rem", display: "flex", gap: "0.4rem" }}>
-        {feed.map((_, i) => (
-          <div key={i} style={{ width: i === (idx % feed.length) ? "20px" : "6px", height: "6px", borderRadius: "3px", background: i === (idx % feed.length) ? A : "rgba(232,153,26,0.25)", transition: "all 0.3s" }} />
-        ))}
-      </div>
+      {/* Galerie-Wand — volle Breite, mittig vertikal */}
+      {token && (
+        <div style={{
+          position: "absolute",
+          top: "8%", left: 0,
+          width: "100%", height: "72%",
+          zIndex: 5,
+        }}>
+          <GalerieWand
+            entries={feed}
+            token={token}
+            now={feedNow}
+            beamer
+          />
+        </div>
+      )}
 
-      <div style={{ position: "absolute", top: "1.5rem", right: "2rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.9rem", color: "rgba(232,153,26,0.4)" }}>
-        EMMERICH BOOMT!
+      {/* Titel-Zeile unten */}
+      <div style={{
+        position: "absolute", bottom: "2rem", left: 0, right: 0, zIndex: 8,
+        textAlign: "center", pointerEvents: "none",
+      }}>
+        <p style={{
+          fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700,
+          fontSize: "clamp(1rem, 2.4vw, 1.8rem)", color: A, opacity: 0.55,
+          textShadow: "0 2px 10px rgba(0,0,0,0.9)", margin: 0,
+          letterSpacing: "0.06em",
+        }}>
+          EMMERICH BOOMT!
+        </p>
+        <p style={{
+          fontFamily: "'Lora', serif", fontStyle: "italic",
+          fontSize: "clamp(0.65rem, 1.4vw, 1rem)", color: "rgba(245,232,200,0.32)",
+          margin: "0.3rem 0 0", textShadow: "0 1px 6px rgba(0,0,0,0.9)",
+        }}>
+          18. Juli 2026 · Bölt / Kapaunenberg · Emmerich am Rhein
+        </p>
       </div>
     </div>
   );

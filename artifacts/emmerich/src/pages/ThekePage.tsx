@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { THEKE_SZENE } from "../config/theke-szene";
+import { GalerieWand } from "./Galerie";
+import type { GalerieEntry } from "./Galerie";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const A = "#E8991A";
@@ -977,108 +979,6 @@ function DasBand({ token }: { token: string }) {
   );
 }
 
-// ─── Porträt-Rahmen (kein Flip — Bild kommt nach vorn) ───────────────────────
-
-function PorträtRahmen({ entry, token, anwesend, rotation, onFokus }: {
-  entry: FeedEntry;
-  token: string;
-  anwesend: boolean;
-  rotation: number;
-  onFokus: (e: FeedEntry) => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-  const hauptFoto = entry.foto_heute_key ?? entry.foto_frueher_key;
-  const initials = entry.anzeige_name.split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
-
-  return (
-    <div
-      onClick={() => onFokus(entry)}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        flexShrink: 0,
-        width: "clamp(80px, 18vw, 130px)",
-        aspectRatio: "3/4",
-        position: "relative",
-        cursor: "pointer",
-        transform: `rotate(${rotation}deg) scale(${hovered ? 1.06 : 1})`,
-        transition: "transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        userSelect: "none",
-      }}
-    >
-      {/* Rahmen */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 3, borderRadius: "2px",
-        border: `6px solid ${anwesend ? "#c8941a" : "#4a3308"}`,
-        boxShadow: anwesend
-          ? `0 6px 22px rgba(0,0,0,0.9), 0 0 20px rgba(232,153,26,0.4), inset 0 0 0 1px rgba(232,153,26,0.2)`
-          : `0 6px 22px rgba(0,0,0,0.85), inset 0 0 0 1px rgba(0,0,0,0.5)`,
-        pointerEvents: "none",
-        animation: anwesend ? "thekeGlow 2.8s ease-in-out infinite" : "none",
-      }} />
-      {/* Porträt */}
-      <div style={{ position: "absolute", inset: "6px", overflow: "hidden", borderRadius: "1px" }}>
-        {hauptFoto ? (
-          <>
-            <img src={fotoUrl(hauptFoto, token)} alt={entry.anzeige_name}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
-                filter: anwesend ? "brightness(1)" : "brightness(0.6) sepia(0.15)" }} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,7,4,0.82) 0%, transparent 55%)" }} />
-          </>
-        ) : (
-          <div style={{ width: "100%", height: "100%", background: A, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "clamp(1rem, 3.5vw, 1.6rem)", color: BG, letterSpacing: "0.04em" }}>
-              {initials}
-            </span>
-          </div>
-        )}
-        <div style={{ position: "absolute", bottom: "0.35rem", left: "0.35rem", right: "0.35rem", zIndex: 4 }}>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.62rem", color: FG, margin: 0, lineHeight: 1.2, textShadow: "0 1px 5px rgba(0,0,0,0.95)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {entry.anzeige_name}
-          </p>
-          {entry.hat_botschaft && <span style={{ fontSize: "0.55rem", color: am(0.9) }}>🎙</span>}
-        </div>
-        {anwesend && (
-          <div style={{ position: "absolute", top: "0.35rem", right: "0.35rem", width: "7px", height: "7px", borderRadius: "50%", background: A, animation: "thekePuls 2.5s ease-in-out infinite", zIndex: 4 }} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Porträt-Streifen (Wand) ──────────────────────────────────────────────────
-
-function PorträtStreifen({ feed, token, now, onFokus }: {
-  feed: FeedEntry[];
-  token: string;
-  now: number;
-  onFokus: (e: FeedEntry) => void;
-}) {
-  if (feed.length === 0) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", padding: "0 1rem" }}>
-        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.45), fontSize: "0.82rem", textAlign: "center", textShadow: "0 1px 8px rgba(0,0,0,0.95)" }}>
-          Noch niemand an der Wand. Richte deinen Steckbrief ein.
-        </p>
-      </div>
-    );
-  }
-  return (
-    <div style={{
-      display: "flex", gap: "clamp(0.75rem, 2.5vw, 1.75rem)",
-      alignItems: "flex-end", padding: "0.5rem 1rem 1.5rem",
-      overflowX: "auto", overflowY: "visible", height: "100%",
-      WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
-      msOverflowStyle: "none",
-    }}>
-      {feed.map((e, i) => {
-        const rot = (((e.id * 3 + i * 7) % 9) - 4) * 0.85;
-        const anwesend = !!(e.zuletzt_gesehen_am && (now - new Date(e.zuletzt_gesehen_am).getTime()) < 90_000);
-        return <PorträtRahmen key={e.id} entry={e} token={token} anwesend={anwesend} rotation={rot} onFokus={onFokus} />;
-      })}
-    </div>
-  );
-}
 
 // ─── Bierdeckel-Objekt ────────────────────────────────────────────────────────
 
@@ -1527,7 +1427,7 @@ export default function ThekePage() {
         </div>
       </div>
 
-      {/* ── Wand-Region: Porträtrahmen (horizontal scrollbar) ── */}
+      {/* ── Wand-Region: Galerie ── */}
       <div
         style={{
           position: "absolute",
@@ -1535,11 +1435,17 @@ export default function ThekePage() {
           width: `${W.width}%`, height: `${W.height}%`,
           zIndex: 3,
           transform: `translate(${-tiltX * 0.55}px, ${-tiltY * 0.45}px)`,
-          filter: "blur(0.35px)",
-          overflow: "visible",
+          overflow: "hidden",
+          borderRadius: "2px",
         }}
       >
-        <PorträtStreifen feed={feed} token={token} now={feedNow} onFokus={setSelectedEntry} />
+        <GalerieWand
+          entries={feed as GalerieEntry[]}
+          token={token}
+          now={feedNow}
+          onPorträtAntippen={e => setSelectedEntry(e as FeedEntry)}
+          onDeinPlatzAntippen={() => setBierdeckelOffen(true)}
+        />
       </div>
 
       {/* ── Tresen-Region: Bierdeckel + Telefon (scharf, vorne) ── */}

@@ -1,3 +1,4 @@
-- [Theke-Szene Architektur](theke-szene.md) — Tab-System durch atmosphärische Szene ersetzt; ProfilOverlay + TelefonOverlay als Slide-up; WandDerGesichter mit 3D-Flip-Karten.
+- [Theke-Szene Architektur](theke-szene.md) — Tab-System durch atmosphärische Szene ersetzt; ProfilOverlay + TelefonOverlay als Slide-up; Wand = GalerieWand (Galerie.tsx) mit SVG-Rahmen + Parallax.
+- [Theke Galerie](theke-galerie.md) — GalerieWand: Pointer-Drag-Scroll, Parallax-Backdrop (0.38x), 4 SVG-Rahmentypen (|id|%4), Windowing, Autoplay-RAF. Beispielprofile (BEISPIEL_SCHWELLE=10) nur Frontend.
 - [Theke Ping + Presence](theke-ping.md) — POST /api/theke/ping setzt zuletzt_gesehen_am; < 90s = anwesend; Feed alle 60s; Zähler alle 15s; Ping alle 25s.
 - [Theke DB Eigenheiten](theke-db.md) — Demo-Ticket-Code "00000000DEADBEEF" in config.ts; Profil wird NICHT im Seed angelegt, erst beim ersten /api/theke/auth; thekeEinladungenTable hat kein ticket_id.
