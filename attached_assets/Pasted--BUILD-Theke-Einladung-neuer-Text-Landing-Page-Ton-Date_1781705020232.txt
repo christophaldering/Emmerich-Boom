@@ -1,0 +1,113 @@
+# BUILD — Theke-Einladung: neuer Text (Landing-Page-Ton)
+
+Datei: `artifacts/api-server/src/services/mailer.ts`, Funktion `sendThekeEinladung`.
+Plakat oben, `${ticketBloecke}` (Namen + Knöpfe) und die Fußzeile bleiben. Geändert werden: **Betreff, HTML-Body-Text, Text-Variante, Unterschrift**.
+
+## 0. `mehrere` früh verfügbar
+
+Sicherstellen, dass `const mehrere = opts.tickets.length > 1;` **vor** dem HTML/Body definiert ist (am besten gleich vor `const ticketBloecke = …`). Falls weiter unten noch eine zweite Definition steht, diese entfernen (keine Doppel-`const`).
+
+## 1. Betreff
+
+```ts
+subject: "Die Theke ist offen — schau mal rein",
+```
+
+## 2. HTML-Body
+
+Den Inhalt des inneren `<div style="padding:40px 32px 48px;">` (also H1 + Absätze, inкл. `${ticketBloecke}` und Schluss-Box + Fußzeile) durch Folgendes ersetzen. **Das Plakat-`<img cid:…>` darüber bleibt unverändert.**
+
+```html
+<h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:bold;color:#f5e8c8;line-height:1.25;">
+  Die Theke ist offen.
+</h1>
+
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+  Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinkommen kann man trotzdem schon.
+</p>
+
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 12px;">
+  Drinnen wartet ein <strong>digitaler Steckbrief</strong> — am Handy, in zwei Minuten:
+</p>
+
+<ul style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.7;color:rgba(245,232,200,.9);margin:0 0 20px;padding-left:20px;">
+  <li style="margin-bottom:6px;">Ein Bild von früher, eins von heute — der Name ist geblieben, das Gesicht nicht immer</li>
+  <li style="margin-bottom:6px;">Wer schon dabei ist — und auf wen man sich freuen darf</li>
+  <li>Ein paar Zeilen zu dir, eine Stimme aufs Band, wenn dir danach ist</li>
+</ul>
+
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+  Kein Muss — wer sich lieber zurückhält: auch ok. Aber Hand aufs Herz: Je mehr mitmachen, desto schöner das Wiedersehen. Und keiner muss am Abend rätseln, wer der nette Mensch von damals heute ist.
+</p>
+
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 24px;">
+  Schau die nächsten Tage ruhig nochmal rein: Mit jedem neuen Steckbrief wird's voller an der Theke.
+</p>
+
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 24px;">
+  ${mehrere
+    ? "Unten findest du für jede Person einen eigenen Zugang — gib die Links einfach weiter, jeder gilt nur für eine."
+    : "Dein Zugang gehört nur dir. Mach einfach mal auf:"}
+</p>
+
+${ticketBloecke}
+
+<div style="margin:28px 0;padding:20px 24px;border:1px solid rgba(232,153,26,.25);border-left:3px solid rgba(232,153,26,.6);background:#120c04;border-radius:0 4px 4px 0;">
+  <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.7;color:rgba(245,232,200,.7);margin:0;">
+    Bis bald auf dem Bölt.<br />
+    <strong style="color:#f5e8c8;">Das Orga-Team</strong>
+  </p>
+</div>
+
+<p style="font-family:Georgia,'Times New Roman',serif;font-size:11px;line-height:1.7;color:rgba(245,232,200,.35);margin:32px 0 0;border-top:1px solid rgba(245,232,200,.08);padding-top:20px;">
+  EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; Bölt / Gaststätte Kapaunenberg &bull; Emmerich am Rhein
+</p>
+```
+
+## 3. Text-Variante (`const text = …`)
+
+```ts
+const text = `Die Theke ist offen.
+
+Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinkommen kann man trotzdem schon.
+
+Drinnen wartet ein digitaler Steckbrief — am Handy, in zwei Minuten:
+- Ein Bild von früher, eins von heute — der Name ist geblieben, das Gesicht nicht immer
+- Wer schon dabei ist — und auf wen man sich freuen darf
+- Ein paar Zeilen zu dir, eine Stimme aufs Band, wenn dir danach ist
+
+Kein Muss — wer sich lieber zurückhält: auch ok. Aber Hand aufs Herz: Je mehr mitmachen, desto schöner das Wiedersehen. Und keiner muss am Abend rätseln, wer der nette Mensch von damals heute ist.
+
+Schau die nächsten Tage ruhig nochmal rein: Mit jedem neuen Steckbrief wird's voller an der Theke.
+
+${mehrere
+  ? "Unten findest du für jede Person einen eigenen Zugang — gib die Links einfach weiter, jeder gilt nur für eine."
+  : "Dein Zugang gehört nur dir. Mach einfach mal auf:"}
+
+${ticketBloeckeText}
+Bis bald auf dem Bölt.
+Das Orga-Team
+
+---
+EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg · Emmerich am Rhein`;
+```
+
+## VERBOTEN
+
+- Plakat-`<img>`, `${ticketBloecke}` / `${ticketBloeckeText}`, die Knopf-Logik und den Anhang NICHT verändern.
+- Keine anderen Mails (Bestätigung/Ticket/Warteliste/Nachrücker) anfassen.
+- Keinen Namen außer „Das Orga-Team” in der Unterschrift.
+
+## CHECKLISTE
+
+- [ ] Betreff: „Die Theke ist offen — schau mal rein”.
+- [ ] Body in neuer Reihenfolge (Intro → Bullets → Kein-Muss → Reinschauen → Zugang).
+- [ ] Einzel: „Dein Zugang gehört nur dir…”; Mehrfach: „Unten findest du für jede Person…”.
+- [ ] Unterschrift „Das Orga-Team”, kein Personenname.
+- [ ] Plakat oben + Fußzeile unverändert; Namen/Knöpfe erscheinen weiterhin.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Betreff + neuer Text aktiv, Einzel/Mehrfach korrekt: ja/nein
+> Geänderte Datei: …

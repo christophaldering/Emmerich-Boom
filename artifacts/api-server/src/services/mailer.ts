@@ -682,32 +682,44 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
     </h1>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Ein bisschen wie beim echten Treffen: Man kommt rein, stellt sich vor, h\u00f6rt rein, wer noch so dabei ist. Nur halt schon heute und nicht erst am 18.&nbsp;Juli.
+      Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinkommen kann man trotzdem schon.
     </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 12px;">
+      Drinnen wartet ein <strong>digitaler Steckbrief</strong> — am Handy, in zwei Minuten:
+    </p>
+
+    <ul style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.7;color:rgba(245,232,200,.9);margin:0 0 20px;padding-left:20px;">
+      <li style="margin-bottom:6px;">Ein Bild von früher, eins von heute — der Name ist geblieben, das Gesicht nicht immer</li>
+      <li style="margin-bottom:6px;">Wer schon dabei ist — und auf wen man sich freuen darf</li>
+      <li>Ein paar Zeilen zu dir, eine Stimme aufs Band, wenn dir danach ist</li>
+    </ul>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Wir haben f\u00fcr ${mehrere ? "euch" : "dich"} einen pers\u00f6nlichen Zugang eingerichtet. ${mehrere ? "Bitte leite die Links an die jeweiligen Personen weiter \u2014 jeder Link gilt nur f\u00fcr eine Person." : "Der Link geh\u00f6rt nur dir."}
+      Kein Muss — wer sich lieber zurückhält: auch ok. Aber Hand aufs Herz: Je mehr mitmachen, desto schöner das Wiedersehen. Und keiner muss am Abend rätseln, wer der nette Mensch von damals heute ist.
     </p>
 
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 28px;">
-      Was ${mehrere ? "ihr" : "dich"} erwartet: Steckbriefe, alte Fotos, Sprachnachrichten, und sp\u00e4ter mehr. Mach einfach mal auf.
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 24px;">
+      Schau die nächsten Tage ruhig nochmal rein: Mit jedem neuen Steckbrief wird's voller an der Theke.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 24px;">
+      ${mehrere
+        ? "Unten findest du für jede Person einen eigenen Zugang — gib die Links einfach weiter, jeder gilt nur für eine."
+        : "Dein Zugang gehört nur dir. Mach einfach mal auf:"}
     </p>
 
     ${ticketBloecke}
 
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.7;color:rgba(245,232,200,.45);margin:28px 0 0;">
-      Den Link bitte nicht \u00f6ffentlich teilen \u2014 die Theke ist nur f\u00fcr Ticketinhaber.
-    </p>
-
     <div style="margin:28px 0;padding:20px 24px;border:1px solid rgba(232,153,26,.25);border-left:3px solid rgba(232,153,26,.6);background:#120c04;border-radius:0 4px 4px 0;">
       <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;line-height:1.7;color:rgba(245,232,200,.7);margin:0;">
-        Bis bald auf dem B\u00f6lt.<br />
-        <strong style="color:#f5e8c8;">Christoph Aldering f\u00fcr das Orga-Team</strong>
+        Bis bald auf dem Bölt.<br />
+        <strong style="color:#f5e8c8;">Das Orga-Team</strong>
       </p>
     </div>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:11px;line-height:1.7;color:rgba(245,232,200,.35);margin:32px 0 0;border-top:1px solid rgba(245,232,200,.08);padding-top:20px;">
-      EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; B\u00f6lt / Gasst\u00e4tte Kapaunenberg &bull; Emmerich am Rhein
+      EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; Bölt / Gaststätte Kapaunenberg &bull; Emmerich am Rhein
     </p>
 
   </div>
@@ -717,15 +729,24 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
 
   const text = `Die Theke ist offen.
 
-Ein bisschen wie beim echten Treffen: Man kommt rein, stellt sich vor, hört rein, wer noch so dabei ist. Nur halt schon heute und nicht erst am 18. Juli.
+Noch sind nicht alle da — so ein Abend fängt ja immer langsam an. Reinkommen kann man trotzdem schon.
 
-${mehrere ? "Bitte leite die Links an die jeweiligen Personen weiter — jeder Link gilt nur für eine Person." : "Der Link gehört nur dir."}
+Drinnen wartet ein digitaler Steckbrief — am Handy, in zwei Minuten:
+- Ein Bild von früher, eins von heute — der Name ist geblieben, das Gesicht nicht immer
+- Wer schon dabei ist — und auf wen man sich freuen darf
+- Ein paar Zeilen zu dir, eine Stimme aufs Band, wenn dir danach ist
+
+Kein Muss — wer sich lieber zurückhält: auch ok. Aber Hand aufs Herz: Je mehr mitmachen, desto schöner das Wiedersehen. Und keiner muss am Abend rätseln, wer der nette Mensch von damals heute ist.
+
+Schau die nächsten Tage ruhig nochmal rein: Mit jedem neuen Steckbrief wird's voller an der Theke.
+
+${mehrere
+  ? "Unten findest du für jede Person einen eigenen Zugang — gib die Links einfach weiter, jeder gilt nur für eine."
+  : "Dein Zugang gehört nur dir. Mach einfach mal auf:"}
 
 ${ticketBloeckeText}
-Den Link bitte nicht öffentlich teilen — die Theke ist nur für Ticketinhaber.
-
 Bis bald auf dem Bölt.
-Christoph Aldering für das Orga-Team
+Das Orga-Team
 
 ---
 EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg · Emmerich am Rhein`;
@@ -734,7 +755,7 @@ EMMERICH BOOMT! · Samstag, 18. Juli 2026 · Bölt / Gaststätte Kapaunenberg ·
     from: `"${ABSENDER_NAME}" <${ABSENDER_MAIL}>`,
     to: opts.to,
     replyTo: ABSENDER_MAIL,
-    subject: "Die Theke ist offen \u2014 dein Zugang zur Boomerparty",
+    subject: "Die Theke ist offen — schau mal rein",
     html,
     text,
     attachments: [
