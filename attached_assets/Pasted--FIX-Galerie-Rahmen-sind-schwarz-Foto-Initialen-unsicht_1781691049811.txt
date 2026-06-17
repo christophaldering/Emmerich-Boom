@@ -1,0 +1,37 @@
+# FIX — Galerie: Rahmen sind schwarz, Foto/Initialen unsichtbar
+
+**Reines Ebenen-Problem. Daten sind vorhanden (anwesender Rahmen glüht). Nur die Sichtbarkeit fixen — sonst nichts.**
+
+## Befund
+In `artifacts/emmerich/src/pages/Galerie.tsx` wird pro Rahmen zuerst das **Porträt** (Foto bzw. Initialen-Feld) gerendert und **danach** der `SvgBilderrahmen` (Zeile ~320). Der SVG-Rahmen füllt seine **Innenfläche deckend** mit der Hintergrundfarbe `BG` (z. B. `<rect ... fill={BG} />`). Da er später im DOM steht, liegt diese dunkle Fläche **über** dem Porträt → jeder Rahmen wirkt schwarz, Foto und Initialen sind verdeckt. Betrifft echte Profile und Beispiele gleichermaßen.
+
+## Fix (eine der beiden Varianten, Variante A bevorzugt)
+**Variante A — Porträt über den Rahmen legen (empfohlen, kleinste Änderung):**
+- Reihenfolge umdrehen: `SvgBilderrahmen` **zuerst** rendern (liegt unten), die **Porträt-Inhalt**-`div` (Foto/Initialen + Name + Puls) **danach** (liegt oben).
+- Die Porträt-`div` behält `inset: ${insetPx}px` + `clipPath` (Oval/Rechteck), sodass sie passgenau im Fenster sitzt; der Goldrand des Rahmens umschließt sie, die dunkle Innenfläche wirkt als schmale Passepartout-Kante.
+- Beispiel-Bändchen und Anwesend-Puls bleiben oben (ggf. `zIndex` beibehalten/erhöhen).
+
+**Variante B — Rahmenfenster transparent machen:**
+- Im `SvgBilderrahmen` die **deckende Innenfüllung entfernen** (keine `fill={BG}`-Fläche; auch die volle Gold-Gradient-Fläche nur als Rand/Stroke statt Vollfüllung), sodass das darunterliegende Porträt durchscheint. Goldrand + Verzierungen bleiben.
+
+## Verifizieren
+- Eigenes Profil (ohne Foto) zeigt **Initialen** auf Amber; mit Foto das **Foto**.
+- Die 5 Beispiel-Profile zeigen ihre Initialen (R, M, G, W, H), leicht entsättigt, mit „Beispiel"-Bändchen.
+- Der einladende Leer-Rahmen („Häng dich dazu") bleibt erkennbar.
+- Goldrand rahmt das Porträt sauber ein (Oval bleibt oval).
+
+## VERBOTEN
+- Datenfluss/Feed, Auth, Tresen, Speichern/Upload, Szene-Hintergrund (tauschst du selbst), Autoplay-Logik unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+- [ ] Porträt/Initialen sind im Rahmen sichtbar (Rahmen nicht mehr schwarz).
+- [ ] Foto wird angezeigt, falls vorhanden; sonst Initialen auf Amber.
+- [ ] Beispiele zeigen Initialen + „Beispiel"-Bändchen; Oval bleibt oval.
+- [ ] Glühen/Puls bei Anwesenden weiter sichtbar; Antippen-Fokus funktioniert.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> Porträt/Initialen sichtbar (Rahmen nicht mehr schwarz): ja/nein
+> Fotos + Initialen-Fallback + Beispiele korrekt: ja/nein
+> Geänderte Dateien: …

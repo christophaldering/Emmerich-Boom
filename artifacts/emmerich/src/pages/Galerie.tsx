@@ -228,12 +228,16 @@ function PorträtKarte({
         willChange: "transform",
       }}
     >
-      {/* Portrait-Inhalt */}
+      {/* SVG-Rahmen (zuerst → liegt unter dem Portrait) */}
+      <SvgBilderrahmen id={entry.id} glow={anwesend} isBeispiel={entry.istBeispiel} />
+
+      {/* Portrait-Inhalt (danach → liegt über dem Rahmen) */}
       <div style={{
         position:   "absolute",
         inset:      `${insetPx}px`,
         overflow:   "hidden",
         clipPath,
+        zIndex:     1,
         filter:     entry.istBeispiel ? "saturate(0.35) brightness(0.7)" : undefined,
       }}>
         {entry.istLeerRahmen ? (
@@ -315,9 +319,6 @@ function PorträtKarte({
           }} />
         )}
       </div>
-
-      {/* SVG-Rahmen */}
-      <SvgBilderrahmen id={entry.id} glow={anwesend} isBeispiel={entry.istBeispiel} />
 
       {/* Beispiel-Bändchen */}
       {entry.istBeispiel && (
