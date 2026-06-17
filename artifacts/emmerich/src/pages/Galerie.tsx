@@ -581,14 +581,14 @@ export function GalerieWand({
           backgroundSize:      "auto 280%",
           backgroundPositionX: `${-scrollOffset * 0.38}px`,
           backgroundPositionY: "28%",
-          filter:              "brightness(0.28) blur(1.5px)",
+          filter:              "brightness(0.14) blur(1.5px)",
           zIndex:              0,
         }} />
 
         {/* Vignette links/rechts */}
         <div aria-hidden style={{
           position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
-          background: "linear-gradient(to right, rgba(10,7,4,0.65) 0%, transparent 12%, transparent 88%, rgba(10,7,4,0.65) 100%)",
+          background: "linear-gradient(to right, rgba(10,7,4,0.82) 0%, rgba(10,7,4,0.52) 20%, rgba(10,7,4,0.52) 80%, rgba(10,7,4,0.82) 100%)",
         }} />
 
         {/* Porträt-Reihe */}
