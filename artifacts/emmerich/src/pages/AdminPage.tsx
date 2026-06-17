@@ -2645,8 +2645,6 @@ export default function AdminPage() {
             <StatCard n={summary.totalSessions}            label="Besuche gesamt" />
             <StatCard n={summary.todaySessions}            label="Besuche heute" />
             <StatCard n={summary.weekSessions}             label="Diese Woche" />
-            <StatCard n={summary.uniqueVisitors}           label="Eindeutige Besucher" />
-            <StatCard n={summary.returnVisitors}           label="Wiederkommer" />
             <StatCard n={fmt(summary.avgDurationSec)}      label="Ø Verweildauer" />
             <StatCard n={fmt(summary.todayAvgDurationSec)} label="Ø Heute" />
             <StatCard n={`${summary.bounceRate}%`}         label="Absprungrate" sub="Besuche unter 30 s" />
@@ -2717,7 +2715,7 @@ export default function AdminPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.84rem", minWidth: "700px" }}>
               <thead>
                 <tr>
-                  {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #", "Wer"].map(h => (
+                  {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #"].map(h => (
                     <th key={h} style={{ textAlign: "left", padding: "0.5rem 0.6rem", borderBottom: `1px solid ${am(0.25)}`, color: fg(0.65), fontWeight: 400, fontStyle: "italic", whiteSpace: "nowrap", fontSize: "0.82rem" }}>{h}</th>
                   ))}
                 </tr>
@@ -2734,7 +2732,6 @@ export default function AdminPage() {
                     <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.65), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.entryPath ?? undefined}>{r.entryPath ?? "—"}</td>
                     <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.6), maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={r.exitPath ?? undefined}>{r.exitPath ?? "—"}</td>
                     <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: fg(0.7), textAlign: "center" }}>{visitOrdinal(r.visitNumber)}</td>
-                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: r.knownName ? A : fg(0.4), fontStyle: r.knownName ? "normal" : "italic", fontSize: "0.82rem" }}>{r.knownName ?? (r.visitorId ? `${r.visitorId}…` : "—")}</td>
                   </tr>
                 ))}
               </tbody>

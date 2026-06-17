@@ -1,0 +1,40 @@
+AUFGABE
+Im Admin-Statistik-Reiter die Anzeigen entfernen, die nach der Tracking-Anonymisierung
+keine sinnvollen Werte mehr haben (Wiederkommer, eindeutige Besucher, Namens-Spalte).
+Drei kleine Entfernungen in EINER Datei.
+
+DATEI
+artifacts/emmerich/src/pages/AdminPage.tsx
+
+ÄNDERUNG 1 — zwei Statistik-Kacheln entfernen
+Suche EXAKT diese zwei Zeilen und entferne sie vollständig:
+            <StatCard n={summary.uniqueVisitors}           label="Eindeutige Besucher" />
+            <StatCard n={summary.returnVisitors}           label="Wiederkommer" />
+
+ÄNDERUNG 2 — Spaltenüberschrift „Wer" entfernen
+Suche EXAKT:
+                  {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #", "Wer"].map(h => (
+Ersetze EXAKT durch:
+                  {["Wann", "Dauer", "Gerät", "Browser", "OS", "Scroll", "Einstieg", "Ausstieg", "Besuch #"].map(h => (
+
+ÄNDERUNG 3 — die zugehörige Tabellenzelle entfernen
+Suche EXAKT diese Zeile und entferne sie vollständig:
+                    <td style={{ padding: "0.4rem 0.6rem", borderBottom: `1px solid ${fg(0.06)}`, color: r.knownName ? A : fg(0.4), fontStyle: r.knownName ? "normal" : "italic", fontSize: "0.82rem" }}>{r.knownName ?? (r.visitorId ? `${r.visitorId}…` : "—")}</td>
+
+VERBOTEN
+- KEINE Änderung an anderen Kacheln, Diagrammen oder Tabellenspalten.
+- KEINE Änderung an den Interfaces/Datentypen oder am Daten-Abruf.
+- KEINE Änderung an anderen Dateien.
+- Der Block „Bekannte Wiederkommer" (returnerNames) bleibt unverändert — er blendet sich von allein aus, weil keine Daten mehr kommen.
+
+CHECKLISTE
+[ ] Kacheln „Eindeutige Besucher" und „Wiederkommer" sind weg.
+[ ] Tabelle „Letzte Besuche" hat keine „Wer"-Spalte mehr (Überschrift und Zelle entfernt).
+[ ] Spaltenzahl in Kopf und Zeilen stimmt überein.
+[ ] Keine andere Datei/Logik angefasst. Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende mit:
+1. Dateipfad: artifacts/emmerich/src/pages/AdminPage.tsx
+2. „Nur die drei genannten Statistik-Anzeigen wurden entfernt, sonst nichts."
+3. Falls eine Stelle nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.
