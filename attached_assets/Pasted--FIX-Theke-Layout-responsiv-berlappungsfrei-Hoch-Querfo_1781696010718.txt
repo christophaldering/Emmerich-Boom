@@ -1,0 +1,51 @@
+# FIX — Theke-Layout responsiv & überlappungsfrei (Hoch- + Querformat)
+
+**Layout-Fix in `ThekePage.tsx` (Szene). Galerie-Innenlogik, Feed, Auth, Overlays, Daten unverändert.**
+
+## Probleme
+
+1. **Querformat:** Bierdeckel + Telefon überlagern die Rahmen. Ursache: Objekte werden über `vw` skaliert (`clamp(90px,20vw,148px)` / `clamp(70px,15vw,110px)`), die Tresen-Region ist aber nur 14 % der **Höhe** — im flachen Querformat zu klein, die Objekte ragen nach oben.
+1. **Hochformat:** Bühne schlecht erkennbar. Ursache: Rahmen sind viewport-positioniert, das „cover”-Foto wird je nach Format anders beschnitten → Bühne und Rahmen driften auseinander.
+
+## Fix
+
+### A. Tresen-Objekte an BEIDE Achsen binden (kein Überlappen mehr)
+
+In `BierdeckelObjekt` und `TelefonObjekt` die Breite an die kleinere Achse koppeln, damit sie im flachen Querformat schrumpfen:
+
+- Bierdeckel: `width: clamp(64px, min(18vw, 15vh), 132px)`
+- Telefon: `width: clamp(52px, min(14vw, 12vh), 100px)`
+
+### B. Tresen unten verankern, Galerie nie überlappen
+
+- Die Tresen-Region am unteren Rand verankern (z. B. `bottom: 0`, feste, an die Objektgröße angepasste Höhe) statt `top: 80% / height:14%`.
+- Sicherstellen, dass die Galerie-Region (Wand) **oberhalb** endet, mit klarem Abstand zur Tresen-Region — in keinem Format Überschneidung. Bei Bedarf orientierungsabhängig (`matchMedia("(orientation: landscape)")`): im Querformat Galerie-Höhe etwas kleiner, Objekte kleiner.
+
+### C. Rahmen immer lesbar (unabhängig vom Foto-Zuschnitt)
+
+- Hinter die Rahmenreihe einen **dezenten dunklen Verlauf/Scrim** legen (weiches `radial-/linear-gradient` in `#0A0704`, halbtransparent), damit die Goldrahmen + Gesichter auf jedem Hintergrund-Zuschnitt klar stehen — auch wenn die schwarze Bühne mal nicht exakt dahinterliegt.
+
+### D. Bühne mittig halten
+
+- Backdrop bleibt `cover`, aber `background-position` so setzen, dass die Bühne im Blick bleibt (z. B. `center 42%`). Im Hochformat ggf. minimal stärker auf die Bühnenmitte zoomen, damit Holz + Bühne erkennbar bleiben statt nur dunkler Mitte.
+
+### E. Beamer/Autoplay (`/theke/wand`) bleibt in der Wirkung unverändert.
+
+## VERBOTEN
+
+- Galerie-Scroll/Autoplay-Logik, Feed, Auth, Bierdeckel-/Telefon-Overlays (Inhalt), Speichern/Upload unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Querformat: Bierdeckel + Telefon überlagern die Rahmen NICHT mehr; sie sitzen klein am unteren Rand.
+- [ ] Hochformat: Bühne/Holz erkennbar; Rahmenreihe klar lesbar (Scrim).
+- [ ] Galerie und Tresen überschneiden sich in KEINEM Format.
+- [ ] Objekte skalieren mit der kleineren Achse (min(vw,vh)).
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Querformat ohne Überlappung: ja/nein
+> Hochformat Bühne erkennbar + Rahmen lesbar: ja/nein
+> Geänderte Dateien: …
