@@ -1,0 +1,50 @@
+# FIX — Fotos & Anrufbeantworter werden nicht angezeigt (Auslieferung, nicht Speicher)
+
+**Wichtig: Der Object Storage funktioniert — die Dateien WURDEN gespeichert (DB-Zeilen existieren). Der Fehler liegt allein beim Ausliefern. Nur das Folgende anfassen.**
+
+## Hauptbug — Wildcard-Key in Express 5
+Route `GET /api/theke/datei/*key` in `artifacts/api-server/src/routes/theke.ts` (um Zeile 451). In Express 5 ist `req.params["key"]` bei einem Wildcard ein **Array** von Pfadsegmenten (z. B. `["theke","foto","abc.jpg"]`), kein String. Der Code behandelt es als String:
+```
+const urlPath = (req.params as Record<string,string>)["key"] ?? "";
+if (!urlPath.startsWith("theke/")) ...
+```
+→ `startsWith` greift nicht / der Key stimmt nicht → Datei nie gefunden → kaputtes Bild + Audio „Fehler".
+
+**Fix:** den Key robust als String zusammensetzen, Array wie String behandeln:
+```
+const raw = (req.params as Record<string, unknown>)["key"];
+const urlPath = Array.isArray(raw) ? raw.join("/") : String(raw ?? "");
+```
+Danach wie gehabt `urlPath.startsWith("theke/")`-Prüfung und `getFileBytes(urlPath)`.
+- Falls Express die Segmente URL-codiert liefert, vor dem Join je Segment `decodeURIComponent` anwenden.
+- Sicherstellen, dass die ausgelieferte Antwort den korrekten `Content-Type` setzt (Bild bzw. Audio) — ist bereits vorhanden, nach dem Key-Fix prüfen.
+
+## Verifizieren
+- Galerie-Foto „test" und Früher/Heute-Bilder werden jetzt **angezeigt**.
+- Die gespeicherte Sprachnachricht **spielt ab** (kein „Fehler" mehr).
+- Test direkt: `GET /api/theke/datei/theke/foto/<vorhandener-key>?t=00000000DEADBEEF` liefert das Bild mit 200 + Bild-Content-Type.
+
+## Nebenpunkt — „Speichern"-Button flackert
+Im Steckbrief (`MeinSteckbrief`) flackert der Speichern-Button.
+- Sicherstellen: nur **ein** Speichervorgang gleichzeitig (laufende Anfrage merken, neue erst nach Abschluss; kein Render-Loop). Debounce beibehalten.
+- Nach Erfolg ruhig „Gespeichert ✓" zeigen, bei Fehler „Konnte nicht gespeichert werden" — ohne schnelles Hin-und-Her.
+- Prüfen, dass die Auswahl-Felder (Musik, Getränk) und Textfelder nach einem Reload **erhalten** bleiben.
+
+## VERBOTEN
+- Object-Storage-/Upload-Logik, Auth, Szenendesign, andere Seiten unverändert.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+- [ ] Wildcard-Key wird als String zusammengesetzt (Array-Fall behandelt).
+- [ ] Fotos (Früher/Heute + Galerie) werden angezeigt.
+- [ ] Sprachnachricht spielt ab.
+- [ ] Direkter `datei`-Abruf liefert 200 + korrekten Content-Type.
+- [ ] Speichern-Button flackert nicht; Auswahl-/Textfelder bleiben nach Reload erhalten.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+> Wildcard-Key gefixt, Fotos sichtbar: ja/nein
+> Sprachnachricht spielt ab: ja/nein
+> Direkter datei-Abruf 200: ja/nein
+> Speichern stabil, Felder bleiben erhalten: ja/nein
+> Geänderte Dateien / Abweichungen: …

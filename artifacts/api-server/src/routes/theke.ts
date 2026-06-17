@@ -453,7 +453,10 @@ router.get("/theke/datei/*key", async (req: Request, res: Response) => {
   const ticket = code ? await validateCode(code) : null;
   if (!ticket) { res.status(401).json({ error: "Zugang verweigert" }); return; }
 
-  const urlPath = (req.params as Record<string, string>)["key"] ?? "";
+  const raw = (req.params as Record<string, unknown>)["key"];
+  const urlPath = Array.isArray(raw)
+    ? raw.map(s => decodeURIComponent(String(s))).join("/")
+    : decodeURIComponent(String(raw ?? ""));
   if (!urlPath.startsWith("theke/")) { res.status(400).json({ error: "Ungültiger Pfad" }); return; }
 
   const result = await getFileBytes(urlPath);

@@ -722,36 +722,43 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
   const [fotoMsg, setFotoMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [local, setLocal] = useState({ ...profile });
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveInProgressRef = useRef(false);
+  const localRef = useRef(local);
+  localRef.current = local;
 
   const update = (patch: Partial<Profile>) => {
     setLocal(p => ({ ...p, ...patch }));
   };
 
   const save = useCallback(async () => {
+    if (saveInProgressRef.current) return;
+    saveInProgressRef.current = true;
     setSaving(true); setSavedMsg("");
     try {
       const res = await fetch(`/api/theke/profil`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "x-theke-token": token },
         body: JSON.stringify({
-          anzeige_name:      local.anzeige_name,
-          vorstellung:       local.vorstellung,
-          jahr_1985:         local.jahr_1985,
-          lauter_song:       local.lauter_song,
-          f_tontraeger:      local.f_tontraeger,
-          f_abends:          local.f_abends,
-          f_untersatz:       local.f_untersatz,
-          f_musik:           local.f_musik,
-          f_getraenk:        local.f_getraenk,
-          foto_frueher_jahr: local.foto_frueher_jahr,
-          foto_heute_jahr:   local.foto_heute_jahr,
+          anzeige_name:      localRef.current.anzeige_name,
+          vorstellung:       localRef.current.vorstellung,
+          jahr_1985:         localRef.current.jahr_1985,
+          lauter_song:       localRef.current.lauter_song,
+          f_tontraeger:      localRef.current.f_tontraeger,
+          f_abends:          localRef.current.f_abends,
+          f_untersatz:       localRef.current.f_untersatz,
+          f_musik:           localRef.current.f_musik,
+          f_getraenk:        localRef.current.f_getraenk,
+          foto_frueher_jahr: localRef.current.foto_frueher_jahr,
+          foto_heute_jahr:   localRef.current.foto_heute_jahr,
         }),
       });
       const data = await res.json() as { ok?: boolean; profile?: Profile };
       if (data.ok && data.profile) { onProfileChange(data.profile); setSavedMsg("Gespeichert ✓"); }
-    } catch { setSavedMsg("Fehler beim Speichern"); }
+      else { setSavedMsg("Konnte nicht gespeichert werden"); }
+    } catch { setSavedMsg("Konnte nicht gespeichert werden"); }
     setSaving(false);
-  }, [local, token, onProfileChange]);
+    saveInProgressRef.current = false;
+  }, [token, onProfileChange]);
 
   const debouncedSave = useCallback(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
