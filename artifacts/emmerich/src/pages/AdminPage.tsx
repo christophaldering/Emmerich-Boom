@@ -1414,6 +1414,7 @@ interface ThekeUebersichtEntry {
   hat_botschaft: boolean;
   galerie_count: number;
   created_at: string;
+  zuletzt_gesehen_am: string | null;
 }
 
 interface ThekeEinladungVersendung {
@@ -1554,14 +1555,23 @@ function ThekeAdminSection() {
 
       {!loading && (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "1.75rem" }}>
-            <StatCard n={uebersicht.length} label="Profile angelegt" />
-            <StatCard n={bestaetigt} label="Bestätigt" />
-            <StatCard n={mitFoto} label="Mit Foto" />
-            <StatCard n={mitBotsch} label="Mit Botschaft" />
-            <StatCard n={eingeladen} label="Eingeladen" />
-            <StatCard n={nochNicht} label="Noch nicht eingeladen" />
-          </div>
+          {(() => {
+            const aktivWoche = uebersicht.filter(e =>
+              e.zuletzt_gesehen_am &&
+              Date.now() - new Date(e.zuletzt_gesehen_am).getTime() < 7 * 24 * 3600 * 1000
+            ).length;
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "1.75rem" }}>
+                <StatCard n={uebersicht.length} label="Profile angelegt" />
+                <StatCard n={bestaetigt} label="Bestätigt" />
+                <StatCard n={mitFoto} label="Mit Foto" />
+                <StatCard n={mitBotsch} label="Mit Botschaft" />
+                <StatCard n={eingeladen} label="Eingeladen" />
+                <StatCard n={nochNicht} label="Noch nicht eingeladen" />
+                <StatCard n={aktivWoche} label="Diese Woche aktiv" />
+              </div>
+            );
+          })()}
 
           <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${am(0.2)}`, marginBottom: "1.5rem" }}>
             {(["uebersicht", "einladungen"] as const).map(t => (
@@ -1577,7 +1587,7 @@ function ThekeAdminSection() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${am(0.3)}` }}>
-                    {["#", "Ticket", "Person", "Anzeige", "Bestät.", "Einw.A", "Foto", "Botschaft", "Galerie", ""].map(h => (
+                    {["#", "Ticket", "Person", "Anzeige", "Bestät.", "Einw.A", "Foto", "Botschaft", "Galerie", "Zuletzt da", ""].map(h => (
                       <th key={h} style={{ padding: "0.5rem 0.75rem", color: am(0.8), fontFamily: "'Lora', serif", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
@@ -1594,6 +1604,7 @@ function ThekeAdminSection() {
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{(e.foto_frueher_key || e.foto_heute_key) ? <span style={{ color: A }}>📷</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center" }}>{e.hat_botschaft ? <span style={{ color: A }}>🎙</span> : <span style={{ color: fg(0.3) }}>–</span>}</td>
                       <td style={{ padding: "0.5rem 0.75rem", textAlign: "center", color: e.galerie_count > 0 ? A : fg(0.35) }}>{e.galerie_count > 0 ? e.galerie_count : "–"}</td>
+                      <td style={{ padding: "0.5rem 0.75rem", color: fg(0.6), whiteSpace: "nowrap" }}>{dtFmt(e.zuletzt_gesehen_am)}</td>
                       <td style={{ padding: "0.5rem 0.5rem" }}>
                         <a href={`${BASE}/theke?t=${e.ticket_code}`} target="_blank" rel="noopener noreferrer"
                           style={{ background: "rgba(232,153,26,0.12)", border: `1px solid ${am(0.35)}`, borderRadius: "3px", color: A, padding: "0.2rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", textDecoration: "none", display: "inline-block", whiteSpace: "nowrap" }}>

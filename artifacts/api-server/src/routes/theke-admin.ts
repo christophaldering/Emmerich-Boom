@@ -66,6 +66,7 @@ router.get("/theke-admin/uebersicht", async (req: Request, res: Response) => {
         hat_botschaft:               botschaftSet.has(t.id),
         galerie_count:               galerieCount.get(t.id) ?? 0,
         created_at:                  t.created_at,
+        zuletzt_gesehen_am:          p?.zuletzt_gesehen_am ?? null,
       };
     });
 

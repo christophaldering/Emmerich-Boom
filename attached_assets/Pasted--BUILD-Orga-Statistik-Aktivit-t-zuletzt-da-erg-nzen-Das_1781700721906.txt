@@ -1,0 +1,73 @@
+# BUILD — Orga-Statistik: Aktivität „zuletzt da” ergänzen
+
+Das meiste ist schon da (Zahlen-Kacheln, Status pro Person, volle Versand-Historie). Es fehlt nur die **Aktivität**: wann jemand zuletzt an der Theke war.
+
+## TEIL 1 — Backend: „zuletzt gesehen” mitliefern
+
+Datei `artifacts/api-server/src/routes/theke-admin.ts`, im GET `/theke-admin/uebersicht`, im `result`-Objekt (wo schon `hat_botschaft`, `galerie_count`, `created_at` stehen) eine Zeile ergänzen:
+
+```ts
+zuletzt_gesehen_am: p?.zuletzt_gesehen_am ?? null,
+```
+
+(Das Feld existiert in `theke_profile` und ist über `p` verfügbar.)
+
+## TEIL 2 — Frontend: anzeigen
+
+Datei `artifacts/emmerich/src/pages/AdminPage.tsx`, Abschnitt `ThekeAdminSection`.
+
+### 2a. Interface erweitern
+
+In `interface ThekeUebersichtEntry` ergänzen:
+
+```ts
+zuletzt_gesehen_am: string | null;
+```
+
+### 2b. Neue Kennzahl „Diese Woche aktiv”
+
+Vor dem Stat-Karten-Block berechnen:
+
+```ts
+const aktivWoche = uebersicht.filter(e =>
+  e.zuletzt_gesehen_am &&
+  Date.now() - new Date(e.zuletzt_gesehen_am).getTime() < 7 * 24 * 3600 * 1000
+).length;
+```
+
+Und neben die bestehenden `<StatCard …>` eine weitere setzen:
+
+```tsx
+<StatCard n={aktivWoche} label="Diese Woche aktiv" />
+```
+
+### 2c. Spalte „Zuletzt da” in der Übersichtstabelle
+
+In der `uebersicht`-Tabelle: in die Kopfzeile (wo „#”, „Ticket”, … „Galerie” stehen) ein „Zuletzt da” ergänzen, und in jeder Zeile eine Zelle:
+
+```tsx
+<td style={{ padding: "0.5rem 0.75rem", color: fg(0.6), whiteSpace: "nowrap" }}>
+  {dtFmt(e.zuletzt_gesehen_am)}
+</td>
+```
+
+(`dtFmt` ist im File vorhanden und zeigt „–”, wenn leer.)
+
+## VERBOTEN
+
+- Bestehende Kacheln, Spalten, die Versand-Historie/„Protokoll”, den Versand selbst NICHT verändern — nur ergänzen.
+- Keine personenbezogene Verweildauer-/Klickverfolgung einführen — nur „zuletzt gesehen”.
+- Keine neuen Farben/Fonts.
+
+## CHECKLISTE
+
+- [ ] Backend liefert `zuletzt_gesehen_am` pro Ticket.
+- [ ] Neue Kachel „Diese Woche aktiv” zeigt eine plausible Zahl.
+- [ ] Übersichtstabelle hat eine Spalte „Zuletzt da” mit Datum/Uhrzeit bzw. „–”.
+- [ ] Alles Bisherige unverändert funktionsfähig.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> „Zuletzt da” + „Diese Woche aktiv” sichtbar: ja/nein
+> Geänderte Dateien: …
