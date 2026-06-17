@@ -1,0 +1,93 @@
+# BUILD — Theke: Querformat zuerst + Bühne voll ausnutzen
+
+Zwei Dateien: `artifacts/emmerich/src/config/theke-szene.ts` und `artifacts/emmerich/src/pages/ThekePage.tsx`.
+
+**Vorher hochladen:** Das neu zugeschnittene Bühnenfoto (das breite Saalfoto mit der schwarzen Bühne mittig) als **`artifacts/emmerich/public/buehne-saal.png`**. Die Koordinaten unten sind exakt aus genau diesem Bild gemessen.
+
+-----
+
+## TEIL 1 — Bühne exakt einrechnen (`theke-szene.ts`)
+
+Werte ersetzen (gemessen: schwarze Bühne horizontal 20–84 %, vertikal 26–83 %):
+
+```ts
+BACKDROP_URL: "/buehne-saal.png",
+WALL_REGION: { top: 27, left: 21, width: 62, height: 54 },
+BAR_REGION:  { top: 84, left: 5,  width: 90, height: 16 },
+```
+
+Die Rahmen füllen damit die schwarze Bühnenöffnung fast randlos; der Tresen sitzt auf der Holzfront darunter.
+
+-----
+
+## TEIL 2 — Querformat zuerst (`ThekePage.tsx`)
+
+### 2a. Orientierung erkennen + „Bitte quer drehen”-Hinweis
+
+In der Haupt-Theke-Komponente:
+
+```tsx
+const [istHochkant, setIstHochkant] = useState(false);
+const [trotzdem, setTrotzdem] = useState(false);
+useEffect(() => {
+  const check = () => setIstHochkant(window.matchMedia("(orientation: portrait)").matches);
+  check();
+  window.addEventListener("resize", check);
+  window.addEventListener("orientationchange", check);
+  return () => { window.removeEventListener("resize", check); window.removeEventListener("orientationchange", check); };
+}, []);
+```
+
+Overlay rendern, wenn `istHochkant && !trotzdem` (ganz oben im Szenen-Container, hoher zIndex):
+
+```tsx
+{istHochkant && !trotzdem && (
+  <div style={{ position:"fixed", inset:0, zIndex:9998, background:BG,
+    display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+    gap:"1.4rem", padding:"2rem", textAlign:"center" }}>
+    <div style={{ fontSize:"3rem", animation:"drehHint 2.4s ease-in-out infinite" }}>📱</div>
+    <p style={{ fontFamily:"'Playfair Display', serif", fontStyle:"italic", fontWeight:700,
+      fontSize:"1.5rem", color:A, margin:0 }}>Dreh dein Handy quer</p>
+    <p style={{ fontFamily:"'Lora', serif", fontSize:"0.95rem", color:fg(0.72),
+      maxWidth:"22rem", lineHeight:1.6, margin:0 }}>
+      Die Theke ist eine breite Bühne — quer gehalten siehst du die ganze Wand.</p>
+    <button onClick={() => setTrotzdem(true)} style={{ background:"transparent", border:"none",
+      color:am(0.6), fontFamily:"'Lora', serif", fontStyle:"italic", fontSize:"0.85rem",
+      textDecoration:"underline", cursor:"pointer" }}>Trotzdem hochkant ansehen</button>
+  </div>
+)}
+```
+
+Keyframe einmal ergänzen:
+
+```css
+@keyframes drehHint { 0%,100%{transform:rotate(-12deg)} 55%{transform:rotate(78deg)} }
+```
+
+### 2b. Tresen-Objekte in die Ecken (statt Mitte)
+
+Die **Tresen-Region** (`{/* ── Tresen-Region … ── */}`) so anpassen, dass Bierdeckel und Telefon in den **unteren Ecken** der Holzfront sitzen und nie über der Bühnenmitte liegen:
+
+- `left: 5%`, `width: 90%` (statt zentriert)
+- `justifyContent: "space-between"`, `alignItems: "flex-end"`, `paddingBottom: "0.6rem"`
+  (Objektgrößen `min(vw,vh)` bleiben wie sie sind.)
+
+## VERBOTEN
+
+- Galerie-Innenlogik, Feed, Auth, Overlays, Hausmeister-Definition — unverändert.
+- Keine neuen Farben/Fonts. `A`, `BG`, `am()`, `fg()` sind vorhandene Helfer — nutzen.
+
+## CHECKLISTE
+
+- [ ] `buehne-saal.png` liegt in `public/`, BACKDROP_URL zeigt darauf.
+- [ ] Rahmen sitzen sauber in der schwarzen Bühne (quer getestet).
+- [ ] Hochformat zeigt den Dreh-Hinweis; „Trotzdem” blendet ihn aus.
+- [ ] Querformat: Bierdeckel unten links, Telefon unten rechts, keine Überlappung.
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Bühne exakt gefüllt (quer): ja/nein
+> Dreh-Hinweis im Hochformat: ja/nein
+> Tresen in den Ecken: ja/nein
+> Geänderte/neue Dateien: …

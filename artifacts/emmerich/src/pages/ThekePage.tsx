@@ -1193,6 +1193,8 @@ export default function ThekePage() {
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
   const [kino, setKino] = useState(false);
+  const [istHochkant, setIstHochkant] = useState(false);
+  const [trotzdem, setTrotzdem] = useState(false);
 
   const enterKino = () => {
     setKino(true);
@@ -1216,6 +1218,14 @@ export default function ThekePage() {
     window.addEventListener("keydown", onKey);
     document.addEventListener("fullscreenchange", onFs);
     return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onFs); };
+  }, []);
+
+  useEffect(() => {
+    const check = () => setIstHochkant(window.matchMedia("(orientation: portrait)").matches);
+    check();
+    window.addEventListener("resize", check);
+    window.addEventListener("orientationchange", check);
+    return () => { window.removeEventListener("resize", check); window.removeEventListener("orientationchange", check); };
   }, []);
 
   // Parallax (Maus + Geräteneigung)
@@ -1391,6 +1401,7 @@ export default function ThekePage() {
         @keyframes thekePuls { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.45;transform:scale(0.78)} }
         @keyframes thekeGlow { 0%,100%{box-shadow:0 6px 22px rgba(0,0,0,0.9),0 0 14px rgba(232,153,26,0.28)} 50%{box-shadow:0 6px 22px rgba(0,0,0,0.9),0 0 26px rgba(232,153,26,0.55)} }
         @keyframes telefonBlink { 0%,70%,100%{opacity:1} 80%,90%{opacity:0.28} }
+        @keyframes drehHint { 0%,100%{transform:rotate(-12deg)} 55%{transform:rotate(78deg)} }
         .porträt-streifen::-webkit-scrollbar { display: none; }
       `}</style>
 
@@ -1414,6 +1425,23 @@ export default function ThekePage() {
       {/* Tiefengradienten: Decke + Boden abdunkeln */}
       <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
         background: "linear-gradient(to bottom, rgba(10,7,4,0.55) 0%, rgba(10,7,4,0) 22%, rgba(10,7,4,0) 52%, rgba(10,7,4,0.72) 80%, rgba(10,7,4,0.92) 100%)" }} />
+
+      {/* ── Hochformat-Hinweis ── */}
+      {istHochkant && !trotzdem && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9998, background: BG,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          gap: "1.4rem", padding: "2rem", textAlign: "center" }}>
+          <div style={{ fontSize: "3rem", animation: "drehHint 2.4s ease-in-out infinite" }}>📱</div>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700,
+            fontSize: "1.5rem", color: A, margin: 0 }}>Dreh dein Handy quer</p>
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.95rem", color: fg(0.72),
+            maxWidth: "22rem", lineHeight: 1.6, margin: 0 }}>
+            Die Theke ist eine breite Bühne — quer gehalten siehst du die ganze Wand.</p>
+          <button onClick={() => setTrotzdem(true)} style={{ background: "transparent", border: "none",
+            color: am(0.6), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem",
+            textDecoration: "underline", cursor: "pointer" }}>Trotzdem hochkant ansehen</button>
+        </div>
+      )}
 
       {/* ── Kino-Button / Exit ── */}
       {!kino && (
@@ -1496,13 +1524,13 @@ export default function ThekePage() {
       <div
         style={{
           position: "absolute",
-          bottom: 0, left: `${B.left}%`,
-          width: `${B.width}%`,
+          bottom: 0, left: "5%",
+          width: "90%",
           height: `${100 - B.top}%`,
           zIndex: 5,
           transform: `translate(${-tiltX * 1.0}px, ${-tiltY * 0.85}px)`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: "clamp(1rem, 5vw, 4rem)",
+          display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+          paddingBottom: "0.6rem",
         }}
       >
         <BierdeckelObjekt name={profile.anzeige_name} onClick={() => setBierdeckelOffen(true)} />

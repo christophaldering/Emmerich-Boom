@@ -5,22 +5,22 @@
 //   2. WALL_REGION   — Prozentbereich der schwarzen Bühnenöffnung (Rahmen hängen hier)
 //   3. BAR_REGION    — Prozentbereich der Holz-Bühnenfront (Tresen)
 //
-// Aktuelles Bild: Saal Kapaunenberg — Kronleuchter oben, schwarze Bühnenöffnung
-// mittig, warme Holzvertäfelung der Bühnenfront darunter.
+// Aktuelles Bild: buehne-saal.png — breiter Saal, schwarze Bühne mittig,
+// Holzfront darunter. Koordinaten exakt aus diesem Bild gemessen.
 
 export const THEKE_SZENE = {
   /** Pfad zum Kulissenfoto (Vite serviert aus public/) */
-  BACKDROP_URL: "/theke-buehne.png",
+  BACKDROP_URL: "/buehne-saal.png",
 
   /**
    * Rückwand-Bereich: Rahmen hängen IN der schwarzen Bühnenöffnung.
-   * Bühne horizontal 22–68 %, vertikal 33–78 %.
+   * Bühne horizontal 20–84 %, vertikal 26–83 %.
    */
-  WALL_REGION: { top: 36, left: 25, width: 46, height: 38 },
+  WALL_REGION: { top: 27, left: 21, width: 62, height: 54 },
 
   /**
    * Tresen-Bereich: Holz-Bühnenfront.
-   * Vertikal ~79–93 %, fast volle Breite.
+   * Vertikal ~84–100 %, fast volle Breite.
    */
-  BAR_REGION:  { top: 80, left: 6, width: 88, height: 14 },
+  BAR_REGION:  { top: 84, left: 5, width: 90, height: 16 },
 } as const;
