@@ -14,5 +14,10 @@ export const SERVER_CONFIG = {
   THEKE_DEMO_CODE:         "00000000DEADBEEF",
   THEKE_DEMO_EMAIL:        "orga-vorschau@emmerich-boomt.de",
   THEKE_FARZIN_CODE:       "FARZIN2026PREV00",
-  THEKE_FARZIN_EMAIL:      "akyel.events@gmail.com",
+  // Freiticket-E-Mails — werden im öffentlichen Kapazitätszähler nicht mitgezählt
+  THEKE_FREIKARTEN_EMAILS: [
+    "akyel.events@gmail.com",       // Farzin
+    "Sarah.Eul@funkemedien.de",     // Sarah Eul (Presse)
+    "emmerich@rheinische-post.de",  // Christian Hagemann (Presse)
+  ],
 } as const;
