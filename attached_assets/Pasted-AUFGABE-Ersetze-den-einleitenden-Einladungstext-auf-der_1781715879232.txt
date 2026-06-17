@@ -1,0 +1,41 @@
+AUFGABE
+Ersetze den einleitenden Einladungstext auf der digitalen Theke (der Intro-/Begrüßungstext, der oben auf dem Theke-Screen erscheint, bevor die Profile kommen) durch den unten stehenden neuen Wortlaut. Reiner Textaustausch, sonst nichts.
+
+SCHRITT 1 — STELLE FINDEN
+Suche die Komponente, die den aktuellen Theke-Intro-/Einladungstext rendert. Verändere AUSSCHLIESSLICH diesen Textblock. Layout, Styling, Klassen, Struktur, umliegende Elemente bleiben unangetastet.
+
+SCHRITT 2 — NEUER TEXT (WÖRTLICH, ZEICHENGENAU einsetzen)
+Absätze bleiben als getrennte Absätze erhalten (gleiche Absatzlogik wie bisher). Keine Überschriften, keine Aufzählungszeichen, keine Labels.
+
+Vorfreude ist ja bekanntlich die schönste Freude.
+
+Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
+
+Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+
+Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")
+
+Schön wäre, wenn möglichst viele mitmachen. Müssen tut aber niemand. Wer keine Lust hat, lässt es einfach. Wer es sich anders überlegt, löscht sein Profil mit einem Klick wieder. Alles freiwillig, alles in deiner Hand.
+
+Schau ruhig immer wieder mal rein. Die Theke füllt sich mit jedem Tag, und es macht Spaß zu sehen, wer alles dazukommt.
+
+VERBOTEN
+- KEINE Änderung an Styling, Farben, Fonts, Klassen, Layout oder Komponentenstruktur.
+- KEINE neuen UI-Elemente (keine Buttons, keine Icons, keine Trenner, keine Cards).
+- KEINE Änderung an irgendeiner anderen Datei als der, die den Intro-Text enthält.
+- KEINE Umformulierung, Kürzung oder „Verbesserung" meines Textes. Wortlaut exakt wie oben, inkl. Gedankenstrich „–", Anführungszeichen und Klammern.
+- KEINE Änderung an den Profil-Funktionen, der Profilerstellung, den Einwilligungen oder am Adminbereich.
+- KEINE Anführungszeichen-Umwandlung (gerade/typografische) – Zeichen 1:1 übernehmen.
+
+CHECKLISTE (vor Abschluss prüfen)
+[ ] Nur die Intro-Textstelle wurde geändert.
+[ ] Der neue Text steht wörtlich und vollständig drin (alle 6 Absätze).
+[ ] Absatztrennung sichtbar erhalten.
+[ ] Keine anderen Dateien angefasst.
+[ ] App startet/baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende deine Antwort mit:
+1. Dem exakten Dateipfad, in dem du den Text ersetzt hast.
+2. Der wörtlichen Bestätigung: „Nur der Intro-Text wurde geändert, keine weiteren Dateien oder Elemente."
+3. Falls du den alten Text NICHT eindeutig identifizieren konntest: STOPP, nichts ändern, und frage zurück.

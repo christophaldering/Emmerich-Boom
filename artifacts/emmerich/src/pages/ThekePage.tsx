@@ -570,17 +570,19 @@ function Galerie({ token, fotos, onAdd, onDelete }: {
 
 // ─── Einwilligungen ───────────────────────────────────────────────────────────
 
-function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerChange }: { token: string; profile: Profile; onUpdated: (p: Profile) => void; verteiler: VerteilerInfo; onVerteilerChange: (v: VerteilerInfo) => void }) {
+type EinwilligungsRef = {
+  saveEinwilligungen: () => Promise<void>;
+};
+
+const EinwilligungsBlock = forwardRef<EinwilligungsRef, { token: string; profile: Profile; onUpdated: (p: Profile) => void; verteiler: VerteilerInfo; onVerteilerChange: (v: VerteilerInfo) => void }>(
+  function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerChange }, ref) {
   const [a, setA] = useState(!!profile.sichtbarkeit_zugestimmt_am);
   const [b, setB] = useState(() => !!verteiler?.opted_in);
   const [bEmail, setBEmail] = useState(() => verteiler?.email ?? "");
   const [c, setC] = useState(profile.abendfotos_ok);
   const [d, setD] = useState(profile.tafel_ok ?? false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
-  const save = async () => {
-    setSaving(true); setSaved(false);
+  const saveEinwilligungen = async () => {
     try {
       const res = await fetch(`/api/theke/einwilligung`, {
         method: "POST",
@@ -591,11 +593,11 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
       if (data.ok && data.profile) {
         onUpdated(data.profile);
         onVerteilerChange(data.verteiler ?? null);
-        setSaved(true);
       }
     } catch { }
-    setSaving(false);
   };
+
+  useImperativeHandle(ref, () => ({ saveEinwilligungen }), [a, b, bEmail, c, d]);
 
   return (
     <div style={{ border: `1px solid ${am(0.25)}`, borderRadius: "8px", padding: "1.5rem", background: am(0.05) }}>
@@ -631,7 +633,7 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
         </span>
       </label>
 
-      <label style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", marginBottom: "1.5rem", cursor: "pointer" }}>
+      <label style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", marginBottom: "0.5rem", cursor: "pointer" }}>
         <input type="checkbox" checked={d} onChange={e => setD(e.target.checked)}
           style={{ marginTop: "0.2rem", accentColor: A, width: "18px", height: "18px", flexShrink: 0 }} />
         <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: fg(0.85), lineHeight: 1.65 }}>
@@ -641,17 +643,9 @@ function EinwilligungsBlock({ token, profile, onUpdated, verteiler, onVerteilerC
           </span>
         </span>
       </label>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <button onClick={save} disabled={saving}
-          style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1rem", padding: "0.75rem 1.8rem", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
-          {saving ? "Speichern …" : "Speichern"}
-        </button>
-        {saved && <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.55) }}>Gespeichert ✓</span>}
-      </div>
     </div>
   );
-}
+});
 
 // ─── Feed-Detail ──────────────────────────────────────────────────────────────
 
@@ -760,6 +754,7 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
 }>(function MeinSteckbrief({ token, profile, fotos, botschaft, verteiler, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange, onVerteilerChange }, ref) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
+  const einwilligungsRef = useRef<EinwilligungsRef>(null);
   const [fotoMsg, setFotoMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [local, setLocal] = useState({ ...profile });
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -925,13 +920,6 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
       <AuswahlFeld label="Deine Musik heute" opts={MUSIK_OPTS} value={local.f_musik} onChange={v => { update({ f_musik: v }); debouncedSave(); }} />
       <AuswahlFeld label="Lieblingsgetränk" opts={GETRAENK_OPTS} value={local.f_getraenk} onChange={v => { update({ f_getraenk: v }); debouncedSave(); }} />
 
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", marginBottom: "2.5rem" }}>
-        {savedMsg && <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.55) }}>{savedMsg}</span>}
-        <button onClick={save} disabled={saving}
-          style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "0.95rem", padding: "0.65rem 1.5rem", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
-          {saving ? "Speichern …" : "Speichern"}
-        </button>
-      </div>
 
       <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
         <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: A, marginBottom: "1.25rem" }}>
@@ -991,7 +979,22 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
       </div>
 
       <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
-        <EinwilligungsBlock token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
+        <EinwilligungsBlock ref={einwilligungsRef} token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", paddingTop: "0.5rem", marginBottom: "1rem" }}>
+        {savedMsg && <span style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.88rem", color: fg(0.55) }}>{savedMsg}</span>}
+        <button
+          onClick={async () => {
+            setSaving(true); setSavedMsg("");
+            await Promise.all([save(), einwilligungsRef.current?.saveEinwilligungen()]);
+            setSavedMsg("Gespeichert ✓");
+            setSaving(false);
+          }}
+          disabled={saving}
+          style={{ background: A, border: "none", borderRadius: "4px", color: BG, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontWeight: 700, fontSize: "1rem", padding: "0.75rem 1.8rem", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
+          {saving ? "Speichern …" : "Alles speichern"}
+        </button>
       </div>
     </div>
   );
