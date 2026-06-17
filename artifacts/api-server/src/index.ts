@@ -83,6 +83,51 @@ async function seedThekeDemoIfMissing() {
   }
 }
 
+async function seedFreikartenIfMissing() {
+  const freikarten = [
+    { email: "akyel.events@gmail.com",        name: "Farzin",            nummer: "PREV-0001", code: SERVER_CONFIG.THEKE_FARZIN_CODE },
+    { email: "Sarah.Eul@funkemedien.de",       name: "Sarah Eul",         nummer: "PREV-0002", code: "SARAHEUL26PREV00" },
+    { email: "emmerich@rheinische-post.de",    name: "Christian Hagemann", nummer: "PREV-0003", code: "CHRHAGEMANN26PR0" },
+  ];
+  for (const f of freikarten) {
+    try {
+      const existing = await db
+        .select({ id: anmeldungTicketsTable.id })
+        .from(anmeldungTicketsTable)
+        .where(eq(anmeldungTicketsTable.ticket_code, f.code))
+        .limit(1);
+      if (existing.length > 0) continue;
+
+      const [anmeldung] = await db
+        .insert(anmeldungenTable)
+        .values({
+          email:           f.email,
+          personen_anzahl: 1,
+          personen:        [{ name: f.name }],
+          betrag_gesamt:   0,
+          bezahlweg:       "freiticket",
+          statement:       "Presse-/Vorschau-Freiticket (nicht zählen)",
+          ticket_nummern:  [f.nummer],
+          bezahlt_am:      new Date(),
+        })
+        .returning({ id: anmeldungenTable.id });
+
+      if (!anmeldung) throw new Error("Anmeldung-Insert fehlgeschlagen");
+
+      await db.insert(anmeldungTicketsTable).values({
+        anmeldung_id:  anmeldung.id,
+        person_name:   f.name,
+        ticket_nummer: f.nummer,
+        ticket_code:   f.code,
+      });
+
+      logger.info({ email: f.email }, "[Freiticket] Angelegt (idempotent)");
+    } catch (err) {
+      logger.error({ err, email: f.email }, "[Freiticket] Seed fehlgeschlagen — Serverstart nicht blockiert");
+    }
+  }
+}
+
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {
@@ -107,6 +152,7 @@ app.listen(port, (err) => {
 
   seedKaiIfEmpty();
   seedThekeDemoIfMissing();
+  seedFreikartenIfMissing();
 
   cron.schedule(
     "0 8 * * *",
