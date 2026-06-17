@@ -1192,10 +1192,30 @@ export default function ThekePage() {
   const [backdropFailed, setBackdropFailed] = useState(false);
   const [tiltX, setTiltX] = useState(0);
   const [tiltY, setTiltY] = useState(0);
+  const [kino, setKino] = useState(false);
+
+  const enterKino = () => {
+    setKino(true);
+    const el = document.documentElement as any;
+    const p = el.requestFullscreen?.();
+    if (p && typeof p.catch === "function") p.catch(() => {});
+  };
+  const exitKino = () => {
+    setKino(false);
+    if (document.fullscreenElement) (document as any).exitFullscreen?.();
+  };
 
   useEffect(() => {
     noindex();
     return () => removeNoindex();
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setKino(false); };
+    const onFs = () => { if (!document.fullscreenElement && document.fullscreenEnabled) setKino(false); };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onFs); };
   }, []);
 
   // Parallax (Maus + Geräteneigung)
@@ -1395,7 +1415,26 @@ export default function ThekePage() {
       <div aria-hidden style={{ position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
         background: "linear-gradient(to bottom, rgba(10,7,4,0.55) 0%, rgba(10,7,4,0) 22%, rgba(10,7,4,0) 52%, rgba(10,7,4,0.72) 80%, rgba(10,7,4,0.92) 100%)" }} />
 
+      {/* ── Kino-Button / Exit ── */}
+      {!kino && (
+        <button onClick={enterKino} style={{
+          position: "absolute", top: "max(0.9rem, env(safe-area-inset-top,0px))", right: "0.9rem", zIndex: 11,
+          background: "rgba(10,7,4,0.6)", border: `1px solid ${am(0.32)}`, borderRadius: "20px",
+          padding: "0.3rem 0.8rem", fontFamily: "'Lora', serif", fontStyle: "italic",
+          fontSize: "0.72rem", color: am(0.8), cursor: "pointer", backdropFilter: "blur(4px)",
+        }}>⤢ Kino</button>
+      )}
+      {kino && (
+        <button onClick={exitKino} style={{
+          position: "absolute", top: "max(0.9rem, env(safe-area-inset-top,0px))", right: "0.9rem", zIndex: 11,
+          background: "rgba(10,7,4,0.6)", border: `1px solid ${am(0.32)}`, borderRadius: "50%",
+          width: "2.2rem", height: "2.2rem", color: am(0.8), fontSize: "1.3rem", lineHeight: "1",
+          cursor: "pointer", backdropFilter: "blur(4px)",
+        }}>×</button>
+      )}
+
       {/* ── Grußzeile (oben, über Backdrop) ── */}
+      {!kino && (
       <div style={{
         position: "absolute", top: "max(1.25rem, env(safe-area-inset-top, 0px))", left: 0, right: 0,
         zIndex: 10, textAlign: "center", padding: "0 1rem", pointerEvents: "none",
@@ -1415,6 +1454,7 @@ export default function ThekePage() {
           </span>
         </div>
       </div>
+      )}
 
       {/* Scrim hinter der Rahmenreihe — hält Rahmen auf jedem Foto-Zuschnitt lesbar */}
       <div
@@ -1432,9 +1472,10 @@ export default function ThekePage() {
       <div
         style={{
           position: "absolute",
-          top: `${W.top}%`, left: `${W.left}%`,
-          width: `${W.width}%`,
-          height: `min(${W.height}%, calc(${B.top}% - ${W.top}% - 2%))`,
+          top:    kino ? "6%"  : `${W.top}%`,
+          left:   kino ? "3%"  : `${W.left}%`,
+          width:  kino ? "94%" : `${W.width}%`,
+          height: kino ? "82%" : `min(${W.height}%, calc(${B.top}% - ${W.top}% - 2%))`,
           zIndex: 3,
           transform: `translate(${-tiltX * 0.55}px, ${-tiltY * 0.45}px)`,
           overflow: "hidden",
@@ -1451,6 +1492,7 @@ export default function ThekePage() {
       </div>
 
       {/* ── Tresen-Region: Bierdeckel + Telefon (scharf, vorne) ── */}
+      {!kino && (
       <div
         style={{
           position: "absolute",
@@ -1466,8 +1508,10 @@ export default function ThekePage() {
         <BierdeckelObjekt name={profile.anzeige_name} onClick={() => setBierdeckelOffen(true)} />
         <TelefonObjekt bandCount={bandCount} onClick={() => setTelefonOffen(true)} />
       </div>
+      )}
 
       {/* ── Phasen-Andeutungen (unten, ambient) ── */}
+      {!kino && (
       <div
         aria-hidden
         style={{
@@ -1502,13 +1546,16 @@ export default function ThekePage() {
           <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.62rem", color: fg(0.25), margin: 0 }}>Danach</p>
         </div>
       </div>
+      )}
 
       {/* ── Startseiten-Link ── */}
+      {!kino && (
       <div style={{ position: "absolute", bottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))", right: "1rem", zIndex: 6 }}>
         <a href={`${BASE}/`} style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.65rem", color: am(0.32), textDecoration: "none" }}>
           Zur Startseite
         </a>
       </div>
+      )}
 
       {/* ── Overlays ── */}
 

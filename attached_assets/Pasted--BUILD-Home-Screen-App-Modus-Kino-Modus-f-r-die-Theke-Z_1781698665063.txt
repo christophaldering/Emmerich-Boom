@@ -1,0 +1,142 @@
+# BUILD — Home-Screen (App-Modus) + Kino-Modus für die Theke
+
+**Zwei unabhängige Teile. Vorher die 3 Icon-Dateien nach `artifacts/emmerich/public/` legen:**
+`icon-192.png`, `icon-512.png`, `apple-touch-icon.png`
+
+-----
+
+## TEIL 1 — Home-Screen / App-Modus (statisch, kein React)
+
+### 1a. Neue Datei `artifacts/emmerich/public/manifest.webmanifest`
+
+```json
+{
+  "name": "Emmerich boomt!",
+  "short_name": "Emmerich boomt",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0704",
+  "theme_color": "#0A0704",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
+```
+
+### 1b. In `artifacts/emmerich/index.html` im `<head>` ergänzen (vorhandene Tags NICHT ändern):
+
+```html
+<meta name="theme-color" content="#0A0704" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-title" content="Emmerich boomt!" />
+```
+
+Damit öffnet sich die Seite nach „Zum Home-Bildschirm hinzufügen” wie eine App, ohne Browser-Leiste.
+
+-----
+
+## TEIL 2 — Kino-Modus (in `artifacts/emmerich/src/pages/ThekePage.tsx`)
+
+Ein Schalter, der alles ausblendet außer der Bilderwand (für Hoch- und besonders Querformat). Auf Laptop/Android zusätzlich echtes Vollbild; auf iPhone wird unsere eigene Oberfläche ausgeblendet (Vollbild-API ignoriert iOS still).
+
+### 2a. State + Handler (in der Haupt-Theke-Komponente, die die Szene rendert)
+
+```tsx
+const [kino, setKino] = useState(false);
+
+const enterKino = () => {
+  setKino(true);
+  const el = document.documentElement as any;
+  const p = el.requestFullscreen?.();        // iOS: undefined → kein Aufruf
+  if (p && typeof p.catch === "function") p.catch(() => {});
+};
+const exitKino = () => {
+  setKino(false);
+  if (document.fullscreenElement) (document as any).exitFullscreen?.();
+};
+
+useEffect(() => {
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setKino(false); };
+  const onFs = () => { if (!document.fullscreenElement && document.fullscreenEnabled) setKino(false); };
+  window.addEventListener("keydown", onKey);
+  document.addEventListener("fullscreenchange", onFs);
+  return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onFs); };
+}, []);
+```
+
+**Wichtig:** `requestFullscreen` MUSS wie oben gegen `undefined` abgesichert sein (sonst Absturz auf iPhone).
+
+### 2b. Im Render: bei `kino === true` ausblenden
+
+Folgende vorhandene Blöcke nur rendern, wenn **nicht** im Kino-Modus — jeweils mit `{!kino && ( … )}` umschließen:
+
+- die **Grußzeile** (`{/* ── Grußzeile … ── */}`)
+- die **Tresen-Region** (`{/* ── Tresen-Region … ── */}`)
+- die **Phasen-Andeutungen** (`{/* ── Phasen-Andeutungen … ── */}`)
+- der **„Zur Startseite”**-Link
+
+### 2c. Wand-Region im Kino-Modus vergrößern
+
+Die **Wand-Region** (`{/* ── Wand-Region: Galerie ── */}`) bleibt immer sichtbar, aber im Kino-Modus größer. Die Positionswerte abhängig von `kino` setzen:
+
+- normal: wie bisher (`W.top/left/width/height`)
+- kino: `top:"6%"`, `left:"3%"`, `width:"94%"`, `height:"82%"`
+
+Backdrop (Bühnenbild) bleibt dahinter sichtbar. `GalerieWand` bleibt unverändert interaktiv (Wischen, Antippen, „▶ Abspielen” weiter nutzbar).
+
+### 2d. Kino starten — kleiner Knopf oben rechts
+
+Nur sichtbar, wenn **nicht** im Kino-Modus. Dezent, oben rechts, mit Safe-Area:
+
+```tsx
+{!kino && (
+  <button onClick={enterKino} style={{
+    position:"absolute", top:"max(0.9rem, env(safe-area-inset-top,0px))", right:"0.9rem", zIndex:11,
+    background:"rgba(10,7,4,0.6)", border:`1px solid ${am(0.32)}`, borderRadius:"20px",
+    padding:"0.3rem 0.8rem", fontFamily:"'Lora', serif", fontStyle:"italic",
+    fontSize:"0.72rem", color:am(0.8), cursor:"pointer", backdropFilter:"blur(4px)",
+  }}>⤢ Kino</button>
+)}
+```
+
+### 2e. Kino verlassen — × oben rechts
+
+Nur sichtbar, wenn im Kino-Modus:
+
+```tsx
+{kino && (
+  <button onClick={exitKino} style={{
+    position:"absolute", top:"max(0.9rem, env(safe-area-inset-top,0px))", right:"0.9rem", zIndex:11,
+    background:"rgba(10,7,4,0.6)", border:`1px solid ${am(0.32)}`, borderRadius:"50%",
+    width:"2.2rem", height:"2.2rem", color:am(0.8), fontSize:"1.3rem", lineHeight:1,
+    cursor:"pointer", backdropFilter:"blur(4px)",
+  }}>×</button>
+)}
+```
+
+## VERBOTEN
+
+- `GalerieWand`-Innenlogik, Feed, Auth, Overlays, Bierdeckel/Telefon-Inhalt, Daten — unverändert.
+- Vorhandene `<head>`-Tags, Fonts, Farben — nicht ändern, nur ergänzen.
+- KEIN automatisches Vollbild beim Laden; nur auf Knopfdruck.
+
+## CHECKLISTE
+
+- [ ] Manifest + Apple-Meta-Tags im `<head>`; 3 Icons in `public/`.
+- [ ] „Zum Home-Bildschirm” öffnet ohne Browser-Leiste (iPhone testen).
+- [ ] „⤢ Kino” blendet Grußzeile, Tresen, Phasen, Startseite-Link aus; nur die Wand bleibt, größer.
+- [ ] Wand im Kino weiter wischbar/antippbar.
+- [ ] „×” / Esc verlässt den Kino-Modus.
+- [ ] iPhone: Kino-Knopf stürzt NICHT ab (requestFullscreen abgesichert).
+- [ ] `pnpm run typecheck` + Build sauber.
+
+## ABSCHLUSS
+
+> Home-Screen ohne Leiste: ja/nein
+> Kino-Modus blendet alles außer Wand aus + verlassbar: ja/nein
+> Geänderte/neue Dateien: …
