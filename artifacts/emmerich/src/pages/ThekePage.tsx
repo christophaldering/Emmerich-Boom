@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { THEKE_SZENE } from "../config/theke-szene";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -352,11 +352,19 @@ function Anrufbeantworter({ token, botschaft, onUploaded, onDeleted }: {
 
   const loeschen = async () => {
     if (!botschaft) return;
-    await fetch(`/api/theke/audio/${botschaft.id}`, {
-      method: "DELETE",
-      headers: { "x-theke-token": token },
-    });
-    onDeleted();
+    try {
+      const res = await fetch(`/api/theke/audio/${botschaft.id}`, {
+        method: "DELETE",
+        headers: { "x-theke-token": token },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({})) as { error?: string };
+        setError(data.error ?? "Löschen fehlgeschlagen."); return;
+      }
+      onDeleted();
+    } catch {
+      setError("Verbindungsfehler beim Löschen.");
+    }
   };
 
   const botschaftUrl = botschaft ? `/api/theke/datei/${botschaft.datei_key}?t=${encodeURIComponent(token)}` : null;
@@ -697,7 +705,9 @@ function FeedDetail({ entry, token, onClose }: { entry: FeedEntry; token: string
 
 // ─── Mein Steckbrief ──────────────────────────────────────────────────────────
 
-function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange }: {
+interface MeinSteckbriefHandle { flush: () => Promise<void>; }
+
+const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
   token: string;
   profile: Profile;
   fotos: Foto[];
@@ -706,7 +716,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
   onFotoAdded: (f: Foto) => void;
   onFotoDeleted: (id: number) => void;
   onBotschaftChange: (b: Botschaft | null) => void;
-}) {
+}>(function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onFotoAdded, onFotoDeleted, onBotschaftChange }, ref) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [fotoMsg, setFotoMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -748,6 +758,17 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
     saveTimer.current = setTimeout(save, 1500);
   }, [save]);
 
+  const flushSave = useCallback(async () => {
+    if (saveTimer.current) { clearTimeout(saveTimer.current); saveTimer.current = null; }
+    await save();
+  }, [save]);
+
+  useImperativeHandle(ref, () => ({ flush: flushSave }), [flushSave]);
+
+  useEffect(() => {
+    return () => { if (saveTimer.current) { clearTimeout(saveTimer.current); void save(); } };
+  }, [save]);
+
   const uploadFoto = async (slot: "profil-frueher" | "profil-heute", file: File, jahr?: number) => {
     setFotoMsg({ text: "Foto wird hochgeladen …", ok: true });
     try {
@@ -782,6 +803,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
         </label>
         <input type="text" value={local.anzeige_name ?? ""} maxLength={80}
           onChange={e => { update({ anzeige_name: e.target.value }); debouncedSave(); }}
+          onBlur={flushSave}
           style={{ display: "block", width: "100%", maxWidth: "360px", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "1rem", padding: "0.65rem 0.9rem", outline: "none", boxSizing: "border-box" }} />
       </div>
 
@@ -791,6 +813,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
         </label>
         <textarea value={local.vorstellung ?? ""} maxLength={500} rows={3}
           onChange={e => { update({ vorstellung: e.target.value }); debouncedSave(); }}
+          onBlur={flushSave}
           placeholder="Wer bist du? Was magst du? Was bringst du mit?"
           style={{ display: "block", width: "100%", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.95rem", padding: "0.65rem 0.9rem", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
       </div>
@@ -801,6 +824,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
         </label>
         <input type="text" value={local.jahr_1985 ?? ""} maxLength={200}
           onChange={e => { update({ jahr_1985: e.target.value }); debouncedSave(); }}
+          onBlur={flushSave}
           placeholder="z.B. ich war 12 und hörte Nena auf Kassette …"
           style={{ display: "block", width: "100%", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.95rem", padding: "0.65rem 0.9rem", outline: "none", boxSizing: "border-box" }} />
       </div>
@@ -811,6 +835,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
         </label>
         <input type="text" value={local.lauter_song ?? ""} maxLength={200}
           onChange={e => { update({ lauter_song: e.target.value }); debouncedSave(); }}
+          onBlur={flushSave}
           placeholder="Titel – Interpret"
           style={{ display: "block", width: "100%", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.95rem", padding: "0.65rem 0.9rem", outline: "none", boxSizing: "border-box" }} />
       </div>
@@ -889,7 +914,7 @@ function MeinSteckbrief({ token, profile, fotos, botschaft, onProfileChange, onF
       </div>
     </div>
   );
-}
+});
 
 // ─── Das Band ─────────────────────────────────────────────────────────────────
 
@@ -1123,9 +1148,15 @@ function ProfilOverlay({ token, profile, fotos, botschaft, onClose, onProfileCha
   onFotoDeleted: (id: number) => void;
   onBotschaftChange: (b: Botschaft | null) => void;
 }) {
+  const steckbriefRef = useRef<MeinSteckbriefHandle>(null);
+  const handleClose = useCallback(async () => {
+    await steckbriefRef.current?.flush();
+    onClose();
+  }, [onClose]);
+
   return (
     <div
-      onClick={onClose}
+      onClick={handleClose}
       style={{ position: "fixed", inset: 0, zIndex: 8000, background: "rgba(10,7,4,0.88)", overflowY: "auto" }}
     >
       <div
@@ -1145,12 +1176,13 @@ function ProfilOverlay({ token, profile, fotos, botschaft, onClose, onProfileCha
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             style={{ background: "transparent", border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: fg(0.55), fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem", cursor: "pointer" }}>
             Schließen
           </button>
         </div>
         <MeinSteckbrief
+          ref={steckbriefRef}
           token={token}
           profile={profile}
           fotos={fotos}
