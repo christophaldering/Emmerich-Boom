@@ -114,7 +114,7 @@ function NamenseingabeDialog({ personName, onConfirm }: { personName: string; on
           Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
         </p>
         <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "1.5rem" }}>
-          Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+          Damit das ein bisschen leichter wird, kommt hier eine Idee: die digitale Theke.
         </p>
         <p style={{ fontFamily: "'Lora', serif", fontSize: "1.05rem", lineHeight: 1.75, color: fg(0.85), marginBottom: "1.5rem" }}>
           Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")

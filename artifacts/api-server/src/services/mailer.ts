@@ -698,7 +698,7 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+      Damit das ein bisschen leichter wird, kommt hier eine Idee: die digitale Theke.
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
@@ -742,7 +742,7 @@ export async function sendThekeEinladung(opts: ThekeEinladungMailOptions): Promi
 
 Über 250 Boomer wollen am 18. Juli mitfeiern. Über 250! Da steht man dann am Bölt, schaut sich um – und fragt sich unweigerlich: Wer kommt eigentlich alles? Wen kenne ich? Und wen erkenne ich nach all den Jahren überhaupt noch wieder?
 
-Damit das ein bisschen leichter wird, kommt hier eine Idee aus dem Orga-Team: die digitale Theke.
+Damit das ein bisschen leichter wird, kommt hier eine Idee: die digitale Theke.
 
 Dort kann jede und jeder ein kleines Kurzprofil hinterlegen – ein Foto von früher, ein Foto von heute, ein paar Zeilen zu sich. So sieht man schon vorab, wer da ist, frischt das Gedächtnis auf und hat am Abend gleich Gesprächsstoff. ("Mensch, das bist DU?")
 
