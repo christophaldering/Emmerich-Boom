@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { db, anmeldungenTable, anmeldungTicketsTable, thekeProfileTable, thekeBotschaftenTable, thekeFotosTable, thekeEinladungenTable } from "@workspace/db";
+import { db, anmeldungenTable, anmeldungTicketsTable, thekeProfileTable, thekeBotschaftenTable, thekeFotosTable, thekeEinladungenTable, thekeVerteilerTable } from "@workspace/db";
 import { eq, ne, desc, isNull, sql, and } from "drizzle-orm";
 import { sendThekeEinladung } from "../services/mailer.js";
 import { SERVER_CONFIG } from "../config.js";
@@ -296,6 +296,69 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
   } catch (err) {
     req.log.error(err, "theke-admin/einladung/senden failed");
     res.status(500).json({ error: "Versand fehlgeschlagen" });
+  }
+});
+
+// ─── GET /api/theke-admin/einwilligungen ──────────────────────────────────────
+router.get("/theke-admin/einwilligungen", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  try {
+    const rows = await db
+      .select({
+        name:                    anmeldungTicketsTable.person_name,
+        ticket_nummer:           anmeldungTicketsTable.ticket_nummer,
+        anmeldung_ticket_id:     thekeProfileTable.anmeldung_ticket_id,
+        sichtbarkeit_zugestimmt_am: thekeProfileTable.sichtbarkeit_zugestimmt_am,
+        abendfotos_ok:           thekeProfileTable.abendfotos_ok,
+        abendfotos_zugestimmt_am: thekeProfileTable.abendfotos_zugestimmt_am,
+        tafel_ok:                thekeProfileTable.tafel_ok,
+        tafel_zugestimmt_am:     thekeProfileTable.tafel_zugestimmt_am,
+      })
+      .from(thekeProfileTable)
+      .innerJoin(anmeldungTicketsTable, eq(thekeProfileTable.anmeldung_ticket_id, anmeldungTicketsTable.id))
+      .where(ne(anmeldungTicketsTable.ticket_code, SERVER_CONFIG.THEKE_DEMO_CODE))
+      .orderBy(anmeldungTicketsTable.person_name);
+
+    const verteilerRows = await db
+      .select({
+        anmeldung_ticket_id: thekeVerteilerTable.anmeldung_ticket_id,
+        email:               thekeVerteilerTable.email,
+        einwilligung_am:     thekeVerteilerTable.einwilligung_am,
+        abgemeldet_am:       thekeVerteilerTable.abgemeldet_am,
+      })
+      .from(thekeVerteilerTable);
+
+    const verteilerMap = new Map<number, typeof verteilerRows[0]>();
+    for (const v of verteilerRows) {
+      if (v.anmeldung_ticket_id == null) continue;
+      const existing = verteilerMap.get(v.anmeldung_ticket_id);
+      if (!existing || (!v.abgemeldet_am && existing.abgemeldet_am)) {
+        verteilerMap.set(v.anmeldung_ticket_id, v);
+      }
+    }
+
+    const result = rows.map(r => {
+      const v = verteilerMap.get(r.anmeldung_ticket_id);
+      return {
+        name:               r.name,
+        ticket_nummer:      r.ticket_nummer,
+        sichtbarkeit_ok:    !!r.sichtbarkeit_zugestimmt_am,
+        sichtbarkeit_am:    r.sichtbarkeit_zugestimmt_am,
+        infos_email:        v?.email ?? null,
+        infos_ok:           !!v && !v.abgemeldet_am,
+        infos_am:           v?.einwilligung_am ?? null,
+        infos_abgemeldet_am: v?.abgemeldet_am ?? null,
+        abendfotos_ok:      r.abendfotos_ok,
+        abendfotos_am:      r.abendfotos_zugestimmt_am,
+        tafel_ok:           r.tafel_ok,
+        tafel_am:           r.tafel_zugestimmt_am,
+      };
+    });
+
+    res.json(result);
+  } catch (err) {
+    req.log.error(err, "theke-admin/einwilligungen failed");
+    res.status(500).json({ error: "Fehler beim Laden" });
   }
 });
 

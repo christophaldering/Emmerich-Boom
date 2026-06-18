@@ -1458,16 +1458,24 @@ function ThekeAdminSection() {
   const [bulkSending, setBulkSending] = useState(false);
   const [singleSending, setSingleSending] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const [subTab, setSubTab] = useState<"uebersicht" | "einladungen">("uebersicht");
+  const [subTab, setSubTab] = useState<"uebersicht" | "einladungen" | "einwilligungen">("uebersicht");
+  const [einwilligungen, setEinwilligungen] = useState<{
+    name: string; ticket_nummer: string;
+    sichtbarkeit_ok: boolean; sichtbarkeit_am: string | null;
+    infos_email: string | null; infos_ok: boolean; infos_am: string | null; infos_abgemeldet_am: string | null;
+    abendfotos_ok: boolean; abendfotos_am: string | null;
+    tafel_ok: boolean; tafel_am: string | null;
+  }[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const reload = async () => {
     setLoading(true); setError("");
     try {
-      const [r1, r2] = await Promise.all([
+      const [r1, r2, r3] = await Promise.all([
         fetch(`${BASE}/api/theke-admin/uebersicht`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
         fetch(`${BASE}/api/theke-admin/einladungen`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
+        fetch(`${BASE}/api/theke-admin/einwilligungen`, { headers: { "x-admin-secret": "emmerich-orga-stats-2026" } }),
       ]);
       if (r1.ok) {
         const d = await r1.json() as { demo_code: string; tickets: ThekeUebersichtEntry[] };
@@ -1475,6 +1483,7 @@ function ThekeAdminSection() {
         setDemoCode(d.demo_code ?? "");
       }
       if (r2.ok) setTargets(await r2.json() as ThekeEinladungTarget[]);
+      if (r3.ok) setEinwilligungen(await r3.json());
     } catch { setError("Ladefehler"); }
     setLoading(false);
   };
@@ -1584,10 +1593,10 @@ function ThekeAdminSection() {
           })()}
 
           <div style={{ display: "flex", gap: "0", borderBottom: `1px solid ${am(0.2)}`, marginBottom: "1.5rem" }}>
-            {(["uebersicht", "einladungen"] as const).map(t => (
+            {(["uebersicht", "einladungen", "einwilligungen"] as const).map(t => (
               <button key={t} onClick={() => setSubTab(t)}
                 style={{ background: "transparent", border: "none", borderBottom: subTab === t ? `2px solid ${A}` : "2px solid transparent", color: subTab === t ? A : fg(0.5), fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", padding: "0.55rem 1.1rem 0.5rem", marginBottom: "-1px", cursor: "pointer" }}>
-                {t === "uebersicht" ? "Profile" : "Einladungen"}
+                {t === "uebersicht" ? "Profile" : t === "einladungen" ? "Einladungen" : "Einwilligungen"}
               </button>
             ))}
           </div>
@@ -1741,6 +1750,90 @@ function ThekeAdminSection() {
               </div>
             </div>
           )}
+
+          {subTab === "einwilligungen" && (() => {
+            const csvDate = (s: string | null) => s
+              ? new Date(s).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).replace(", ", " ")
+              : "";
+            const ja = (b: boolean) => b ? "✓" : "–";
+            const downloadCSV = () => {
+              const header = ["Name", "Ticket", "Sichtbarkeit", "Sichtbarkeit am", "Infos-Mail", "Infos ok", "Infos am", "Infos abgemeldet am", "Fotos Abend", "Fotos am", "Begrüßungstafel", "Tafel am"];
+              const rows = einwilligungen.map(e => [
+                e.name ?? "",
+                e.ticket_nummer ?? "",
+                e.sichtbarkeit_ok ? "ja" : "nein",
+                csvDate(e.sichtbarkeit_am),
+                e.infos_email ?? "",
+                e.infos_ok ? "ja" : "nein",
+                csvDate(e.infos_am),
+                csvDate(e.infos_abgemeldet_am),
+                e.abendfotos_ok ? "ja" : "nein",
+                csvDate(e.abendfotos_am),
+                e.tafel_ok ? "ja" : "nein",
+                csvDate(e.tafel_am),
+              ]);
+              const csv = "\uFEFF" + [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\r\n");
+              const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "einwilligungen.csv"; a.click();
+              URL.revokeObjectURL(url);
+            };
+            const sichtOk = einwilligungen.filter(e => e.sichtbarkeit_ok).length;
+            const infosOk = einwilligungen.filter(e => e.infos_ok).length;
+            const fotosOk = einwilligungen.filter(e => e.abendfotos_ok).length;
+            const tafelOk = einwilligungen.filter(e => e.tafel_ok).length;
+            return (
+              <div>
+                <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", marginBottom: "1.25rem", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                    {[
+                      ["Sichtbar", sichtOk],
+                      ["Infos-Mail", infosOk],
+                      ["Abendfotos", fotosOk],
+                      ["Tafel", tafelOk],
+                    ].map(([label, n]) => (
+                      <span key={label as string} style={{ background: am(0.12), borderRadius: "4px", padding: "0.3rem 0.7rem", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.7) }}>
+                        <span style={{ color: A, fontWeight: 700 }}>{n as number}</span> {label}
+                      </span>
+                    ))}
+                  </div>
+                  <button onClick={downloadCSV} style={{ marginLeft: "auto", background: "transparent", border: `1px solid ${A}`, borderRadius: "4px", color: A, fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.35rem 0.9rem", cursor: "pointer" }}>
+                    ↓ CSV
+                  </button>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${am(0.25)}` }}>
+                        {["Name", "Ticket", "Sichtbar", "Sichtbar am", "Infos-Mail", "Infos", "Infos am", "Abgemeldet am", "Abendfotos", "Fotos am", "Tafel", "Tafel am"].map(h => (
+                          <th key={h} style={{ padding: "0.4rem 0.6rem", textAlign: "left", color: am(0.65), fontFamily: "'Lora', serif", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {einwilligungen.map((e, i) => (
+                        <tr key={i} style={{ borderBottom: `1px solid ${am(0.1)}`, background: i % 2 === 0 ? am(0.04) : "transparent" }}>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.85), whiteSpace: "nowrap" }}>{e.name}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.5), fontFamily: "monospace", fontSize: "0.75rem" }}>{e.ticket_nummer}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", textAlign: "center", color: e.sichtbarkeit_ok ? "#2ecc71" : fg(0.3) }}>{ja(e.sichtbarkeit_ok)}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.5), whiteSpace: "nowrap", fontSize: "0.75rem" }}>{csvDate(e.sichtbarkeit_am) || "–"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.6), fontSize: "0.75rem", wordBreak: "break-all", maxWidth: "180px" }}>{e.infos_email ?? "–"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", textAlign: "center", color: e.infos_ok ? "#2ecc71" : fg(0.3) }}>{ja(e.infos_ok)}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.5), whiteSpace: "nowrap", fontSize: "0.75rem" }}>{csvDate(e.infos_am) || "–"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: e.infos_abgemeldet_am ? "#e05a3a" : fg(0.3), whiteSpace: "nowrap", fontSize: "0.75rem" }}>{csvDate(e.infos_abgemeldet_am) || "–"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", textAlign: "center", color: e.abendfotos_ok ? "#2ecc71" : fg(0.3) }}>{ja(e.abendfotos_ok)}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.5), whiteSpace: "nowrap", fontSize: "0.75rem" }}>{csvDate(e.abendfotos_am) || "–"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", textAlign: "center", color: e.tafel_ok ? "#2ecc71" : fg(0.3) }}>{ja(e.tafel_ok)}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", color: fg(0.5), whiteSpace: "nowrap", fontSize: "0.75rem" }}>{csvDate(e.tafel_am) || "–"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {einwilligungen.length === 0 && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", color: fg(0.4), marginTop: "1rem" }}>Noch keine Profile.</p>}
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>

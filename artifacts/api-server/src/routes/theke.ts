@@ -227,6 +227,8 @@ router.post("/theke/einwilligung", async (req: Request, res: Response) => {
   }
   if (body.c !== undefined) {
     updates.abendfotos_ok = body.c;
+    if (body.c === true && !profile.abendfotos_zugestimmt_am) updates.abendfotos_zugestimmt_am = now;
+    if (body.c === false) updates.abendfotos_zugestimmt_am = null;
   }
   if (body.d !== undefined) {
     updates.tafel_ok = body.d;
