@@ -13,5 +13,4 @@ export const PHASE2_CONFIG = {
   KONTAKT_MAIL: "boomerparty26@emmerich-boomt.de",
   MAX_PERSONEN_PRO_ANMELDUNG: 6,
 
-  LETZTE_AENDERUNG: "16. Mai 2026",
 };

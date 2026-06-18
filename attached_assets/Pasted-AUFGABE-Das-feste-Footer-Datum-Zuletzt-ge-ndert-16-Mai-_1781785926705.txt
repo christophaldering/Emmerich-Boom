@@ -1,0 +1,70 @@
+AUFGABE
+Das feste Footer-Datum „Zuletzt geändert: 16. Mai 2026" durch einen automatisch beim Build
+gesetzten Zeitstempel (Datum + Uhrzeit) plus Versionsnummer ersetzen. Jeder Relaunch/Build
+soll den Wert frisch schreiben. Zusätzlich denselben Build-Stempel klein im Admin-Bereich
+anzeigen.
+
+TEIL 1 — Vite: Build-Zeit + Version injizieren
+DATEI: artifacts/emmerich/vite.config.ts
+- Vor dem export default zwei Werte berechnen:
+    const BUILD_TIME = new Date().toISOString();
+    Versionsstring: per try/catch `git rev-parse --short HEAD` (node:child_process execSync)
+      ermitteln; schlägt das fehl, einen Zeitstempel-basierten Code als Fallback verwenden
+      (z. B. aus BUILD_TIME abgeleitetes „vJJJJ.MM.TT-HHMM" in Europe/Berlin via
+      toLocaleString("sv-SE", { timeZone: "Europe/Berlin" })).
+- In defineConfig ein "define"-Feld ergänzen:
+    define: {
+      __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+      __BUILD_VERSION__: JSON.stringify(version),
+    }
+- Sonst nichts an der Vite-Config ändern (Plugins/Resolve/Server unverändert).
+
+TEIL 2 — TypeScript-Deklaration der globalen Konstanten
+DATEI: artifacts/emmerich/src/vite-env.d.ts (falls vorhanden, sonst neu anlegen)
+- Ergänzen:
+    declare const __BUILD_TIME__: string;
+    declare const __BUILD_VERSION__: string;
+
+TEIL 3 — Build-Info-Modul
+NEUE DATEI: artifacts/emmerich/src/buildInfo.ts
+- Exportiert:
+    export const BUILD_VERSION = __BUILD_VERSION__;
+    export const BUILD_TIME_DE = new Date(__BUILD_TIME__).toLocaleString("de-DE", {
+      timeZone: "Europe/Berlin", day:"2-digit", month:"2-digit", year:"numeric",
+      hour:"2-digit", minute:"2-digit",
+    }) + " Uhr";
+
+TEIL 4 — Footer umstellen
+DATEI: artifacts/emmerich/src/components/SiteFooter.tsx
+- Die Zeile „Zuletzt geändert: {PHASE2_CONFIG.LETZTE_AENDERUNG}" ersetzen durch:
+    Zuletzt aktualisiert: {BUILD_TIME_DE} · {BUILD_VERSION}
+  (BUILD_TIME_DE und BUILD_VERSION aus "../buildInfo" importieren; Styling der Zeile unverändert.)
+DATEI: artifacts/emmerich/src/config/phase2.ts
+- LETZTE_AENDERUNG entfernen, sofern es nirgends sonst verwendet wird (sonst nur die
+  Footer-Nutzung ersetzen und den Wert stehen lassen). Den ggf. unnötig gewordenen
+  PHASE2_CONFIG-Import in SiteFooter aufräumen.
+
+TEIL 5 — Admin-Build-Stempel
+DATEI: artifacts/emmerich/src/pages/AdminPage.tsx
+- Klein und dezent (z. B. unten im Admin-Bereich, gleicher unaufdringlicher Stil) anzeigen:
+    Build: {BUILD_TIME_DE} · {BUILD_VERSION}
+  (aus "../buildInfo" bzw. korrektem relativen Pfad importieren.)
+
+VERBOTEN
+- KEINE Änderung an den Datumsangaben/„Stand" in Impressum oder Datenschutz (Legal.tsx,
+  LegalPhase2.tsx) — die bleiben manuell gepflegt.
+- KEINE weiteren Design-/Layout-Änderungen außer den genannten Textzeilen.
+- KEINE Änderung an Plugins, Server- oder Build-Pfaden der Vite-Config.
+
+CHECKLISTE
+[ ] vite.config.ts injiziert __BUILD_TIME__ und __BUILD_VERSION__ via define.
+[ ] Globale Konstanten sind in einer .d.ts deklariert; Typecheck läuft.
+[ ] buildInfo.ts liefert deutsches Datum+Uhrzeit (Europe/Berlin) und die Version.
+[ ] Footer zeigt „Zuletzt aktualisiert: …, … Uhr · v…" statt des festen Datums.
+[ ] Admin zeigt denselben Build-Stempel.
+[ ] Impressum/Datenschutz-Datum unverändert; Build sauber.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+1. Dateipfade: artifacts/emmerich/vite.config.ts, artifacts/emmerich/src/vite-env.d.ts, artifacts/emmerich/src/buildInfo.ts, artifacts/emmerich/src/components/SiteFooter.tsx, artifacts/emmerich/src/config/phase2.ts, artifacts/emmerich/src/pages/AdminPage.tsx
+2. „Build-Zeitstempel + Version automatisch beim Build gesetzt, in Footer und Admin angezeigt; Impressum/Datenschutz unberührt; sonst nichts."
+3. Falls eine Stelle nicht eindeutig war (z. B. keine vite-env.d.ts vorhanden): STOPP, nichts ändern, zurückfragen.

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo, Fragment } from "react";
+import { BUILD_TIME_DE, BUILD_VERSION } from "../buildInfo";
 import { createPortal } from "react-dom";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -3219,6 +3220,10 @@ export default function AdminPage() {
           )}
         </>
       )}
+
+      <p style={{ fontFamily: "'Lora', serif", fontSize: "10px", color: "rgba(245,232,200,0.25)", textAlign: "right", marginTop: "2rem", padding: "0 0.5rem 0.5rem" }}>
+        Build: {BUILD_TIME_DE} · {BUILD_VERSION}
+      </p>
     </div>
   );
 }

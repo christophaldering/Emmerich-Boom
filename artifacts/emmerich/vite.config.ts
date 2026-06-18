@@ -3,6 +3,18 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { execSync } from "node:child_process";
+
+const BUILD_TIME = new Date().toISOString();
+let version: string;
+try {
+  version = "v" + execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+} catch {
+  const digits = new Date(BUILD_TIME)
+    .toLocaleString("sv-SE", { timeZone: "Europe/Berlin" })
+    .replace(/[^0-9]/g, "");
+  version = `v${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}-${digits.slice(8, 12)}`;
+}
 
 const rawPort = process.env.PORT;
 
@@ -28,6 +40,10 @@ if (!basePath) {
 
 export default defineConfig({
   base: basePath,
+  define: {
+    __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+    __BUILD_VERSION__: JSON.stringify(version),
+  },
   plugins: [
     react(),
     tailwindcss(),

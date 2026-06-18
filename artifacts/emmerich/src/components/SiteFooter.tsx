@@ -1,4 +1,4 @@
-import { PHASE2_CONFIG } from "@/config/phase2";
+import { BUILD_TIME_DE, BUILD_VERSION } from "../buildInfo";
 
 export default function SiteFooter() {
   return (
@@ -219,7 +219,7 @@ export default function SiteFooter() {
           color: "rgba(245,232,200,0.4)",
           margin: 0,
         }}>
-          Zuletzt geändert: {PHASE2_CONFIG.LETZTE_AENDERUNG}
+          Zuletzt aktualisiert: {BUILD_TIME_DE} · {BUILD_VERSION}
         </p>
       </div>
     </>
