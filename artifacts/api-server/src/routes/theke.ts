@@ -628,11 +628,21 @@ router.get("/theke/mein-profil", async (req: Request, res: Response) => {
     .where(eq(thekeBotschaftenTable.anmeldung_ticket_id, ticket.id))
     .limit(1);
 
+  const [verteilerRow] = await db
+    .select({ email: thekeVerteilerTable.email })
+    .from(thekeVerteilerTable)
+    .where(and(
+      eq(thekeVerteilerTable.anmeldung_ticket_id, ticket.id),
+      isNull(thekeVerteilerTable.abgemeldet_am),
+    ))
+    .limit(1);
+
   res.json({
     ticket: { id: ticket.id, person_name: ticket.person_name, ticket_nummer: ticket.ticket_nummer },
     profile,
     fotos,
     botschaft: botschaft[0] ?? null,
+    verteiler: verteilerRow ? { email: verteilerRow.email, opted_in: true } : null,
   });
 });
 

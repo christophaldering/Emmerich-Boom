@@ -604,6 +604,9 @@ const EinwilligungsBlock = forwardRef<EinwilligungsRef, { token: string; profile
   const [c, setC] = useState(profile.abendfotos_ok);
   const [d, setD] = useState(profile.tafel_ok ?? false);
 
+  useEffect(() => { setA(!!profile.sichtbarkeit_zugestimmt_am); setC(profile.abendfotos_ok); setD(profile.tafel_ok ?? false); }, [profile]);
+  useEffect(() => { setB(!!verteiler?.opted_in); setBEmail(verteiler?.email ?? ""); }, [verteiler]);
+
   const saveEinwilligungen = async () => {
     try {
       const res = await fetch(`/api/theke/einwilligung`, {
@@ -1377,10 +1380,11 @@ export default function ThekePage() {
   const loadMeinProfil = async (code: string) => {
     try {
       const res = await fetch(`/api/theke/mein-profil`, { headers: { "x-theke-token": code } });
-      const data = await res.json() as { profile: Profile; fotos: Foto[]; botschaft: Botschaft | null };
+      const data = await res.json() as { profile: Profile; fotos: Foto[]; botschaft: Botschaft | null; verteiler: VerteilerInfo };
       setProfile(data.profile);
       setFotos(data.fotos);
       setBotschaft(data.botschaft);
+      setVerteiler(data.verteiler ?? null);
     } catch { }
   };
 

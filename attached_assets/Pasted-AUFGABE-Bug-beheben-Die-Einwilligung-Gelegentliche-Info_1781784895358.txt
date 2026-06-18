@@ -1,0 +1,38 @@
+AUFGABE
+Bug beheben: Die Einwilligung „Gelegentliche Infos" (E-Mail) und die übrigen Häkchen
+bleiben nach dem Öffnen des Steckbriefs nicht erhalten. Grund: Der Verteiler-Status wird
+beim Nachladen nicht mitgeliefert, und die Häkchen werden nur beim ersten Aufbau gesetzt.
+
+TEIL 1 — Backend: Verteiler in mein-profil mitliefern
+DATEI: artifacts/api-server/src/routes/theke.ts
+- Im Endpoint GET /theke/mein-profil VOR dem abschließenden res.json den Verteiler-Eintrag
+  laden — GENAU wie im Endpoint /theke/auth (Verteiler-Zeile mit abgemeldet_am IS NULL).
+- Das res.json um folgendes Feld ergänzen:
+    verteiler: verteilerRow ? { email: verteilerRow.email, opted_in: true } : null
+- Sonst nichts an diesem Endpoint ändern.
+
+TEIL 2 — Frontend: Verteiler beim Nachladen setzen + Häkchen aus Props synchronisieren
+DATEI: artifacts/emmerich/src/pages/ThekePage.tsx
+a) In der Funktion loadMeinProfil den Antwort-Typ um "verteiler" erweitern und nach dem
+   Setzen von profile/fotos/botschaft zusätzlich setVerteiler(data.verteiler ?? null) aufrufen.
+b) In der Komponente EinwilligungsBlock zwei useEffect-Hooks ergänzen, die die lokalen
+   Zustände aus den aktuellen Props nachziehen (damit sie nicht nur beim Erst-Aufbau gelten):
+     useEffect(() => { setA(!!profile.sichtbarkeit_zugestimmt_am); setC(profile.abendfotos_ok); setD(profile.tafel_ok ?? false); }, [profile]);
+     useEffect(() => { setB(!!verteiler?.opted_in); setBEmail(verteiler?.email ?? ""); }, [verteiler]);
+   (useEffect ggf. importieren.)
+
+VERBOTEN
+- KEINE Änderung an der Speicher-Logik (POST /theke/einwilligung) oder an anderen Endpunkten/Tabs.
+- KEINE Änderung am Verhalten beim aktiven Tippen außer dem Nachziehen aus den Props.
+- KEINE Design-Änderung.
+
+CHECKLISTE
+[ ] GET /theke/mein-profil liefert jetzt das Feld "verteiler" wie /theke/auth.
+[ ] loadMeinProfil setzt den Verteiler-Status.
+[ ] EinwilligungsBlock zieht a/b/c/d/bEmail aus profile+verteiler nach.
+[ ] Nach Neuladen sind E-Mail und Häkchen vorbelegt; „Alles speichern" meldet niemanden mehr versehentlich ab.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+1. Dateipfade: artifacts/api-server/src/routes/theke.ts, artifacts/emmerich/src/pages/ThekePage.tsx
+2. „Verteiler in mein-profil ergänzt; Häkchen werden aus Props synchronisiert; sonst nichts."
+3. Falls eine Stelle nicht eindeutig war: STOPP, nichts ändern, zurückfragen.

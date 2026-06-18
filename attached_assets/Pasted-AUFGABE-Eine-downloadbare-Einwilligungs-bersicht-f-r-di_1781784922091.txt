@@ -1,0 +1,55 @@
+AUFGABE
+Eine downloadbare Einwilligungs-Übersicht für die Orga: alle Einwilligungen je Person mit
+Zeitstempeln, als Tabelle im Admin-Theke-Tab plus CSV-Download. Zusätzlich für „Fotos vom
+Abend" einen Zeitstempel einführen, damit der Nachweis vollständig ist.
+
+TEIL 1 — Schema: Zeitstempel für „Fotos vom Abend"
+DATEI: lib/db/src/schema/theke_profile.ts
+- Neues Feld "abendfotos_zugestimmt_am" (timestamp, nullable) ergänzen — analog zu
+  tafel_zugestimmt_am. Danach Schema pushen.
+DATEI: artifacts/api-server/src/routes/theke.ts (POST /theke/einwilligung)
+- Im Block für body.c: wenn c===true und noch kein abendfotos_zugestimmt_am → jetzt setzen;
+  wenn c===false → auf null setzen. (Genau wie es für tafel/d gemacht wird.)
+
+TEIL 2 — Backend: Admin-Endpoint für die Übersicht
+DATEI: artifacts/api-server/src/routes/theke-admin.ts
+- Neuer Endpoint GET /theke-admin/einwilligungen mit DEMSELBEN Secret-Check wie die anderen
+  /theke-admin-Endpunkte in dieser Datei.
+- Join: theke_profile + anmeldung_tickets (person_name) + LEFT JOIN theke_verteiler
+  (auf anmeldung_ticket_id). Den Demo-/Orga-Zugang (THEKE_DEMO_CODE) ausschließen.
+- Pro Person ein Objekt zurückgeben:
+    name, ticket_nummer,
+    sichtbarkeit_ok (bool), sichtbarkeit_am,
+    infos_email (string|null), infos_ok (bool = Verteiler-Zeile vorhanden UND abgemeldet_am IS NULL),
+    infos_am (einwilligung_am), infos_abgemeldet_am,
+    abendfotos_ok (bool), abendfotos_am,
+    tafel_ok (bool), tafel_am
+- Sortiert nach name.
+
+TEIL 3 — Frontend: Liste + CSV-Download im Theke-Tab
+DATEI: artifacts/emmerich/src/pages/AdminPage.tsx (nur der Theke-Tab)
+- Im Theke-Tab einen Abschnitt „Einwilligungen" ergänzen (gleicher Stil wie der restliche
+  Admin-Bereich). Beim Öffnen die Daten von GET /theke-admin/einwilligungen laden
+  (mit x-admin-secret: SECRET, BASE wie die anderen Theke-Admin-Calls).
+- Eine Tabelle rendern: Name · Sichtbarkeit (✓ + Datum) · Infos-Mail (E-Mail + Datum, bzw.
+  „abgemeldet am …") · Fotos vom Abend (✓ + Datum) · Begrüßungstafel (✓ + Datum).
+- Button „CSV herunterladen": baut die CSV clientseitig (Semikolon-getrennt, UTF-8 mit BOM,
+  damit Excel-DE die Umlaute korrekt zeigt) und lädt sie per Blob herunter
+  (Dateiname z.B. einwilligungen-emmerich-boomt.csv). Datumsangaben im Format TT.MM.JJJJ HH:MM.
+
+VERBOTEN
+- KEINE Änderung an anderen Tabs oder Endpunkten.
+- KEINE personenbezogenen Felder über die genannten hinaus ausgeben.
+- KEINE Design-Abweichung; gleiche Fonts/Farben/inline-styles.
+
+CHECKLISTE
+[ ] abendfotos_zugestimmt_am existiert und wird beim Speichern gesetzt/zurückgesetzt.
+[ ] GET /theke-admin/einwilligungen liefert je Person alle vier Einwilligungen mit Zeitstempeln.
+[ ] Im Theke-Tab erscheint die Einwilligungs-Tabelle.
+[ ] „CSV herunterladen" lädt eine Datei, die in Excel mit korrekten Umlauten öffnet.
+[ ] Andere Tabs/Logik unverändert; Build sauber.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+1. Dateipfade: lib/db/src/schema/theke_profile.ts, artifacts/api-server/src/routes/theke.ts, artifacts/api-server/src/routes/theke-admin.ts, artifacts/emmerich/src/pages/AdminPage.tsx
+2. „Einwilligungs-Übersicht + CSV-Download ergänzt, Zeitstempel für Abendfotos eingeführt; sonst nichts."
+3. Falls eine Stelle nicht eindeutig war: STOPP, nichts ändern, zurückfragen.
