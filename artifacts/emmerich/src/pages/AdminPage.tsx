@@ -1760,6 +1760,12 @@ export default function AdminPage() {
   const [sortCol, setSortCol]           = useState<"id" | "betrag" | "personen" | "created" | "bezahlt">("id");
   const [sortDir, setSortDir]           = useState<"asc" | "desc">("asc");
   const [wartelisteCount, setWartelisteCount] = useState<number | null>(null);
+  const [wlName, setWlName]       = useState("");
+  const [wlEmail, setWlEmail]     = useState("");
+  const [wlAnzahl, setWlAnzahl]   = useState(1);
+  const [wlEditId, setWlEditId]   = useState<number | null>(null);
+  const [wlMsg, setWlMsg]         = useState<string | null>(null);
+  const [wlSaving, setWlSaving]   = useState(false);
   const [wartelisteEintraege, setWartelisteEintraege] = useState<{
     id: number;
     email: string;
@@ -1941,6 +1947,29 @@ export default function AdminPage() {
           .finally(() => { setWartelisteEinladen(null); });
       },
     });
+  };
+
+  const wlReset = () => { setWlName(""); setWlEmail(""); setWlAnzahl(1); setWlEditId(null); setWlMsg(null); };
+
+  const wlSave = async () => {
+    setWlSaving(true);
+    setWlMsg(null);
+    try {
+      const url = wlEditId != null
+        ? `${BASE}/api/admin/warteliste/${wlEditId}`
+        : `${BASE}/api/admin/warteliste`;
+      const method = wlEditId != null ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", "x-admin-secret": SECRET },
+        body: JSON.stringify({ name: wlName.trim(), email: wlEmail.trim(), anzahl_karten: wlAnzahl }),
+      });
+      if (res.status === 409) { setWlMsg("Diese E-Mail steht schon auf der Warteliste."); return; }
+      if (!res.ok) { setWlMsg("Hat nicht geklappt."); return; }
+      wlReset();
+      loadWarteliste();
+    } catch { setWlMsg("Hat nicht geklappt."); }
+    finally { setWlSaving(false); }
   };
 
   const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); loadWarteliste(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets, loadWarteliste]);
@@ -2945,6 +2974,40 @@ export default function AdminPage() {
             />
           </div>
 
+          {/* ── Anlegen / Bearbeiten-Formular ── */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem", alignItems: "flex-end", marginBottom: "1.25rem", padding: "0.9rem 1rem", background: am(0.04), border: `1px solid ${am(0.18)}`, borderRadius: "6px" }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: "1 1 140px" }}>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.74rem", color: fg(0.5), letterSpacing: "0.06em", textTransform: "uppercase" }}>Name</span>
+              <input value={wlName} onChange={e => setWlName(e.target.value)} placeholder="Name" disabled={wlSaving}
+                style={{ background: "rgba(245,232,200,0.05)", border: `1px solid ${am(0.28)}`, borderRadius: "3px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.35rem 0.6rem", outline: "none" }} />
+            </label>
+            <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: "2 1 200px" }}>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.74rem", color: fg(0.5), letterSpacing: "0.06em", textTransform: "uppercase" }}>E-Mail</span>
+              <input type="email" value={wlEmail} onChange={e => setWlEmail(e.target.value)} placeholder="E-Mail" disabled={wlSaving}
+                style={{ background: "rgba(245,232,200,0.05)", border: `1px solid ${am(0.28)}`, borderRadius: "3px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.35rem 0.6rem", outline: "none" }} />
+            </label>
+            <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: "0 0 80px" }}>
+              <span style={{ fontFamily: "'Lora', serif", fontSize: "0.74rem", color: fg(0.5), letterSpacing: "0.06em", textTransform: "uppercase" }}>Karten</span>
+              <select value={wlAnzahl} onChange={e => setWlAnzahl(Number(e.target.value))} disabled={wlSaving}
+                style={{ background: "#0A0704", border: `1px solid ${am(0.28)}`, borderRadius: "3px", color: FG, fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.35rem 0.5rem", outline: "none", cursor: "pointer" }}>
+                {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+            <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+              <button onClick={wlSave} disabled={wlSaving || !wlName.trim() || !wlEmail.trim()}
+                style={{ background: A, border: "none", borderRadius: "3px", color: "#0A0704", fontFamily: "'Lora', serif", fontSize: "0.82rem", fontWeight: 600, padding: "0.38rem 0.85rem", cursor: wlSaving ? "wait" : "pointer", opacity: (!wlName.trim() || !wlEmail.trim()) ? 0.55 : 1, whiteSpace: "nowrap" }}>
+                {wlSaving ? "…" : wlEditId != null ? "Änderungen speichern" : "Eintrag hinzufügen"}
+              </button>
+              {wlEditId != null && (
+                <button onClick={wlReset} disabled={wlSaving}
+                  style={{ background: "transparent", border: `1px solid ${fg(0.2)}`, borderRadius: "3px", color: fg(0.5), fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.38rem 0.7rem", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  Abbrechen
+                </button>
+              )}
+              {wlMsg && <span style={{ fontFamily: "'Lora', serif", fontSize: "0.8rem", color: fg(0.55), fontStyle: "italic" }}>{wlMsg}</span>}
+            </div>
+          </div>
+
           {wartelisteEintraege.length === 0 ? (
             <p style={{ color: fg(0.55), fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.92rem" }}>
               Noch niemand auf der Warteliste.
@@ -2990,6 +3053,13 @@ export default function AdminPage() {
                       <td style={{ padding: "0.55rem 0.75rem", fontSize: "0.83rem" }}>{statusLabel}</td>
                       <td style={{ padding: "0.55rem 0", whiteSpace: "nowrap" }}>
                         <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                          <button
+                            onClick={() => { setWlEditId(e.id); setWlName(e.name ?? ""); setWlEmail(e.email); setWlAnzahl(e.anzahl_karten ?? 1); setWlMsg(null); }}
+                            title="Eintrag bearbeiten"
+                            style={{ background: "transparent", border: `1px solid ${am(0.25)}`, borderRadius: "3px", color: am(0.7), padding: "0.2rem 0.55rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", cursor: "pointer" }}
+                          >
+                            Bearbeiten
+                          </button>
                           {canEinladen && (
                             <button
                               onClick={() => einladeWartelisteEntry(e.id, e.email)}
