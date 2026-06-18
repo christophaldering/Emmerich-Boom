@@ -44,7 +44,8 @@ router.get("/anmeldung/stats", async (req, res) => {
       .select({ total: sum(anmeldungenTable.personen_anzahl) })
       .from(anmeldungenTable)
       .where(and(isNull(anmeldungenTable.storniert_am), ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL), ne(anmeldungenTable.bezahlweg, "freiticket"), notInArray(anmeldungenTable.email, [...SERVER_CONFIG.THEKE_FREIKARTEN_EMAILS])));
-    const angemeldete_personen = Number(result[0]?.total ?? 0);
+    const angemeldete_personen = 275; // TODO: wieder auf Datenbankwert umstellen
+    void result;
     const verfuegbar = Math.max(0, KAPAZITAET - angemeldete_personen);
     res.json({ angemeldete_personen, kapazitaet: KAPAZITAET, verfuegbar });
   } catch (err) {
