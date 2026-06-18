@@ -1,0 +1,54 @@
+AUFGABE
+In der Anmeldungstabelle (Tab „Anmeldungen") die bisher kombinierte Spalte
+„E-Mail / Namen" in VIER eigene, sortierbare Spalten aufteilen: E-Mail, Name, Telefon,
+Musikstück. Die übrigen Spalten und die gesamte Logik bleiben unverändert.
+
+DATEI
+artifacts/emmerich/src/pages/AdminPage.tsx (nur die Anmeldungstabelle + ihre Sortierung)
+
+DATENFELDER (existieren bereits in AnmeldungRow)
+- E-Mail        → row.email
+- Name          → row.personen  (string[]; bisher in der kombinierten Zelle dargestellt)
+- Telefon       → row.telefon (string | null)
+- Musikstück    → row.song (string | null)
+
+ZIEL-SPALTENREIHENFOLGE (Kopf UND Zeilen identisch):
+Checkbox · # · E-Mail · Name · Telefon · Musikstück · Pers. · Betrag · Weg · Angemeldet · Bezahlt · Tickets · (Aktionen)
+
+UMBAU
+1) Kopfzeile: Den einen <th> „E-Mail / Namen" ersetzen durch VIER <th>:
+   „E-Mail", „Name", „Telefon", „Musikstück" — alle vier sortierbar, im selben Muster wie
+   die bestehenden sortierbaren Spalten (sortable(col)/onSort(col)/ind(col)).
+2) Zeilen (Komponente AnmeldungTableRow): Die erste kombinierte <td>-Zelle in VIER <td>
+   aufteilen:
+   - E-Mail-Zelle: row.email (inkl. der bisherigen „storniert"-Durchstreichung).
+   - Name-Zelle: HIER die KOMPLETTE bisherige Namens-Darstellung samt Inline-Bearbeitung
+     (editierbare Namensfelder, Speichern-Button, editedNames, saveNamesMsg usw.) UNVERÄNDERT
+     hineinverschieben. Diese Funktion darf nicht verloren gehen.
+   - Telefon-Zelle: row.telefon (oder „—" wenn leer).
+   - Musikstück-Zelle: row.song (oder „—" wenn leer).
+3) Sortierung erweitern:
+   - sortCol-Typ-Union um "email" | "name" | "telefon" | "song" ergänzen.
+   - Im Vergleichs-Switch (cmp) Fälle ergänzen: für email/telefon/song per
+     localeCompare (klein geschrieben, leere/null-Werte als "" behandeln); für name über
+     row.personen.join(" ") ebenfalls per localeCompare.
+
+VERBOTEN
+- KEINE Änderung an anderen Tabs, an Daten/Endpunkten oder am Datenmodell.
+- KEINE Änderung an den Spalten Pers./Betrag/Weg/Angemeldet/Bezahlt/Tickets/Aktionen oder an der Checkbox.
+- Die Namens-Inline-Bearbeitung muss exakt wie bisher funktionieren (nur an neuer Stelle).
+- KEINE Design-Abweichung (gleiche Fonts/Farben/inline-styles, gleicher th/td-Stil).
+- Kopf und Zeilen müssen exakt gleich viele Spalten in gleicher Reihenfolge haben.
+
+CHECKLISTE
+[ ] E-Mail, Name, Telefon, Musikstück sind vier getrennte Spalten (Kopf + Zelle).
+[ ] Alle vier sind sortierbar (Klick auf den Kopf sortiert auf/ab, mit Indikator).
+[ ] Die bestehenden sortierbaren Spalten funktionieren weiterhin.
+[ ] Die Inline-Bearbeitung der Namen funktioniert unverändert in der Name-Spalte.
+[ ] Spaltenzahl Kopf = Zeilen; nichts verrutscht; andere Tabs unberührt; Build sauber.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende mit:
+1. Dateipfad: artifacts/emmerich/src/pages/AdminPage.tsx
+2. „E-Mail/Name/Telefon/Musikstück als eigene sortierbare Spalten; Namens-Bearbeitung erhalten; sonst nichts."
+3. Falls Kopfzeile oder Zeilen-Komponente nicht eindeutig auffindbar waren: STOPP, nichts ändern, zurückfragen.

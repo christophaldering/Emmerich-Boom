@@ -751,14 +751,15 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
         {String(row.id).padStart(3, "0")}
       </td>
 
-      {/* E-Mail + Namen */}
-      <td style={{ ...tdStyle, minWidth: "160px", textDecoration: storniert ? "line-through" : "none" }}>
-        <div style={{ color: storniert ? fg(0.45) : FG, marginBottom: "0.2rem" }}>{row.email}</div>
-        {row.telefon && (
-          <div style={{ color: fg(0.6), fontSize: "0.78rem", marginBottom: "0.15rem" }}>📞 {row.telefon}</div>
-        )}
+      {/* E-Mail */}
+      <td style={{ ...tdStyle, minWidth: "140px", textDecoration: storniert ? "line-through" : "none", color: storniert ? fg(0.45) : FG }}>
+        {row.email}
+      </td>
+
+      {/* Name (inkl. Inline-Bearbeitung) */}
+      <td style={{ ...tdStyle, minWidth: "140px" }}>
         {editNames ? (
-          <div style={{ marginTop: "0.2rem" }}>
+          <div>
             {versendet && (
               <div style={{ fontSize: "0.72rem", color: "#e8991a", marginBottom: "0.3rem", lineHeight: 1.35 }}>
                 ⚠ Ticket bereits versendet — nach dem Speichern bitte erneut versenden.
@@ -801,7 +802,7 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
           </div>
         ) : (
           <div style={{ display: "flex", alignItems: "baseline", gap: "0.3rem" }}>
-            <span style={{ color: fg(0.65), fontSize: "0.78rem" }}>{personen.join(", ")}</span>
+            <span style={{ color: storniert ? fg(0.45) : fg(0.65), fontSize: "0.78rem" }}>{personen.join(", ")}</span>
             {!storniert && (
               <button
                 onClick={startEditNames}
@@ -811,7 +812,16 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
             )}
           </div>
         )}
-        {row.song && <div style={{ color: fg(0.5), fontSize: "0.75rem", marginTop: "0.15rem" }}>♪ {row.song}</div>}
+      </td>
+
+      {/* Telefon */}
+      <td style={{ ...tdStyle, color: storniert ? fg(0.4) : fg(0.65), fontSize: "0.82rem" }}>
+        {row.telefon ?? "—"}
+      </td>
+
+      {/* Musikstück */}
+      <td style={{ ...tdStyle, color: storniert ? fg(0.4) : fg(0.55), fontSize: "0.78rem" }}>
+        {row.song ?? "—"}
       </td>
 
       {/* Personen */}
@@ -1757,7 +1767,7 @@ export default function AdminPage() {
   const [nameEdits, setNameEdits] = useState<Record<number, string>>({});
   const [nameSyncing, setNameSyncing] = useState(false);
   const [nameSavePending, setNameSavePending] = useState<number | null>(null);
-  const [sortCol, setSortCol]           = useState<"id" | "betrag" | "personen" | "created" | "bezahlt">("id");
+  const [sortCol, setSortCol]           = useState<"id" | "betrag" | "personen" | "created" | "bezahlt" | "email" | "name" | "telefon" | "song">("id");
   const [sortDir, setSortDir]           = useState<"asc" | "desc">("asc");
   const [wartelisteCount, setWartelisteCount] = useState<number | null>(null);
   const [wlName, setWlName]       = useState("");
@@ -2024,6 +2034,10 @@ export default function AdminPage() {
         case "created": {
           cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime(); break;
         }
+        case "email":   cmp = (a.email ?? "").toLowerCase().localeCompare((b.email ?? "").toLowerCase()); break;
+        case "name":    cmp = (a.personen ?? []).join(" ").toLowerCase().localeCompare((b.personen ?? []).join(" ").toLowerCase()); break;
+        case "telefon": cmp = (a.telefon ?? "").toLowerCase().localeCompare((b.telefon ?? "").toLowerCase()); break;
+        case "song":    cmp = (a.song ?? "").toLowerCase().localeCompare((b.song ?? "").toLowerCase()); break;
         default: cmp = a.id - b.id;
       }
       return sortDir === "asc" ? cmp : -cmp;
@@ -2385,7 +2399,10 @@ export default function AdminPage() {
                               />
                             </th>
                             <th style={sortable("id")} onClick={onSort("id")}>#{ ind("id") }</th>
-                            <th style={fixed}>E-Mail / Namen</th>
+                            <th style={sortable("email")} onClick={onSort("email")}>E-Mail{ind("email")}</th>
+                            <th style={sortable("name")} onClick={onSort("name")}>Name{ind("name")}</th>
+                            <th style={sortable("telefon")} onClick={onSort("telefon")}>Telefon{ind("telefon")}</th>
+                            <th style={sortable("song")} onClick={onSort("song")}>Musikstück{ind("song")}</th>
                             <th style={sortable("personen")} onClick={onSort("personen")}>Pers.{ind("personen")}</th>
                             <th style={sortable("betrag")} onClick={onSort("betrag")}>Betrag{ind("betrag")}</th>
                             <th style={fixed}>Weg</th>
