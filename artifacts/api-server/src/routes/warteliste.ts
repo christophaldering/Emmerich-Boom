@@ -1,17 +1,18 @@
 import { randomBytes } from "node:crypto";
 import { Router } from "express";
 import { z } from "zod";
-import { db, wartelisteTable, anmeldungenTable } from "@workspace/db";
-import { sum, isNull, eq } from "drizzle-orm";
+import { db, wartelisteTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 import { sendWartelisteBestaetigung, sendNachrueckerEinladung } from "../services/mailer.js";
 
 const router = Router();
 
-const KAPAZITAET = 275;
 const ADMIN_SECRET = process.env.ADMIN_SECRET ?? "emmerich-orga-stats-2026";
 
 const wartelisteSchema = z.object({
   email: z.string().email().max(300),
+  name: z.string().min(1).max(120),
+  anzahl_karten: z.number().int().min(1).max(6),
 });
 
 // ─── POST /warteliste — Eintragen ──────────────────────────────────────────
@@ -23,21 +24,10 @@ router.post("/warteliste", async (req, res) => {
     return;
   }
 
-  const { email } = parsed.data;
+  const { email, name, anzahl_karten } = parsed.data;
 
   try {
-    const countResult = await db
-      .select({ total: sum(anmeldungenTable.personen_anzahl) })
-      .from(anmeldungenTable)
-      .where(isNull(anmeldungenTable.storniert_am));
-    const angemeldete = Number(countResult[0]?.total ?? 0);
-
-    if (angemeldete < KAPAZITAET) {
-      res.status(400).json({ error: "Es sind noch Plätze verfügbar. Bitte direkt anmelden." });
-      return;
-    }
-
-    await db.insert(wartelisteTable).values({ email });
+    await db.insert(wartelisteTable).values({ email, name, anzahl_karten });
 
     res.status(201).json({ ok: true });
 
@@ -79,6 +69,8 @@ router.get("/admin/warteliste", async (req, res) => {
       .select({
         id:                        wartelisteTable.id,
         email:                     wartelisteTable.email,
+        name:                      wartelisteTable.name,
+        anzahl_karten:             wartelisteTable.anzahl_karten,
         created_at:                wartelisteTable.created_at,
         bestaetigung_versendet_am: wartelisteTable.bestaetigung_versendet_am,
         nachruecker_eingeladen_am: wartelisteTable.nachruecker_eingeladen_am,

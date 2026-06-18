@@ -1,0 +1,46 @@
+AUFGABE
+Auf der Anmeldeseite im „geschlossen"-Zustand ein echtes Warteliste-Formular anzeigen,
+statt nur Text + „Anmeldung öffnet in Kürze". Felder: Name, E-Mail, Anzahl gewünschter
+Karten. Sendet an das bestehende POST /api/warteliste.
+
+TEIL 1 — Neue Komponente
+DATEI (neu): artifacts/emmerich/src/components/Wartelisteformular.tsx
+Baue ein in sich geschlossenes Formular im Stil der Seite (schwarzer Hintergrund #0A0704,
+Amber-Akzent #E8991A, warmer Text #F5E8C8, Schriften Playfair Display für Überschrift /
+Lora für Text, inline styles — KEIN Tailwind-Farbutility, KEIN Banner). Orientiere dich
+optisch am bestehenden Anmeldeformular.
+Inhalt:
+- Überschrift: „Die Party ist ausgebucht."
+- Text: „Alle Plätze sind aktuell vergeben. Trag dich auf die Warteliste ein — wird ein Platz frei, laden wir der Reihe nach nach und du bekommst eine persönliche Einladung per Mail."
+- Felder: Name (Text, Pflicht) · E-Mail (E-Mail, Pflicht) · Anzahl gewünschter Karten (Auswahl 1 bis 6, Standard 1).
+- Button: „Auf die Warteliste".
+- Senden: POST an `${import.meta.env... bestehende API-Basis wie im Anmeldeformular}/api/warteliste` mit JSON { name, email, anzahl_karten }. KEIN <form>-Submit-Reload; per onClick/fetch.
+- Erfolg (Status 201): Formular ersetzen durch „Du stehst auf der Warteliste. Wir melden uns, sobald ein Platz frei wird."
+- Bereits eingetragen (Status 409): Hinweis „Diese E-Mail-Adresse steht schon auf der Warteliste."
+- Sonstiger Fehler: dezenter Hinweis „Das hat gerade nicht geklappt — bitte später nochmal."
+Verwende dieselbe API-Basis-Konstante, die das Anmeldeformular schon nutzt.
+
+TEIL 2 — Einbinden
+DATEI: artifacts/emmerich/src/pages/AnmeldungPage.tsx
+Im „else"-Zweig (wenn ANMELDUNG_AKTIV false und kein Nachrücker-Token) den bisherigen
+Inhalt — den Amber-Infokasten („Anmeldungen laufen aktuell nur noch über die Warteliste …")
+UND <AnmeldungDemnächst /> — ersetzen durch <Wartelisteformular />. Import für
+Wartelisteformular ergänzen; Import von AnmeldungDemnächst entfernen, falls dann ungenutzt.
+
+VERBOTEN
+- KEINE Änderung am Nachrücker-Zweig oder am echten Anmeldeformular.
+- KEINE Änderung an ANMELDUNG_AKTIV oder an der Konfiguration.
+- KEINE zusätzlichen Felder (kein Statement, kein Song, keine Telefonnummer).
+- KEINE Design-Abweichung (keine fremden Farben/Fonts, kein Banner).
+
+CHECKLISTE
+[ ] Auf der Anmeldeseite erscheint jetzt das Warteliste-Formular (Name, E-Mail, Anzahl 1–6).
+[ ] Absenden trägt in die Warteliste ein; Erfolg/Doppel-Eintrag/Fehler werden sauber angezeigt.
+[ ] Der „öffnet in Kürze"-Platzhalter ist im geschlossenen Zustand weg.
+[ ] Nachrücker-Zweig und echtes Anmeldeformular unverändert; Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende mit:
+1. Den Dateipfaden (neu/geändert).
+2. „Warteliste-Formular ergänzt und auf der Anmeldeseite eingebunden, sonst nichts."
+3. Falls der einzubindende Bereich nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.

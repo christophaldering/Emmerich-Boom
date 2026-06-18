@@ -1763,6 +1763,8 @@ export default function AdminPage() {
   const [wartelisteEintraege, setWartelisteEintraege] = useState<{
     id: number;
     email: string;
+    name: string | null;
+    anzahl_karten: number | null;
     created_at: string;
     bestaetigung_versendet_am: string | null;
     nachruecker_eingeladen_am: string | null;
@@ -2953,7 +2955,9 @@ export default function AdminPage() {
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${am(0.25)}` }}>
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem 0.45rem 0", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>#</th>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Name</th>
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>E-Mail</th>
+                    <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Karten</th>
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Eingetragen am</th>
                     <th style={{ textAlign: "left", padding: "0.45rem 0.75rem", color: fg(0.5), fontWeight: 400, letterSpacing: "0.06em", fontSize: "0.78rem", textTransform: "uppercase", whiteSpace: "nowrap" }}>Nachrücker-Status</th>
                     <th style={{ padding: "0.45rem 0", width: "1px" }}></th>
@@ -2979,7 +2983,9 @@ export default function AdminPage() {
                       style={{ borderBottom: `1px solid ${am(0.1)}`, background: idx % 2 === 0 ? "transparent" : am(0.03) }}
                     >
                       <td style={{ padding: "0.55rem 0.75rem 0.55rem 0", color: fg(0.4), fontVariantNumeric: "tabular-nums" }}>{idx + 1}</td>
+                      <td style={{ padding: "0.55rem 0.75rem", color: FG }}>{e.name ?? "—"}</td>
                       <td style={{ padding: "0.55rem 0.75rem", color: FG, wordBreak: "break-all" }}>{e.email}</td>
+                      <td style={{ padding: "0.55rem 0.75rem", color: fg(0.75), textAlign: "center" }}>{e.anzahl_karten ?? "—"}</td>
                       <td style={{ padding: "0.55rem 0.75rem", color: fg(0.75), whiteSpace: "nowrap" }}>{dateTimeFmt(e.created_at)}</td>
                       <td style={{ padding: "0.55rem 0.75rem", fontSize: "0.83rem" }}>{statusLabel}</td>
                       <td style={{ padding: "0.55rem 0", whiteSpace: "nowrap" }}>

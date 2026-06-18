@@ -1,0 +1,108 @@
+AUFGABE
+Die Warteliste um zwei Felder erweitern — Name und Anzahl gewünschter Karten — durch
+Datenmodell, Eintrage-Endpoint und Admin-Anzeige. Außerdem den Kapazitäts-Riegel
+entfernen, damit Eintragungen immer angenommen werden (wir behandeln die Party als
+ausgebucht).
+
+TEIL 1 — Datenmodell
+DATEI: lib/db/src/schema/warteliste.ts
+1a) Import erweitern. Ersetze EXAKT:
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+durch EXAKT:
+import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
+1b) Zwei Felder ergänzen. Ersetze EXAKT:
+  email: text("email").notNull().unique(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+durch EXAKT:
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  anzahl_karten: integer("anzahl_karten"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+1c) Danach das Schema in die DB übernehmen: pnpm --filter @workspace/db run push
+    (bei Bedarf push-force). Die zwei neuen Spalten sind bewusst nullable, damit die
+    11 bestehenden Einträge erhalten bleiben.
+
+TEIL 2 — Eintrage-Endpoint
+DATEI: artifacts/api-server/src/routes/warteliste.ts
+2a) Eingabe-Schema erweitern. Ersetze EXAKT:
+const wartelisteSchema = z.object({
+  email: z.string().email().max(300),
+});
+durch EXAKT:
+const wartelisteSchema = z.object({
+  email: z.string().email().max(300),
+  name: z.string().min(1).max(120),
+  anzahl_karten: z.number().int().min(1).max(6),
+});
+2b) Destrukturierung. Ersetze EXAKT:
+  const { email } = parsed.data;
+durch EXAKT:
+  const { email, name, anzahl_karten } = parsed.data;
+2c) Kapazitäts-Riegel ENTFERNEN. Lösche EXAKT diesen Block vollständig:
+    const countResult = await db
+      .select({ total: sum(anmeldungenTable.personen_anzahl) })
+      .from(anmeldungenTable)
+      .where(isNull(anmeldungenTable.storniert_am));
+    const angemeldete = Number(countResult[0]?.total ?? 0);
+
+    if (angemeldete < KAPAZITAET) {
+      res.status(400).json({ error: "Es sind noch Plätze verfügbar. Bitte direkt anmelden." });
+      return;
+    }
+2d) Insert erweitern. Ersetze EXAKT:
+    await db.insert(wartelisteTable).values({ email });
+durch EXAKT:
+    await db.insert(wartelisteTable).values({ email, name, anzahl_karten });
+2e) Entferne anschließend alles, was durch 2c ungenutzt wurde, damit der Build sauber
+    ist: die Konstante KAPAZITAET sowie ungenutzt gewordene Imports (sum, isNull,
+    anmeldungenTable — NUR falls sie sonst nirgends in der Datei verwendet werden).
+
+TEIL 3 — Admin-Datenabruf
+DATEI: artifacts/api-server/src/routes/warteliste.ts (GET /admin/warteliste)
+Ersetze EXAKT:
+        id:                        wartelisteTable.id,
+        email:                     wartelisteTable.email,
+        created_at:                wartelisteTable.created_at,
+durch EXAKT:
+        id:                        wartelisteTable.id,
+        email:                     wartelisteTable.email,
+        name:                      wartelisteTable.name,
+        anzahl_karten:             wartelisteTable.anzahl_karten,
+        created_at:                wartelisteTable.created_at,
+
+TEIL 4 — Admin-Anzeige
+DATEI: artifacts/emmerich/src/pages/AdminPage.tsx
+4a) State-Typ erweitern. Ersetze EXAKT:
+    id: number;
+    email: string;
+    created_at: string;
+durch EXAKT:
+    id: number;
+    email: string;
+    name: string | null;
+    anzahl_karten: number | null;
+    created_at: string;
+4b) In der Warteliste-Tabelle zwei Spalten ergänzen — jeweils Kopf (<th>) UND Zelle (<td>),
+    im exakt gleichen Stil wie die vorhandenen th/td dieser Tabelle:
+    - Spalte „Name" direkt NACH der Spalte „#":   Zelle zeigt {e.name ?? "—"}
+    - Spalte „Karten" direkt NACH der Spalte „E-Mail":   Zelle zeigt {e.anzahl_karten ?? "—"}
+    Reihenfolge danach: # · Name · E-Mail · Karten · Eingetragen am · Nachrücker-Status · Aktionen.
+
+VERBOTEN
+- KEINE Änderung an anderen Endpunkten, Tabellen oder Tabs.
+- KEINE Änderung an der Nachrücker-/Einladen-/Löschen-Logik.
+- KEINE weiteren Felder, keine Umbenennung bestehender Spalten.
+- Bestehende 11 Einträge dürfen nicht verloren gehen (Spalten nullable).
+
+CHECKLISTE
+[ ] Schema hat name + anzahl_karten; DB-Push lief durch; alte Einträge noch da.
+[ ] POST /warteliste nimmt name + anzahl_karten an und speichert sie; kein Kapazitäts-Riegel mehr; Build sauber (keine ungenutzten Imports).
+[ ] GET /admin/warteliste liefert name + anzahl_karten.
+[ ] Admin-Warteliste zeigt Spalten „Name" und „Karten"; alte Einträge zeigen dort „—".
+[ ] Projekt baut/läuft fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende mit:
+1. Den geänderten Dateipfaden.
+2. „Warteliste um Name + Anzahl Karten erweitert, Kapazitäts-Riegel entfernt, sonst nichts."
+3. Falls eine Stelle nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.
