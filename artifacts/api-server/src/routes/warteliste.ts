@@ -118,6 +118,102 @@ router.delete("/admin/warteliste/:id", async (req, res) => {
   }
 });
 
+// ─── POST /admin/warteliste — Manuell anlegen ─────────────────────────────
+
+const adminWartelisteCreateSchema = z.object({
+  name:          z.string().min(1).max(120),
+  email:         z.string().email().max(300),
+  anzahl_karten: z.number().int().min(1).max(6),
+});
+
+router.post("/admin/warteliste", async (req, res) => {
+  if (req.headers["x-admin-secret"] !== ADMIN_SECRET) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const parsed = adminWartelisteCreateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Ungültige Eingabe" });
+    return;
+  }
+
+  const { name, email, anzahl_karten } = parsed.data;
+
+  try {
+    await db.insert(wartelisteTable).values({ name, email, anzahl_karten });
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    if (
+      typeof err === "object" && err !== null && "code" in err &&
+      (err as { code: string }).code === "23505"
+    ) {
+      res.status(409).json({ error: "already_on_list" });
+      return;
+    }
+    req.log.error(err, "admin warteliste create failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
+// ─── PATCH /admin/warteliste/:id — Bearbeiten ─────────────────────────────
+
+const adminWartelistePatchSchema = z.object({
+  name:          z.string().min(1).max(120).optional(),
+  email:         z.string().email().max(300).optional(),
+  anzahl_karten: z.number().int().min(1).max(6).optional(),
+});
+
+router.patch("/admin/warteliste/:id", async (req, res) => {
+  if (req.headers["x-admin-secret"] !== ADMIN_SECRET) {
+    res.status(403).json({ error: "Forbidden" });
+    return;
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: "Ungültige ID" });
+    return;
+  }
+
+  const parsed = adminWartelistePatchSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Ungültige Eingabe" });
+    return;
+  }
+
+  const fields = parsed.data;
+  if (Object.keys(fields).length === 0) {
+    res.status(400).json({ error: "Keine Felder angegeben" });
+    return;
+  }
+
+  try {
+    const updated = await db
+      .update(wartelisteTable)
+      .set(fields)
+      .where(eq(wartelisteTable.id, id))
+      .returning({ id: wartelisteTable.id });
+
+    if (updated.length === 0) {
+      res.status(404).json({ error: "Eintrag nicht gefunden" });
+      return;
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    if (
+      typeof err === "object" && err !== null && "code" in err &&
+      (err as { code: string }).code === "23505"
+    ) {
+      res.status(409).json({ error: "already_on_list" });
+      return;
+    }
+    req.log.error(err, "admin warteliste patch failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
 // ─── POST /admin/warteliste/:id/einladen — Nachrücker einladen ────────────
 
 router.post("/admin/warteliste/:id/einladen", async (req, res) => {

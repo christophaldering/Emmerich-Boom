@@ -1,0 +1,45 @@
+AUFGABE
+Zwei neue Admin-Endpunkte für die Warteliste: einen zum manuellen Anlegen, einen zum
+Bearbeiten bestehender Einträge. (Die Spalten name/anzahl_karten existieren bereits.)
+
+DATEI
+artifacts/api-server/src/routes/warteliste.ts
+
+VORGEHEN
+Füge DIREKT NACH dem bestehenden Endpoint „DELETE /admin/warteliste/:id" zwei neue
+Endpunkte ein. Beide verwenden EXAKT denselben Admin-Secret-Check wie die übrigen
+/admin/warteliste-Endpunkte in dieser Datei (x-admin-secret gegen ADMIN_SECRET; fehlt/
+falsch → 403 { error: "Forbidden" }).
+
+1) POST /admin/warteliste  (manuell anlegen)
+   - Body per zod: { name: string min 1 max 120, email: string email max 300, anzahl_karten: number int min 1 max 6 }.
+   - db.insert(wartelisteTable).values({ name, email, anzahl_karten }).
+   - KEINE Bestätigungsmail senden (rein interner Eintrag).
+   - Doppelte E-Mail (Unique-Verletzung, Fehlercode "23505") → 409 { error: "already_on_list" }.
+   - Erfolg → 201 { ok: true }.
+
+2) PATCH /admin/warteliste/:id  (bearbeiten)
+   - id aus params, ungültig → 400.
+   - Body per zod, ALLE Felder optional: { name?: string 1..120, email?: string email max 300, anzahl_karten?: number int 1..6 }.
+   - Nur die übergebenen Felder aktualisieren: db.update(wartelisteTable).set({…}).where(eq(id)).
+   - Kein Eintrag mit der id → 404.
+   - Doppelte E-Mail (23505) → 409 { error: "already_on_list" }.
+   - Erfolg → 200 { ok: true }.
+
+VERBOTEN
+- KEINE Änderung an den bestehenden Endpunkten (POST /warteliste, GET, DELETE, einladen, nachruecker).
+- KEINE Bestätigungs-/Nachrücker-Mail in den neuen Endpunkten auslösen.
+- KEINE Schema-Änderung (Felder existieren schon).
+- KEINE anderen Dateien anfassen.
+
+CHECKLISTE
+[ ] POST /admin/warteliste legt einen Eintrag mit name/email/anzahl_karten an, ohne Mailversand.
+[ ] PATCH /admin/warteliste/:id aktualisiert nur die übergebenen Felder.
+[ ] Beide prüfen das Admin-Secret und behandeln doppelte E-Mail mit 409.
+[ ] Bestehende Endpunkte unverändert; Projekt baut fehlerfrei.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende mit:
+1. Dateipfad: artifacts/api-server/src/routes/warteliste.ts
+2. „Zwei Admin-Endpunkte (anlegen + bearbeiten) ergänzt, sonst nichts."
+3. Falls die Einfügestelle nicht eindeutig war: STOPP, nichts ändern, zurückfragen.

@@ -1,0 +1,41 @@
+AUFGABE
+Im Admin-Reiter „Warteliste" eine Bedienung ergänzen, um Einträge anzulegen und zu
+bearbeiten — über die in Prompt 3 erstellten Endpunkte.
+
+DATEI
+artifacts/emmerich/src/pages/AdminPage.tsx (nur der Warteliste-Tab-Bereich)
+
+VORGEHEN
+1) Oberhalb der Warteliste-Tabelle ein kleines Formular einfügen, im Stil des restlichen
+   Admin-Bereichs (gleiche Farben/Fonts/inline-styles wie die umgebende Tabelle):
+   Felder Name (Text), E-Mail (Text), Karten (Auswahl 1–6), plus Button.
+   - Im Normalzustand: Button „Eintrag hinzufügen" → POST `${BASE}/api/admin/warteliste`
+     mit Header x-admin-secret: SECRET und JSON { name, email, anzahl_karten }.
+2) Pro Tabellenzeile zusätzlich einen Button „Bearbeiten" (neben „Einladen"/„Löschen",
+   gleicher Button-Stil). Klick darauf füllt das obige Formular mit den Werten der Zeile
+   und schaltet es in den Bearbeiten-Modus:
+   - Button heißt dann „Änderungen speichern" → PATCH `${BASE}/api/admin/warteliste/${id}`
+     (Header x-admin-secret: SECRET) mit den geänderten Feldern.
+   - Zusätzlich ein „Abbrechen", das den Bearbeiten-Modus verlässt und das Formular leert.
+3) Nach Erfolg jeweils das Formular leeren, den Bearbeiten-Modus beenden und
+   loadWarteliste() aufrufen (Tabelle aktualisieren).
+4) Fehlerbehandlung dezent: bei 409 Hinweis „Diese E-Mail steht schon auf der Warteliste.",
+   sonst „Hat nicht geklappt." Nutze BASE und SECRET wie die vorhandenen Warteliste-Funktionen.
+
+VERBOTEN
+- KEINE Änderung an anderen Tabs, an der Einladen-/Löschen-/Nachrücker-Logik oder an anderen Dateien.
+- KEINE neuen Spalten/Felder über Name, E-Mail, Karten hinaus.
+- KEINE Design-Abweichung (keine fremden Farben/Fonts).
+- KEINE Bestätigungsmail aus dem Frontend auslösen.
+
+CHECKLISTE
+[ ] Über der Tabelle steht ein Formular (Name, E-Mail, Karten) mit „Eintrag hinzufügen".
+[ ] Jede Zeile hat „Bearbeiten"; Klick füllt das Formular und schaltet auf „Änderungen speichern" + „Abbrechen".
+[ ] Anlegen (POST) und Bearbeiten (PATCH) funktionieren, danach lädt die Tabelle neu.
+[ ] 409/Fehler werden dezent angezeigt; andere Tabs/Logik unverändert; Build sauber.
+
+PFLICHT-ABSCHLUSSERKLÄRUNG
+Beende mit:
+1. Dateipfad: artifacts/emmerich/src/pages/AdminPage.tsx
+2. „Warteliste-Bedienung (anlegen + bearbeiten) ergänzt, sonst nichts."
+3. Falls der Warteliste-Tab-Bereich nicht eindeutig auffindbar war: STOPP, nichts ändern, zurückfragen.
