@@ -47,8 +47,9 @@ router.get("/admin/anmeldungen", async (req: Request, res: Response) => {
         betrag_gesamt:        anmeldungenTable.betrag_gesamt,
         bezahlt_am:           anmeldungenTable.bezahlt_am,
         ticket_versendet_am:  anmeldungenTable.ticket_versendet_am,
-        storniert_am:         anmeldungenTable.storniert_am,
-        created_at:           anmeldungenTable.created_at,
+        storniert_am:              anmeldungenTable.storniert_am,
+        zahlungserinnerungen:      anmeldungenTable.zahlungserinnerungen,
+        created_at:                anmeldungenTable.created_at,
       })
       .from(anmeldungenTable)
       .where(ne(anmeldungenTable.email, SERVER_CONFIG.THEKE_DEMO_EMAIL))
@@ -499,6 +500,12 @@ router.post("/admin/anmeldungen/zahlungserinnerung", async (req: Request, res: R
         betrag_gesamt:   a.betrag_gesamt,
         personen_anzahl: a.personen_anzahl,
       });
+
+      // Erinnerung in DB festhalten
+      const eintrag = JSON.stringify([{ gesendet_am: new Date().toISOString(), frist_am: frist.toISOString() }]);
+      await db.update(anmeldungenTable)
+        .set({ zahlungserinnerungen: sql`coalesce(zahlungserinnerungen, '[]'::jsonb) || ${eintrag}::jsonb` })
+        .where(eq(anmeldungenTable.id, id));
 
       results.push({ id, status: "ok" });
     } catch (err) {

@@ -17,6 +17,7 @@ export const anmeldungenTable = pgTable("anmeldungen", {
   ticket_versendet_am:              timestamp("ticket_versendet_am"),
   bestaetigungsmail_versendet_am:   timestamp("bestaetigungsmail_versendet_am", { withTimezone: true }),
   storniert_am:                     timestamp("storniert_am"),
+  zahlungserinnerungen:             jsonb("zahlungserinnerungen").notNull().default([]),
   created_at:                       timestamp("created_at").defaultNow(),
 });
 

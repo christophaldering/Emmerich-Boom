@@ -478,6 +478,7 @@ interface AnmeldungRow {
   bezahlt_am: string | null;
   ticket_versendet_am: string | null;
   storniert_am: string | null;
+  zahlungserinnerungen: { gesendet_am: string; frist_am: string }[];
   created_at: string;
   ticket_count: number;
   tickets: AnmeldungTicketInfo[];
@@ -838,7 +839,7 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
       <td style={{ ...tdStyle, color: fg(0.55), width: "6rem", fontSize: "0.78rem" }}>{dateTimeFmt(row.created_at)}</td>
 
       {/* Bezahlt-Spalte */}
-      <td style={{ ...tdStyle, width: "8rem" }}>
+      <td style={{ ...tdStyle, width: "10rem" }}>
         {bezahlt ? (
           <span style={{ color: "#2ecc71", fontSize: "0.78rem" }}>✓ {dateFmt(row.bezahlt_am!)}</span>
         ) : (
@@ -851,6 +852,17 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
           </button>
         )}
         {msg && !versendet && <div style={{ color: "#e74c3c", fontSize: "0.73rem", marginTop: "0.2rem" }}>{msg}</div>}
+        {(row.zahlungserinnerungen ?? []).length > 0 && (() => {
+          const log = row.zahlungserinnerungen;
+          const last = log[log.length - 1]!;
+          return (
+            <div style={{ fontSize: "0.71rem", color: fg(0.45), marginTop: "0.3rem", lineHeight: 1.35 }}>
+              📨 {log.length}× Erinnerung<br />
+              letzte: {dateFmt(last.gesendet_am)}<br />
+              Frist: {dateFmt(last.frist_am)}
+            </div>
+          );
+        })()}
       </td>
 
       {/* Tickets-Spalte */}
