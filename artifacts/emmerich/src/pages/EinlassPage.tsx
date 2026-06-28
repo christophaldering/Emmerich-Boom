@@ -15,7 +15,6 @@ function playSound(type: "success" | "error" | "duplicate"): void {
     const now = ctx.currentTime;
 
     if (type === "success") {
-      // Three ascending sine tones: C5 → E5 → G5
       ([
         [523, 0.00],
         [659, 0.13],
@@ -30,9 +29,7 @@ function playSound(type: "success" | "error" | "duplicate"): void {
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11);
         osc.start(t); osc.stop(t + 0.12);
       });
-
     } else if (type === "error") {
-      // Short sawtooth burst ~220 Hz
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
@@ -40,9 +37,7 @@ function playSound(type: "success" | "error" | "duplicate"): void {
       gain.gain.setValueAtTime(0.38, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
       osc.start(now); osc.stop(now + 0.40);
-
     } else {
-      // Siren: LFO-modulated sine 600–1200 Hz over 1.5 s
       const osc     = ctx.createOscillator();
       const lfo     = ctx.createOscillator();
       const lfoGain = ctx.createGain();
@@ -51,15 +46,13 @@ function playSound(type: "success" | "error" | "duplicate"): void {
       osc.connect(gain); gain.connect(ctx.destination);
       osc.type = "sine"; osc.frequency.value = 900;
       lfo.type = "sine"; lfo.frequency.value = 4;
-      lfoGain.gain.value = 300;        // ±300 Hz → 600–1200 Hz range
+      lfoGain.gain.value = 300;
       gain.gain.setValueAtTime(0.40, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
       lfo.start(now); osc.start(now);
       lfo.stop(now + 1.5); osc.stop(now + 1.55);
     }
-  } catch {
-    // Ignore — audio not available in this context
-  }
+  } catch { /* Ignore */ }
 }
 
 function vibrate(type: "success" | "error" | "duplicate", enabled: boolean): void {
@@ -69,23 +62,25 @@ function vibrate(type: "success" | "error" | "duplicate", enabled: boolean): voi
     if (type === "success") navigator.vibrate(100);
     else if (type === "error") navigator.vibrate(300);
     else navigator.vibrate([100, 80, 100, 80, 200]);
-  } catch {
-    // Ignore — vibration not supported in this context
-  }
+  } catch { /* Ignore */ }
 }
 
+// ── Constants ─────────────────────────────────────────────────────────────────
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const API = `${BASE}/api`;
-const ADMIN_PW = "#Boomer2026";
-const PW_KEY = "emmerich_admin_auth";
-const SECRET = "emmerich-orga-stats-2026";
-const VIBRATION_KEY = "emmerich_vibration_feedback";
+const ADMIN_PW       = "#Boomer2026";
+const PW_KEY         = "emmerich_admin_auth";
+const SCANNER_KEY    = "emmerich_scanner_name";
+const SECRET         = "emmerich-orga-stats-2026";
+const VIBRATION_KEY  = "emmerich_vibration_feedback";
+const AUTO_RESTART_MS = 3500;
 
+// ── Types ─────────────────────────────────────────────────────────────────────
 type ScanResult =
-  | { status: "ok"; personName: string; message: string }
+  | { status: "ok";           personName: string; message: string }
   | { status: "already_used"; personName: string; message: string; usedAt: string }
-  | { status: "invalid"; message: string }
-  | { status: "error"; message: string };
+  | { status: "invalid";      message: string }
+  | { status: "error";        message: string };
 
 type EingelassenRow = {
   id: number;
@@ -93,34 +88,81 @@ type EingelassenRow = {
   ticket_nummer: string | null;
   person_name: string;
   eingelassen_am: string;
+  scanner_name: string | null;
 };
 
-function PasswordGate({ onAuth }: { onAuth: () => void }) {
-  const [input, setInput] = useState("");
-  const [error, setError] = useState(false);
+// ── Login-Gate ────────────────────────────────────────────────────────────────
+function LoginGate({ onAuth }: { onAuth: (scannerName: string) => void }) {
+  const [pw, setPw]               = useState("");
+  const [name, setName]           = useState("");
+  const [pwError, setPwError]     = useState(false);
+  const [nameError, setNameError] = useState(false);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input === ADMIN_PW) { sessionStorage.setItem(PW_KEY, "1"); onAuth(); }
-    else { setError(true); setInput(""); }
+    const nameOk = name.trim().length > 0;
+    const pwOk   = pw === ADMIN_PW;
+    setNameError(!nameOk);
+    setPwError(!pwOk);
+    if (nameOk && pwOk) {
+      sessionStorage.setItem(PW_KEY, "1");
+      sessionStorage.setItem(SCANNER_KEY, name.trim());
+      onAuth(name.trim());
+    }
   };
+
   return (
     <div style={{ minHeight: "100svh", background: "#0a0704", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "320px" }}>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.2rem", color: "#e8991a", textAlign: "center" }}>Einlass-Scanner</p>
-        <input type="password" value={input} onChange={e => { setInput(e.target.value); setError(false); }} placeholder="Passwort" autoFocus
-          style={{ background: "rgba(245,232,200,0.07)", border: `1px solid ${error ? "#e8991a" : "rgba(245,232,200,0.2)"}`, borderRadius: "3px", color: "#f5e8c8", padding: "0.75rem 1rem", fontSize: "1rem", fontFamily: "'Lora', serif", outline: "none" }} />
-        {error && <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.9rem", color: "#e8991a", textAlign: "center", margin: 0 }}>Falsches Passwort.</p>}
-        <button type="submit" style={{ background: "transparent", border: "1px solid #e8991a", borderRadius: "3px", color: "#e8991a", padding: "0.75rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", cursor: "pointer" }}>Weiter</button>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.3rem", color: "#e8991a", textAlign: "center", margin: 0 }}>
+          Einlass-Scanner
+        </p>
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "rgba(245,232,200,0.45)", textAlign: "center", margin: 0 }}>
+          Bitte deinen Namen eingeben und das Passwort.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          <label style={labelStyle}>Dein Name / Station</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => { setName(e.target.value); setNameError(false); }}
+            placeholder="z.B. Klaus · Eingang Nord"
+            autoFocus
+            style={inputStyle(nameError)}
+          />
+          {nameError && <p style={errorStyle}>Bitte einen Namen eingeben.</p>}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          <label style={labelStyle}>Passwort</label>
+          <input
+            type="password"
+            value={pw}
+            onChange={e => { setPw(e.target.value); setPwError(false); }}
+            placeholder="Passwort"
+            style={inputStyle(pwError)}
+          />
+          {pwError && <p style={errorStyle}>Falsches Passwort.</p>}
+        </div>
+
+        <button type="submit" style={btnStyle("#e8991a", "0.75rem")}>
+          Scanner starten
+        </button>
       </form>
     </div>
   );
 }
 
-async function sendScan(code: string): Promise<ScanResult> {
+// ── API ───────────────────────────────────────────────────────────────────────
+async function sendScan(code: string, scannerName: string): Promise<ScanResult> {
   try {
     const r = await fetch(`${API}/ticket/${code}/scan`, {
       method: "POST",
-      headers: { "x-admin-secret": SECRET },
+      headers: {
+        "x-admin-secret":  SECRET,
+        "x-scanner-name":  scannerName,
+      },
     });
     return await r.json();
   } catch {
@@ -128,10 +170,91 @@ async function sendScan(code: string): Promise<ScanResult> {
   }
 }
 
+// ── Result-Overlay (fullscreen) ───────────────────────────────────────────────
+function ResultOverlay({
+  result,
+  countdown,
+  onNext,
+}: {
+  result: ScanResult;
+  countdown: number;
+  onNext: () => void;
+}) {
+  const isOk  = result.status === "ok";
+  const isDup = result.status === "already_used";
 
+  const bgColor    = isOk ? "#012b0a" : isDup ? "#2b1500" : "#2b0101";
+  const borderColor= isOk ? "#2ecc71" : isDup ? "#e8991a" : "#e74c3c";
+  const emoji      = isOk ? "✅" : isDup ? "⚠️" : "❌";
+  const label      = isOk
+    ? "Einlass OK"
+    : isDup
+    ? "Bereits eingelöst"
+    : "Ungültiges Ticket";
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: bgColor,
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      gap: "1.25rem",
+      padding: "2rem",
+      zIndex: 100,
+    }}>
+      <div style={{ fontSize: "6rem", lineHeight: 1 }}>{emoji}</div>
+
+      <p style={{
+        fontFamily: "'Lora', serif",
+        fontSize: "1rem",
+        letterSpacing: "0.12em",
+        color: borderColor,
+        margin: 0,
+        textTransform: "uppercase",
+      }}>{label}</p>
+
+      {"personName" in result && (
+        <p style={{
+          fontFamily: "'Playfair Display', serif",
+          fontStyle: "italic",
+          fontSize: "clamp(1.4rem, 6vw, 2.2rem)",
+          color: "#f5e8c8",
+          textAlign: "center",
+          margin: 0,
+          maxWidth: "90%",
+        }}>{result.personName}</p>
+      )}
+
+      {isDup && "usedAt" in result && (
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "rgba(245,232,200,0.5)", margin: 0, fontStyle: "italic" }}>
+          Eingelöst um {new Date(result.usedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr
+        </p>
+      )}
+
+      {result.status === "invalid" || result.status === "error" ? (
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "rgba(245,232,200,0.55)", margin: 0, fontStyle: "italic" }}>
+          {result.message}
+        </p>
+      ) : null}
+
+      {/* Auto-restart counter */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem", marginTop: "0.5rem" }}>
+        <button onClick={onNext} style={btnStyle(borderColor, "0.9rem 2.5rem")}>
+          Nächsten scannen
+        </button>
+        <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", color: "rgba(245,232,200,0.35)", margin: 0 }}>
+          Startet automatisch in {countdown} s …
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Eingelassen-Tabelle ───────────────────────────────────────────────────────
 function EingelassenTabelle({ refreshTrigger }: { refreshTrigger: number }) {
-  const [rows, setRows] = useState<EingelassenRow[]>([]);
+  const [rows, setRows]       = useState<EingelassenRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [open, setOpen]       = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -146,71 +269,128 @@ function EingelassenTabelle({ refreshTrigger }: { refreshTrigger: number }) {
   useEffect(() => { void load(); }, [load, refreshTrigger]);
 
   useEffect(() => {
-    const id = setInterval(() => { void load(); }, 30_000);
+    const id = setInterval(() => { void load(); }, 20_000);
     return () => clearInterval(id);
   }, [load]);
 
-  if (rows.length === 0 && !loading) return (
-    <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "rgba(245,232,200,0.35)", textAlign: "center", marginTop: "0.5rem" }}>
-      Noch niemand eingelassen.
-    </p>
-  );
+  // Unique scanner names for the legend
+  const scanners = Array.from(new Set(rows.map(r => r.scanner_name).filter(Boolean) as string[]));
 
   return (
-    <div style={{ width: "100%", maxWidth: "480px", marginTop: "0.5rem" }}>
-      <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", color: "#e8991a", marginBottom: "0.6rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span>Eingelassen ({rows.length})</span>
-        {loading && <span style={{ fontSize: "0.75rem", color: "rgba(232,153,26,0.55)" }}>…</span>}
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-        {rows.map(row => (
-          <div key={`${row.ticket_code}`} style={{
-            display: "flex", alignItems: "center", gap: "0.6rem",
-            background: "rgba(245,232,200,0.04)", borderRadius: "4px",
-            padding: "0.55rem 0.75rem",
-            border: "1px solid rgba(245,232,200,0.09)",
-          }}>
-            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: "rgba(245,232,200,0.45)", minWidth: "3.2rem", flexShrink: 0 }}>
-              {new Date(row.eingelassen_am).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-            <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "#f5e8c8", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {row.person_name}
-            </span>
-            {row.ticket_nummer && (
-              <span style={{ fontFamily: "monospace", fontSize: "0.72rem", color: "rgba(232,153,26,0.55)", flexShrink: 0 }}>
-                #{row.ticket_nummer}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+    <div style={{ width: "100%", maxWidth: "520px" }}>
+      {/* Header / toggle */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: "flex", width: "100%", justifyContent: "space-between", alignItems: "center",
+          background: "rgba(245,232,200,0.04)",
+          border: "1px solid rgba(245,232,200,0.10)",
+          borderRadius: "6px",
+          padding: "0.7rem 1rem",
+          color: "#e8991a",
+          fontFamily: "'Playfair Display', serif",
+          fontStyle: "italic",
+          fontSize: "1rem",
+          cursor: "pointer",
+        }}
+      >
+        <span>Eingelassen {rows.length > 0 ? `(${rows.length})` : ""}</span>
+        <span style={{ fontSize: "0.75rem", color: "rgba(232,153,26,0.55)", fontStyle: "normal" }}>
+          {loading ? "…" : open ? "▲ schließen" : "▼ anzeigen"}
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          {rows.length === 0 && !loading && (
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "rgba(245,232,200,0.35)", textAlign: "center", margin: "0.5rem 0" }}>
+              Noch niemand eingelassen.
+            </p>
+          )}
+
+          {/* Scanner legend */}
+          {scanners.length > 1 && (
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.25rem" }}>
+              {scanners.map((s, i) => (
+                <span key={s} style={{
+                  fontFamily: "'Lora', serif",
+                  fontSize: "0.72rem",
+                  background: `${SCANNER_COLORS[i % SCANNER_COLORS.length]}22`,
+                  border: `1px solid ${SCANNER_COLORS[i % SCANNER_COLORS.length]}66`,
+                  color: SCANNER_COLORS[i % SCANNER_COLORS.length],
+                  borderRadius: "3px",
+                  padding: "0.15rem 0.5rem",
+                }}>{s}</span>
+              ))}
+            </div>
+          )}
+
+          {rows.map(row => {
+            const si = scanners.indexOf(row.scanner_name ?? "");
+            const scannerColor = si >= 0 ? SCANNER_COLORS[si % SCANNER_COLORS.length] : "rgba(245,232,200,0.25)";
+            return (
+              <div key={row.ticket_code} style={{
+                display: "grid",
+                gridTemplateColumns: "3rem 1fr auto",
+                alignItems: "center",
+                gap: "0.5rem",
+                background: "rgba(245,232,200,0.03)",
+                borderRadius: "4px",
+                padding: "0.5rem 0.75rem",
+                border: "1px solid rgba(245,232,200,0.08)",
+              }}>
+                <span style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: "rgba(245,232,200,0.4)" }}>
+                  {new Date(row.eingelassen_am).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+                <span style={{ fontFamily: "'Lora', serif", fontSize: "0.9rem", color: "#f5e8c8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {row.person_name}
+                  {row.ticket_nummer && (
+                    <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(232,153,26,0.5)", marginLeft: "0.4rem" }}>#{row.ticket_nummer}</span>
+                  )}
+                </span>
+                {row.scanner_name && (
+                  <span style={{
+                    fontFamily: "'Lora', serif",
+                    fontSize: "0.68rem",
+                    color: scannerColor,
+                    border: `1px solid ${scannerColor}55`,
+                    borderRadius: "3px",
+                    padding: "0.1rem 0.4rem",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
+                  }}>{row.scanner_name}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
+const SCANNER_COLORS = ["#e8991a", "#5bc8af", "#c87dd4", "#6ab0e8", "#e87a5b"];
 
+// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function EinlassPage() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem(PW_KEY) === "1");
-  const [vibrationEnabled, setVibrationEnabled] = useState(() => localStorage.getItem(VIBRATION_KEY) !== "0");
-  const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState<ScanResult | null>(null);
-  const [camError, setCamError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [scannerName, setScannerName] = useState<string>(() => sessionStorage.getItem(SCANNER_KEY) ?? "");
+  const [authed, setAuthed]           = useState(() => sessionStorage.getItem(PW_KEY) === "1" && !!sessionStorage.getItem(SCANNER_KEY));
+  const [vibrationEnabled, setVibration] = useState(() => localStorage.getItem(VIBRATION_KEY) !== "0");
+
+  const [scanning, setScanning]   = useState(false);
+  const [result, setResult]       = useState<ScanResult | null>(null);
+  const [countdown, setCountdown] = useState(Math.round(AUTO_RESTART_MS / 1000));
+  const [camError, setCamError]   = useState("");
+  const [loading, setLoading]     = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const toggleVibration = () => {
-    setVibrationEnabled(prev => {
-      const next = !prev;
-      localStorage.setItem(VIBRATION_KEY, next ? "1" : "0");
-      return next;
-    });
-  };
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const videoRef    = useRef<HTMLVideoElement>(null);
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const streamRef   = useRef<MediaStream | null>(null);
+  const rafRef      = useRef<number | null>(null);
   const cooldownRef = useRef(false);
+  const autoTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopScan = () => {
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
@@ -219,14 +399,19 @@ export default function EinlassPage() {
     setScanning(false);
   };
 
+  const clearAutoTimers = () => {
+    if (autoTimerRef.current)  { clearTimeout(autoTimerRef.current);   autoTimerRef.current  = null; }
+    if (countdownRef.current)  { clearInterval(countdownRef.current);  countdownRef.current  = null; }
+  };
+
   const tick = () => {
-    const video = videoRef.current;
+    const video  = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || video.readyState < video.HAVE_ENOUGH_DATA) {
       rafRef.current = requestAnimationFrame(tick);
       return;
     }
-    canvas.width = video.videoWidth;
+    canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -235,18 +420,19 @@ export default function EinlassPage() {
     const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
     if (code && !cooldownRef.current) {
       cooldownRef.current = true;
-      const raw = code.data.trim();
-      const match = raw.match(/\/boomer-orga-intern\/ticket\/([A-F0-9]{16})/i);
+      const raw        = code.data.trim();
+      const match      = raw.match(/\/boomer-orga-intern\/ticket\/([A-F0-9]{16})/i);
       const ticketCode = match ? match[1].toUpperCase() : raw.toUpperCase();
       stopScan();
       setLoading(true);
-      sendScan(ticketCode).then(r => {
+      sendScan(ticketCode, scannerName).then(r => {
         setResult(r);
         setLoading(false);
         setRefreshTrigger(n => n + 1);
         const feedbackType = r.status === "ok" ? "success" : r.status === "already_used" ? "duplicate" : "error";
         playSound(feedbackType);
         vibrate(feedbackType, vibrationEnabled);
+        startAutoRestart();
       });
       return;
     }
@@ -257,6 +443,8 @@ export default function EinlassPage() {
     setCamError("");
     setResult(null);
     cooldownRef.current = false;
+    clearAutoTimers();
+    setCountdown(Math.round(AUTO_RESTART_MS / 1000));
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -281,114 +469,130 @@ export default function EinlassPage() {
     }
   };
 
-  useEffect(() => () => { stopScan(); }, []);
+  const startAutoRestart = () => {
+    clearAutoTimers();
+    let secs = Math.round(AUTO_RESTART_MS / 1000);
+    setCountdown(secs);
+    countdownRef.current = setInterval(() => {
+      secs -= 1;
+      setCountdown(secs);
+    }, 1000);
+    autoTimerRef.current = setTimeout(() => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      void startScan();
+    }, AUTO_RESTART_MS);
+  };
 
-  if (!authed) return <PasswordGate onAuth={() => setAuthed(true)} />;
+  const handleNext = () => {
+    clearAutoTimers();
+    void startScan();
+  };
 
-  const bgColor =
-    result?.status === "ok" ? "#061a0a" :
-    result?.status === "already_used" ? "#1a0e03" :
-    result?.status === "invalid" || result?.status === "error" ? "#1a0303" :
-    "#0a0704";
+  // Auto-start camera after login
+  useEffect(() => {
+    if (authed) void startScan();
+    return () => { stopScan(); clearAutoTimers(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed]);
+
+  const toggleVibration = () => {
+    setVibration(prev => {
+      const next = !prev;
+      localStorage.setItem(VIBRATION_KEY, next ? "1" : "0");
+      return next;
+    });
+  };
+
+  if (!authed) {
+    return (
+      <LoginGate onAuth={name => { setScannerName(name); setAuthed(true); }} />
+    );
+  }
 
   return (
-    <div style={{ minHeight: "100svh", background: bgColor, display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem 1rem", gap: "1.25rem", transition: "background 0.35s" }}>
+    <div style={{ minHeight: "100svh", background: "#0a0704", display: "flex", flexDirection: "column", alignItems: "center", padding: "1.25rem 1rem", gap: "1rem" }}>
 
-      <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.3rem", color: "#e8991a", margin: 0 }}>
-        Einlass-Scanner
-      </p>
+      {/* Result overlay */}
+      {result && !loading && (
+        <ResultOverlay result={result} countdown={countdown} onNext={handleNext} />
+      )}
 
-      {/* Video viewport */}
+      {/* Header */}
+      <div style={{ width: "100%", maxWidth: "420px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.2rem", color: "#e8991a", margin: 0 }}>
+          Einlass-Scanner
+        </p>
+        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: "rgba(232,153,26,0.6)", background: "rgba(232,153,26,0.08)", border: "1px solid rgba(232,153,26,0.2)", borderRadius: "3px", padding: "0.2rem 0.6rem" }}>
+          {scannerName}
+        </span>
+      </div>
+
+      {/* Camera viewport */}
       <div style={{
-        width: "100%", maxWidth: "360px",
+        width: "100%", maxWidth: "420px",
         aspectRatio: "4/3",
-        borderRadius: "8px",
+        borderRadius: "10px",
         overflow: "hidden",
-        border: `2px solid ${scanning ? "#e8991a" : "rgba(232,153,26,0.25)"}`,
+        border: `2px solid ${scanning ? "#e8991a" : "rgba(232,153,26,0.2)"}`,
         background: "#000",
         position: "relative",
-        display: scanning ? "block" : "none",
+        display: "block",
+        flexShrink: 0,
       }}>
         <video
           ref={videoRef}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          playsInline
-          muted
-          autoPlay
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: scanning ? 1 : 0.25 }}
+          playsInline muted autoPlay
         />
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-          <div style={{ width: "200px", height: "200px", border: "2px solid rgba(232,153,26,0.7)", borderRadius: "8px", boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)" }} />
-        </div>
+        {/* Viewfinder overlay */}
+        {scanning && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+            <div style={{ width: "220px", height: "220px", border: "2px solid rgba(232,153,26,0.8)", borderRadius: "10px", boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)" }} />
+          </div>
+        )}
+        {!scanning && !loading && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "0.5rem" }}>
+            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: "rgba(245,232,200,0.45)", margin: 0 }}>Kamera bereit</p>
+          </div>
+        )}
+        {loading && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)" }}>
+            <p style={{ fontFamily: "'Lora', serif", color: "#e8991a", fontStyle: "italic", margin: 0 }}>Prüfe Ticket…</p>
+          </div>
+        )}
       </div>
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      {/* Result */}
-      {result && !loading && (
-        <div style={{
-          width: "100%", maxWidth: "360px",
-          borderRadius: "8px",
-          border: `2px solid ${result.status === "ok" ? "#2ecc71" : result.status === "already_used" ? "#e8991a" : "#e74c3c"}`,
-          padding: "1.5rem",
-          textAlign: "center",
-        }}>
-          <p style={{ fontSize: "3rem", margin: "0 0 0.5rem" }}>
-            {result.status === "ok" ? "✅" : result.status === "already_used" ? "⚠️" : "❌"}
-          </p>
-          {"personName" in result && (
-            <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.4rem", color: "#f5e8c8", margin: "0 0 0.4rem" }}>
-              {result.personName}
-            </p>
-          )}
-          <p style={{ fontFamily: "'Lora', serif", fontSize: "1rem", color: "#f5e8c8", margin: "0 0 0.3rem" }}>
-            {result.message}
-          </p>
-          {result.status === "already_used" && (
-            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: "rgba(245,232,200,0.55)", margin: 0 }}>
-              Eingelöst um {new Date(result.usedAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr
-            </p>
-          )}
-        </div>
-      )}
-
-      {loading && (
-        <p style={{ fontFamily: "'Lora', serif", color: "#e8991a", fontStyle: "italic" }}>Prüfe Ticket…</p>
-      )}
-
       {camError && (
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e74c3c", textAlign: "center", maxWidth: "320px" }}>
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e74c3c", textAlign: "center", maxWidth: "380px", margin: 0 }}>
           {camError}
         </p>
       )}
 
       {/* Buttons */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%", maxWidth: "360px" }}>
-        {!scanning && !result && (
-          <button onClick={startScan} style={btn("#e8991a")}>
-            Kamera starten &amp; scannen
+      <div style={{ width: "100%", maxWidth: "420px", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+        {!scanning && (
+          <button onClick={() => void startScan()} style={btnStyle("#e8991a", "0.8rem")}>
+            {camError ? "Nochmal versuchen" : "Kamera starten & scannen"}
           </button>
         )}
         {scanning && (
-          <button onClick={stopScan} style={btn("rgba(245,232,200,0.4)")}>
-            Abbrechen
-          </button>
-        )}
-        {result && !scanning && (
-          <button onClick={() => { setResult(null); startScan(); }} style={btn("#e8991a")}>
-            Nächsten scannen
+          <button onClick={stopScan} style={btnStyle("rgba(245,232,200,0.3)", "0.7rem")}>
+            Pause
           </button>
         )}
       </div>
 
-      <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} vibrationEnabled={vibrationEnabled} />
+      <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} vibrationEnabled={vibrationEnabled} scannerName={scannerName} />
 
       {/* Vibrations-Toggle */}
       <button
         onClick={toggleVibration}
         style={{
           background: "transparent",
-          border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.5)" : "rgba(245,232,200,0.15)"}`,
+          border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.4)" : "rgba(245,232,200,0.12)"}`,
           borderRadius: "3px",
-          color: vibrationEnabled ? "rgba(232,153,26,0.8)" : "rgba(245,232,200,0.3)",
+          color: vibrationEnabled ? "rgba(232,153,26,0.7)" : "rgba(245,232,200,0.25)",
           fontFamily: "'Lora', serif",
           fontStyle: "italic",
           fontSize: "0.78rem",
@@ -398,25 +602,30 @@ export default function EinlassPage() {
           alignItems: "center",
           gap: "0.4rem",
         }}
-        title="Vibrations-Feedback ein-/ausschalten"
       >
         <span style={{ fontSize: "0.9rem" }}>📳</span>
         Vibration {vibrationEnabled ? "an" : "aus"}
       </button>
 
-      {/* Divider */}
-      <div style={{ width: "100%", maxWidth: "480px", borderTop: "1px solid rgba(245,232,200,0.08)", marginTop: "0.5rem" }} />
+      <div style={{ width: "100%", maxWidth: "520px", borderTop: "1px solid rgba(245,232,200,0.07)", marginTop: "0.25rem" }} />
 
-      {/* Eingelassen-Tabelle */}
       <EingelassenTabelle refreshTrigger={refreshTrigger} />
 
+      {/* Abmelden */}
+      <button
+        onClick={() => { sessionStorage.removeItem(PW_KEY); sessionStorage.removeItem(SCANNER_KEY); stopScan(); setAuthed(false); }}
+        style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.2)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.72rem", cursor: "pointer", marginTop: "0.5rem" }}
+      >
+        Abmelden
+      </button>
     </div>
   );
 }
 
-function ManualEntry({ onScanned, vibrationEnabled }: { onScanned: () => void; vibrationEnabled: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [code, setCode] = useState("");
+// ── Manual Entry ──────────────────────────────────────────────────────────────
+function ManualEntry({ onScanned, vibrationEnabled, scannerName }: { onScanned: () => void; vibrationEnabled: boolean; scannerName: string }) {
+  const [open, setOpen]     = useState(false);
+  const [code, setCode]     = useState("");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -424,7 +633,7 @@ function ManualEntry({ onScanned, vibrationEnabled }: { onScanned: () => void; v
     e.preventDefault();
     if (!code.trim()) return;
     setLoading(true);
-    const r = await sendScan(code.trim());
+    const r = await sendScan(code.trim(), scannerName);
     setResult(r);
     setLoading(false);
     onScanned();
@@ -434,17 +643,22 @@ function ManualEntry({ onScanned, vibrationEnabled }: { onScanned: () => void; v
   };
 
   if (!open) return (
-    <button onClick={() => setOpen(true)} style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.35)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline" }}>
+    <button onClick={() => setOpen(true)} style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.3)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.8rem", cursor: "pointer", textDecoration: "underline" }}>
       Code manuell eingeben
     </button>
   );
 
   return (
-    <div style={{ width: "100%", maxWidth: "360px" }}>
+    <div style={{ width: "100%", maxWidth: "420px" }}>
       <form onSubmit={submit} style={{ display: "flex", gap: "0.5rem" }}>
-        <input value={code} onChange={e => { setCode(e.target.value.toUpperCase()); setResult(null); }} placeholder="XXXXXXXXXXXXXXXX" maxLength={16}
-          style={{ flex: 1, background: "rgba(245,232,200,0.07)", border: "1px solid rgba(245,232,200,0.2)", borderRadius: "3px", color: "#f5e8c8", padding: "0.6rem 0.75rem", fontSize: "0.9rem", fontFamily: "monospace", outline: "none", letterSpacing: "0.1em" }} />
-        <button type="submit" disabled={loading} style={btn("#e8991a", "0.6rem 1rem")}>Prüfen</button>
+        <input
+          value={code}
+          onChange={e => { setCode(e.target.value.toUpperCase()); setResult(null); }}
+          placeholder="XXXXXXXXXXXXXXXX"
+          maxLength={16}
+          style={{ flex: 1, background: "rgba(245,232,200,0.07)", border: "1px solid rgba(245,232,200,0.2)", borderRadius: "3px", color: "#f5e8c8", padding: "0.6rem 0.75rem", fontSize: "0.9rem", fontFamily: "monospace", outline: "none", letterSpacing: "0.1em" }}
+        />
+        <button type="submit" disabled={loading} style={btnStyle("#e8991a", "0.6rem 1rem", true)}>Prüfen</button>
       </form>
       {result && (
         <p style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: result.status === "ok" ? "#2ecc71" : result.status === "already_used" ? "#e8991a" : "#e74c3c", marginTop: "0.5rem", textAlign: "center" }}>
@@ -455,6 +669,45 @@ function ManualEntry({ onScanned, vibrationEnabled }: { onScanned: () => void; v
   );
 }
 
-function btn(color: string, padding = "0.75rem"): React.CSSProperties {
-  return { background: "transparent", border: `1px solid ${color}`, borderRadius: "4px", color, padding, fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1rem", cursor: "pointer", width: "100%" };
+// ── Style helpers ─────────────────────────────────────────────────────────────
+function btnStyle(color: string, padding = "0.75rem", inline = false): React.CSSProperties {
+  return {
+    background: "transparent",
+    border: `1px solid ${color}`,
+    borderRadius: "5px",
+    color,
+    padding,
+    fontFamily: "'Playfair Display', serif",
+    fontStyle: "italic",
+    fontSize: "1rem",
+    cursor: "pointer",
+    width: inline ? "auto" : "100%",
+  };
 }
+
+function inputStyle(hasError: boolean): React.CSSProperties {
+  return {
+    background: "rgba(245,232,200,0.07)",
+    border: `1px solid ${hasError ? "#e8991a" : "rgba(245,232,200,0.2)"}`,
+    borderRadius: "3px",
+    color: "#f5e8c8",
+    padding: "0.75rem 1rem",
+    fontSize: "1rem",
+    fontFamily: "'Lora', serif",
+    outline: "none",
+  };
+}
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: "'Lora', serif",
+  fontSize: "0.8rem",
+  color: "rgba(245,232,200,0.5)",
+};
+
+const errorStyle: React.CSSProperties = {
+  fontFamily: "'Lora', serif",
+  fontStyle: "italic",
+  fontSize: "0.82rem",
+  color: "#e8991a",
+  margin: 0,
+};

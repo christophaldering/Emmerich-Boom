@@ -175,6 +175,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
   }
 
   const code = req.params.code.toUpperCase();
+  const scannerName = (req.headers["x-scanner-name"] as string | undefined) ?? null;
 
   // ── Phase 2: anmeldung_tickets ──
   const phase2Rows = await db
@@ -186,7 +187,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
   if (phase2Rows.length > 0) {
     const t = phase2Rows[0]!;
     if (t.eingelassen_am) {
-      await db.insert(scanLog).values({ ticket_code: code, result: "already_used", person_name: t.person_name }).catch(() => {});
+      await db.insert(scanLog).values({ ticket_code: code, result: "already_used", person_name: t.person_name, scanner_name: scannerName }).catch(() => {});
       res.json({
         status: "already_used",
         message: "Ticket bereits eingelöst",
@@ -199,7 +200,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
       .update(anmeldungTicketsTable)
       .set({ eingelassen_am: new Date() })
       .where(eq(anmeldungTicketsTable.ticket_code, code));
-    await db.insert(scanLog).values({ ticket_code: code, result: "ok", person_name: t.person_name }).catch(() => {});
+    await db.insert(scanLog).values({ ticket_code: code, result: "ok", person_name: t.person_name, scanner_name: scannerName }).catch(() => {});
     res.json({ status: "ok", message: "Willkommen!", personName: t.person_name });
     return;
   }
@@ -212,14 +213,14 @@ router.post("/ticket/:code/scan", async (req, res) => {
     .limit(1);
 
   if (legacyRows.length === 0) {
-    await db.insert(scanLog).values({ ticket_code: code, result: "invalid", person_name: null }).catch(() => {});
+    await db.insert(scanLog).values({ ticket_code: code, result: "invalid", person_name: null, scanner_name: scannerName }).catch(() => {});
     res.status(404).json({ status: "invalid", message: "Unbekannter Code" });
     return;
   }
 
   const ticket = legacyRows[0]!;
   if (ticket.usedAt) {
-    await db.insert(scanLog).values({ ticket_code: code, result: "already_used", person_name: ticket.personName }).catch(() => {});
+    await db.insert(scanLog).values({ ticket_code: code, result: "already_used", person_name: ticket.personName, scanner_name: scannerName }).catch(() => {});
     res.json({
       status: "already_used",
       message: "Ticket bereits eingelöst",
@@ -232,7 +233,7 @@ router.post("/ticket/:code/scan", async (req, res) => {
     .update(tickets)
     .set({ usedAt: new Date() })
     .where(eq(tickets.ticketCode, code));
-  await db.insert(scanLog).values({ ticket_code: code, result: "ok", person_name: ticket.personName }).catch(() => {});
+  await db.insert(scanLog).values({ ticket_code: code, result: "ok", person_name: ticket.personName, scanner_name: scannerName }).catch(() => {});
   res.json({ status: "ok", message: "Willkommen!", personName: ticket.personName });
 });
 
@@ -244,35 +245,46 @@ router.get("/admin/eingelassen", async (req, res) => {
     return;
   }
 
-  const phase2 = await db
-    .select({
-      id: anmeldungTicketsTable.id,
-      ticket_code: anmeldungTicketsTable.ticket_code,
-      ticket_nummer: anmeldungTicketsTable.ticket_nummer,
-      person_name: anmeldungTicketsTable.person_name,
-      eingelassen_am: anmeldungTicketsTable.eingelassen_am,
-    })
-    .from(anmeldungTicketsTable)
-    .where(isNotNull(anmeldungTicketsTable.eingelassen_am))
-    .orderBy(desc(anmeldungTicketsTable.eingelassen_am));
+  const [phase2, legacy, scanLogOk] = await Promise.all([
+    db
+      .select({
+        id: anmeldungTicketsTable.id,
+        ticket_code: anmeldungTicketsTable.ticket_code,
+        ticket_nummer: anmeldungTicketsTable.ticket_nummer,
+        person_name: anmeldungTicketsTable.person_name,
+        eingelassen_am: anmeldungTicketsTable.eingelassen_am,
+      })
+      .from(anmeldungTicketsTable)
+      .where(isNotNull(anmeldungTicketsTable.eingelassen_am))
+      .orderBy(desc(anmeldungTicketsTable.eingelassen_am)),
 
-  const legacy = await db
-    .select({
-      id: tickets.id,
-      ticket_code: tickets.ticketCode,
-      ticket_nummer: sql<string | null>`NULL`,
-      person_name: tickets.personName,
-      eingelassen_am: tickets.usedAt,
-    })
-    .from(tickets)
-    .where(isNotNull(tickets.usedAt))
-    .orderBy(desc(tickets.usedAt));
+    db
+      .select({
+        id: tickets.id,
+        ticket_code: tickets.ticketCode,
+        ticket_nummer: sql<string | null>`NULL`,
+        person_name: tickets.personName,
+        eingelassen_am: tickets.usedAt,
+      })
+      .from(tickets)
+      .where(isNotNull(tickets.usedAt))
+      .orderBy(desc(tickets.usedAt)),
 
-  const combined = [...phase2, ...legacy].sort((a, b) => {
-    const ta = a.eingelassen_am?.getTime() ?? 0;
-    const tb = b.eingelassen_am?.getTime() ?? 0;
-    return tb - ta;
-  });
+    db
+      .select({ ticket_code: scanLog.ticket_code, scanner_name: scanLog.scanner_name })
+      .from(scanLog)
+      .where(eq(scanLog.result, "ok")),
+  ]);
+
+  // Build lookup: ticket_code → scanner_name (last successful scan wins)
+  const scannerByCode = new Map<string, string | null>();
+  for (const entry of scanLogOk) {
+    scannerByCode.set(entry.ticket_code, entry.scanner_name);
+  }
+
+  const combined = [...phase2, ...legacy]
+    .sort((a, b) => (b.eingelassen_am?.getTime() ?? 0) - (a.eingelassen_am?.getTime() ?? 0))
+    .map(row => ({ ...row, scanner_name: scannerByCode.get(row.ticket_code) ?? null }));
 
   res.json(combined);
 });
