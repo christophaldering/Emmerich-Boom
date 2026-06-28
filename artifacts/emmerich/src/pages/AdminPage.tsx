@@ -1744,7 +1744,11 @@ function ThekeAdminSection() {
                                       <tr key={v.id} style={{ borderBottom: `1px solid ${am(0.08)}` }}>
                                         <td style={{ padding: "0.2rem 0.5rem", color: fg(0.55), whiteSpace: "nowrap" }}>{dtFmt(v.versendet_am)}</td>
                                         <td style={{ padding: "0.2rem 0.5rem", color: fg(0.7), wordBreak: "break-all" }}>{v.empfaenger_email}</td>
-                                        <td style={{ padding: "0.2rem 0.5rem", color: fg(0.55) }}>{v.typ}</td>
+                                        <td style={{ padding: "0.2rem 0.5rem" }}>
+                                          <span style={{ color: v.typ === "erstmalig" ? "#2ecc71" : fg(0.5), fontWeight: v.typ === "erstmalig" ? 600 : 400 }}>
+                                            {v.typ === "erstmalig" ? "Erstmalig" : v.typ === "erneut" ? "Erneut" : v.typ}
+                                          </span>
+                                        </td>
                                         <td style={{ padding: "0.2rem 0.5rem" }}><span style={{ color: v.status === "ok" ? "#2ecc71" : "#e05a3a", fontWeight: 600 }}>{v.status}</span></td>
                                         <td style={{ padding: "0.2rem 0.5rem", color: "#e05a3a", fontSize: "0.75rem" }}>{v.fehler_text ?? "–"}</td>
                                       </tr>

@@ -236,6 +236,13 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
       return;
     }
 
+    // Welche anmeldung_ids haben bereits eine erfolgreiche Einladung?
+    const bereitsErfolgreich = await db
+      .select({ anmeldung_id: thekeEinladungenTable.anmeldung_id })
+      .from(thekeEinladungenTable)
+      .where(eq(thekeEinladungenTable.status, "ok"));
+    const bereitsEingeladeneIds = new Set(bereitsErfolgreich.map(r => r.anmeldung_id));
+
     // Get emails for all involved anmeldungen
     const anmeldungIds = [...new Set(ticketsToSend.map(t => t.anmeldung_id))];
     const anmeldungen = await db
@@ -260,7 +267,8 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
       await db.insert(thekeEinladungenTable).values({
         anmeldung_id: t.anmeldung_id, empfaenger_email: email,
         anzahl_tickets: 1, ticket_codes: [t.ticket_code],
-        typ: "einzeln", status, fehler_text, versendet_am: new Date(),
+        typ: bereitsEingeladeneIds.has(t.anmeldung_id) ? "erneut" : "erstmalig",
+        status, fehler_text, versendet_am: new Date(),
       });
       results.push({ ticket_id: t.id, status, fehler: fehler_text ?? undefined });
 
@@ -282,7 +290,7 @@ router.post("/theke-admin/einladung/senden", async (req: Request, res: Response)
         await db.insert(thekeEinladungenTable).values({
           anmeldung_id, empfaenger_email: email,
           anzahl_tickets: aTickets.length, ticket_codes: aTickets.map(t => t.ticket_code),
-          typ: body.alle ? "alle" : body.nur_nicht_eingeladene ? "nur_nicht_eingeladene" : "ausgewaehlt",
+          typ: bereitsEingeladeneIds.has(anmeldung_id) ? "erneut" : "erstmalig",
           status, fehler_text, versendet_am: new Date(),
         });
         for (const t of aTickets) results.push({ ticket_id: t.id, status, fehler: fehler_text ?? undefined });
