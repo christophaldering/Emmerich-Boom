@@ -906,6 +906,14 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
           style={{ display: "block", width: "100%", maxWidth: "360px", background: am(0.07), border: `1px solid ${am(0.3)}`, borderRadius: "4px", color: FG, fontFamily: "'Lora', serif", fontSize: "1rem", padding: "0.65rem 0.9rem", outline: "none", boxSizing: "border-box" }} />
       </div>
 
+      <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: A, marginBottom: "0.5rem" }}>Zuerst kurz abstimmen</p>
+      <div style={{ paddingBottom: "2rem", marginBottom: "2rem", borderBottom: `1px solid ${am(0.15)}` }}>
+        <EinwilligungsBlock ref={einwilligungsRef} token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
+        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.5), fontStyle: "italic", marginTop: "0.5rem", marginBottom: "0" }}>
+          Sobald du das erste Häkchen gesetzt und gespeichert hast, sind alle Felder unten aktiv.
+        </p>
+      </div>
+
       <div style={{ marginBottom: "2rem" }}>
         <label style={{ display: "block", marginBottom: "0.4rem" }}>
           <span style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", letterSpacing: "0.1em", textTransform: "uppercase", color: am(0.8) }}>Kurze Vorstellung (optional)</span>
@@ -1001,10 +1009,6 @@ const MeinSteckbrief = forwardRef<MeinSteckbriefHandle, {
         ) : (
           <Anrufbeantworter token={token} botschaft={botschaft} onUploaded={onBotschaftChange} onDeleted={() => onBotschaftChange(null)} />
         )}
-      </div>
-
-      <div style={{ borderTop: `1px solid ${am(0.15)}`, paddingTop: "2rem", marginBottom: "2rem" }}>
-        <EinwilligungsBlock ref={einwilligungsRef} token={token} profile={profile} onUpdated={onProfileChange} verteiler={verteiler} onVerteilerChange={onVerteilerChange} />
       </div>
 
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "1rem", paddingTop: "0.5rem", marginBottom: "1rem" }}>

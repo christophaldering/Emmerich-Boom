@@ -1,0 +1,51 @@
+KONTEXT
+Repo: Emmerich-Boom, pnpm-Monorepo.
+Datei: artifacts/emmerich/src/pages/ThekePage.tsx
+Du fasst GENAU EINE Datei an. Keine anderen Dateien, keine package.json, keine Routes, kein Backend.
+
+PROBLEM
+In der Komponente MeinSteckbrief ist der EinwilligungsBlock ganz unten — nach Anzeigename,
+Vorstellung, 1985-Feld, Lautester Song, 5x AuswahlFeld, Fotos, Galerie, Anrufbeantworter.
+
+Der Server (PUT /api/theke/profil) verweigert das Speichern von Inhaltsfeldern mit 403,
+solange Einwilligung A (sichtbarkeit_zugestimmt_am) nicht gesetzt ist.
+Nutzer füllen alles aus, speichern, bekommen still einen Fehler — und verstehen nicht warum.
+
+AUFGABE
+Verschiebe den EinwilligungsBlock in MeinSteckbrief nach oben:
+NEUE Reihenfolge im return() der Komponente:
+
+1. Anzeigename (bleibt ganz oben, unverändert)
+2. EinwilligungsBlock (wird von unten nach hier verschoben)
+   → mit borderTop-Trennlinie DARUNTER (paddingBottom: "2rem", marginBottom: "2rem",
+     borderBottom: `1px solid ${am(0.15)}`)
+   → Überschrift ergänzen: ein <p> direkt über dem EinwilligungsBlock mit:
+     fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.05rem",
+     color: A, marginBottom: "0.5rem"
+     Text: "Zuerst kurz abstimmen"
+   → Unter dem EinwilligungsBlock (nach dem schließenden </div>) ein erklärender Hinweistext:
+     <p style={{ fontFamily: "'Lora', serif", fontSize: "0.85rem", color: fg(0.5),
+       fontStyle: "italic", marginTop: "0.5rem", marginBottom: "0" }}>
+       Sobald du das erste Häkchen gesetzt und gespeichert hast, sind alle Felder unten aktiv.
+     </p>
+3. Vorstellung (unverändert)
+4. Was war 1985 (unverändert)
+5. Lautester Song (unverändert)
+6. 5x AuswahlFeld (unverändert)
+7. Früher & Heute Fotos (unverändert)
+8. Galerie (unverändert)
+9. Anrufbeantworter (unverändert)
+
+Der bisherige EinwilligungsBlock-Block am alten Platz (Zeile ~1006-1007, umgeben von
+<div style={{ borderTop...paddingTop: "2rem"...}}>...</div>) wird ENTFERNT.
+
+VERBOTEN
+- Keine Änderungen an Logik, State, Refs, Props
+- Keine Änderungen am Backend oder an anderen Dateien
+- Keine neuen npm-Pakete
+- Kein Umbau der EinwilligungsBlock-Komponente selbst
+- Keine Änderung am "Alles speichern"-Button unten
+
+ABSCHLUSS-PFLICHT
+Wenn du fertig bist, schreibe exakt diesen Satz:
+"FERTIG — EinwilligungsBlock ist jetzt Schritt 2 in MeinSteckbrief, alle anderen Felder folgen danach."
