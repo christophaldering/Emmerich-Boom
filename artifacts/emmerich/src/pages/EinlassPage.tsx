@@ -134,7 +134,7 @@ function LoginGate({ onAuth }: { onAuth: (scannerName: string) => void }) {
     <div style={{ minHeight: "100svh", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       {/* Poster-Hintergrund */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "url(/images/boomerpartyposter.jpeg) center center / cover no-repeat" }} />
-      <div style={{ position: "fixed", inset: 0, zIndex: 1, background: "linear-gradient(to bottom, rgba(10,7,4,0.80) 0%, rgba(10,7,4,0.72) 50%, rgba(10,7,4,0.88) 100%)" }} />
+      <div style={{ position: "fixed", inset: 0, zIndex: 1, background: "linear-gradient(to bottom, rgba(10,7,4,0.42) 0%, rgba(10,7,4,0.32) 40%, rgba(10,7,4,0.55) 100%)" }} />
 
       <form onSubmit={handleSubmit} style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "320px" }}>
         <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
@@ -533,6 +533,8 @@ export default function EinlassPage() {
     });
   };
 
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   if (!authed) {
     return (
       <LoginGate onAuth={name => { setScannerName(name); setAuthed(true); }} />
@@ -573,7 +575,7 @@ export default function EinlassPage() {
       }} />
       <div style={{
         position: "fixed", inset: 0, zIndex: 1,
-        background: "linear-gradient(to bottom, rgba(10,7,4,0.78) 0%, rgba(10,7,4,0.70) 50%, rgba(10,7,4,0.88) 100%)",
+        background: "linear-gradient(to bottom, rgba(10,7,4,0.42) 0%, rgba(10,7,4,0.32) 40%, rgba(10,7,4,0.55) 100%)",
       }} />
 
       {/* Result overlay */}
@@ -590,32 +592,105 @@ export default function EinlassPage() {
         gap: "1.25rem",
       }}>
 
-        {/* Header */}
-        <div style={{ width: "100%", textAlign: "center" }}>
-          <p style={{
-            fontFamily: "'Playfair Display', serif", fontStyle: "italic",
-            fontSize: "1.6rem", color: A, margin: "0 0 0.2rem",
-            textShadow: "0 2px 12px rgba(0,0,0,0.8)",
-          }}>
-            Emmerich boomt!
-          </p>
-          <p style={{
-            fontFamily: "'Lora', serif", fontStyle: "italic",
-            fontSize: "0.78rem", color: `rgba(245,232,200,0.45)`,
-            margin: "0 0 0.5rem",
-            letterSpacing: "0.06em",
-          }}>
-            18. Juli 2026 · Bölt · Kapaunenberg
-          </p>
-          <span style={{
-            fontFamily: "'Lora', serif", fontSize: "0.72rem",
-            color: `rgba(232,153,26,0.65)`,
-            background: "rgba(232,153,26,0.09)",
-            border: "1px solid rgba(232,153,26,0.22)",
-            borderRadius: "3px", padding: "0.18rem 0.6rem",
-          }}>
-            {scannerName}
-          </span>
+        {/* ── Header-Zeile ── */}
+        <div style={{ width: "100%", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem" }}>
+          {/* Titel + Name */}
+          <div>
+            <p style={{
+              fontFamily: "'Playfair Display', serif", fontStyle: "italic",
+              fontSize: "1.5rem", color: A, margin: "0 0 0.15rem",
+              textShadow: "0 2px 16px rgba(0,0,0,0.9)",
+            }}>
+              Emmerich boomt!
+            </p>
+            <p style={{
+              fontFamily: "'Lora', serif", fontSize: "0.72rem",
+              color: "rgba(245,232,200,0.55)",
+              margin: "0 0 0.3rem", letterSpacing: "0.04em",
+              textShadow: "0 1px 6px rgba(0,0,0,0.8)",
+            }}>
+              18. Juli 2026 · Bölt
+            </p>
+            <span style={{
+              fontFamily: "'Lora', serif", fontSize: "0.72rem",
+              color: "rgba(232,153,26,0.75)",
+              background: "rgba(10,7,4,0.45)",
+              border: "1px solid rgba(232,153,26,0.28)",
+              borderRadius: "3px", padding: "0.15rem 0.55rem",
+              backdropFilter: "blur(4px)",
+            }}>
+              {scannerName}
+            </span>
+          </div>
+
+          {/* Einstellungen-Icon */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <button
+              onClick={() => setSettingsOpen(o => !o)}
+              style={{
+                background: settingsOpen ? "rgba(232,153,26,0.18)" : "rgba(10,7,4,0.45)",
+                border: `1px solid ${settingsOpen ? "rgba(232,153,26,0.5)" : "rgba(245,232,200,0.2)"}`,
+                borderRadius: "8px",
+                color: settingsOpen ? A : "rgba(245,232,200,0.6)",
+                width: "2.4rem", height: "2.4rem",
+                fontSize: "1.1rem",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                backdropFilter: "blur(6px)",
+              }}
+              title="Einstellungen"
+            >
+              ⚙
+            </button>
+
+            {settingsOpen && (
+              <div style={{
+                position: "absolute", top: "calc(100% + 0.5rem)", right: 0,
+                background: "rgba(14,10,5,0.92)",
+                border: "1px solid rgba(232,153,26,0.22)",
+                borderRadius: "10px",
+                padding: "0.85rem 1rem",
+                minWidth: "210px",
+                backdropFilter: "blur(12px)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                zIndex: 10,
+                display: "flex", flexDirection: "column", gap: "0.6rem",
+              }}>
+                {/* Vibration */}
+                <button
+                  onClick={toggleVibration}
+                  style={{
+                    background: "transparent",
+                    border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.4)" : "rgba(245,232,200,0.12)"}`,
+                    borderRadius: "6px",
+                    color: vibrationEnabled ? "rgba(232,153,26,0.85)" : "rgba(245,232,200,0.35)",
+                    fontFamily: "'Lora', serif", fontStyle: "italic",
+                    fontSize: "0.82rem",
+                    padding: "0.45rem 0.75rem",
+                    cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: "0.5rem",
+                    width: "100%",
+                  }}
+                >
+                  <span>📳</span>
+                  Vibration {vibrationEnabled ? "an" : "aus"}
+                </button>
+
+                {/* Manuelle Eingabe */}
+                <ManualEntry onScanned={() => { setRefreshTrigger(n => n + 1); setSettingsOpen(false); }} vibrationEnabled={vibrationEnabled} scannerName={scannerName} />
+
+                {/* Trennlinie + Abmelden */}
+                <div style={{ borderTop: "1px solid rgba(245,232,200,0.08)", paddingTop: "0.5rem" }}>
+                  <button
+                    onClick={() => { sessionStorage.removeItem(PW_KEY); sessionStorage.removeItem(SCANNER_KEY); stopScan(); setAuthed(false); }}
+                    style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.3)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", cursor: "pointer", padding: 0 }}
+                  >
+                    Abmelden
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ── Kamera-Karte ── */}
@@ -739,41 +814,9 @@ export default function EinlassPage() {
           )}
         </div>
 
-        <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} vibrationEnabled={vibrationEnabled} scannerName={scannerName} />
-
-        {/* Vibrations-Toggle */}
-        <button
-          onClick={toggleVibration}
-          style={{
-            background: "transparent",
-            border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.35)" : "rgba(245,232,200,0.1)"}`,
-            borderRadius: "3px",
-            color: vibrationEnabled ? "rgba(232,153,26,0.65)" : `rgba(245,232,200,0.22)`,
-            fontFamily: "'Lora', serif",
-            fontStyle: "italic",
-            fontSize: "0.75rem",
-            padding: "0.3rem 0.75rem",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.4rem",
-          }}
-        >
-          <span style={{ fontSize: "0.88rem" }}>📳</span>
-          Vibration {vibrationEnabled ? "an" : "aus"}
-        </button>
-
         <div style={{ width: "100%", borderTop: "1px solid rgba(245,232,200,0.07)", marginTop: "0.25rem" }} />
 
         <EingelassenTabelle refreshTrigger={refreshTrigger} />
-
-        {/* Abmelden */}
-        <button
-          onClick={() => { sessionStorage.removeItem(PW_KEY); sessionStorage.removeItem(SCANNER_KEY); stopScan(); setAuthed(false); }}
-          style={{ background: "transparent", border: "none", color: `rgba(245,232,200,0.18)`, fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.72rem", cursor: "pointer", marginTop: "0.25rem" }}
-        >
-          Abmelden
-        </button>
       </div>
     </div>
   );
