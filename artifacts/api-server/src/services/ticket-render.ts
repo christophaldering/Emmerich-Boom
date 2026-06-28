@@ -167,6 +167,126 @@ export async function renderTicketFrontSVG(data: TicketRenderData): Promise<stri
   return buildSvgLayers(data);
 }
 
+/**
+ * Portrait "Handy-Ticket" — 1080×1680px, optimized for phone screenshots.
+ * Layout: poster (top third) → gradient fade → event info → name → QR (large) → number → footer.
+ */
+async function buildHandySvg(data: Omit<TicketRenderData, "posterBuffer">): Promise<string> {
+  const { name, nummer, code } = data;
+  const numStr = extractNumStr(nummer);
+  const fontStyle = getFontStyleBlock();
+  const uid = nummer.replace(/[^a-zA-Z0-9]/g, "_");
+
+  const qrPngBuffer = await QRCode.toBuffer(code, {
+    type: "png",
+    margin: 2,
+    color: { dark: "#1A0A02", light: "#FFF8EC" },
+    width: 220,
+  });
+  const qrDataUrl = `data:image/png;base64,${qrPngBuffer.toString("base64")}`;
+
+  // viewBox 540×840 → rendered 1080×1680
+  // Poster layer is composited separately (top 0..230)
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 540 840" width="540" height="840" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  ${fontStyle}
+  <defs>
+    <clipPath id="hclip_${uid}">
+      <rect x="0" y="0" width="540" height="840" rx="10" ry="10" />
+    </clipPath>
+    <!-- Vertical gradient: transparent at top (poster shows), opaque dark from ~180px -->
+    <linearGradient id="hfade_${uid}" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#0A0704" stop-opacity="0" />
+      <stop offset="55%"  stop-color="#0A0704" stop-opacity="0" />
+      <stop offset="72%"  stop-color="#0A0704" stop-opacity="0.75" />
+      <stop offset="85%"  stop-color="#0A0704" stop-opacity="0.97" />
+      <stop offset="100%" stop-color="#0A0704" stop-opacity="1" />
+    </linearGradient>
+  </defs>
+
+  <g clip-path="url(#hclip_${uid})">
+    <!-- Gradient over poster area -->
+    <rect x="0" y="0" width="540" height="290" fill="url(#hfade_${uid})" />
+
+    <!-- Solid dark background for lower portion -->
+    <rect x="0" y="245" width="540" height="595" fill="#0A0704" />
+
+    <!-- Gold top border line -->
+    <rect x="0" y="0" width="540" height="3" fill="#E8991A" fill-opacity="0.6" />
+
+    <!-- EMMERICH BOOMT! label -->
+    <text x="270" y="318"
+      font-family="'Lora', Georgia, serif"
+      font-size="11" letter-spacing="4" text-anchor="middle" fill="#E8991A">EMMERICH BOOMT!</text>
+
+    <!-- Name -->
+    <text x="270" y="370"
+      font-family="'Playfair Display', Georgia, serif"
+      font-size="${name.length > 20 ? 28 : name.length > 14 ? 34 : 40}" font-weight="600"
+      text-anchor="middle" fill="#F5E8C8">${escXml(name)}</text>
+
+    <!-- Gold divider line -->
+    <line x1="140" y1="392" x2="400" y2="392" stroke="#E8991A" stroke-width="1" stroke-opacity="0.45" />
+
+    <!-- Date + time -->
+    <text x="270" y="424"
+      font-family="'Lora', Georgia, serif"
+      font-size="15" text-anchor="middle" fill="#F5E8C8">Samstag, 18. Juli 2026 &#xB7; 20:00 Uhr</text>
+
+    <!-- Venue -->
+    <text x="270" y="448"
+      font-family="'Lora', Georgia, serif"
+      font-size="13" text-anchor="middle" fill="#F5E8C8" fill-opacity="0.65">B&#xF6;lt / Kapaunenberg &#xB7; Emmerich am Rhein</text>
+
+    <!-- QR code background -->
+    <rect x="155" y="472" width="230" height="230" rx="8" ry="8" fill="#FFF8EC" />
+    <image href="${qrDataUrl}" x="160" y="477" width="220" height="220" />
+
+    <!-- Ticket number below QR -->
+    <text x="270" y="732"
+      font-family="'Lora', Georgia, serif"
+      font-size="11" letter-spacing="3" text-anchor="middle" fill="#E8991A" fill-opacity="0.7">EINTRITT</text>
+    <text x="270" y="770"
+      font-family="'Playfair Display', Georgia, serif"
+      font-size="42" font-weight="500" text-anchor="middle" fill="#E8991A">&#x2116; ${escXml(numStr)}</text>
+
+    <!-- Footer -->
+    <text x="270" y="820"
+      font-family="'Lora', Georgia, serif"
+      font-size="8.5" text-anchor="middle" fill="#F5E8C8" fill-opacity="0.35">Eintritt nur mit Ticket &#xB7; gesundes H&#xFC;ftgelenk empfohlen</text>
+
+    <!-- Gold border -->
+    <rect x="1" y="1" width="538" height="838" rx="10" ry="10" fill="none" stroke="#E8991A" stroke-width="1.5" stroke-opacity="0.6" />
+  </g>
+</svg>`;
+}
+
+export async function renderHandyTicketPNG(data: TicketRenderData): Promise<Buffer> {
+  const { posterBuffer } = data;
+
+  const svgLayers = await buildHandySvg(data);
+  const svgPng = await sharp(Buffer.from(svgLayers, "utf-8"))
+    .resize(1080, 1680)
+    .png()
+    .toBuffer();
+
+  // Poster: full width, top ~290/840 of height = ~580px
+  const posterPng = await sharp(posterBuffer)
+    .resize(1080, 580, { fit: "cover", position: "top" })
+    .png()
+    .toBuffer();
+
+  return sharp({
+    create: { width: 1080, height: 1680, channels: 3, background: { r: 10, g: 7, b: 4 } },
+  })
+    .composite([
+      { input: posterPng, top: 0, left: 0 },
+      { input: svgPng,    top: 0, left: 0 },
+    ])
+    .jpeg({ quality: 92 })
+    .toBuffer();
+}
+
 export async function renderTicketFrontPNG(data: TicketRenderData): Promise<Buffer> {
   const { posterBuffer } = data;
 

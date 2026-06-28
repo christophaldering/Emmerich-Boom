@@ -5,8 +5,9 @@ import { SERVER_CONFIG } from "../config.js";
 import crypto from "crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { sendTicketMail, sendZahlungserinnerung } from "../services/mailer";
-import { renderTicketFrontPNG } from "../services/ticket-render.js";
+import { renderTicketFrontPNG, renderHandyTicketPNG } from "../services/ticket-render.js";
 import { generateTicketPDF } from "../services/pdf.js";
 
 const router = Router();
@@ -519,6 +520,34 @@ router.post("/admin/anmeldungen/zahlungserinnerung", async (req: Request, res: R
   const fehler        = results.filter(r => r.status === "error").length;
 
   res.json({ ok: fehler === 0, gesendet, uebersprungen, fehler, details: results });
+});
+
+// GET /api/admin/handy-ticket-demo — Beispiel-Handy-Ticket als JPEG
+router.get("/admin/handy-ticket-demo", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  try {
+    const posterPath = (() => {
+      const candidates = [
+        path.join(path.dirname(fileURLToPath(import.meta.url)), "assets", "boomerpartyposter.jpeg"),
+        path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "assets", "boomerpartyposter.jpeg"),
+      ];
+      for (const p of candidates) { try { readFileSync(p); return p; } catch { /* try next */ } }
+      throw new Error("Poster nicht gefunden");
+    })();
+    const posterBuffer = readFileSync(posterPath);
+    const jpeg = await renderHandyTicketPNG({
+      name:         "Maria Mustermann",
+      nummer:       "EB-2026-042",
+      code:         "DEMO-HANDY-TICKET-2026",
+      posterBuffer,
+    });
+    res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader("Content-Disposition", 'attachment; filename="handy-ticket-beispiel.jpg"');
+    res.send(jpeg);
+  } catch (err) {
+    req.log.error(err, "handy-ticket-demo failed");
+    res.status(500).json({ error: "Konnte nicht generiert werden" });
+  }
 });
 
 export default router;

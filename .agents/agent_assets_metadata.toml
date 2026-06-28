@@ -53,3 +53,9 @@ id = "wQHICevFKDnNVo5lE_i57"
 uri = "file://.local/emmerich-boomt-export-produktion-2026-06-15.xlsx"
 type = "table"
 title = "EMMERICH BOOMT — Export Produktion (15.06.2026)"
+
+[[outputs]]
+id = "cK71D0opPXMumQOk2NfBR"
+uri = "file://handy-ticket-beispiel.jpg"
+type = "image"
+title = "Handy-Ticket Beispiel (1080×1680px)"
