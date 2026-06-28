@@ -1,0 +1,134 @@
+KONTEXT
+Repo: Emmerich-Boom, pnpm-Monorepo.
+Du fasst GENAU EINE Datei an:
+  artifacts/emmerich/src/pages/TafelPage.tsx
+
+Keine anderen Dateien. Kein Backend. Keine package.json.
+
+ZIEL
+Die Tafel-Seite läuft auf einem Bildschirm/Beamer am Bölt während des Einlasses.
+Aktuell ist sie zu karg. Sie soll atmosphärisch, warm und einladend wirken —
+als würde man die Party schon sehen bevor man drin ist.
+
+DESIGN-KONSTANTEN (unverändert übernehmen)
+  const BG  = "#0A0704";
+  const A   = "#E8991A";
+  const FG  = "#F5E8C8";
+  Fonts: 'Playfair Display' (Headlines), 'Lora' (Body)
+  Keine Tailwind-Farbklassen.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÄNDERUNGEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LINKE SPALTE (55%) — Spotlight-Bereich — komplett neu gestalten:
+
+Hintergrund:
+  Zeige das Poster-Bild als Hintergrund der linken Spalte:
+    background: "url(/images/boomerpartyposter.jpeg) center center / cover no-repeat"
+  Darüber ein dunkler Gradient-Overlay (damit Text lesbar bleibt):
+    background: "linear-gradient(to right,
+      rgba(10,7,4,0.15) 0%,
+      rgba(10,7,4,0.55) 60%,
+      rgba(10,7,4,0.92) 100%)"
+  Als zwei übereinanderliegende divs (position: absolute, inset: 0).
+
+Spotlight-Inhalt (zentriert in der Spalte, über dem Poster):
+  Wenn kein Neuankömmling (Idle-State):
+    — Kein Text "Emmerich boomt." mehr.
+    — Stattdessen nur das Poster als Hintergrund, leicht abgedunkelt.
+    — Unten in der Spalte (position: absolute, bottom: 2.5rem, left: 0, right: 0,
+      textAlign: center):
+        "18. Juli 2026 · Bölt · Kapaunenberg"
+        Lora, italic, 0.9rem, FG 45% Opacity
+
+  Wenn Neuankömmling vorhanden:
+    Zentrierter Content-Block (position: absolute, bottom: 20%, left: 5%, right: 5%):
+      — Kleines Label oben:
+          "Gerade angekommen"
+          Lora, 0.72rem, letterspacing 0.18em, uppercase, A 70% Opacity
+          marginBottom: "1rem"
+      — Name groß:
+          Playfair Display, italic, bold,
+          fontSize: clamp(2.8rem, 7vw, 5.5rem),
+          color: FG, lineHeight: 1.1,
+          textShadow: "0 2px 20px rgba(0,0,0,0.9)"
+      — "Herzlich willkommen!"
+          Lora, italic, 1.1rem, A, marginTop: "0.75rem"
+      — Wenn lauter_song vorhanden:
+          marginTop: "1.25rem"
+          "♪ {lauter_song}"
+          Playfair Display, italic, 1.1rem, FG 80% Opacity
+          Darunter: "… sein lautester Song damals"
+          Lora, 0.72rem, FG 38% Opacity, marginTop: "0.3rem"
+
+    Hinter dem Name-Block: sanfter radialer Amber-Glow:
+      position: absolute, zIndex: 0,
+      background: "radial-gradient(ellipse at 50% 70%,
+        rgba(232,153,26,0.18) 0%, transparent 65%)"
+      inset: 0, pointerEvents: none
+    Content-Block auf zIndex: 1 setzen.
+
+RECHTE SPALTE (45%) — "Schon da" — aufwärmen:
+
+Hintergrund der rechten Spalte:
+  background: "linear-gradient(to bottom,
+    rgba(232,153,26,0.04) 0%,
+    rgba(10,7,4,0) 100%)"
+
+Überschrift neu:
+  ALT:  "SCHON DA"
+  NEU:  Zwei Zeilen:
+    Zeile 1: "Schon da" — Playfair Display, italic, bold, 1.4rem, A, marginBottom: "0.25rem"
+    Zeile 2: Wenn anwesende.length > 0:
+               "{anwesende.length} {anwesende.length === 1 ? 'Person' : 'Personen'}"
+               Lora, 0.78rem, FG 40% Opacity
+             Wenn leer:
+               "Wir warten auf euch …"
+               Lora, italic, 0.78rem, FG 35% Opacity
+
+Wenn leer (kein Eintrag):
+  ALT:  "Noch niemand eingescannt."
+  NEU:  Kleines Ambient-Element statt nüchterner Text:
+    <div style={{ textAlign: "center", paddingTop: "3rem", opacity: 0.35 }}>
+      <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🎉</div>
+      <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic",
+        fontSize: "0.9rem", color: FG, lineHeight: 1.6 }}>
+        Gleich geht's los.
+      </p>
+    </div>
+
+Namens-Einträge in der Liste:
+  Jeder Eintrag bekommt etwas mehr Luft und eine subtile Amber-Linie links:
+    padding: "0.55rem 0 0.55rem 0.75rem"
+    borderLeft: "2px solid rgba(232,153,26,0.2)"
+    marginBottom: "0.25rem"
+  Name: Lora, 0.95rem, FG 85% Opacity (statt 80%)
+
+Statuszeile unten rechts:
+  Behalte "Zuletzt aktualisiert: HH:MM:SS"
+  Ergänze davor mit einem kleinen Puls-Punkt:
+    <span style={{ display: "inline-block", width: "6px", height: "6px",
+      borderRadius: "50%", background: A, marginRight: "0.4rem",
+      animation: "tafelpuls 2.5s ease-in-out infinite",
+      verticalAlign: "middle" }} />
+  Animation in <style>:
+    @keyframes tafelpuls { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+TRENNLINIE zwischen den Spalten:
+  Behalte 1px solid rgba(232,153,26,0.18)
+
+SONSTIGES
+  Polling-Intervall, Scroll-Animation, server_time-Anzeige: alles unverändert lassen.
+  Keine neuen npm-Pakete.
+  Kein Login.
+
+VERBOTEN
+  Keine anderen Dateien anfassen.
+  Kein Tailwind color classes.
+  Kein Audio.
+  Keine strukturellen Änderungen am API-Aufruf oder State.
+
+ABSCHLUSS-PFLICHT
+Wenn fertig, schreibe exakt:
+"FERTIG — TafelPage optisch aufgewertet, Poster als Hintergrund, Spotlight und Schon-da-Bereich neu gestaltet."
