@@ -11,7 +11,9 @@
     "renumber-tickets": "tsx src/renumber-tickets.ts",
     "create-farzin-ticket": "tsx src/create-farzin-ticket.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "verkleinere-bestandsfotos": "tsx src/verkleinere-bestandsfotos.ts"
+    "verkleinere-bestandsfotos": "tsx src/verkleinere-bestandsfotos.ts",
+    "demo-tickets-anlegen": "tsx src/demo-tickets-anlegen.ts",
+    "demo-tickets-reset": "tsx src/demo-tickets-reset.ts"
   },
   "devDependencies": {
     "@types/node": "catalog:",
