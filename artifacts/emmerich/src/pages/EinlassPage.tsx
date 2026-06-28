@@ -131,14 +131,23 @@ function LoginGate({ onAuth }: { onAuth: (scannerName: string) => void }) {
   };
 
   return (
-    <div style={{ minHeight: "100svh", background: "#0a0704", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "320px" }}>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.3rem", color: "#e8991a", textAlign: "center", margin: 0 }}>
-          Einlass-Scanner
-        </p>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", color: "rgba(245,232,200,0.45)", textAlign: "center", margin: 0 }}>
-          Bitte deinen Namen eingeben und das Passwort.
-        </p>
+    <div style={{ minHeight: "100svh", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      {/* Poster-Hintergrund */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, background: "url(/images/boomerpartyposter.jpeg) center center / cover no-repeat" }} />
+      <div style={{ position: "fixed", inset: 0, zIndex: 1, background: "linear-gradient(to bottom, rgba(10,7,4,0.80) 0%, rgba(10,7,4,0.72) 50%, rgba(10,7,4,0.88) 100%)" }} />
+
+      <form onSubmit={handleSubmit} style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "320px" }}>
+        <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.6rem", color: "#e8991a", margin: "0 0 0.2rem", textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
+            Emmerich boomt!
+          </p>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.75rem", color: "rgba(245,232,200,0.4)", margin: "0 0 0.75rem", letterSpacing: "0.06em" }}>
+            18. Juli 2026 · Bölt · Kapaunenberg
+          </p>
+          <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: "rgba(245,232,200,0.5)", margin: 0 }}>
+            Bitte Namen und Passwort eingeben.
+          </p>
+        </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
           <label style={labelStyle}>Dein Name / Station</label>
@@ -530,8 +539,7 @@ export default function EinlassPage() {
     );
   }
 
-  const A   = "#E8991A";
-  const FG  = "#F5E8C8";
+  const A = "#E8991A";
 
   return (
     <div style={{
