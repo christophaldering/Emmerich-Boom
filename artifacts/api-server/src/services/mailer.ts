@@ -453,18 +453,9 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
 
     <div style="margin:0 0 16px;padding:20px 24px;border:1px solid rgba(232,153,26,.4);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
       <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#e8991a;font-weight:bold;margin:0 0 14px;">Noch nicht bezahlt?</p>
-      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.85);margin:0 0 12px;line-height:1.65;">Bitte den Betrag bis zum <strong>${escHtml(opts.frist_de)}</strong> begleichen:</p>
-      ${opts.bezahlweg === "paypal" ? `
-      <div style="margin:0 0 8px;">
-        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Betrag</div>
-        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">${opts.betrag_gesamt}&nbsp;\u20ac (${opts.personen_anzahl}&nbsp;${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10&nbsp;\u20ac)</div>
-      </div>
-      <div>
-        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 4px;">PayPal-Pool</div>
-        <a href="${escHtml(PAYPAL_LINK)}" style="font-family:Courier,Menlo,monospace;font-size:13px;color:#e8991a;word-break:break-all;">${escHtml(PAYPAL_LINK)}</a>
-        <p style="font-family:Georgia,'Times New Roman',serif;font-size:12px;color:rgba(245,232,200,.55);margin:6px 0 0;line-height:1.5;">Bitte genau ${opts.betrag_gesamt}&nbsp;\u20ac eintragen (${opts.personen_anzahl}&nbsp;\u00d7 10&nbsp;\u20ac).</p>
-      </div>
-      ` : `
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.85);margin:0 0 16px;line-height:1.65;">Bitte den Betrag bis zum <strong>${escHtml(opts.frist_de)}</strong> begleichen \u2014 entweder per \u00dcberweisung oder per PayPal:</p>
+
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 8px;">Option 1 \u2014 Banküberweisung</p>
       <div style="margin:0 0 8px;">
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Empf\u00e4nger</div>
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">${escHtml(KONTOINHABER)}</div>
@@ -481,11 +472,16 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Betrag</div>
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">${opts.betrag_gesamt}&nbsp;\u20ac (${opts.personen_anzahl}&nbsp;${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10&nbsp;\u20ac)</div>
       </div>
-      <div>
+      <div style="margin:0 0 20px;">
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Verwendungszweck</div>
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">Boomerparty ${opts.personen.map(escHtml).join(" + ")}</div>
       </div>
-      `}
+
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 8px;">Option 2 \u2014 PayPal</p>
+      <div>
+        <a href="${escHtml(PAYPAL_LINK)}" style="font-family:Courier,Menlo,monospace;font-size:13px;color:#e8991a;word-break:break-all;">${escHtml(PAYPAL_LINK)}</a>
+        <p style="font-family:Georgia,'Times New Roman',serif;font-size:12px;color:rgba(245,232,200,.55);margin:6px 0 0;line-height:1.5;">Bitte genau ${opts.betrag_gesamt}&nbsp;\u20ac eintragen (${opts.personen_anzahl}&nbsp;\u00d7 10&nbsp;\u20ac).</p>
+      </div>
     </div>
 
     <div style="margin:0 0 16px;padding:16px 24px;border:1px solid rgba(245,232,200,.12);border-left:3px solid rgba(245,232,200,.3);background:#120c04;border-radius:0 4px 4px 0;">
@@ -533,19 +529,18 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
     `Wir bitten dich daher um eine kurze R\u00fcckmeldung bis zum ${opts.frist_de}:`,
     "",
     "Noch nicht bezahlt?",
-    `Bitte den Betrag bis zum ${opts.frist_de} begleichen:`,
+    `Bitte den Betrag bis zum ${opts.frist_de} begleichen \u2014 entweder per \u00dcberweisung oder per PayPal:`,
+    "",
+    "Option 1 \u2014 Banküberweisung:",
+    `Empf\u00e4nger: ${KONTOINHABER}`,
+    `IBAN: ${IBAN}`,
+    `Bank: ${BANK}`,
     `Betrag: ${opts.betrag_gesamt} \u20ac (${opts.personen_anzahl} ${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10 \u20ac)`,
-    ...(opts.bezahlweg === "paypal"
-      ? [
-          `PayPal-Pool: ${PAYPAL_LINK}`,
-          `Bitte genau ${opts.betrag_gesamt} \u20ac eintragen.`,
-        ]
-      : [
-          `Empf\u00e4nger: ${KONTOINHABER}`,
-          `IBAN: ${IBAN}`,
-          `Bank: ${BANK}`,
-          `Verwendungszweck: Boomerparty ${opts.personen.join(" + ")}`,
-        ]),
+    `Verwendungszweck: Boomerparty ${opts.personen.join(" + ")}`,
+    "",
+    "Option 2 \u2014 PayPal:",
+    `${PAYPAL_LINK}`,
+    `Bitte genau ${opts.betrag_gesamt} \u20ac eintragen.`,
     "",
     "Bereits \u00fcberwiesen? Dann melde dich kurz \u2014 m\u00f6glicherweise ist deine Zahlung nicht bei uns angekommen, und wir schauen gemeinsam nach, was passiert ist.",
     "",
