@@ -48,6 +48,7 @@ function getRoute(): { page: string; param?: string } {
   const clean = stripped.replace(/^\/+|\/+$/g, "");
 
   if (clean === ADMIN_SLUG) return { page: "admin" };
+  if (clean === "einlass") return { page: "einlass" };
   if (clean === `${ADMIN_SLUG}/einlass`) return { page: "einlass" };
   if (clean === `${ADMIN_SLUG}/tickets`) return { page: "ticket-uebersicht" };
   if (clean === "plakat") return { page: "plakat" };

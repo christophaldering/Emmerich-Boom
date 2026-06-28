@@ -100,6 +100,7 @@ interface DayEntry { date: string; visits: number; registrations: number; }
 interface HourEntry { hour: number; count: number; }
 interface WeekdayEntry { day: string; count: number; }
 interface RegTimelineEntry { name: string; date: string; song: string | null; }
+interface ScannerSlot { id: number; name: string; password: string; active: boolean; created_at: string; }
 
 interface Stats {
   summary: {
@@ -1876,6 +1877,12 @@ export default function AdminPage() {
   const [alleTickets, setAlleTickets] = useState<AlleTicketsEntry[]>([]);
   const [monitorData, setMonitorData] = useState<MonitorData | null>(null);
   const [einlassPending, setEinlassPending] = useState<string | null>(null);
+  const [scannerSlots, setScannerSlots] = useState<ScannerSlot[]>([]);
+  const [slotForm, setSlotForm]         = useState({ name: "", password: "" });
+  const [slotSaving, setSlotSaving]     = useState(false);
+  const [slotDeleting, setSlotDeleting] = useState<number | null>(null);
+  const [slotEditId, setSlotEditId]     = useState<number | null>(null);
+  const [slotMsg, setSlotMsg]           = useState<{ ok: boolean; text: string } | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>(() => (localStorage.getItem("emmerich_admin_tab") as Tab) ?? "anmeldungen");
   const [autoRefresh, setAutoRefresh] = useState(() =>
     localStorage.getItem("emmerich_auto_refresh") !== "0"
@@ -2021,6 +2028,13 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
+  const loadScannerSlots = useCallback(() => {
+    fetch(`${BASE}/api/admin/scanner-slots`, { headers: { "x-admin-secret": SECRET } })
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setScannerSlots(data as ScannerSlot[]); })
+      .catch(() => {});
+  }, []);
+
   const loadMonitor = useCallback(() => {
     fetch(`${BASE}/api/admin/einlass-monitor`, { headers: { "x-admin-secret": SECRET } })
       .then(r => r.json())
@@ -2103,7 +2117,7 @@ export default function AdminPage() {
     finally { setWlSaving(false); }
   };
 
-  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); loadWarteliste(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets, loadWarteliste]);
+  const refreshAll = useCallback(() => { load(); loadTickets(); loadAnmeldungen(); loadMonitor(); loadAlleTickets(); loadWarteliste(); loadScannerSlots(); }, [loadTickets, loadAnmeldungen, loadMonitor, loadAlleTickets, loadWarteliste, loadScannerSlots]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -2220,6 +2234,7 @@ export default function AdminPage() {
   }, [loadMonitor]);
 
   useEffect(() => { if (authed) refreshAll(); }, [authed]);
+  useEffect(() => { if (authed && activeTab === "einlass") loadScannerSlots(); }, [authed, activeTab, loadScannerSlots]);
 
   useEffect(() => {
     localStorage.setItem("emmerich_auto_refresh", autoRefresh ? "1" : "0");
@@ -2272,7 +2287,7 @@ export default function AdminPage() {
           <a href={`${BASE}/boomer-orga-intern/tickets`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Ticket-Übersicht
           </a>
-          <a href={`${BASE}/boomer-orga-intern/einlass`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
+          <a href={`${BASE}/einlass`} style={{ background: "transparent", border: `1px solid ${am(0.45)}`, borderRadius: "3px", color: am(0.85), textDecoration: "none", fontFamily: "'Lora', serif", fontSize: "0.88rem", padding: "0.45rem 1rem" }}>
             Einlass-Scanner
           </a>
           <button
@@ -2735,6 +2750,102 @@ export default function AdminPage() {
           r === "ok" ? "✓ Einlass" : r === "already_used" ? "⚠ Doppelt" : "✗ Ungültig";
         return (
           <>
+            {/* ── Scanner-Verwaltung ── */}
+            <div style={{ marginBottom: "2rem", background: am(0.05), border: `1px solid ${am(0.18)}`, borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ padding: "0.9rem 1.1rem", borderBottom: `1px solid ${am(0.12)}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", color: A, fontWeight: 700 }}>Scanner-Zugänge</span>
+                <a href={`${BASE}/einlass`} target="_blank" rel="noreferrer" style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: am(0.7), textDecoration: "none", border: `1px solid ${am(0.3)}`, borderRadius: "3px", padding: "0.2rem 0.6rem" }}>
+                  ↗ Scanner öffnen
+                </a>
+              </div>
+
+              {/* Existing slots */}
+              {scannerSlots.length === 0
+                ? <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.82rem", color: fg(0.35), padding: "0.9rem 1.1rem", margin: 0 }}>Noch keine Scanner eingerichtet.</p>
+                : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    {scannerSlots.map((slot, i) => (
+                      <div key={slot.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.55rem 1.1rem", borderBottom: i < scannerSlots.length - 1 ? `1px solid ${am(0.08)}` : "none", opacity: slot.active ? 1 : 0.45 }}>
+                        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: FG, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {slot.name}
+                        </span>
+                        <span style={{ fontFamily: "monospace", fontSize: "0.78rem", color: fg(0.45), background: fg(0.05), border: `1px solid ${fg(0.1)}`, borderRadius: "3px", padding: "0.15rem 0.5rem", letterSpacing: "0.05em" }}>
+                          {slot.password}
+                        </span>
+                        <button
+                          onClick={async () => {
+                            const updated = await fetch(`${BASE}/api/admin/scanner-slots/${slot.id}`, {
+                              method: "PATCH",
+                              headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+                              body: JSON.stringify({ active: !slot.active }),
+                            }).then(r => r.json()) as ScannerSlot;
+                            setScannerSlots(prev => prev.map(s => s.id === slot.id ? updated : s));
+                          }}
+                          style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", padding: "0.2rem 0.5rem", background: "transparent", border: `1px solid ${am(0.35)}`, borderRadius: "3px", color: am(0.7), cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+                        >
+                          {slot.active ? "Deaktivieren" : "Aktivieren"}
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`Scanner „${slot.name}" wirklich löschen?`)) return;
+                            setSlotDeleting(slot.id);
+                            await fetch(`${BASE}/api/admin/scanner-slots/${slot.id}`, { method: "DELETE", headers: { "x-admin-secret": SECRET } });
+                            setScannerSlots(prev => prev.filter(s => s.id !== slot.id));
+                            setSlotDeleting(null);
+                          }}
+                          disabled={slotDeleting === slot.id}
+                          style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", padding: "0.2rem 0.5rem", background: "transparent", border: "1px solid rgba(231,76,60,0.45)", borderRadius: "3px", color: "rgba(231,76,60,0.8)", cursor: "pointer", flexShrink: 0, opacity: slotDeleting === slot.id ? 0.5 : 1 }}
+                        >
+                          {slotDeleting === slot.id ? "…" : "Löschen"}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )
+              }
+
+              {/* Add new slot form */}
+              <form
+                onSubmit={async e => {
+                  e.preventDefault();
+                  if (!slotForm.name.trim() || !slotForm.password.trim()) return;
+                  setSlotSaving(true);
+                  setSlotMsg(null);
+                  try {
+                    const r = await fetch(`${BASE}/api/admin/scanner-slots`, {
+                      method: "POST",
+                      headers: { "x-admin-secret": SECRET, "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: slotForm.name.trim(), password: slotForm.password.trim() }),
+                    });
+                    const created = await r.json() as ScannerSlot;
+                    setScannerSlots(prev => [...prev, created]);
+                    setSlotForm({ name: "", password: "" });
+                    setSlotMsg({ ok: true, text: `Scanner „${created.name}" angelegt.` });
+                  } catch {
+                    setSlotMsg({ ok: false, text: "Fehler beim Speichern." });
+                  } finally {
+                    setSlotSaving(false);
+                  }
+                }}
+                style={{ padding: "0.75rem 1.1rem", borderTop: `1px solid ${am(0.12)}`, display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "flex-end" }}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: "1 1 140px" }}>
+                  <label style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.45) }}>Name / Station</label>
+                  <input value={slotForm.name} onChange={e => setSlotForm(f => ({ ...f, name: e.target.value }))} placeholder="z.B. Eingang Nord" required
+                    style={{ background: fg(0.06), border: `1px solid ${fg(0.15)}`, borderRadius: "3px", color: FG, padding: "0.4rem 0.6rem", fontSize: "0.85rem", fontFamily: "'Lora', serif", outline: "none" }} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", flex: "1 1 120px" }}>
+                  <label style={{ fontFamily: "'Lora', serif", fontSize: "0.72rem", color: fg(0.45) }}>Passwort</label>
+                  <input value={slotForm.password} onChange={e => setSlotForm(f => ({ ...f, password: e.target.value }))} placeholder="Passwort" required
+                    style={{ background: fg(0.06), border: `1px solid ${fg(0.15)}`, borderRadius: "3px", color: FG, padding: "0.4rem 0.6rem", fontSize: "0.85rem", fontFamily: "'Lora', serif", outline: "none" }} />
+                </div>
+                <button type="submit" disabled={slotSaving} style={{ background: A, border: "none", borderRadius: "3px", color: BG, padding: "0.4rem 1rem", fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.88rem", cursor: slotSaving ? "wait" : "pointer", opacity: slotSaving ? 0.6 : 1, flexShrink: 0, alignSelf: "flex-end" }}>
+                  {slotSaving ? "…" : "+ Hinzufügen"}
+                </button>
+                {slotMsg && <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: slotMsg.ok ? "#2ecc71" : "#e74c3c", width: "100%", marginTop: "0.1rem" }}>{slotMsg.text}</span>}
+              </form>
+            </div>
+
             {/* Summary */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "0.7rem", marginBottom: "2rem" }}>
               <StatCard n={monitorData?.tickets_total ?? "…"}  label="Tickets gesamt" />
@@ -2792,7 +2903,7 @@ export default function AdminPage() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
                     <thead>
                       <tr style={{ borderBottom: `2px solid ${am(0.25)}` }}>
-                        {(["Zeit", "Ergebnis", "Name", "Code"] as const).map(h => (
+                        {(["Zeit", "Ergebnis", "Name", "Scanner", "Code"] as const).map(h => (
                           <th key={h} style={{ padding: "0.35rem 0.6rem", fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "0.78rem", color: A, textAlign: "left", whiteSpace: "nowrap" }}>{h}</th>
                         ))}
                       </tr>
@@ -2802,7 +2913,8 @@ export default function AdminPage() {
                         <tr key={entry.id} style={{ borderBottom: `1px solid ${fg(0.05)}` }}>
                           <td style={{ padding: "0.35rem 0.6rem", fontFamily: "monospace", color: fg(0.45), whiteSpace: "nowrap" }}>{fmtTime(entry.scanned_at)}</td>
                           <td style={{ padding: "0.35rem 0.6rem", fontFamily: "'Lora', serif", fontWeight: 700, color: resultColor(entry.result), whiteSpace: "nowrap" }}>{resultLabel(entry.result)}</td>
-                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "'Lora', serif", color: fg(0.8), maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.person_name ?? "—"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "'Lora', serif", color: fg(0.8), maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.person_name ?? "—"}</td>
+                          <td style={{ padding: "0.35rem 0.6rem", fontFamily: "'Lora', serif", fontSize: "0.78rem", color: am(0.7), whiteSpace: "nowrap" }}>{(entry as { scanner_name?: string | null }).scanner_name ?? "—"}</td>
                           <td style={{ padding: "0.35rem 0.6rem", fontFamily: "monospace", fontSize: "0.7rem", color: fg(0.35) }}>{entry.ticket_code}</td>
                         </tr>
                       ))}

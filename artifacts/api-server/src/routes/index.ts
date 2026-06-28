@@ -11,6 +11,7 @@ import wartelisteRouter from "./warteliste";
 import exportRouter from "./export";
 import thekeRouter from "./theke";
 import thekeAdminRouter from "./theke-admin";
+import einlassRouter from "./einlass";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(wartelisteRouter);
 router.use(exportRouter);
 router.use(thekeRouter);
 router.use(thekeAdminRouter);
+router.use(einlassRouter);
 
 export default router;

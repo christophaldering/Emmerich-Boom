@@ -97,17 +97,36 @@ function LoginGate({ onAuth }: { onAuth: (scannerName: string) => void }) {
   const [name, setName]           = useState("");
   const [pwError, setPwError]     = useState(false);
   const [nameError, setNameError] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMsg, setAuthMsg]     = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const nameOk = name.trim().length > 0;
-    const pwOk   = pw === ADMIN_PW;
     setNameError(!nameOk);
-    setPwError(!pwOk);
-    if (nameOk && pwOk) {
-      sessionStorage.setItem(PW_KEY, "1");
-      sessionStorage.setItem(SCANNER_KEY, name.trim());
-      onAuth(name.trim());
+    setPwError(false);
+    setAuthMsg("");
+    if (!nameOk) return;
+    setAuthLoading(true);
+    try {
+      const r = await fetch(`${API}/einlass/auth`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), password: pw }),
+      });
+      const data = await r.json() as { ok: boolean; scanner_name?: string; message?: string };
+      if (data.ok && data.scanner_name) {
+        sessionStorage.setItem(PW_KEY, "1");
+        sessionStorage.setItem(SCANNER_KEY, data.scanner_name);
+        onAuth(data.scanner_name);
+      } else {
+        setPwError(true);
+        setAuthMsg(data.message ?? "Unbekannter Scanner oder falsches Passwort.");
+      }
+    } catch {
+      setAuthMsg("Verbindungsfehler. Bitte nochmal versuchen.");
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -143,11 +162,13 @@ function LoginGate({ onAuth }: { onAuth: (scannerName: string) => void }) {
             placeholder="Passwort"
             style={inputStyle(pwError)}
           />
-          {pwError && <p style={errorStyle}>Falsches Passwort.</p>}
+          {pwError && <p style={errorStyle}>{authMsg || "Unbekannter Scanner oder falsches Passwort."}</p>}
         </div>
 
-        <button type="submit" style={btnStyle("#e8991a", "0.75rem")}>
-          Scanner starten
+        {authMsg && !pwError && <p style={{ ...errorStyle, color: "#e74c3c" }}>{authMsg}</p>}
+
+        <button type="submit" disabled={authLoading} style={btnStyle("#e8991a", "0.75rem")}>
+          {authLoading ? "Prüfe …" : "Scanner starten"}
         </button>
       </form>
     </div>

@@ -1,0 +1,243 @@
+
+Production
+Status
+Christoph published 2 minutes ago
+
+Visibility
+Public
+SEO Rating
+HEALTHY
+Domain
+https://Emmerich-boomt.replit.app
+
+
+https://www.emmerich-boomt.de
+
+
+https://emmerich-boomt.de
+
+
+Geography
+North America
+Type
+Autoscale
+(2 vCPU / 4 GiB RAM / 3 Max)
+See all usage
+Database
+Production database connected
+Earn $20 for every friend who joins Replit Core
+
+Share your link. When a friend signs up and upgrades to Replit Core, you'll both get $20 in credits.
+replit.com/refer/christophalderi
+facffc66
+christophalderi
+Christoph
+published 10 days ago
+be5c4aca
+christophalderi
+Christoph
+published 10 days ago
+ff521826
+christophalderi
+Christoph
+published 10 days ago
+efb6c334
+christophalderi
+Christoph
+published 10 days ago
+9c4fcc11
+christophalderi
+Christoph
+published 10 days ago
+3fd35676
+christophalderi
+Christoph
+published 10 days ago
+c4f3e044
+christophalderi
+Christoph
+published 11 days ago
+66d563dc
+christophalderi
+Christoph
+published 11 days ago
+52782ce2
+christophalderi
+Christoph
+published 11 days ago
+fc9afc01
+christophalderi
+Christoph
+published 11 days ago
+0c5de2f1
+christophalderi
+Christoph
+published 11 days ago
+449f3b78
+christophalderi
+Christoph
+published 11 days ago
+a4754ca3
+christophalderi
+Christoph
+published 11 days ago
+9e0528b8
+christophalderi
+Christoph
+published 11 days ago
+7fa1da29
+christophalderi
+Christoph
+published 11 days ago
+4e977c9f
+christophalderi
+Christoph
+published 11 days ago
+991fb437
+christophalderi
+Christoph
+published 11 days ago
+d3e75baa
+christophalderi
+Christoph
+published 11 days ago
+fbc9ca88
+christophalderi
+Christoph
+published 11 days ago
+c994b9cf
+christophalderi
+Christoph
+published 11 days ago
+
+Published your App
+
+
+
+1 message & 1 action
+
+Worked for 30 seconds
+was habe ich dann von der Info?
+
+1 hour ago
+
+1 message & 1 action
+ja bitte
+
+1 hour ago
+
+4 messages & 15 actions
+
+Checkpoint made
+1 hour ago
+
+Worked for 1 minute
+
+Attached Image
+ich kann noch nicht sehen, wer wann eine Zahlungserinnerung bekommen hat und bis wann gezahlt sein muss
+
+1 hour ago
+
+4 messages & 11 actions
+
+Checkpoint made
+1 hour ago
+
+Worked for 1 minute
+
+Published your app
+1 hour ago
+die Option, per Paypal zu überweisen, fehlt in der mail!
+
+36 minutes ago
+
+4 messages & 16 actions
+
+Checkpoint made
+34 minutes ago
+
+Worked for 1 minute
+
+Published your app
+23 minutes ago
+woher kommt den der sog. "Bezahlweg"?. Diejenigen, die noch nicht bezahlt haben, die haben auch keinen Bezahlweg, oder verstehe ich da was falsch?!
+Bitte bei der Zahlungserinnerung beide Optionen aufnehmen!!
+
+20 minutes ago
+
+3 messages & 8 actions
+
+Checkpoint made
+19 minutes ago
+
+Worked for 1 minute
+nächste Frage: können wir das Ticket auch in einer Form zur Verfügung stellen, die ins Apple Wallet übernommen werden kann oder auch in das Android Pendant?
+
+18 minutes ago
+
+1 message & 1 action
+
+Published your app
+17 minutes ago
+ok, dann pragmatisch: kann das ticket in eine Form gebracht werden, die einfach als JPG o. ä. auf dem Bildschirm passt, so dass man sich das per Screenshot ablegen kann?
+
+16 minutes ago
+
+2 messages & 4 actions
+
+Worked for 45 seconds
+bau mir doch einmal ein Beispielticket hier zum download
+
+14 minutes ago
+
+4 messages & 20 actions
+
+1 output file
+
+Handy-Ticket Beispiel (1080×1680px)
+Image
+handy-ticket-beispiel.jpg
+
+Checkpoint made
+12 minutes ago
+
+Worked for 1 minute
+in bezug auf die Zahlungserinnerung. die Betreffzeile bitte anpassen in:
+Freundliche Zahlungserinnerung · EMMERICH BOOMT! · 18. Juli 2026
+
+12 minutes ago
+
+1 message & 5 actions
+
+Checkpoint made
+12 minutes ago
+
+Worked for 16 seconds
+
+Published your app
+8 minutes ago
+der Einlass-Scanner soll ja auch von Personen bedient werden können, die ansonsten gar keinen Zugang zum Admin-Bereich haben.
+
+Können wir den daher so einrichten, dass er "idiotensicher" funiktioniert?
+
+mit jeweiliger Bestätigung, dass das ticket gescannt wurde und der option, in einer Tabelle überprüfen, wer insgesamt ggf. von welchem Scanner erfasst wurde (wenn mehrere parallel Scannen)
+
+8 minutes ago
+
+10 messages & 26 actions
+
+Checkpoint made
+3 minutes ago
+
+Worked for 4 minutes
+unter welcher Adresse und mit welchem passwort finde ich den scanner?
+
+2 minutes ago
+
+Deciding on scanner URL presentation
+Der Scanner läuft unter:
+
+/boomer-orga-intern/einlass
+
+Also die volle Adresse wäre deine Produktiv-Domain + diesen Pfad, z.B.:
+https://emmerich-boomt.de/boomer-orga-intern/einlass

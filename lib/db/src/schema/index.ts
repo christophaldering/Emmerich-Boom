@@ -33,3 +33,4 @@ export * from "./theke_botschaften";
 export * from "./theke_fotos";
 export * from "./theke_verteiler";
 export * from "./theke_einladungen";
+export * from "./scanner_slots";
