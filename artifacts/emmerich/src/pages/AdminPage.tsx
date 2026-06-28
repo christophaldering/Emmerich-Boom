@@ -2858,6 +2858,32 @@ export default function AdminPage() {
                 <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                   <button
                     onClick={async () => {
+                      setDemoResetting(true);
+                      setDemoResetMsg(null);
+                      try {
+                        const r = await fetch(`${BASE}/api/admin/demo-tickets-anlegen`, {
+                          method: "POST",
+                          headers: { "x-admin-secret": SECRET },
+                        });
+                        const d = await r.json() as { ok: boolean; angelegt: string[]; uebersprungen: string[] };
+                        if (d.ok) {
+                          setDemoResetMsg({ ok: true, text: d.angelegt.length > 0 ? `${d.angelegt.length} Tickets angelegt.` : `Alle bereits vorhanden.` });
+                        } else {
+                          setDemoResetMsg({ ok: false, text: "Fehler beim Anlegen." });
+                        }
+                      } catch {
+                        setDemoResetMsg({ ok: false, text: "Netzwerkfehler." });
+                      } finally {
+                        setDemoResetting(false);
+                      }
+                    }}
+                    disabled={demoResetting}
+                    style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.3rem 0.85rem", background: "transparent", border: "1px solid rgba(232,153,26,0.4)", borderRadius: "3px", color: "rgba(232,153,26,0.8)", cursor: demoResetting ? "wait" : "pointer", opacity: demoResetting ? 0.5 : 1, whiteSpace: "nowrap" }}
+                  >
+                    {demoResetting ? "…" : "+ Anlegen"}
+                  </button>
+                  <button
+                    onClick={async () => {
                       if (!confirm("Alle 10 Demo-Tickets zurücksetzen?\n(eingelassen_am → NULL, scan_log bereinigt)")) return;
                       setDemoResetting(true);
                       setDemoResetMsg(null);

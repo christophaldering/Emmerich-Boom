@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { db, scannerSlots, scanLog, anmeldungTicketsTable, thekeProfileTable } from "@workspace/db";
+import { db, scannerSlots, scanLog, anmeldungTicketsTable, anmeldungenTable, thekeProfileTable } from "@workspace/db";
 import { eq, and, desc, isNotNull, gte, inArray } from "drizzle-orm";
 
 const router = Router();
@@ -77,6 +77,67 @@ router.delete("/admin/scanner-slots/:id", async (req: Request, res: Response) =>
   if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
   await db.delete(scannerSlots).where(eq(scannerSlots.id, id));
   res.json({ ok: true });
+});
+
+// POST /api/admin/demo-tickets-anlegen — legt die 10 Demo-Tickets an, falls noch nicht vorhanden
+const DEMO_PERSONEN = [
+  { name: "Anna Bergmann",   code: "0DE0000000000001", nummer: "DEMO-01" },
+  { name: "Klaus Hoffmann",  code: "0DE0000000000002", nummer: "DEMO-02" },
+  { name: "Monika Schmidt",  code: "0DE0000000000003", nummer: "DEMO-03" },
+  { name: "Werner Schulte",  code: "0DE0000000000004", nummer: "DEMO-04" },
+  { name: "Ingrid Fischer",  code: "0DE0000000000005", nummer: "DEMO-05" },
+  { name: "Günter Bauer",    code: "0DE0000000000006", nummer: "DEMO-06" },
+  { name: "Hildegard Meyer", code: "0DE0000000000007", nummer: "DEMO-07" },
+  { name: "Dieter Wagner",   code: "0DE0000000000008", nummer: "DEMO-08" },
+  { name: "Ursula Koch",     code: "0DE0000000000009", nummer: "DEMO-09" },
+  { name: "Helmut Schäfer",  code: "0DE0000000000010", nummer: "DEMO-10" },
+] as const;
+
+router.post("/admin/demo-tickets-anlegen", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+
+  const existing = await db
+    .select({ code: anmeldungTicketsTable.ticket_code })
+    .from(anmeldungTicketsTable)
+    .where(inArray(anmeldungTicketsTable.ticket_code, DEMO_PERSONEN.map(d => d.code)));
+
+  const existingCodes = new Set(existing.map(r => r.code));
+
+  const angelegt: string[] = [];
+  const uebersprungen: string[] = [];
+
+  for (const demo of DEMO_PERSONEN) {
+    if (existingCodes.has(demo.code)) {
+      uebersprungen.push(demo.nummer);
+      continue;
+    }
+
+    const [anmeldung] = await db.insert(anmeldungenTable).values({
+      email:               `demo+${demo.nummer.toLowerCase()}@emmerich-boomt.de`,
+      telefon:             null,
+      personen_anzahl:     1,
+      personen:            [{ name: demo.name }],
+      bezahlweg:           "freiticket",
+      song:                null,
+      statement:           "Demo-Ticket (Testbetrieb)",
+      betrag_gesamt:       0,
+      ticket_nummern:      [demo.nummer],
+      bezahlt_am:          new Date(),
+    }).returning();
+
+    if (!anmeldung) continue;
+
+    await db.insert(anmeldungTicketsTable).values({
+      anmeldung_id:  anmeldung.id,
+      person_name:   demo.name,
+      ticket_nummer: demo.nummer,
+      ticket_code:   demo.code,
+    });
+
+    angelegt.push(demo.nummer);
+  }
+
+  res.json({ ok: true, angelegt, uebersprungen });
 });
 
 // POST /api/demo-reset — setzt die 10 Demo-Tickets zurück (Admin)
