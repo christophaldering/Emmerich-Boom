@@ -562,7 +562,7 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
     from:    `${ABSENDER_NAME} <${ABSENDER_MAIL}>`,
     to:      [opts.to],
     replyTo: ABSENDER_MAIL,
-    subject: "Kurze R\u00fcckmeldung erbeten: Dein Ticket \u00b7 EMMERICH BOOMT! \u00b7 18. Juli 2026",
+    subject: "Freundliche Zahlungserinnerung \u00b7 EMMERICH BOOMT! \u00b7 18. Juli 2026",
     html,
     text,
     attachments: [
