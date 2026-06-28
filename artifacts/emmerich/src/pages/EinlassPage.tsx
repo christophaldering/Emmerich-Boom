@@ -419,6 +419,7 @@ export default function EinlassPage() {
   const streamRef   = useRef<MediaStream | null>(null);
   const rafRef      = useRef<number | null>(null);
   const cooldownRef = useRef(false);
+  const lastTickRef = useRef<number>(0);
   const autoTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -434,13 +435,19 @@ export default function EinlassPage() {
     if (countdownRef.current)  { clearInterval(countdownRef.current);  countdownRef.current  = null; }
   };
 
-  const tick = () => {
+  const tick = (now: number = 0) => {
     const video  = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || video.readyState < video.HAVE_ENOUGH_DATA) {
       rafRef.current = requestAnimationFrame(tick);
       return;
     }
+    // Throttle: scan only every 150 ms to reduce CPU/heat
+    if (now - lastTickRef.current < 150) {
+      rafRef.current = requestAnimationFrame(tick);
+      return;
+    }
+    lastTickRef.current = now;
     canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db, scannerSlots, scanLog, anmeldungTicketsTable, anmeldungenTable, thekeProfileTable } from "@workspace/db";
-import { eq, and, desc, isNotNull, gte, inArray } from "drizzle-orm";
+import { eq, and, desc, isNotNull, isNull, gte, inArray } from "drizzle-orm";
 
 const router = Router();
 const SECRET = "emmerich-orga-stats-2026";
@@ -106,6 +106,17 @@ router.post("/admin/demo-tickets-anlegen", async (req: Request, res: Response) =
   const angelegt: string[] = [];
   const uebersprungen: string[] = [];
 
+  // Bestehende Demo-Tickets die noch kein eingelassen_am haben → jetzt setzen
+  if (existingCodes.size > 0) {
+    await db
+      .update(anmeldungTicketsTable)
+      .set({ eingelassen_am: new Date() })
+      .where(and(
+        inArray(anmeldungTicketsTable.ticket_code, [...existingCodes]),
+        isNull(anmeldungTicketsTable.eingelassen_am),
+      ));
+  }
+
   for (const demo of DEMO_PERSONEN) {
     if (existingCodes.has(demo.code)) {
       uebersprungen.push(demo.nummer);
@@ -128,10 +139,11 @@ router.post("/admin/demo-tickets-anlegen", async (req: Request, res: Response) =
     if (!anmeldung) continue;
 
     await db.insert(anmeldungTicketsTable).values({
-      anmeldung_id:  anmeldung.id,
-      person_name:   demo.name,
-      ticket_nummer: demo.nummer,
-      ticket_code:   demo.code,
+      anmeldung_id:   anmeldung.id,
+      person_name:    demo.name,
+      ticket_nummer:  demo.nummer,
+      ticket_code:    demo.code,
+      eingelassen_am: new Date(),
     });
 
     angelegt.push(demo.nummer);
