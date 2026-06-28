@@ -59,3 +59,63 @@ id = "cK71D0opPXMumQOk2NfBR"
 uri = "file://handy-ticket-beispiel.jpg"
 type = "image"
 title = "Handy-Ticket Beispiel (1080×1680px)"
+
+[[outputs]]
+id = "U092xD2fxvCCnzgRdOCaO"
+uri = "file://scripts/output/demo-qr/DEMO-01_Anna_Bergmann.png"
+type = "image"
+title = "DEMO-01 Anna Bergmann"
+
+[[outputs]]
+id = "KN7d7JeSI1d06mzG27TTX"
+uri = "file://scripts/output/demo-qr/DEMO-02_Klaus_Hoffmann.png"
+type = "image"
+title = "DEMO-02 Klaus Hoffmann"
+
+[[outputs]]
+id = "ERJZwulI9xJUeT0ssw2I1"
+uri = "file://scripts/output/demo-qr/DEMO-03_Monika_Schmidt.png"
+type = "image"
+title = "DEMO-03 Monika Schmidt"
+
+[[outputs]]
+id = "c3DLAT4OWti1C0WKUrCbu"
+uri = "file://scripts/output/demo-qr/DEMO-04_Werner_Schulte.png"
+type = "image"
+title = "DEMO-04 Werner Schulte"
+
+[[outputs]]
+id = "-6ckSa2FRAk_fWdxOiMCS"
+uri = "file://scripts/output/demo-qr/DEMO-05_Ingrid_Fischer.png"
+type = "image"
+title = "DEMO-05 Ingrid Fischer"
+
+[[outputs]]
+id = "tjMMF2kEx3hI7QoUnwLwf"
+uri = "file://scripts/output/demo-qr/DEMO-06_Guenter_Bauer.png"
+type = "image"
+title = "DEMO-06 Günter Bauer"
+
+[[outputs]]
+id = "0NdBXjWa-XmAp0NcUTZ4C"
+uri = "file://scripts/output/demo-qr/DEMO-07_Hildegard_Meyer.png"
+type = "image"
+title = "DEMO-07 Hildegard Meyer"
+
+[[outputs]]
+id = "r_koWpYvUK8BJ-X4sV1RD"
+uri = "file://scripts/output/demo-qr/DEMO-08_Dieter_Wagner.png"
+type = "image"
+title = "DEMO-08 Dieter Wagner"
+
+[[outputs]]
+id = "q3Kgf8wr0wcPHCVnWYdQj"
+uri = "file://scripts/output/demo-qr/DEMO-09_Ursula_Koch.png"
+type = "image"
+title = "DEMO-09 Ursula Koch"
+
+[[outputs]]
+id = "87Up8dve_iDqCBLRpmOmX"
+uri = "file://scripts/output/demo-qr/DEMO-10_Helmut_Schaefer.png"
+type = "image"
+title = "DEMO-10 Helmut Schäfer"

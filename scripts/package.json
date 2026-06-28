@@ -13,18 +13,21 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "verkleinere-bestandsfotos": "tsx src/verkleinere-bestandsfotos.ts",
     "demo-tickets-anlegen": "tsx src/demo-tickets-anlegen.ts",
-    "demo-tickets-reset": "tsx src/demo-tickets-reset.ts"
+    "demo-tickets-reset": "tsx src/demo-tickets-reset.ts",
+    "demo-tickets-qr": "tsx src/demo-tickets-qr.ts"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/qrcode": "^1.5.6",
     "tsx": "catalog:"
   },
   "dependencies": {
-    "@types/pdfkit": "^0.17.6",
     "@replit/object-storage": "^1.0.0",
+    "@types/pdfkit": "^0.17.6",
     "@workspace/db": "workspace:*",
     "drizzle-orm": "catalog:",
     "pdfkit": "^0.18.0",
+    "qrcode": "^1.5.4",
     "resend": "^6.12.3",
     "sharp": "^0.34.5"
   }

@@ -1883,6 +1883,8 @@ export default function AdminPage() {
   const [slotDeleting, setSlotDeleting] = useState<number | null>(null);
   const [slotEditId, setSlotEditId]     = useState<number | null>(null);
   const [slotMsg, setSlotMsg]           = useState<{ ok: boolean; text: string } | null>(null);
+  const [demoResetting, setDemoResetting] = useState(false);
+  const [demoResetMsg, setDemoResetMsg]   = useState<{ ok: boolean; text: string } | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>(() => (localStorage.getItem("emmerich_admin_tab") as Tab) ?? "anmeldungen");
   const [autoRefresh, setAutoRefresh] = useState(() =>
     localStorage.getItem("emmerich_auto_refresh") !== "0"
@@ -2844,6 +2846,73 @@ export default function AdminPage() {
                 </button>
                 {slotMsg && <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: slotMsg.ok ? "#2ecc71" : "#e74c3c", width: "100%", marginTop: "0.1rem" }}>{slotMsg.text}</span>}
               </form>
+            </div>
+
+            {/* ── Demo-Tickets ── */}
+            <div style={{ marginBottom: "2rem", background: "rgba(231,76,60,0.04)", border: "1px solid rgba(231,76,60,0.2)", borderRadius: "8px", overflow: "hidden" }}>
+              <div style={{ padding: "0.9rem 1.1rem", borderBottom: "1px solid rgba(231,76,60,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                <div>
+                  <span style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "0.95rem", color: "rgba(231,76,60,0.9)", fontWeight: 700 }}>Demo-Tickets</span>
+                  <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: fg(0.4), marginLeft: "0.75rem" }}>DEMO-01 Anna Bergmann … DEMO-10 Helmut Schäfer</span>
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Alle 10 Demo-Tickets zurücksetzen?\n(eingelassen_am → NULL, scan_log bereinigt)")) return;
+                      setDemoResetting(true);
+                      setDemoResetMsg(null);
+                      try {
+                        const r = await fetch(`${BASE}/api/demo-reset`, {
+                          method: "POST",
+                          headers: { "x-admin-secret": SECRET },
+                        });
+                        const d = await r.json() as { ok: boolean; tickets_reset: number; logs_deleted: number };
+                        if (d.ok) {
+                          setDemoResetMsg({ ok: true, text: `${d.tickets_reset} Tickets zurückgesetzt, ${d.logs_deleted} Log-Einträge gelöscht.` });
+                        } else {
+                          setDemoResetMsg({ ok: false, text: "Fehler beim Zurücksetzen." });
+                        }
+                      } catch {
+                        setDemoResetMsg({ ok: false, text: "Netzwerkfehler." });
+                      } finally {
+                        setDemoResetting(false);
+                      }
+                    }}
+                    disabled={demoResetting}
+                    style={{ fontFamily: "'Lora', serif", fontSize: "0.82rem", padding: "0.3rem 0.85rem", background: "transparent", border: "1px solid rgba(231,76,60,0.5)", borderRadius: "3px", color: "rgba(231,76,60,0.85)", cursor: demoResetting ? "wait" : "pointer", opacity: demoResetting ? 0.5 : 1, whiteSpace: "nowrap" }}
+                  >
+                    {demoResetting ? "…" : "↺ Zurücksetzen"}
+                  </button>
+                </div>
+              </div>
+              <div style={{ padding: "0.6rem 1.1rem", display: "flex", flexWrap: "wrap", gap: "0.4rem 0.75rem", alignItems: "center" }}>
+                {[
+                  ["DEMO-01","0DE0000000000001","Anna Bergmann"],
+                  ["DEMO-02","0DE0000000000002","Klaus Hoffmann"],
+                  ["DEMO-03","0DE0000000000003","Monika Schmidt"],
+                  ["DEMO-04","0DE0000000000004","Werner Schulte"],
+                  ["DEMO-05","0DE0000000000005","Ingrid Fischer"],
+                  ["DEMO-06","0DE0000000000006","Günter Bauer"],
+                  ["DEMO-07","0DE0000000000007","Hildegard Meyer"],
+                  ["DEMO-08","0DE0000000000008","Dieter Wagner"],
+                  ["DEMO-09","0DE0000000000009","Ursula Koch"],
+                  ["DEMO-10","0DE0000000000010","Helmut Schäfer"],
+                ].map(([nr, code, name]) => (
+                  <a key={code}
+                    href={`https://emmerich-boomt.de/boomer-orga-intern/ticket/${code}`}
+                    target="_blank" rel="noreferrer"
+                    title={`${nr} — ${name}\n${code}`}
+                    style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: fg(0.55), textDecoration: "none", border: "1px solid rgba(245,232,200,0.1)", borderRadius: "3px", padding: "0.15rem 0.45rem", background: "rgba(245,232,200,0.04)", whiteSpace: "nowrap" }}
+                  >
+                    {nr} {name}
+                  </a>
+                ))}
+                {demoResetMsg && (
+                  <span style={{ fontFamily: "'Lora', serif", fontSize: "0.78rem", color: demoResetMsg.ok ? "#2ecc71" : "#e74c3c", marginLeft: "0.25rem" }}>
+                    {demoResetMsg.ok ? "✓ " : "✗ "}{demoResetMsg.text}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Summary */}

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db, scannerSlots, scanLog, anmeldungTicketsTable, thekeProfileTable } from "@workspace/db";
-import { eq, and, desc, isNotNull, gte } from "drizzle-orm";
+import { eq, and, desc, isNotNull, gte, inArray } from "drizzle-orm";
 
 const router = Router();
 const SECRET = "emmerich-orga-stats-2026";
@@ -77,6 +77,32 @@ router.delete("/admin/scanner-slots/:id", async (req: Request, res: Response) =>
   if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
   await db.delete(scannerSlots).where(eq(scannerSlots.id, id));
   res.json({ ok: true });
+});
+
+// POST /api/demo-reset — setzt die 10 Demo-Tickets zurück (Admin)
+const DEMO_CODES = Array.from({ length: 10 }, (_, i) =>
+  `0DE${String(i + 1).padStart(13, "0")}`.toUpperCase()
+);
+
+router.post("/demo-reset", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+
+  const [logResult, ticketResult] = await Promise.all([
+    db.delete(scanLog)
+      .where(inArray(scanLog.ticket_code, DEMO_CODES))
+      .returning({ id: scanLog.id }),
+    db.update(anmeldungTicketsTable)
+      .set({ eingelassen_am: null })
+      .where(inArray(anmeldungTicketsTable.ticket_code, DEMO_CODES))
+      .returning({ name: anmeldungTicketsTable.person_name }),
+  ]);
+
+  res.json({
+    ok: true,
+    tickets_reset: ticketResult.length,
+    logs_deleted:  logResult.length,
+    namen:         ticketResult.map(t => t.name),
+  });
 });
 
 // GET /api/tafel — öffentlich; Neuankömmlinge + Anwesende für den Einlass-Bildschirm
