@@ -852,17 +852,26 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
           </button>
         )}
         {msg && !versendet && <div style={{ color: "#e74c3c", fontSize: "0.73rem", marginTop: "0.2rem" }}>{msg}</div>}
-        {(row.zahlungserinnerungen ?? []).length > 0 && (() => {
+      </td>
+
+      {/* Erinnerung-Spalte */}
+      <td style={{ ...tdStyle, width: "9rem" }}>
+        {(row.zahlungserinnerungen ?? []).length > 0 ? (() => {
           const log = row.zahlungserinnerungen;
           const last = log[log.length - 1]!;
+          const fristAbgelaufen = new Date(last.frist_am) < new Date();
           return (
-            <div style={{ fontSize: "0.71rem", color: fg(0.45), marginTop: "0.3rem", lineHeight: 1.35 }}>
-              📨 {log.length}× Erinnerung<br />
-              letzte: {dateFmt(last.gesendet_am)}<br />
-              Frist: {dateFmt(last.frist_am)}
+            <div style={{ fontSize: "0.75rem", lineHeight: 1.45 }}>
+              <div style={{ color: A, fontWeight: 600 }}>📨 {log.length}×</div>
+              <div style={{ color: fg(0.5) }}>letzte: {dateFmt(last.gesendet_am)}</div>
+              <div style={{ color: fristAbgelaufen ? "#e05a3a" : fg(0.65), fontWeight: fristAbgelaufen ? 600 : 400 }}>
+                Frist: {dateFmt(last.frist_am)}{fristAbgelaufen ? " ⚠" : ""}
+              </div>
             </div>
           );
-        })()}
+        })() : (
+          <span style={{ color: fg(0.25), fontSize: "0.75rem" }}>—</span>
+        )}
       </td>
 
       {/* Tickets-Spalte */}
@@ -2563,6 +2572,7 @@ export default function AdminPage() {
                             <th style={fixed}>Weg</th>
                             <th style={sortable("created")} onClick={onSort("created")}>Angemeldet{ind("created")}</th>
                             <th style={sortable("bezahlt")} onClick={onSort("bezahlt")}>Bezahlt{ind("bezahlt")}</th>
+                            <th style={fixed}>Erinnerung</th>
                             <th style={fixed}>Tickets</th>
                             <th style={fixed}></th>
                           </tr>
