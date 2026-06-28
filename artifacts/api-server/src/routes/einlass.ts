@@ -191,11 +191,7 @@ router.get("/tafel", async (_req: Request, res: Response) => {
         eingelassen_am: anmeldungTicketsTable.eingelassen_am,
       })
       .from(anmeldungTicketsTable)
-      .innerJoin(thekeProfileTable, eq(thekeProfileTable.anmeldung_ticket_id, anmeldungTicketsTable.id))
-      .where(and(
-        isNotNull(anmeldungTicketsTable.eingelassen_am),
-        eq(thekeProfileTable.tafel_ok, true),
-      ))
+      .where(isNotNull(anmeldungTicketsTable.eingelassen_am))
       .orderBy(anmeldungTicketsTable.eingelassen_am),
   ]);
 
