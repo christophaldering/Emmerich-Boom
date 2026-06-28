@@ -530,115 +530,243 @@ export default function EinlassPage() {
     );
   }
 
+  const A   = "#E8991A";
+  const FG  = "#F5E8C8";
+
   return (
-    <div style={{ minHeight: "100svh", background: "#0a0704", display: "flex", flexDirection: "column", alignItems: "center", padding: "1.25rem 1rem", gap: "1rem" }}>
+    <div style={{
+      minHeight: "100svh",
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      overflowX: "hidden",
+    }}>
+      <style>{`
+        @keyframes scanline {
+          0%   { top: 12%; opacity: 1; }
+          48%  { opacity: 1; }
+          50%  { top: 88%; opacity: 0.4; }
+          52%  { opacity: 1; }
+          100% { top: 12%; opacity: 1; }
+        }
+        @keyframes puls-ring {
+          0%,100% { box-shadow: 0 0 0 0   rgba(232,153,26,0.55),
+                                0 0 18px 2px rgba(232,153,26,0.18); }
+          50%     { box-shadow: 0 0 0 6px rgba(232,153,26,0.15),
+                                0 0 30px 6px rgba(232,153,26,0.28); }
+        }
+      `}</style>
+
+      {/* ── Poster-Hintergrund ── */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 0,
+        background: "url(/images/boomerpartyposter.jpeg) center center / cover no-repeat",
+      }} />
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 1,
+        background: "linear-gradient(to bottom, rgba(10,7,4,0.78) 0%, rgba(10,7,4,0.70) 50%, rgba(10,7,4,0.88) 100%)",
+      }} />
 
       {/* Result overlay */}
       {result && !loading && (
         <ResultOverlay result={result} countdown={countdown} onNext={handleNext} />
       )}
 
-      {/* Header */}
-      <div style={{ width: "100%", maxWidth: "420px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <p style={{ fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.2rem", color: "#e8991a", margin: 0 }}>
-          Einlass-Scanner
-        </p>
-        <span style={{ fontFamily: "'Lora', serif", fontSize: "0.75rem", color: "rgba(232,153,26,0.6)", background: "rgba(232,153,26,0.08)", border: "1px solid rgba(232,153,26,0.2)", borderRadius: "3px", padding: "0.2rem 0.6rem" }}>
-          {scannerName}
-        </span>
-      </div>
-
-      {/* Camera viewport */}
+      {/* ── Hauptinhalt ── */}
       <div style={{
-        width: "100%", maxWidth: "420px",
-        aspectRatio: "4/3",
-        borderRadius: "10px",
-        overflow: "hidden",
-        border: `2px solid ${scanning ? "#e8991a" : "rgba(232,153,26,0.2)"}`,
-        background: "#000",
-        position: "relative",
-        display: "block",
-        flexShrink: 0,
+        position: "relative", zIndex: 2,
+        width: "100%", maxWidth: "440px",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        padding: "2rem 1.25rem 1.5rem",
+        gap: "1.25rem",
       }}>
-        <video
-          ref={videoRef}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: scanning ? 1 : 0.25 }}
-          playsInline muted autoPlay
-        />
-        {/* Viewfinder overlay */}
-        {scanning && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-            <div style={{ width: "220px", height: "220px", border: "2px solid rgba(232,153,26,0.8)", borderRadius: "10px", boxShadow: "0 0 0 9999px rgba(0,0,0,0.35)" }} />
-          </div>
+
+        {/* Header */}
+        <div style={{ width: "100%", textAlign: "center" }}>
+          <p style={{
+            fontFamily: "'Playfair Display', serif", fontStyle: "italic",
+            fontSize: "1.6rem", color: A, margin: "0 0 0.2rem",
+            textShadow: "0 2px 12px rgba(0,0,0,0.8)",
+          }}>
+            Emmerich boomt!
+          </p>
+          <p style={{
+            fontFamily: "'Lora', serif", fontStyle: "italic",
+            fontSize: "0.78rem", color: `rgba(245,232,200,0.45)`,
+            margin: "0 0 0.5rem",
+            letterSpacing: "0.06em",
+          }}>
+            18. Juli 2026 · Bölt · Kapaunenberg
+          </p>
+          <span style={{
+            fontFamily: "'Lora', serif", fontSize: "0.72rem",
+            color: `rgba(232,153,26,0.65)`,
+            background: "rgba(232,153,26,0.09)",
+            border: "1px solid rgba(232,153,26,0.22)",
+            borderRadius: "3px", padding: "0.18rem 0.6rem",
+          }}>
+            {scannerName}
+          </span>
+        </div>
+
+        {/* ── Kamera-Karte ── */}
+        <div style={{
+          width: "100%",
+          borderRadius: "16px",
+          overflow: "hidden",
+          position: "relative",
+          background: "#000",
+          boxShadow: scanning
+            ? "0 0 0 2px #E8991A, 0 8px 40px rgba(0,0,0,0.7), 0 0 24px rgba(232,153,26,0.25)"
+            : "0 0 0 1px rgba(232,153,26,0.25), 0 8px 40px rgba(0,0,0,0.7)",
+          animation: scanning ? "puls-ring 2.5s ease-in-out infinite" : "none",
+          flexShrink: 0,
+          aspectRatio: "4/3",
+        }}>
+          <video
+            ref={videoRef}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: scanning ? 1 : 0.2 }}
+            playsInline muted autoPlay
+          />
+
+          {/* Ecken-Dekor */}
+          {scanning && (() => {
+            const corner = (pos: React.CSSProperties): React.ReactNode => (
+              <div style={{
+                position: "absolute", width: "28px", height: "28px",
+                borderColor: A, borderStyle: "solid", borderWidth: "0",
+                ...pos,
+              }} />
+            );
+            const s = "3px solid " + A;
+            return (
+              <>
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2 }}>
+                  {/* TL */}
+                  <div style={{ position: "absolute", top: "14%", left: "14%", width: "28px", height: "28px", borderTop: s, borderLeft: s, borderRadius: "4px 0 0 0" }} />
+                  {/* TR */}
+                  <div style={{ position: "absolute", top: "14%", right: "14%", width: "28px", height: "28px", borderTop: s, borderRight: s, borderRadius: "0 4px 0 0" }} />
+                  {/* BL */}
+                  <div style={{ position: "absolute", bottom: "14%", left: "14%", width: "28px", height: "28px", borderBottom: s, borderLeft: s, borderRadius: "0 0 0 4px" }} />
+                  {/* BR */}
+                  <div style={{ position: "absolute", bottom: "14%", right: "14%", width: "28px", height: "28px", borderBottom: s, borderRight: s, borderRadius: "0 0 4px 0" }} />
+
+                  {/* Scan-Linie */}
+                  <div style={{
+                    position: "absolute", left: "14%", right: "14%",
+                    height: "2px",
+                    background: `linear-gradient(to right, transparent, ${A}, transparent)`,
+                    animation: "scanline 2s ease-in-out infinite",
+                    borderRadius: "1px",
+                    boxShadow: `0 0 8px 2px rgba(232,153,26,0.5)`,
+                  }} />
+
+                  {/* Vignette */}
+                  <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 60px rgba(0,0,0,0.5)", borderRadius: "16px" }} />
+                </div>
+              </>
+            );
+          })()}
+
+          {!scanning && !loading && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "0.5rem" }}>
+              <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: `rgba(245,232,200,0.4)`, margin: 0 }}>
+                Kamera bereit
+              </p>
+            </div>
+          )}
+          {loading && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)" }}>
+              <p style={{ fontFamily: "'Lora', serif", color: A, fontStyle: "italic", margin: 0, fontSize: "1rem" }}>
+                Prüfe Ticket…
+              </p>
+            </div>
+          )}
+        </div>
+        <canvas ref={canvasRef} style={{ display: "none" }} />
+
+        {camError && (
+          <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e74c3c", textAlign: "center", margin: 0 }}>
+            {camError}
+          </p>
         )}
-        {!scanning && !loading && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "0.5rem" }}>
-            <p style={{ fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.85rem", color: "rgba(245,232,200,0.45)", margin: 0 }}>Kamera bereit</p>
-          </div>
-        )}
-        {loading && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)" }}>
-            <p style={{ fontFamily: "'Lora', serif", color: "#e8991a", fontStyle: "italic", margin: 0 }}>Prüfe Ticket…</p>
-          </div>
-        )}
+
+        {/* Buttons */}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+          {!scanning && (
+            <button onClick={() => void startScan()} style={{
+              background: `rgba(232,153,26,0.12)`,
+              border: `1.5px solid ${A}`,
+              borderRadius: "8px",
+              color: A,
+              padding: "0.85rem",
+              fontFamily: "'Playfair Display', serif",
+              fontStyle: "italic",
+              fontSize: "1.05rem",
+              cursor: "pointer",
+              width: "100%",
+              boxShadow: "0 4px 16px rgba(232,153,26,0.15)",
+              backdropFilter: "blur(4px)",
+            }}>
+              {camError ? "Nochmal versuchen" : "Kamera starten & scannen"}
+            </button>
+          )}
+          {scanning && (
+            <button onClick={stopScan} style={{
+              background: "rgba(245,232,200,0.06)",
+              border: "1px solid rgba(245,232,200,0.2)",
+              borderRadius: "8px",
+              color: `rgba(245,232,200,0.45)`,
+              padding: "0.6rem",
+              fontFamily: "'Lora', serif",
+              fontStyle: "italic",
+              fontSize: "0.82rem",
+              cursor: "pointer",
+              width: "100%",
+              backdropFilter: "blur(4px)",
+            }}>
+              Pause
+            </button>
+          )}
+        </div>
+
+        <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} vibrationEnabled={vibrationEnabled} scannerName={scannerName} />
+
+        {/* Vibrations-Toggle */}
+        <button
+          onClick={toggleVibration}
+          style={{
+            background: "transparent",
+            border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.35)" : "rgba(245,232,200,0.1)"}`,
+            borderRadius: "3px",
+            color: vibrationEnabled ? "rgba(232,153,26,0.65)" : `rgba(245,232,200,0.22)`,
+            fontFamily: "'Lora', serif",
+            fontStyle: "italic",
+            fontSize: "0.75rem",
+            padding: "0.3rem 0.75rem",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span style={{ fontSize: "0.88rem" }}>📳</span>
+          Vibration {vibrationEnabled ? "an" : "aus"}
+        </button>
+
+        <div style={{ width: "100%", borderTop: "1px solid rgba(245,232,200,0.07)", marginTop: "0.25rem" }} />
+
+        <EingelassenTabelle refreshTrigger={refreshTrigger} />
+
+        {/* Abmelden */}
+        <button
+          onClick={() => { sessionStorage.removeItem(PW_KEY); sessionStorage.removeItem(SCANNER_KEY); stopScan(); setAuthed(false); }}
+          style={{ background: "transparent", border: "none", color: `rgba(245,232,200,0.18)`, fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.72rem", cursor: "pointer", marginTop: "0.25rem" }}
+        >
+          Abmelden
+        </button>
       </div>
-      <canvas ref={canvasRef} style={{ display: "none" }} />
-
-      {camError && (
-        <p style={{ fontFamily: "'Lora', serif", fontSize: "0.88rem", color: "#e74c3c", textAlign: "center", maxWidth: "380px", margin: 0 }}>
-          {camError}
-        </p>
-      )}
-
-      {/* Buttons */}
-      <div style={{ width: "100%", maxWidth: "420px", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-        {!scanning && (
-          <button onClick={() => void startScan()} style={btnStyle("#e8991a", "0.8rem")}>
-            {camError ? "Nochmal versuchen" : "Kamera starten & scannen"}
-          </button>
-        )}
-        {scanning && (
-          <button onClick={stopScan} style={btnStyle("rgba(245,232,200,0.3)", "0.7rem")}>
-            Pause
-          </button>
-        )}
-      </div>
-
-      <ManualEntry onScanned={() => setRefreshTrigger(n => n + 1)} vibrationEnabled={vibrationEnabled} scannerName={scannerName} />
-
-      {/* Vibrations-Toggle */}
-      <button
-        onClick={toggleVibration}
-        style={{
-          background: "transparent",
-          border: `1px solid ${vibrationEnabled ? "rgba(232,153,26,0.4)" : "rgba(245,232,200,0.12)"}`,
-          borderRadius: "3px",
-          color: vibrationEnabled ? "rgba(232,153,26,0.7)" : "rgba(245,232,200,0.25)",
-          fontFamily: "'Lora', serif",
-          fontStyle: "italic",
-          fontSize: "0.78rem",
-          padding: "0.3rem 0.75rem",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.4rem",
-        }}
-      >
-        <span style={{ fontSize: "0.9rem" }}>📳</span>
-        Vibration {vibrationEnabled ? "an" : "aus"}
-      </button>
-
-      <div style={{ width: "100%", maxWidth: "520px", borderTop: "1px solid rgba(245,232,200,0.07)", marginTop: "0.25rem" }} />
-
-      <EingelassenTabelle refreshTrigger={refreshTrigger} />
-
-      {/* Abmelden */}
-      <button
-        onClick={() => { sessionStorage.removeItem(PW_KEY); sessionStorage.removeItem(SCANNER_KEY); stopScan(); setAuthed(false); }}
-        style={{ background: "transparent", border: "none", color: "rgba(245,232,200,0.2)", fontFamily: "'Lora', serif", fontStyle: "italic", fontSize: "0.72rem", cursor: "pointer", marginTop: "0.5rem" }}
-      >
-        Abmelden
-      </button>
     </div>
   );
 }
