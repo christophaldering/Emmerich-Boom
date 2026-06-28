@@ -408,7 +408,7 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
 
 export interface ZahlungserinnerungOptions {
   to:              string;
-  vorname:         string;
+  personen:        string[];   // vollständige Namen aller angemeldeten Personen
   anmeldedatum_de: string;
   frist_de:        string;
   betrag_gesamt:   number;
@@ -437,11 +437,13 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
   <div style="padding:40px 32px 48px;">
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      Hallo ${escHtml(opts.vorname)},
+      Liebe Boomerin, lieber Boomer,
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
-      kurze, freundliche Erinnerung: Du hast dich am <strong>${escHtml(opts.anmeldedatum_de)}</strong> f\u00fcr die BoomerParty am 18.&nbsp;Juli&nbsp;2026 angemeldet \u2014 sch\u00f6n, dass du dabei sein m\u00f6chtest! Seitdem konnten wir leider noch keinen Zahlungseingang zu deiner Anmeldung verbuchen.
+      kurze, freundliche Erinnerung: Unter dieser E-Mail-Adresse wurde am <strong>${escHtml(opts.anmeldedatum_de)}</strong> ${opts.personen_anzahl === 1 ? "eine Person" : `<strong>${opts.personen_anzahl}&nbsp;Personen</strong>`} f\u00fcr die BoomerParty am 18.&nbsp;Juli&nbsp;2026 angemeldet:<br>
+      <span style="color:#e8991a;">${opts.personen.map(escHtml).join(", ")}</span><br>
+      Sch\u00f6n, dass ${opts.personen_anzahl === 1 ? "du" : "ihr"} dabei sein ${opts.personen_anzahl === 1 ? "m\u00f6chtest" : "m\u00f6chtet"}! Seitdem konnten wir leider noch keinen Zahlungseingang zu dieser Anmeldung verbuchen.
     </p>
 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
@@ -469,7 +471,7 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
       </div>
       <div>
         <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Verwendungszweck</div>
-        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">Boomerparty + dein Name</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">Boomerparty ${opts.personen.map(escHtml).join(" + ")}</div>
       </div>
     </div>
 
@@ -509,10 +511,11 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
 </body>
 </html>`;
 
+  const personenListe = opts.personen.join(", ");
   const text = [
-    `Hallo ${opts.vorname},`,
+    "Liebe Boomerin, lieber Boomer,",
     "",
-    `kurze, freundliche Erinnerung: Du hast dich am ${opts.anmeldedatum_de} f\u00fcr die BoomerParty am 18. Juli 2026 angemeldet \u2014 sch\u00f6n, dass du dabei sein m\u00f6chtest! Seitdem konnten wir leider noch keinen Zahlungseingang zu deiner Anmeldung verbuchen.`,
+    `kurze, freundliche Erinnerung: Unter dieser E-Mail-Adresse wurde am ${opts.anmeldedatum_de} ${opts.personen_anzahl === 1 ? "eine Person" : `${opts.personen_anzahl} Personen`} f\u00fcr die BoomerParty am 18. Juli 2026 angemeldet: ${personenListe}. Sch\u00f6n, dass ${opts.personen_anzahl === 1 ? "du" : "ihr"} dabei sein ${opts.personen_anzahl === 1 ? "m\u00f6chtest" : "m\u00f6chtet"}! Seitdem konnten wir leider noch keinen Zahlungseingang zu dieser Anmeldung verbuchen.`,
     "",
     `Wir bitten dich daher um eine kurze R\u00fcckmeldung bis zum ${opts.frist_de}:`,
     "",
@@ -522,7 +525,7 @@ export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): P
     `IBAN: ${IBAN}`,
     `Bank: ${BANK}`,
     `Betrag: ${opts.betrag_gesamt} \u20ac (${opts.personen_anzahl} ${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10 \u20ac)`,
-    "Verwendungszweck: Boomerparty + dein Name",
+    `Verwendungszweck: Boomerparty ${opts.personen.join(" + ")}`,
     "",
     "Bereits \u00fcberwiesen? Dann melde dich kurz \u2014 m\u00f6glicherweise ist deine Zahlung nicht bei uns angekommen, und wir schauen gemeinsam nach, was passiert ist.",
     "",

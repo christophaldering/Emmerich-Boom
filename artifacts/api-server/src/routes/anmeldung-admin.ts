@@ -487,14 +487,13 @@ router.post("/admin/anmeldungen/zahlungserinnerung", async (req: Request, res: R
       if (a.storniert_am) { results.push({ id, status: "skip", reason: "Storniert" }); continue; }
 
       const personen = parsePersonen(a.personen);
-      const vorname = (personen[0] ?? "").split(" ")[0] ?? "Hallo";
       const anmeldedatum_de = new Date(a.created_at!).toLocaleDateString("de-DE", {
         day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Berlin",
       });
 
       await sendZahlungserinnerung({
         to:              a.email,
-        vorname,
+        personen,
         anmeldedatum_de,
         frist_de,
         betrag_gesamt:   a.betrag_gesamt,
