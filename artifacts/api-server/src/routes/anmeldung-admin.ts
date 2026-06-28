@@ -498,6 +498,7 @@ router.post("/admin/anmeldungen/zahlungserinnerung", async (req: Request, res: R
         frist_de,
         betrag_gesamt:   a.betrag_gesamt,
         personen_anzahl: a.personen_anzahl,
+        bezahlweg:       (a.bezahlweg === "paypal" ? "paypal" : "ueberweisung"),
       });
 
       // Erinnerung in DB festhalten
