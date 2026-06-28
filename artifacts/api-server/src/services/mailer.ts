@@ -404,6 +404,166 @@ export async function sendTicketMail(opts: TicketMailOptions): Promise<void> {
   logger.info({ to: opts.to }, "Ticket-Mail versendet");
 }
 
+// ─── Zahlungserinnerung ───────────────────────────────────────────────────────
+
+export interface ZahlungserinnerungOptions {
+  to:              string;
+  vorname:         string;
+  anmeldedatum_de: string;
+  frist_de:        string;
+  betrag_gesamt:   number;
+  personen_anzahl: number;
+}
+
+export async function sendZahlungserinnerung(opts: ZahlungserinnerungOptions): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    logger.error({ to: opts.to }, "RESEND_API_KEY nicht gesetzt — Zahlungserinnerung kann nicht versendet werden");
+    throw new Error("RESEND_API_KEY nicht gesetzt");
+  }
+
+  const resend = new Resend(apiKey);
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Kurze R\u00fcckmeldung erbeten \u00b7 EMMERICH BOOMT!</title></head>
+<body style="margin:0;padding:0;background:#0a0704;color:#f5e8c8;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0704" style="background-color:#0a0704;"><tr><td bgcolor="#0a0704" style="background-color:#0a0704;">
+<div style="max-width:600px;margin:0 auto;">
+
+  <img src="cid:${POSTER_CID}" alt="BoomerParty \u2014 Emmerich boomt!" width="600"
+    style="display:block;width:100%;height:auto;" />
+
+  <div style="padding:40px 32px 48px;">
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Hallo ${escHtml(opts.vorname)},
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      kurze, freundliche Erinnerung: Du hast dich am <strong>${escHtml(opts.anmeldedatum_de)}</strong> f\u00fcr die BoomerParty am 18.&nbsp;Juli&nbsp;2026 angemeldet \u2014 sch\u00f6n, dass du dabei sein m\u00f6chtest! Seitdem konnten wir leider noch keinen Zahlungseingang zu deiner Anmeldung verbuchen.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Wir bitten dich daher um eine <strong>kurze R\u00fcckmeldung bis zum ${escHtml(opts.frist_de)}</strong>:
+    </p>
+
+    <div style="margin:0 0 16px;padding:20px 24px;border:1px solid rgba(232,153,26,.4);border-left:3px solid #e8991a;background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#e8991a;font-weight:bold;margin:0 0 14px;">Noch nicht \u00fcberwiesen?</p>
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.85);margin:0 0 12px;line-height:1.65;">Bitte den Betrag bis zum <strong>${escHtml(opts.frist_de)}</strong> begleichen:</p>
+      <div style="margin:0 0 8px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Empf\u00e4nger</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">${escHtml(KONTOINHABER)}</div>
+      </div>
+      <div style="margin:0 0 8px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">IBAN</div>
+        <div style="font-family:Courier,Menlo,monospace;font-size:14px;letter-spacing:.04em;color:#f5e8c8;">${escHtml(formatIban(IBAN))}</div>
+      </div>
+      <div style="margin:0 0 8px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Bank</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">${escHtml(BANK)}</div>
+      </div>
+      <div style="margin:0 0 8px;">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Betrag</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">${opts.betrag_gesamt}&nbsp;\u20ac (${opts.personen_anzahl}&nbsp;${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10&nbsp;\u20ac)</div>
+      </div>
+      <div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,153,26,.7);margin:0 0 2px;">Verwendungszweck</div>
+        <div style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#f5e8c8;">Boomerparty + dein Name</div>
+      </div>
+    </div>
+
+    <div style="margin:0 0 16px;padding:16px 24px;border:1px solid rgba(245,232,200,.12);border-left:3px solid rgba(245,232,200,.3);background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.85);margin:0;line-height:1.7;">
+        <strong style="color:#f5e8c8;">Bereits \u00fcberwiesen?</strong> Dann melde dich kurz \u2014 m\u00f6glicherweise ist deine Zahlung nicht bei uns angekommen, und wir schauen gemeinsam nach, was passiert ist.
+      </p>
+    </div>
+
+    <div style="margin:0 0 32px;padding:16px 24px;border:1px solid rgba(245,232,200,.12);border-left:3px solid rgba(245,232,200,.3);background:#120c04;border-radius:0 4px 4px 0;">
+      <p style="font-family:Georgia,'Times New Roman',serif;font-size:14px;color:rgba(245,232,200,.85);margin:0;line-height:1.7;">
+        <strong style="color:#f5e8c8;">Kein Interesse mehr?</strong> Auch das ist kein Problem \u2014 eine kurze Nachricht gen\u00fcgt, damit wir dein Ticket anderweitig vergeben k\u00f6nnen.
+      </p>
+    </div>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.9);margin:0 0 20px;">
+      Antworte einfach direkt auf diese Mail.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.75;color:rgba(245,232,200,.85);margin:0 0 32px;">
+      Wir haben noch eine l\u00e4ngere Warteliste. Sollten wir bis zum <strong>${escHtml(opts.frist_de)}</strong> keine R\u00fcckmeldung erhalten, w\u00fcrden wir dein Ticket leider an Interessierte von der Warteliste weitergeben m\u00fcssen.
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;color:rgba(245,232,200,.8);line-height:1.8;margin:0 0 20px;">
+      Herzliche Gr\u00fc\u00dfe,<br>
+      Das BoomerParty-OrgaTeam<br>
+      <a href="mailto:${escHtml(ABSENDER_MAIL)}" style="color:rgba(232,153,26,.7);text-decoration:none;">${escHtml(ABSENDER_MAIL)}</a>
+    </p>
+
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:11px;font-style:italic;color:rgba(245,232,200,.35);line-height:1.7;margin:0;border-top:1px solid rgba(245,232,200,.08);padding-top:20px;">
+      EMMERICH BOOMT! &bull; Samstag, 18. Juli 2026 &bull; B\u00f6lt / Gastst\u00e4tte Kapaunenberg &bull; Emmerich am Rhein
+    </p>
+
+  </div>
+</div>
+</td></tr></table>
+</body>
+</html>`;
+
+  const text = [
+    `Hallo ${opts.vorname},`,
+    "",
+    `kurze, freundliche Erinnerung: Du hast dich am ${opts.anmeldedatum_de} f\u00fcr die BoomerParty am 18. Juli 2026 angemeldet \u2014 sch\u00f6n, dass du dabei sein m\u00f6chtest! Seitdem konnten wir leider noch keinen Zahlungseingang zu deiner Anmeldung verbuchen.`,
+    "",
+    `Wir bitten dich daher um eine kurze R\u00fcckmeldung bis zum ${opts.frist_de}:`,
+    "",
+    "Noch nicht \u00fcberwiesen?",
+    `Bitte den Betrag bis zum ${opts.frist_de} begleichen:`,
+    `Empf\u00e4nger: ${KONTOINHABER}`,
+    `IBAN: ${IBAN}`,
+    `Bank: ${BANK}`,
+    `Betrag: ${opts.betrag_gesamt} \u20ac (${opts.personen_anzahl} ${opts.personen_anzahl === 1 ? "Person" : "Personen"} \u00d7 10 \u20ac)`,
+    "Verwendungszweck: Boomerparty + dein Name",
+    "",
+    "Bereits \u00fcberwiesen? Dann melde dich kurz \u2014 m\u00f6glicherweise ist deine Zahlung nicht bei uns angekommen, und wir schauen gemeinsam nach, was passiert ist.",
+    "",
+    "Kein Interesse mehr? Auch das ist kein Problem \u2014 eine kurze Nachricht gen\u00fcgt, damit wir dein Ticket anderweitig vergeben k\u00f6nnen.",
+    "",
+    "Antworte einfach direkt auf diese Mail.",
+    "",
+    `Wir haben noch eine l\u00e4ngere Warteliste. Sollten wir bis zum ${opts.frist_de} keine R\u00fcckmeldung erhalten, w\u00fcrden wir dein Ticket leider an Interessierte von der Warteliste weitergeben m\u00fcssen.`,
+    "",
+    "Herzliche Gr\u00fc\u00dfe,",
+    "Das BoomerParty-OrgaTeam",
+    ABSENDER_MAIL,
+    "",
+    "---",
+    "EMMERICH BOOMT! \u00b7 Samstag, 18. Juli 2026 \u00b7 B\u00f6lt / Gastst\u00e4tte Kapaunenberg \u00b7 Emmerich am Rhein",
+  ].join("\n");
+
+  const { error } = await resend.emails.send({
+    from:    `${ABSENDER_NAME} <${ABSENDER_MAIL}>`,
+    to:      [opts.to],
+    replyTo: ABSENDER_MAIL,
+    subject: "Kurze R\u00fcckmeldung erbeten: Dein Ticket \u00b7 EMMERICH BOOMT! \u00b7 18. Juli 2026",
+    html,
+    text,
+    attachments: [
+      {
+        filename:    "boomerpartyposter.jpeg",
+        content:     getPosterBuffer(),
+        contentType: "image/jpeg",
+        contentId:   POSTER_CID,
+      },
+    ],
+  });
+
+  if (error) {
+    throw new Error(`Resend-Fehler: ${JSON.stringify(error)}`);
+  }
+
+  logger.info({ to: opts.to }, "Zahlungserinnerung versendet");
+}
+
 // ─── Wartelisten-Bestätigungsmail ─────────────────────────────────────────────
 
 export interface WartelisteMailOptions {

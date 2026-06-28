@@ -1886,7 +1886,9 @@ export default function AdminPage() {
   const [filterText, setFilterText]     = useState("");
   const [filterStatus, setFilterStatus] = useState<"alle" | "bezahlt" | "unbezahlt" | "storniert">("alle");
   const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
-  const [bulkLoading, setBulkLoading]   = useState(false);
+  const [bulkLoading, setBulkLoading]         = useState(false);
+  const [erinnerungLoading, setErinnerungLoading] = useState(false);
+  const [erinnerungMsg, setErinnerungMsg]     = useState<string | null>(null);
   const [confirmPending, setConfirmPending] = useState<{ title: string; confirmLabel?: string; onConfirm: () => void } | null>(null);
 
   const loadDisplayNames = useCallback(async () => {
@@ -2138,6 +2140,29 @@ export default function AdminPage() {
     });
     return rows;
   }, [anmeldungenRows, filterText, filterStatus, sortCol, sortDir]);
+
+  const handleBulkErinnerung = useCallback(async () => {
+    const targets = [...selectedIds].filter(id => {
+      const row = anmeldungenRows.find(r => r.id === id);
+      return row && !row.bezahlt_am && !row.storniert_am;
+    });
+    if (targets.length === 0) { setSelectedIds(new Set()); return; }
+    setErinnerungLoading(true);
+    setErinnerungMsg(null);
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/zahlungserinnerung`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-secret": SECRET },
+        body: JSON.stringify({ ids: targets }),
+      });
+      const d = await r.json() as { gesendet?: number; uebersprungen?: number; fehler?: number };
+      setErinnerungMsg(`${d.gesendet ?? 0} gesendet${d.uebersprungen ? `, ${d.uebersprungen} übersprungen` : ""}${d.fehler ? `, ${d.fehler} Fehler` : ""}`);
+    } catch {
+      setErinnerungMsg("Fehler beim Senden");
+    }
+    setErinnerungLoading(false);
+    setSelectedIds(new Set());
+  }, [selectedIds, anmeldungenRows]);
 
   const handleBulkBezahlt = useCallback(async () => {
     const targets = [...selectedIds].filter(id => {
@@ -2427,6 +2452,19 @@ export default function AdminPage() {
                 {bulkLoading ? "…" : "Als bezahlt markieren"}
               </button>
               <button
+                onClick={() => void handleBulkErinnerung()}
+                disabled={erinnerungLoading || bulkLoading}
+                style={{
+                  background: "transparent", border: `1px solid ${am(0.5)}`,
+                  borderRadius: "3px", color: A,
+                  cursor: erinnerungLoading ? "wait" : "pointer",
+                  fontFamily: "'Lora', serif", fontSize: "0.78rem",
+                  padding: "0.3rem 0.75rem", opacity: erinnerungLoading ? 0.6 : 1,
+                }}
+              >
+                {erinnerungLoading ? "…" : "Zahlungserinnerung senden"}
+              </button>
+              <button
                 onClick={() => setSelectedIds(new Set())}
                 style={{
                   background: "transparent", border: `1px solid ${fg(0.15)}`,
@@ -2437,6 +2475,13 @@ export default function AdminPage() {
               >
                 Auswahl aufheben
               </button>
+            </div>
+          )}
+
+          {erinnerungMsg && (
+            <div style={{ marginBottom: "0.7rem", fontFamily: "'Lora', serif", fontSize: "0.82rem", color: fg(0.65), background: am(0.07), border: `1px solid ${am(0.2)}`, borderRadius: "4px", padding: "0.4rem 0.85rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>✓ Zahlungserinnerung: {erinnerungMsg}</span>
+              <button onClick={() => setErinnerungMsg(null)} style={{ background: "none", border: "none", color: fg(0.4), cursor: "pointer", fontFamily: "'Lora', serif", fontSize: "0.85rem", padding: "0 0.2rem" }}>×</button>
             </div>
           )}
 

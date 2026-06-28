@@ -5,7 +5,7 @@ import { SERVER_CONFIG } from "../config.js";
 import crypto from "crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { sendTicketMail } from "../services/mailer";
+import { sendTicketMail, sendZahlungserinnerung } from "../services/mailer";
 import { renderTicketFrontPNG } from "../services/ticket-render.js";
 import { generateTicketPDF } from "../services/pdf.js";
 
@@ -448,6 +448,70 @@ router.get("/admin/einlass-monitor", async (req: Request, res: Response) => {
     req.log.error(err, "einlass-monitor failed");
     res.status(500).json({ error: "Fehler beim Laden" });
   }
+});
+
+// POST /api/admin/anmeldungen/zahlungserinnerung — Erinnerungsmail an ausgewählte senden
+router.post("/admin/anmeldungen/zahlungserinnerung", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+
+  const body = req.body as { ids?: unknown };
+  if (!Array.isArray(body.ids) || body.ids.length === 0) {
+    res.status(400).json({ error: "ids muss ein nicht-leeres Array sein" });
+    return;
+  }
+  const ids = (body.ids as unknown[]).filter((n): n is number => typeof n === "number");
+  if (ids.length === 0) {
+    res.status(400).json({ error: "Keine gültigen IDs" });
+    return;
+  }
+
+  const frist = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000);
+  const frist_de = frist.toLocaleDateString("de-DE", {
+    day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Berlin",
+  });
+
+  const results: { id: number; status: "ok" | "skip" | "error"; reason?: string }[] = [];
+
+  for (const id of ids) {
+    try {
+      const rows = await db
+        .select()
+        .from(anmeldungenTable)
+        .where(eq(anmeldungenTable.id, id))
+        .limit(1);
+
+      if (rows.length === 0) { results.push({ id, status: "skip", reason: "Nicht gefunden" }); continue; }
+      const a = rows[0]!;
+      if (a.bezahlt_am)   { results.push({ id, status: "skip", reason: "Bereits bezahlt" }); continue; }
+      if (a.storniert_am) { results.push({ id, status: "skip", reason: "Storniert" }); continue; }
+
+      const personen = parsePersonen(a.personen);
+      const vorname = (personen[0] ?? "").split(" ")[0] ?? "Hallo";
+      const anmeldedatum_de = new Date(a.created_at!).toLocaleDateString("de-DE", {
+        day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Berlin",
+      });
+
+      await sendZahlungserinnerung({
+        to:              a.email,
+        vorname,
+        anmeldedatum_de,
+        frist_de,
+        betrag_gesamt:   a.betrag_gesamt,
+        personen_anzahl: a.personen_anzahl,
+      });
+
+      results.push({ id, status: "ok" });
+    } catch (err) {
+      req.log.error(err, `zahlungserinnerung failed for id=${id}`);
+      results.push({ id, status: "error", reason: "Versand fehlgeschlagen" });
+    }
+  }
+
+  const gesendet     = results.filter(r => r.status === "ok").length;
+  const uebersprungen = results.filter(r => r.status === "skip").length;
+  const fehler        = results.filter(r => r.status === "error").length;
+
+  res.json({ ok: fehler === 0, gesendet, uebersprungen, fehler, details: results });
 });
 
 export default router;
