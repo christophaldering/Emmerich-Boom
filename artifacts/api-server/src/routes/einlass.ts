@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { db, scannerSlots } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, scannerSlots, scanLog, anmeldungTicketsTable, thekeProfileTable } from "@workspace/db";
+import { eq, and, desc, isNotNull, gte } from "drizzle-orm";
 
 const router = Router();
 const SECRET = "emmerich-orga-stats-2026";
@@ -77,6 +77,42 @@ router.delete("/admin/scanner-slots/:id", async (req: Request, res: Response) =>
   if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
   await db.delete(scannerSlots).where(eq(scannerSlots.id, id));
   res.json({ ok: true });
+});
+
+// GET /api/tafel — öffentlich; Neuankömmlinge + Anwesende für den Einlass-Bildschirm
+router.get("/tafel", async (_req: Request, res: Response) => {
+  const cutoff = new Date(Date.now() - 90_000);
+
+  const [neuankoemmlinge, anwesende] = await Promise.all([
+    db
+      .select({
+        id:          scanLog.id,
+        person_name: scanLog.person_name,
+        scanned_at:  scanLog.scanned_at,
+        lauter_song: thekeProfileTable.lauter_song,
+      })
+      .from(scanLog)
+      .leftJoin(anmeldungTicketsTable, eq(anmeldungTicketsTable.ticket_code, scanLog.ticket_code))
+      .leftJoin(thekeProfileTable, eq(thekeProfileTable.anmeldung_ticket_id, anmeldungTicketsTable.id))
+      .where(and(eq(scanLog.result, "ok"), gte(scanLog.scanned_at, cutoff)))
+      .orderBy(desc(scanLog.scanned_at))
+      .limit(10),
+
+    db
+      .select({
+        person_name:    anmeldungTicketsTable.person_name,
+        eingelassen_am: anmeldungTicketsTable.eingelassen_am,
+      })
+      .from(anmeldungTicketsTable)
+      .innerJoin(thekeProfileTable, eq(thekeProfileTable.anmeldung_ticket_id, anmeldungTicketsTable.id))
+      .where(and(
+        isNotNull(anmeldungTicketsTable.eingelassen_am),
+        eq(thekeProfileTable.tafel_ok, true),
+      ))
+      .orderBy(anmeldungTicketsTable.eingelassen_am),
+  ]);
+
+  res.json({ neuankoemmlinge, anwesende, server_time: new Date().toISOString() });
 });
 
 export default router;

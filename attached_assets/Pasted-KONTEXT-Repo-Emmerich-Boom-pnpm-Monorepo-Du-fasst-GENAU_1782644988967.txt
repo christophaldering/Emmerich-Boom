@@ -1,0 +1,164 @@
+KONTEXT
+Repo: Emmerich-Boom, pnpm-Monorepo.
+Du fasst GENAU DREI Dateien an:
+  1. artifacts/api-server/src/routes/einlass.ts          (neuer Endpunkt)
+  2. artifacts/emmerich/src/pages/TafelPage.tsx          (neue Datei, neu anlegen)
+  3. artifacts/emmerich/src/App.tsx                      (Route eintragen)
+
+Keine anderen Dateien. Keine package.json. Kein DB-Schema (wird nicht geändert).
+Kein OpenAPI-Codegen. Kein Backend außer einlass.ts.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATEI 1 — artifacts/api-server/src/routes/einlass.ts
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Füge am Ende der Datei (vor `export default router`) einen neuen Endpunkt ein:
+
+GET /api/tafel
+
+Kein Auth. Gibt JSON zurück.
+
+Imports die du brauchst (oben in der Datei ergänzen):
+  import { db, scanLog, anmeldungTicketsTable, thekeProfileTable } from "@workspace/db";
+  import { desc, eq, isNotNull, gte } from "drizzle-orm";
+
+Logik des Endpunkts:
+
+A) NEUANKÖMMLINGE — letzte 90 Sekunden aus scan_log:
+   SELECT scan_log.id, scan_log.person_name, scan_log.scanned_at,
+          theke_profile.lauter_song
+   FROM scan_log
+   LEFT JOIN anmeldung_tickets ON anmeldung_tickets.ticket_code = scan_log.ticket_code
+   LEFT JOIN theke_profile ON theke_profile.anmeldung_ticket_id = anmeldung_tickets.id
+   WHERE scan_log.result = 'ok'
+     AND scan_log.scanned_at >= NOW() - INTERVAL '90 seconds'
+   ORDER BY scan_log.scanned_at DESC
+   LIMIT 10
+
+   In Drizzle:
+   const cutoff = new Date(Date.now() - 90_000);
+   const neuankoemmlinge = await db
+     .select({
+       id:          scanLog.id,
+       person_name: scanLog.person_name,
+       scanned_at:  scanLog.scanned_at,
+       lauter_song: thekeProfileTable.lauter_song,
+     })
+     .from(scanLog)
+     .leftJoin(anmeldungTicketsTable, eq(anmeldungTicketsTable.ticket_code, scanLog.ticket_code))
+     .leftJoin(thekeProfileTable, eq(thekeProfileTable.anmeldung_ticket_id, anmeldungTicketsTable.id))
+     .where(and(eq(scanLog.result, "ok"), gte(scanLog.scanned_at, cutoff)))
+     .orderBy(desc(scanLog.scanned_at))
+     .limit(10);
+
+   Hinweis: `and` aus drizzle-orm importieren.
+
+B) ANWESENDE — alle erfolgreich eingescannten Gäste heute (eingelassen_am NOT NULL),
+   mit tafel_ok = true aus theke_profile:
+   const anwesende = await db
+     .select({
+       person_name:  anmeldungTicketsTable.person_name,
+       eingelassen_am: anmeldungTicketsTable.eingelassen_am,
+     })
+     .from(anmeldungTicketsTable)
+     .innerJoin(thekeProfileTable,
+       eq(thekeProfileTable.anmeldung_ticket_id, anmeldungTicketsTable.id))
+     .where(and(
+       isNotNull(anmeldungTicketsTable.eingelassen_am),
+       eq(thekeProfileTable.tafel_ok, true),
+     ))
+     .orderBy(anmeldungTicketsTable.eingelassen_am);
+
+Response:
+  res.json({
+    neuankoemmlinge,   // Array<{ id, person_name, scanned_at, lauter_song }>
+    anwesende,         // Array<{ person_name, eingelassen_am }>
+    server_time: new Date().toISOString(),
+  });
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATEI 2 — artifacts/emmerich/src/pages/TafelPage.tsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Neue Datei anlegen. Vollbild-React-Komponente für einen Bildschirm am Einlass.
+Kein Login. Pollt GET /api/tafel alle 5 Sekunden.
+
+Design: identisches Farbsystem wie der Rest der App.
+  const BG  = "#0A0704";
+  const A   = "#E8991A";
+  const FG  = "#F5E8C8";
+  Fonts: 'Playfair Display' (Headlines), 'Lora' (Body)
+
+Layout: Vollbild (100svh × 100vw), overflow hidden, schwarz.
+Zwei Bereiche nebeneinander (flex row):
+
+LINKE SPALTE — 55% Breite — "Spotlight"
+  Zeigt den zuletzt eingescannten Neuankömmling (neuankoemmlinge[0]).
+  Wenn vorhanden:
+    - Name groß: Playfair Display, italic, bold, clamp(3rem, 8vw, 6rem), Farbe A
+    - Darunter: "Willkommen!" in Lora, italic, 1.2rem, FG mit 70% Opacity
+    - Wenn lauter_song vorhanden:
+        ♪ {lauter_song}
+        Lora, italic, 1rem, A mit 80% Opacity, Zeilenabstand 1.6
+        Darunter kleiner Hinweis: "… sein lautester Song damals"
+        Lora, 0.75rem, FG 40% Opacity
+    - Wenn kein Neuankömmling in den letzten 90s:
+        Zeige stattdessen zentriert:
+        "Emmerich boomt." — Playfair Display, italic, 2.5rem, A, 40% Opacity
+  Leichter Amber-Glow hinter dem Namen: radial-gradient, subtle.
+
+RECHTE SPALTE — 45% Breite — "Wer ist da"
+  Überschrift: "Schon da" — Lora, 0.75rem, letterspacing 0.15em, uppercase, A 60% Opacity
+  Darunter scrollende Liste aller anwesenden Namen (anwesende).
+  Jeder Eintrag: Lora, 1rem, FG 80% Opacity, padding 0.4rem 0
+  Trennlinie zwischen den Einträgen: 1px solid rgba(232,153,26,0.12)
+  Liste scrollt automatisch von oben nach unten (CSS animation: scroll, linear, infinite)
+  — wenn weniger als 6 Einträge: kein Scroll, einfach Liste.
+  Wenn anwesende leer: "Noch niemand eingescannt." italic, FG 30% Opacity
+
+  Scroll-Animation:
+  @keyframes tscroll {
+    0%   { transform: translateY(0) }
+    100% { transform: translateY(-50%) }
+  }
+  Verdopple die Liste im DOM (original + Kopie) für nahtlosen Loop.
+  duration: Math.max(8, anwesende.length * 1.8) + "s"
+
+Trennlinie zwischen den Spalten:
+  1px solid rgba(232,153,26,0.18), volle Höhe.
+
+Unten rechts: kleine Statuszeile
+  "Zuletzt aktualisiert: {server_time als HH:MM:SS}" — Lora, 0.65rem, FG 25% Opacity
+
+Kein Header. Kein Footer. Kein Logo. Keine Navigation.
+Kein Fullscreen-Button (läuft ohnehin auf dediziertem Bildschirm).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATEI 3 — artifacts/emmerich/src/App.tsx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Zwei kleine Ergänzungen:
+
+1. Import oben ergänzen:
+   import TafelPage from "@/pages/TafelPage";
+
+2. In getRoute() einen neuen Case ergänzen (vor dem return { page: "main" }):
+   if (clean === "tafel") return { page: "tafel" };
+
+3. In App() einen neuen Render-Case ergänzen (vor dem letzten return):
+   if (route.page === "tafel") return <TafelPage />;
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERBOTEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Keine anderen Dateien anfassen
+- Kein DB-Schema ändern
+- Kein OpenAPI/Orval
+- Keine neuen npm-Pakete
+- Kein Login / kein Passwortschutz auf /tafel
+- Kein Audio, kein Autoplay
+- Kein Tailwind color classes
+
+ABSCHLUSS-PFLICHT
+Wenn du fertig bist, schreibe exakt:
+"FERTIG — /tafel erreichbar, GET /api/tafel liefert Neuankömmlinge + Anwesende."
