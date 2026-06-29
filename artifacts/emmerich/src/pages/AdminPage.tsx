@@ -528,6 +528,19 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
     finally { setBzLoading(false); }
   };
 
+  const markUnbezahlt = async () => {
+    if (!confirm(`Bezahlung für #${row.id} wirklich zurücksetzen?`)) return;
+    setBzLoading(true); setMsg("");
+    try {
+      const r = await fetch(`${BASE}/api/admin/anmeldungen/${row.id}/unbezahlt`, {
+        method: "POST", headers: { "x-admin-secret": SECRET },
+      });
+      const d = await r.json() as { ok?: boolean; error?: string };
+      if (d.ok) { onRefresh(); } else { setMsg(d.error ?? "Fehler"); }
+    } catch { setMsg("Verbindungsfehler"); }
+    finally { setBzLoading(false); }
+  };
+
   const sendeTickets = async () => {
     setTkLoading(true); setMsg("");
     try {
@@ -842,7 +855,22 @@ function AnmeldungTableRow({ row, onRefresh, selected, onToggle }: {
       {/* Bezahlt-Spalte */}
       <td style={{ ...tdStyle, width: "10rem" }}>
         {bezahlt ? (
-          <span style={{ color: "#2ecc71", fontSize: "0.78rem" }}>✓ {dateFmt(row.bezahlt_am!)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+            <span style={{ color: "#2ecc71", fontSize: "0.78rem" }}>✓ {dateFmt(row.bezahlt_am!)}</span>
+            <button onClick={markUnbezahlt} disabled={bzLoading} title="Bezahlung zurücksetzen" style={{
+              background: "transparent",
+              border: "1px solid rgba(231,76,60,0.35)",
+              borderRadius: "3px",
+              color: "rgba(231,76,60,0.65)",
+              fontSize: "0.68rem",
+              padding: "0.1rem 0.35rem",
+              cursor: bzLoading ? "wait" : "pointer",
+              fontFamily: "'Lora', serif",
+              lineHeight: 1.4,
+            }}>
+              {bzLoading ? "…" : "↩"}
+            </button>
+          </div>
         ) : (
           <button onClick={markBezahlt} disabled={bzLoading} style={{
             ...btnBase,

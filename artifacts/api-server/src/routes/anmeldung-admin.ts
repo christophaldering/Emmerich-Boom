@@ -108,6 +108,25 @@ router.post("/admin/anmeldungen/:id/bezahlt", async (req: Request, res: Response
   }
 });
 
+// POST /api/admin/anmeldungen/:id/unbezahlt — Bezahlung zurücksetzen
+router.post("/admin/anmeldungen/:id/unbezahlt", async (req: Request, res: Response) => {
+  if (!requireAdmin(req, res)) return;
+  const id = parseInt(String(req.params["id"]), 10);
+  if (isNaN(id)) { res.status(400).json({ error: "Ungültige ID" }); return; }
+  try {
+    const updated = await db
+      .update(anmeldungenTable)
+      .set({ bezahlt_am: null })
+      .where(eq(anmeldungenTable.id, id))
+      .returning({ id: anmeldungenTable.id });
+    if (updated.length === 0) { res.status(404).json({ error: "Nicht gefunden" }); return; }
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error(err, "admin unbezahlt failed");
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
 // POST /api/admin/anmeldungen/:id/stornieren — Anmeldung intern stornieren (stille Aktion)
 router.post("/admin/anmeldungen/:id/stornieren", async (req: Request, res: Response) => {
   if (!requireAdmin(req, res)) return;
